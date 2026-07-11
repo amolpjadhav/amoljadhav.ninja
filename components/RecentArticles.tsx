@@ -24,11 +24,13 @@ export default async function RecentArticles() {
         <Link
           key={post.slug}
           href={`/blog/${post.slug}`}
-          className="group flex items-baseline justify-between gap-3 py-1.5 text-sm border-b border-[#0aee3c]/10 last:border-0 animate-fadeInUp"
+          className="group flex items-baseline justify-between gap-3 py-1.5 px-1.5 -mx-1.5 rounded text-sm border-b border-[#0aee3c]/10 last:border-0 hover:bg-[#0aee3c]/5 transition-colors animate-fadeInUp"
           style={{ animationDelay: `${index * 0.08}s`, opacity: 0, animationFillMode: 'forwards' }}
         >
           <span className="text-[#0aee3c] group-hover:text-white transition-colors">
-            <span className="text-[#0aee3c]/40 mr-2">{String(index + 1).padStart(2, '0')}</span>
+            <span className="inline-block w-6 text-[#0aee3c]/50 group-hover:text-[#0aee3c] mr-2 transition-colors">
+              {String(index + 1).padStart(2, '0')}
+            </span>
             {post.title}
           </span>
           <span className="text-[#0aee3c]/40 text-xs whitespace-nowrap shrink-0">
