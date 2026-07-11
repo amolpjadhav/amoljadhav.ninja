@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import Header from '@/components/layout/Header';
 import { supabase } from '@/lib/supabase';
 import { formatDate } from '@/lib/utils';
+import { colorizeArticleSections } from '@/lib/blog-content';
 import ShareButtons from '@/components/blog/ShareButtons';
 import LikeButton from '@/components/blog/LikeButton';
 
@@ -35,14 +36,14 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
       <Header />
 
       <main className="min-h-screen pt-24 pb-16 px-4">
-        <article className="container mx-auto max-w-2xl bg-black/90 border border-[#0aee3c]/10 rounded-lg p-6 md:p-10">
+        <article className="container mx-auto max-w-2xl bg-[#1c1d20] border border-white/10 rounded-lg p-6 md:p-10">
           <div className="mb-10 animate-fadeIn">
             {post.tags.length > 0 && (
               <div className="flex flex-wrap gap-2 mb-4">
                 {post.tags.map((tag: string) => (
                   <span
                     key={tag}
-                    className="text-xs text-[#0aee3c]/60 border border-[#0aee3c]/20 px-2.5 py-1 rounded-full"
+                    className="text-xs text-white/50 border border-white/15 px-2.5 py-1 rounded-full"
                   >
                     #{tag}
                   </span>
@@ -50,11 +51,11 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
               </div>
             )}
 
-            <h1 className="font-serif text-3xl md:text-4xl font-bold text-[#0aee3c] leading-tight mb-4">
+            <h1 className="font-serif text-2xl md:text-3xl font-bold text-white/95 leading-tight mb-4">
               {post.title}
             </h1>
 
-            <div className="flex gap-3 items-center text-[#0aee3c]/50 text-sm">
+            <div className="flex gap-3 items-center text-white/45 text-sm">
               <span>{formatDate(post.created_at)}</span>
               {post.read_time && (
                 <>
@@ -72,7 +73,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
 
           <div
             className="article-content animate-fadeInUp"
-            dangerouslySetInnerHTML={{ __html: post.content }}
+            dangerouslySetInnerHTML={{ __html: colorizeArticleSections(post.content) }}
           />
         </article>
       </main>
