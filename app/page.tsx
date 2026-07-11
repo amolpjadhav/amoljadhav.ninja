@@ -34,7 +34,7 @@ export default function Home() {
               <ConstantsRain />
 
               <div className="mb-3 relative w-16 h-16 mx-auto">
-                <div className="absolute left-1/2 top-1/2 w-[220px] h-[220px] -translate-x-1/2 -translate-y-1/2">
+                <div className="absolute left-1/2 top-1/2 w-[220px] h-[220px] -translate-x-1/2 -translate-y-1/2 pointer-events-none">
                   <ProfileFireworks />
                 </div>
                 <div className="relative z-10 w-full h-full rounded-full border-2 border-[#0aee3c] overflow-hidden shadow-[0_0_18px_rgba(10,238,60,0.45)] animate-rotateIn">
