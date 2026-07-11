@@ -11,7 +11,7 @@ export default function Header() {
     <header className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-sm border-b border-[#0aee3c]/20">
       <nav className="container mx-auto px-4 py-4 flex items-center justify-between">
         <Link href="/" className="text-xl font-bold text-[#0aee3c] hover:text-[#0aee3c]/80">
-          AMOL JADHAV
+          Home
         </Link>
 
         <div className="hidden md:flex items-center gap-6">
