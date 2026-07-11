@@ -1,0 +1,90 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Geeks of Greeks: A Beginner’s Guide to Options Greeks — Medium copy source</title>
+<style>
+  body { max-width: 700px; margin: 3rem auto; padding: 0 1.5rem; font-family: Georgia, 'Times New Roman', serif; font-size: 19px; line-height: 1.7; color: #292929; background: #fff; }
+  h1 { font-family: -apple-system, sans-serif; font-size: 2rem; }
+  h3 { font-family: -apple-system, sans-serif; font-size: 1.4rem; margin-top: 2.2em; }
+  blockquote { border-left: 3px solid #292929; padding-left: 1.2rem; margin-left: 0; font-style: italic; }
+  pre { background: #f2f2f2; padding: 1rem; overflow-x: auto; border-radius: 4px; font-size: 0.85em; }
+  code { font-family: Menlo, monospace; }
+  .note { background: #fff8e1; border: 1px solid #e0c568; padding: 1rem 1.2rem; margin-bottom: 2rem; font-family: -apple-system, sans-serif; font-size: 0.9rem; }
+</style>
+</head>
+<body>
+<div class="note">
+  <strong>How to use this file:</strong> Open in a browser, select all the content below the title (Cmd/Ctrl+A within the article, or select from the first paragraph to the end), copy, and paste directly into a new Medium story. Medium's paste handler reads the HTML formatting (headings, bold, italic, blockquotes, code blocks) and converts it to native Medium blocks automatically. Type the title separately into Medium's title field. The two tables were converted to monospace code blocks since Medium doesn't reliably support pasted tables — check they still look reasonable after pasting.
+</div>
+<h1>Geeks of Greeks: A Beginner’s Guide to Options Greeks</h1>
+<p><em>Tags to add on Medium: options-greeks, investing, delta, finance</em></p>
+<p>If you&rsquo;ve ever opened an options chain and felt like you were staring at a stack trace in a language you don&rsquo;t know, welcome. Delta, Gamma, Theta, Vega, Rho &mdash; the &ldquo;Greeks&rdquo; &mdash; look intimidating, but they&rsquo;re really just a set of sensors. Each one tells you how the price of an option reacts when <em>one specific thing</em> in the world changes: the stock price, time, volatility, or interest rates.</p>
+<p>If you&rsquo;ve done any calculus or worked with derivatives (the math kind, not the finance kind &mdash; though, plot twist, they&rsquo;re the same thing here), this will click fast. An option&rsquo;s price is a function of several variables, and the Greeks are just its partial derivatives. Each Greek isolates one input and asks: &ldquo;if this moves a little, how much does the option&rsquo;s price move?&rdquo;</p>
+<p>This isn&rsquo;t a guide to what values are &ldquo;good&rdquo; &mdash; that depends entirely on your strategy, risk tolerance, and the trade you&rsquo;re looking at. This is just what each one actually <em>means</em>, so the next time you see them on a chain, they&rsquo;re not just Greek to you.</p>
+<blockquote>One note before we start: every number below is a made-up, round-numbers example meant to illustrate the mechanics &mdash; not a real quote, not a recommendation, not &ldquo;this is what you should expect.&rdquo; Treat it the way you&rsquo;d treat <code>x = 5</code> in a math textbook.</blockquote>
+<p><strong>Our example setup:</strong> Stock XYZ is trading at <strong>$100</strong>. We&rsquo;re looking at a call option, strike price $100 (at-the-money), 30 days to expiration, currently priced at <strong>$3.00</strong>. Here are its Greeks:</p>
+<pre><code>Delta  |  Gamma  |  Theta  |  Vega  |  Rho   |  IV 
+-------|---------|---------|--------|--------|-----
+0.50   |  0.05   |  -0.04  |  0.10  |  0.02  |  30%</code></pre>
+<p>We&rsquo;ll reuse this same option in every example below, changing one input at a time &mdash; which is the whole point of the Greeks in the first place. One more thing worth knowing up front: option prices are quoted <strong>per share</strong>, but a standard contract covers <strong>100 shares</strong>. So every per-share move we calculate below is worth 100&times; that on an actual position &mdash; a detail we&rsquo;ll tag onto each example.</p>
+
+<h3>Delta: How much the option moves with the stock</h3>
+<p>Delta measures how much an option&rsquo;s price changes when the underlying stock moves by $1.</p>
+<p>Think of it as <strong>velocity</strong>. If a stock moves, delta tells you how fast the option&rsquo;s price moves in response &mdash; and in which direction. Call options have positive delta (they gain value as the stock rises), put options have negative delta (they gain value as the stock falls).</p>
+<p>Delta also does double duty as a rough estimate of probability &mdash; informally, it approximates the odds the option expires in-the-money. That&rsquo;s a useful mental model, but it&rsquo;s an approximation, not a guarantee.</p>
+<p><strong>Example:</strong> Our option has a delta of 0.50. If XYZ rises from $100 to $101 &mdash; and nothing else changes &mdash; the option&rsquo;s price moves by roughly delta &times; $1:</p>
+<blockquote><code>$3.00 + (0.50 &times; $1) = $3.50</code></blockquote>
+<p>Notice it&rsquo;s <em>not</em> a full dollar-for-dollar move. The option gained $0.50 for every $1 the stock gained &mdash; that ratio is exactly what delta is describing. On one contract, that&rsquo;s a <strong>$50 gain</strong> (100 &times; $0.50).</p>
+
+<h3>Gamma: How fast delta itself is changing</h3>
+<p>If delta is velocity, gamma is <strong>acceleration</strong>. It measures how much delta changes as the stock price moves.</p>
+<p>This matters because delta isn&rsquo;t fixed &mdash; it shifts as the stock moves, and gamma tells you how quickly. High gamma means an option&rsquo;s directional sensitivity (delta) can change rapidly, which is why gamma tends to matter most for options that are close to the money and close to expiration &mdash; small moves in the stock can swing delta a lot.</p>
+<p><strong>Example:</strong> Our option has a gamma of 0.05. After that same $1 move in the previous example, delta doesn&rsquo;t stay at 0.50 &mdash; it shifts by roughly gamma &times; $1:</p>
+<blockquote><code>0.50 + (0.05 &times; $1) = 0.55</code></blockquote>
+<p>So if XYZ moves <em>another</em> $1 (from $101 to $102), the option won&rsquo;t gain another $0.50 &mdash; it&rsquo;ll gain closer to $0.55, because delta itself moved. In dollar terms: that first $1 move was worth $50 on one contract, but thanks to gamma, the <em>next</em> $1 move is worth about <strong>$55</strong> &mdash; same size move, bigger payoff, because delta grew in between.</p>
+
+<h3>Theta: The cost of time</h3>
+<p>Every option has an expiration date, and that clock never stops ticking. Theta measures how much value an option loses purely from the passage of time, all else being equal.</p>
+<p>This is often called &ldquo;time decay,&rdquo; and it&rsquo;s usually expressed as a negative number for option buyers &mdash; a reminder that an option is a wasting asset. Every day that passes, assuming nothing else changes, the option is worth a little less, simply because there&rsquo;s less time left for anything to happen.</p>
+<p><strong>Example:</strong> Our option has a theta of -0.04. If one full day passes and the stock price and volatility don&rsquo;t move at all, the option&rsquo;s price still changes:</p>
+<blockquote><code>$3.00 + (-0.04 &times; 1 day) = $2.96</code></blockquote>
+<p>The stock didn&rsquo;t move, nothing &ldquo;happened&rdquo; &mdash; and the option still lost four cents, purely because there&rsquo;s one fewer day left for something to happen before expiration. On one contract, that&rsquo;s a <strong>$4 loss</strong> &mdash; quietly leaving the position every day the stock sits still.</p>
+
+<h3>Implied Volatility: the market&rsquo;s guess about the future</h3>
+<p>Implied volatility (IV) isn&rsquo;t a Greek in the traditional sense, but it&rsquo;s the input that makes the next Greek, Vega, possible &mdash; so it&rsquo;s worth understanding first.</p>
+<p>Here&rsquo;s the distinction that matters: <strong>historical volatility</strong> looks backward &mdash; it measures how much a stock actually moved in the past. <strong>Implied volatility</strong> looks forward &mdash; it&rsquo;s not calculated from price history at all. Instead, it&rsquo;s <em>reverse-engineered</em> from the option&rsquo;s current market price: given what the option is trading for right now, what level of future volatility would justify that price?</p>
+<p>In other words, IV isn&rsquo;t a prediction anyone computed from first principles &mdash; it&rsquo;s the market&rsquo;s collective expectation, extracted from what people are actually willing to pay. High IV means the market is pricing in a wide range of possible outcomes; low IV means the market expects relative calm.</p>
+<p><strong>Example:</strong> This is the one input we work <em>backward</em>, not forward. A pricing model (like Black-Scholes) takes in the stock price, strike, time to expiration, interest rate, and volatility, and outputs a theoretical option price. Normally you&rsquo;d plug in a volatility number and get a price out.</p>
+<p>For IV, you flip it around: you already know the option is trading at $3.00 in the market. So you ask the model, &ldquo;what volatility input would you need, holding everything else in our setup fixed, to spit out exactly $3.00?&rdquo; Whatever number makes that equation balance &mdash; in our example, 30% &mdash; <em>is</em> the implied volatility. It&rsquo;s not measured; it&rsquo;s solved for.</p>
+
+<h3>Vega: Sensitivity to volatility</h3>
+<p>Vega measures how much an option&rsquo;s price changes when that implied volatility we just covered moves by 1 percentage point.</p>
+<p>This one trips people up because it&rsquo;s not about how much the stock <em>has</em> moved &mdash; it&rsquo;s about how much the market <em>expects</em> it to move going forward. Options are, in a real sense, bets on uncertainty itself. When expected volatility rises, options tend to become more valuable (there&rsquo;s more room for a big move to happen before expiration), and vega captures how sensitive a given option is to that shift.</p>
+<p><strong>Example:</strong> Our option has a vega of 0.10, and its IV is currently 30%. Say some news hits and the market suddenly expects more turbulence, pushing IV up to 31% &mdash; a 1-point increase &mdash; while the stock price itself hasn&rsquo;t moved:</p>
+<blockquote><code>$3.00 + (0.10 &times; 1) = $3.10</code></blockquote>
+<p>The stock is exactly where it was. The option got more expensive anyway, purely because the market now expects a wider range of outcomes. On one contract, that&rsquo;s a <strong>$10 gain</strong> &mdash; without the stock moving a single cent.</p>
+
+<h3>Rho: Sensitivity to interest rates</h3>
+<p>Rho measures how much an option&rsquo;s price changes when interest rates move by 1 percentage point.</p>
+<p>It&rsquo;s the quietest Greek in day-to-day trading &mdash; a small nudge compared to delta or vega &mdash; but it matters more for longer-dated options, where the time value of money has more room to compound. Rho is why options pricing models need an interest rate input at all.</p>
+<p><strong>Example:</strong> Our option has a rho of 0.02. If interest rates rise by 1 percentage point and nothing else about the trade changes:</p>
+<blockquote><code>$3.00 + (0.02 &times; 1) = $3.02</code></blockquote>
+<p>A small move &mdash; just a <strong>$2</strong> swing on one contract &mdash; which is exactly why rho tends to sit quietly in the background for short-dated options like this one, and only becomes noticeable on options with many months (or years) left until expiration.</p>
+
+<p>Here&rsquo;s everything from above in one place &mdash; same option, same $3.00 starting price, one input moved at a time:</p>
+<ul>
+<li><strong>Delta:</strong> stock +$1 &rarr; +$50 on one contract</li>
+<li><strong>Gamma:</strong> delta shifts to 0.55 &rarr; the next $1 move becomes +$55 instead of +$50</li>
+<li><strong>Theta:</strong> 1 day passes &rarr; -$4</li>
+<li><strong>Implied Volatility:</strong> solved backward from the option&rsquo;s price &mdash; not applied forward like the others</li>
+<li><strong>Vega:</strong> IV +1 point &rarr; +$10</li>
+<li><strong>Rho:</strong> rates +1 point &rarr; +$2</li>
+</ul>
+
+<h3>Putting it together</h3>
+<p>None of the Greeks exist in isolation &mdash; an option&rsquo;s price is being pushed and pulled by all of them simultaneously, all the time. Delta tells you your directional exposure right now. Gamma tells you how fast that exposure can shift. Theta tells you what inaction costs you. Vega tells you how exposed you are to changing expectations. Rho, quietly, accounts for the cost of money itself.</p>
+<p>One important caveat: in every example above, we moved exactly one input while freezing the rest &mdash; that&rsquo;s what makes the Greeks teachable. Real markets don&rsquo;t hold still like that. The stock price, time, and volatility are always shifting together, and every Greek is recalculating continuously as they do. The clean, isolated moves above are a teaching tool for understanding what each lever does &mdash; not a model of how live Greeks actually behave in the wild.</p>
+<p>For anyone who&rsquo;s spent time debugging a system by isolating one variable at a time, this should feel familiar &mdash; that&rsquo;s exactly what the Greeks let you do with an option&rsquo;s price. You&rsquo;re not staring at one opaque number anymore; you&rsquo;re looking at a small dashboard of sensitivities, each one telling you which lever moved and by how much.</p>
+</body>
+</html>

@@ -183,6 +183,26 @@ body {
   color: var(--accent, rgba(10, 238, 60, 0.6));
 }
 
+.article-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.8em 0;
+  font-size: 0.9em;
+}
+
+.article-content th,
+.article-content td {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 0.5em 0.8em;
+  text-align: left;
+}
+
+.article-content th {
+  background: rgba(255, 255, 255, 0.06);
+  color: #ffffff;
+  font-weight: 700;
+}
+
 .article-content code {
   font-family: var(--font-geist-mono), monospace;
   font-size: 0.85em;
