@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { Link as LinkIcon, Check } from 'lucide-react';
 
+const SITE_URL = 'https://amoljadhav.ai';
+
 function XIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
@@ -28,10 +30,7 @@ export default function ShareButtons({
 }) {
   const [copied, setCopied] = useState(false);
 
-  const shareUrl =
-    typeof window !== 'undefined'
-      ? `${window.location.origin}/blog/${slug}`
-      : '';
+  const shareUrl = `${SITE_URL}/blog/${slug}`;
 
   async function copyLink() {
     await navigator.clipboard.writeText(shareUrl);

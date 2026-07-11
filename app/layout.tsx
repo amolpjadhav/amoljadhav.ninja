@@ -18,13 +18,13 @@ const sourceSerif = Source_Serif_4({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://amoljadhav.ninja"),
+  metadataBase: new URL("https://amoljadhav.ai"),
   title: "Amol Jadhav",
   description: "Personal site of Amol Jadhav — blog and writing on AI and software engineering.",
   openGraph: {
     title: "Amol Jadhav",
     description: "Personal site of Amol Jadhav — blog and writing on AI and software engineering.",
-    url: "https://amoljadhav.ninja",
+    url: "https://amoljadhav.ai",
     siteName: "Amol Jadhav",
     type: "website",
   },

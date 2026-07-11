@@ -44,7 +44,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
           }}
         >
           <div style={{ display: 'flex', fontSize: 26, color: 'rgba(10,238,60,0.6)', marginBottom: 32 }}>
-            {'amoljadhav.ninja/blog'}
+            {'amoljadhav.ai/blog'}
           </div>
           <div
             style={{
