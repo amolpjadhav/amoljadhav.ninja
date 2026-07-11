@@ -2,6 +2,8 @@ import { notFound } from 'next/navigation';
 import Header from '@/components/layout/Header';
 import { supabase } from '@/lib/supabase';
 import { formatDate } from '@/lib/utils';
+import ShareButtons from '@/components/blog/ShareButtons';
+import LikeButton from '@/components/blog/LikeButton';
 
 export const revalidate = 60;
 
@@ -60,6 +62,11 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
                   <span>{post.read_time} min read</span>
                 </>
               )}
+            </div>
+
+            <div className="flex items-center gap-3 mt-5">
+              <ShareButtons title={post.title} slug={post.slug} />
+              <LikeButton slug={post.slug} initialLikes={post.likes} />
             </div>
           </div>
 

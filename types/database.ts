@@ -14,6 +14,7 @@ export type Database = {
           tags: string[];
           cover_image?: string;
           read_time?: number;
+          likes: number;
         };
         Insert: {
           title: string;
