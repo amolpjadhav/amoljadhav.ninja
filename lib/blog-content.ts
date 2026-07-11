@@ -22,3 +22,20 @@ export function colorizeArticleSections(html: string): string {
     })
     .join('');
 }
+
+// Fixed (not rotating) colors per article category, so a given topic always
+// reads as the same color across the blog index, homepage, and article page.
+const CATEGORY_COLORS: Record<string, string> = {
+  AI: '#c084fc',
+  Gaming: '#f472b6',
+  Travel: '#fb923c',
+  Engineering: '#38bdf8',
+  Investing: '#facc15',
+};
+
+const DEFAULT_CATEGORY_COLOR = '#0aee3c';
+
+export function categoryColor(category?: string | null): string {
+  if (!category) return DEFAULT_CATEGORY_COLOR;
+  return CATEGORY_COLORS[category] ?? DEFAULT_CATEGORY_COLOR;
+}

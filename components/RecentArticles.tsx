@@ -5,7 +5,7 @@ import { formatDate } from '@/lib/utils';
 export default async function RecentArticles() {
   const { data: posts, error } = await supabase
     .from('blog_posts')
-    .select('title, slug, created_at')
+    .select('*')
     .eq('published', true)
     .order('created_at', { ascending: false })
     .limit(10);

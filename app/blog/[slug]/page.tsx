@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import Header from '@/components/layout/Header';
 import { supabase } from '@/lib/supabase';
 import { formatDate } from '@/lib/utils';
-import { colorizeArticleSections } from '@/lib/blog-content';
+import { colorizeArticleSections, categoryColor } from '@/lib/blog-content';
 import ShareButtons from '@/components/blog/ShareButtons';
 import LikeButton from '@/components/blog/LikeButton';
 
@@ -67,6 +67,18 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
       <main className="min-h-screen pt-24 pb-16 px-4">
         <article className="container mx-auto max-w-2xl bg-[#1c1d20] border border-white/10 rounded-lg p-6 md:p-10">
           <div className="mb-10 animate-fadeIn">
+            {post.category && (
+              <span
+                className="inline-block text-xs font-bold uppercase tracking-wide px-2.5 py-1 rounded mb-3"
+                style={{
+                  color: categoryColor(post.category),
+                  background: `${categoryColor(post.category)}22`,
+                }}
+              >
+                {post.category}
+              </span>
+            )}
+
             {post.tags.length > 0 && (
               <div className="flex flex-wrap gap-2 mb-4">
                 {post.tags.map((tag: string) => (
@@ -102,6 +114,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
 
           <div
             className="article-content animate-fadeInUp"
+            data-category={post.category}
             dangerouslySetInnerHTML={{ __html: colorizeArticleSections(post.content) }}
           />
         </article>

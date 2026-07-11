@@ -207,11 +207,32 @@ body {
   padding: 0;
 }
 
-/* Medium's stock/decorative images don't carry information here — drop them
-   and keep the reading experience text-first. */
+/* Medium's stock/decorative images don't carry information for most posts,
+   so they're hidden to keep the reading experience text-first — but travel
+   writing genuinely needs the photos, so they're shown for that category. */
 .article-content img,
 .article-content figure {
   display: none;
+}
+
+.article-content[data-category="Travel"] img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 10px;
+}
+
+/* Medium's RSS export appends a 1x1 view-tracking pixel at the end of every
+   post body — never a real photo, so always hide it even when images are
+   otherwise shown for this category. */
+.article-content[data-category="Travel"] img[width="1"],
+.article-content[data-category="Travel"] img[height="1"] {
+  display: none !important;
+}
+
+.article-content[data-category="Travel"] figure {
+  display: block;
+  margin: 1.8em 0;
 }
 
 .article-content hr {

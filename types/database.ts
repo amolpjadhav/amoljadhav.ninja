@@ -12,6 +12,7 @@ export type Database = {
           created_at: string;
           updated_at: string;
           tags: string[];
+          category?: string;
           cover_image?: string;
           read_time?: number;
           likes: number;
@@ -23,6 +24,7 @@ export type Database = {
           excerpt: string;
           published: boolean;
           tags?: string[];
+          category?: string;
           cover_image?: string;
           read_time?: number;
         };
@@ -33,6 +35,7 @@ export type Database = {
           excerpt?: string;
           published?: boolean;
           tags?: string[];
+          category?: string;
           cover_image?: string;
           read_time?: number;
         };
