@@ -68,6 +68,10 @@ body {
   animation: fadeIn 1s ease-in;
 }
 
+.animate-fadeInFast {
+  animation: fadeIn 0.15s ease-out;
+}
+
 .animate-fadeInUp {
   animation: fadeInUp 0.6s ease-out;
 }

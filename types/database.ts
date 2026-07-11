@@ -1,3 +1,10 @@
+export type QuizQuestion = {
+  question: string;
+  options: string[];
+  correctIndex: number;
+  explanation?: string;
+};
+
 export type Database = {
   public: {
     Tables: {
@@ -16,6 +23,7 @@ export type Database = {
           cover_image?: string;
           read_time?: number;
           likes: number;
+          quiz?: QuizQuestion[];
         };
         Insert: {
           title: string;
@@ -27,6 +35,7 @@ export type Database = {
           category?: string;
           cover_image?: string;
           read_time?: number;
+          quiz?: QuizQuestion[];
         };
         Update: {
           title?: string;
@@ -38,6 +47,7 @@ export type Database = {
           category?: string;
           cover_image?: string;
           read_time?: number;
+          quiz?: QuizQuestion[];
         };
       };
       contacts: {

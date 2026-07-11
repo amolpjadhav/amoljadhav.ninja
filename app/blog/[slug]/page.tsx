@@ -6,6 +6,7 @@ import { formatDate } from '@/lib/utils';
 import { colorizeArticleSections, categoryColor } from '@/lib/blog-content';
 import ShareButtons from '@/components/blog/ShareButtons';
 import LikeButton from '@/components/blog/LikeButton';
+import QuizModal from '@/components/blog/QuizModal';
 
 export const revalidate = 60;
 
@@ -111,6 +112,10 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
               <LikeButton slug={post.slug} initialLikes={post.likes} />
             </div>
           </div>
+
+          {post.quiz && post.quiz.length > 0 && (
+            <QuizModal questions={post.quiz} accent={categoryColor(post.category)} />
+          )}
 
           <div
             className="article-content animate-fadeInUp"
