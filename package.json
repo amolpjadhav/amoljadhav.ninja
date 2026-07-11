@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "migrate:medium": "node scripts/migrate-medium.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",

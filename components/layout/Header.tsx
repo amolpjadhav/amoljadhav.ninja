@@ -15,14 +15,9 @@ export default function Header() {
         </Link>
 
         <div className="hidden md:flex items-center gap-6">
-          <a
-            href="https://medium.com/@amoljadhav_48655"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-[#0aee3c] hover:text-[#0aee3c]/80 transition-colors"
-          >
+          <Link href="/blog" className="text-[#0aee3c] hover:text-[#0aee3c]/80 transition-colors">
             Blog
-          </a>
+          </Link>
           <Link href="/contact" className="text-[#0aee3c] hover:text-[#0aee3c]/80 transition-colors">
             Contact
           </Link>
@@ -39,15 +34,13 @@ export default function Header() {
       {mobileMenuOpen && (
         <div className="md:hidden bg-black/95 border-t border-[#0aee3c]/20">
           <div className="container mx-auto px-4 py-4 flex flex-col gap-4">
-            <a
-              href="https://medium.com/@amoljadhav_48655"
-              target="_blank"
-              rel="noopener noreferrer"
+            <Link
+              href="/blog"
               className="text-[#0aee3c] hover:text-[#0aee3c]/80 transition-colors"
               onClick={() => setMobileMenuOpen(false)}
             >
               Blog
-            </a>
+            </Link>
             <Link
               href="/contact"
               className="text-[#0aee3c] hover:text-[#0aee3c]/80 transition-colors"

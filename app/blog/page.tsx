@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import MatrixBackground from '@/components/layout/MatrixBackground';
 import Header from '@/components/layout/Header';
 import { supabase } from '@/lib/supabase';
 import { formatDate } from '@/lib/utils';
@@ -26,7 +25,6 @@ export default async function BlogPage() {
 
   return (
     <>
-      <MatrixBackground />
       <Header />
 
       <main className="min-h-screen pt-24 pb-12 px-4">
@@ -47,17 +45,9 @@ export default async function BlogPage() {
                 <Link
                   key={post.id}
                   href={`/blog/${post.slug}`}
-                  className="bg-black/50 border border-[#0aee3c]/20 rounded-lg p-6 hover:border-[#0aee3c]/40 transition-all hover:transform hover:scale-105 animate-fadeInUp"
+                  className="bg-black/90 border border-[#0aee3c]/20 rounded-lg p-6 hover:border-[#0aee3c]/40 transition-all hover:transform hover:scale-105 animate-fadeInUp"
                   style={{ animationDelay: `${index * 0.1}s` }}
                 >
-                  {post.cover_image && (
-                    <img
-                      src={post.cover_image}
-                      alt={post.title}
-                      className="w-full h-48 object-cover rounded-lg mb-4"
-                    />
-                  )}
-                  
                   <div className="flex flex-wrap gap-2 mb-3">
                     {post.tags.map((tag: string) => (
                       <span
