@@ -18,8 +18,21 @@ const sourceSerif = Source_Serif_4({
 });
 
 export const metadata: Metadata = {
-  title: "Amol Jadhav | Sr. Engineering Program Manager",
-  description: "Personal website of Amol Jadhav - Sr. Engineering Program Manager, Bar Raiser at Amazon. Blog, projects, and AI assistant.",
+  metadataBase: new URL("https://amoljadhav.ninja"),
+  title: "Amol Jadhav",
+  description: "Personal site of Amol Jadhav — blog and writing on AI and software engineering.",
+  openGraph: {
+    title: "Amol Jadhav",
+    description: "Personal site of Amol Jadhav — blog and writing on AI and software engineering.",
+    url: "https://amoljadhav.ninja",
+    siteName: "Amol Jadhav",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Amol Jadhav",
+    description: "Personal site of Amol Jadhav — blog and writing on AI and software engineering.",
+  },
 };
 
 export default function RootLayout({

@@ -1,10 +1,16 @@
 import Link from 'next/link';
+import type { Metadata } from 'next';
 import Header from '@/components/layout/Header';
 import { supabase } from '@/lib/supabase';
 import { formatDate } from '@/lib/utils';
 import { SECTION_ACCENTS } from '@/lib/blog-content';
 
 export const revalidate = 60; // Revalidate every 60 seconds
+
+export const metadata: Metadata = {
+  title: 'Blog | Amol Jadhav',
+  description: 'Writing on AI, software engineering, and more.',
+};
 
 async function getBlogPosts() {
   const { data, error } = await supabase
