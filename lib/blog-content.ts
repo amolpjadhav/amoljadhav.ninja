@@ -31,6 +31,7 @@ const CATEGORY_COLORS: Record<string, string> = {
   Travel: '#fb923c',
   Engineering: '#38bdf8',
   Investing: '#facc15',
+  'Mental Models': '#fb7185',
 };
 
 const DEFAULT_CATEGORY_COLOR = '#0aee3c';
