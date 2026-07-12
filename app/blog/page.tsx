@@ -4,6 +4,7 @@ import Header from '@/components/layout/Header';
 import { supabase } from '@/lib/supabase';
 import { formatDate } from '@/lib/utils';
 import { categoryColor } from '@/lib/blog-content';
+import SubscribeForm from '@/components/blog/SubscribeForm';
 
 export const revalidate = 60; // Revalidate every 60 seconds
 
@@ -52,6 +53,10 @@ export default async function BlogPage({
           <h1 className="text-4xl md:text-5xl font-bold text-white/95 mb-6 animate-fadeIn">
             Blog
           </h1>
+
+          <div className="mb-8 max-w-md animate-fadeIn">
+            <SubscribeForm />
+          </div>
 
           {categories.length > 0 && (
             <div className="flex flex-wrap gap-2 mb-8 animate-fadeIn">

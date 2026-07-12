@@ -24,6 +24,7 @@ export type Database = {
           read_time?: number;
           likes: number;
           quiz?: QuizQuestion[];
+          notified_at?: string;
         };
         Insert: {
           title: string;
@@ -48,6 +49,7 @@ export type Database = {
           cover_image?: string;
           read_time?: number;
           quiz?: QuizQuestion[];
+          notified_at?: string;
         };
       };
       contacts: {
@@ -95,6 +97,18 @@ export type Database = {
           session_id: string;
           role: 'user' | 'assistant';
           content: string;
+        };
+        Update: never;
+      };
+      subscribers: {
+        Row: {
+          id: string;
+          email: string;
+          created_at: string;
+          unsubscribe_token: string;
+        };
+        Insert: {
+          email: string;
         };
         Update: never;
       };

@@ -7,6 +7,7 @@ import { colorizeArticleSections, categoryColor } from '@/lib/blog-content';
 import ShareButtons from '@/components/blog/ShareButtons';
 import LikeButton from '@/components/blog/LikeButton';
 import QuizModal from '@/components/blog/QuizModal';
+import SubscribeForm from '@/components/blog/SubscribeForm';
 
 export const revalidate = 60;
 
@@ -122,6 +123,10 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
             data-category={post.category}
             dangerouslySetInnerHTML={{ __html: colorizeArticleSections(post.content) }}
           />
+
+          <div className="mt-10">
+            <SubscribeForm accent={categoryColor(post.category)} />
+          </div>
         </article>
       </main>
     </>
