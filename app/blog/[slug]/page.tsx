@@ -6,6 +6,7 @@ import { formatDate } from '@/lib/utils';
 import { colorizeArticleSections, categoryColor } from '@/lib/blog-content';
 import ShareButtons from '@/components/blog/ShareButtons';
 import LikeButton from '@/components/blog/LikeButton';
+import ViewCounter from '@/components/blog/ViewCounter';
 import QuizModal from '@/components/blog/QuizModal';
 import SubscribeForm from '@/components/blog/SubscribeForm';
 
@@ -111,6 +112,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
             <div className="flex items-center gap-3 mt-5">
               <ShareButtons title={post.title} slug={post.slug} />
               <LikeButton slug={post.slug} initialLikes={post.likes} />
+              <ViewCounter slug={post.slug} initialViews={post.views ?? 0} />
             </div>
           </div>
 

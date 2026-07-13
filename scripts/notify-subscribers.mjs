@@ -45,7 +45,7 @@ const resend = new Resend(resendKey);
 async function main() {
   const { data: post, error: postError } = await supabase
     .from('blog_posts')
-    .select('title, slug, excerpt, published, notified_at')
+    .select('title, slug, excerpt, category, quiz, published, notified_at')
     .eq('slug', slug)
     .single();
 
@@ -88,7 +88,14 @@ async function main() {
     from: FROM,
     to: sub.email,
     subject: `New post: ${post.title}`,
-    html: renderEmail({ title: post.title, excerpt: post.excerpt, postUrl, token: sub.unsubscribe_token }),
+    html: renderEmail({
+      title: post.title,
+      excerpt: post.excerpt,
+      category: post.category,
+      hasQuiz: Array.isArray(post.quiz) && post.quiz.length > 0,
+      postUrl,
+      token: sub.unsubscribe_token,
+    }),
   }));
 
   let sent = 0;
@@ -118,18 +125,66 @@ async function main() {
   console.log(`\nDone. ${sent} email(s) sent.`);
 }
 
-function renderEmail({ title, excerpt, postUrl, token }) {
+// Mirrors lib/blog-content.ts's CATEGORY_COLORS. Duplicated here (rather than
+// imported) since this script runs as plain Node and can't load a .ts file.
+const CATEGORY_COLORS = {
+  AI: '#c084fc',
+  Gaming: '#f472b6',
+  Travel: '#fb923c',
+  Engineering: '#38bdf8',
+  Investing: '#facc15',
+  'Mental Models': '#fb7185',
+};
+const DEFAULT_CATEGORY_COLOR = '#0aee3c';
+
+function categoryColor(category) {
+  if (!category) return DEFAULT_CATEGORY_COLOR;
+  return CATEGORY_COLORS[category] ?? DEFAULT_CATEGORY_COLOR;
+}
+
+function renderEmail({ title, excerpt, category, hasQuiz, postUrl, token }) {
   const unsubscribeUrl = `${SITE_URL}/api/unsubscribe?token=${token}`;
+  const accent = categoryColor(category);
+
   return `
-<div style="font-family:-apple-system,Helvetica,Arial,sans-serif;max-width:560px;margin:0 auto;padding:32px 20px;color:#1a1a1a;">
-  <p style="font-size:13px;color:#888;text-transform:uppercase;letter-spacing:0.05em;margin:0 0 8px;">New post</p>
-  <h1 style="font-size:24px;margin:0 0 16px;line-height:1.3;">${escapeHtml(title)}</h1>
-  <p style="font-size:16px;line-height:1.6;color:#333;margin:0 0 24px;">${escapeHtml(excerpt)}</p>
-  <a href="${postUrl}" style="display:inline-block;background:#0aee3c;color:#0a0a0a;font-weight:700;padding:10px 20px;border-radius:6px;text-decoration:none;">Read the full post</a>
-  <p style="font-size:12px;color:#999;margin-top:40px;border-top:1px solid #eee;padding-top:16px;">
-    You're getting this because you subscribed at amoljadhav.ai.
-    <a href="${unsubscribeUrl}" style="color:#999;">Unsubscribe</a>
-  </p>
+<div style="font-family:-apple-system,Helvetica,Arial,sans-serif;background:#f2f2f3;padding:40px 16px;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;">
+    <tr>
+      <td style="background:#0a0a0a;padding:28px 32px;">
+        <span style="font-family:ui-monospace,Menlo,monospace;color:#0aee3c;font-size:15px;font-weight:700;letter-spacing:0.03em;">amoljadhav.ai</span>
+      </td>
+    </tr>
+    <tr>
+      <td style="padding:36px 32px 8px;">
+        ${category ? `<span style="display:inline-block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:${accent};margin-bottom:10px;">${escapeHtml(category)}</span><br/>` : `<p style="font-size:13px;color:#888;text-transform:uppercase;letter-spacing:0.05em;margin:0 0 10px;">New post</p>`}
+        <h1 style="font-size:24px;margin:0 0 16px;color:#0a0a0a;line-height:1.3;">${escapeHtml(title)}</h1>
+        <p style="font-size:16px;line-height:1.6;color:#333;margin:0 0 24px;">${escapeHtml(excerpt)}</p>
+        ${
+          hasQuiz
+            ? `<table role="presentation" cellpadding="0" cellspacing="0" style="background:#eefbf1;border-radius:8px;margin:0 0 28px;">
+          <tr>
+            <td style="padding:14px 18px;font-size:14px;color:#166534;line-height:1.5;">
+              🧠 <strong>Heads up:</strong> this post ends with a short quiz so you can test what you just learned.
+            </td>
+          </tr>
+        </table>`
+            : ''
+        }
+      </td>
+    </tr>
+    <tr>
+      <td style="padding:0 32px 36px;">
+        <a href="${postUrl}" style="display:inline-block;background:#0aee3c;color:#0a0a0a;font-weight:700;font-size:15px;padding:12px 24px;border-radius:6px;text-decoration:none;">Read the full post →</a>
+      </td>
+    </tr>
+    <tr>
+      <td style="padding:20px 32px;border-top:1px solid #eee;">
+        <p style="font-size:12px;color:#999;margin:0;">
+          You're getting this because you subscribed at amoljadhav.ai. <a href="${unsubscribeUrl}" style="color:#999;">Unsubscribe</a> at any time.
+        </p>
+      </td>
+    </tr>
+  </table>
 </div>`.trim();
 }
 

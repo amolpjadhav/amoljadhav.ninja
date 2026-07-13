@@ -2,7 +2,7 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import Header from '@/components/layout/Header';
 import { supabase } from '@/lib/supabase';
-import { formatDate } from '@/lib/utils';
+import { formatDate, formatCount } from '@/lib/utils';
 import { categoryColor } from '@/lib/blog-content';
 import SubscribeForm from '@/components/blog/SubscribeForm';
 
@@ -140,7 +140,15 @@ export default async function BlogPage({
 
                     <div className="flex justify-between items-center text-xs text-white/40">
                       <span>{formatDate(post.created_at)}</span>
-                      {post.read_time && <span>{post.read_time} min read</span>}
+                      <div className="flex items-center gap-2">
+                        {post.read_time && <span>{post.read_time} min read</span>}
+                        {typeof post.views === 'number' && post.views > 0 && (
+                          <>
+                            <span aria-hidden>·</span>
+                            <span>{formatCount(post.views)} views</span>
+                          </>
+                        )}
+                      </div>
                     </div>
                   </Link>
                 );
