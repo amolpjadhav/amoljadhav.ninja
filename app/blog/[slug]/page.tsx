@@ -8,6 +8,8 @@ import ShareButtons from '@/components/blog/ShareButtons';
 import LikeButton from '@/components/blog/LikeButton';
 import ViewCounter from '@/components/blog/ViewCounter';
 import QuizModal from '@/components/blog/QuizModal';
+import ArticleContent from '@/components/blog/ArticleContent';
+import TableOfContents from '@/components/blog/TableOfContents';
 import SubscribeForm from '@/components/blog/SubscribeForm';
 
 export const revalidate = 60;
@@ -62,6 +64,8 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
   if (!post) {
     notFound();
   }
+
+  const { html: contentHtml, headings } = colorizeArticleSections(post.content);
 
   return (
     <>
@@ -120,11 +124,9 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
             <QuizModal questions={post.quiz} accent={categoryColor(post.category)} />
           )}
 
-          <div
-            className="article-content animate-fadeInUp"
-            data-category={post.category}
-            dangerouslySetInnerHTML={{ __html: colorizeArticleSections(post.content) }}
-          />
+          <TableOfContents headings={headings} accent={categoryColor(post.category)} />
+
+          <ArticleContent html={contentHtml} category={post.category} />
 
           <div className="mt-10">
             <SubscribeForm accent={categoryColor(post.category)} />

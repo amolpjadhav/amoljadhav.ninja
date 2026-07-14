@@ -12,15 +12,54 @@ export const SECTION_ACCENTS = [
   '#facc15', // yellow
 ];
 
-export function colorizeArticleSections(html: string): string {
-  const chunks = html.split(/(?=<h[1-3][ >])/i).filter((chunk) => chunk.trim().length > 0);
+export interface ArticleHeading {
+  id: string;
+  title: string;
+}
 
-  return chunks
-    .map((chunk, i) => {
-      const accent = SECTION_ACCENTS[i % SECTION_ACCENTS.length];
-      return `<div class="article-section" style="--accent:${accent}">${chunk}</div>`;
-    })
-    .join('');
+function slugifyHeading(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^\w\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/--+/g, '-')
+    .trim();
+}
+
+// Splits article HTML into sections at each heading, wraps each in a
+// colored card (see SECTION_ACCENTS), and injects an id on every heading
+// (derived from the part of its text before a colon, e.g. "Murphy's Law:
+// anything that can go wrong, will" -> id="murphys-law") so sections can be
+// deep-linked. Returns both the transformed HTML and the extracted list of
+// headings, so a table of contents can be rendered from the same pass.
+export function colorizeArticleSections(html: string): { html: string; headings: ArticleHeading[] } {
+  const chunks = html.split(/(?=<h[1-3][ >])/i).filter((chunk) => chunk.trim().length > 0);
+  const usedIds = new Set<string>();
+  const headings: ArticleHeading[] = [];
+
+  const processedChunks = chunks.map((chunk, i) => {
+    const accent = SECTION_ACCENTS[i % SECTION_ACCENTS.length];
+    const withId = chunk.replace(
+      /<h([1-3])([^>]*)>([\s\S]*?)<\/h\1>/i,
+      (full, level, attrs, inner) => {
+        const plainTitle = inner.replace(/<[^>]+>/g, '').trim();
+        const shortTitle = plainTitle.split(':')[0].trim();
+
+        let id = slugifyHeading(shortTitle);
+        let suffix = 2;
+        while (usedIds.has(id)) {
+          id = `${slugifyHeading(shortTitle)}-${suffix++}`;
+        }
+        usedIds.add(id);
+        headings.push({ id, title: shortTitle });
+
+        return `<h${level}${attrs} id="${id}">${inner}</h${level}>`;
+      }
+    );
+    return `<div class="article-section" style="--accent:${accent}">${withId}</div>`;
+  });
+
+  return { html: processedChunks.join(''), headings };
 }
 
 // Fixed (not rotating) colors per article category, so a given topic always
