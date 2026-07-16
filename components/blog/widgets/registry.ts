@@ -1,6 +1,7 @@
 import type { ComponentType } from 'react';
 import PrisonersDilemma from './PrisonersDilemma';
 import NashEquilibrium from './NashEquilibrium';
+import ZeroSum from './ZeroSum';
 
 // Article content (stored as HTML in Supabase) can embed a widget by
 // including a placeholder element with a matching data-widget value, e.g.:
@@ -10,4 +11,5 @@ import NashEquilibrium from './NashEquilibrium';
 export const WIDGET_REGISTRY: Record<string, ComponentType> = {
   'prisoners-dilemma': PrisonersDilemma,
   'nash-equilibrium': NashEquilibrium,
+  'zero-sum': ZeroSum,
 };
