@@ -148,13 +148,19 @@ export default function TitForTat() {
 
       <div className="border-t border-white/10 pt-4 mt-5">
         <p className="text-xs uppercase tracking-wide text-white/40 mb-2">Why tit-for-tat holds up</p>
+        <p className="text-white/60 text-sm leading-relaxed mb-3">
+          Try tit-for-tat against always betray. The first round, you lose &mdash; you cooperated, they
+          didn&rsquo;t. But right after that, tit-for-tat stops cooperating too. It just copies whatever they did
+          last. So starting with round two, you&rsquo;re both betraying each other every time &mdash; tit-for-tat
+          only gets tricked once, not again and again.
+        </p>
+        <p className="text-white/60 text-sm leading-relaxed mb-3">
+          Now try tit-for-tat against always cooperate, or against itself. This time, both sides keep cooperating,
+          round after round.
+        </p>
         <p className="text-white/60 text-sm leading-relaxed">
-          Try &ldquo;tit-for-tat&rdquo; against &ldquo;always betray.&rdquo; You lose the first round &mdash; you
-          cooperated, they didn&rsquo;t. But tit-for-tat immediately copies that betrayal back, so it never gets
-          exploited twice in a row. Now try it against &ldquo;always cooperate&rdquo; or against itself: it locks
-          into mutual cooperation and stays there. That&rsquo;s the whole appeal &mdash; tit-for-tat can&rsquo;t be
-          taken advantage of for long, but it also doesn&rsquo;t hold a grudge. The instant the other side
-          cooperates again, it does too.
+          That&rsquo;s why tit-for-tat works so well. It can&rsquo;t be tricked twice in a row. But it&rsquo;s not
+          mean forever either &mdash; the second the other person cooperates again, tit-for-tat does too.
         </p>
       </div>
     </div>
