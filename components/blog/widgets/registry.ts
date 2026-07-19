@@ -5,6 +5,7 @@ import ZeroSum from './ZeroSum';
 import TitForTat from './TitForTat';
 import SchellingPoint from './SchellingPoint';
 import UltimatumGame from './UltimatumGame';
+import GameOfChicken from './GameOfChicken';
 
 // Article content (stored as HTML in Supabase) can embed a widget by
 // including a placeholder element with a matching data-widget value, e.g.:
@@ -18,4 +19,5 @@ export const WIDGET_REGISTRY: Record<string, ComponentType> = {
   'tit-for-tat': TitForTat,
   'schelling-point': SchellingPoint,
   'ultimatum-game': UltimatumGame,
+  'game-of-chicken': GameOfChicken,
 };
