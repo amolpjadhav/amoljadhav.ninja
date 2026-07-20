@@ -8,9 +8,13 @@ import QuickCheck from './QuickCheck';
 export default function QuizModal({
   questions,
   accent,
+  title,
+  slug,
 }: {
   questions: QuizQuestion[];
   accent: string;
+  title: string;
+  slug: string;
 }) {
   const [open, setOpen] = useState(false);
 
@@ -68,7 +72,7 @@ export default function QuizModal({
             >
               <X size={16} />
             </button>
-            <QuickCheck questions={questions} accent={accent} embedded />
+            <QuickCheck questions={questions} accent={accent} embedded title={title} slug={slug} />
           </div>
         </div>
       )}

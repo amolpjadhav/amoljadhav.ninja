@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import type { QuizQuestion } from '@/types/database';
+import ShareButtons from './ShareButtons';
 
 const CORRECT = '#0aee3c';
 const WRONG = '#f472b6';
@@ -10,10 +11,14 @@ export default function QuickCheck({
   questions,
   accent,
   embedded = false,
+  title,
+  slug,
 }: {
   questions: QuizQuestion[];
   accent: string;
   embedded?: boolean;
+  title?: string;
+  slug?: string;
 }) {
   const [index, setIndex] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
@@ -63,7 +68,14 @@ export default function QuickCheck({
       </div>
 
       {done ? (
-        <ResultScreen score={score} total={questions.length} accent={accent} onRetake={retake} />
+        <ResultScreen
+          score={score}
+          total={questions.length}
+          accent={accent}
+          onRetake={retake}
+          title={title}
+          slug={slug}
+        />
       ) : (
         <>
           <div className="flex gap-1.5 mb-5">
@@ -141,11 +153,15 @@ function ResultScreen({
   total,
   accent,
   onRetake,
+  title,
+  slug,
 }: {
   score: number;
   total: number;
   accent: string;
   onRetake: () => void;
+  title?: string;
+  slug?: string;
 }) {
   const pct = Math.round((score / total) * 100);
   const message = pct === 100 ? 'Perfect score!' : pct >= 60 ? 'Nice work.' : 'Worth a re-read.';
@@ -156,13 +172,18 @@ function ResultScreen({
         {score} / {total}
       </p>
       <p className="text-white/70 mb-6">{message}</p>
-      <button
-        onClick={onRetake}
-        className="text-sm border rounded-md px-4 py-2 text-white/70 hover:text-white transition-colors"
-        style={{ borderColor: 'rgba(255,255,255,0.2)' }}
-      >
-        Retake quiz
-      </button>
+      <div className="flex items-center justify-center gap-3 flex-wrap">
+        <button
+          onClick={onRetake}
+          className="text-sm border rounded-md px-4 py-2 text-white/70 hover:text-white transition-colors"
+          style={{ borderColor: 'rgba(255,255,255,0.2)' }}
+        >
+          Retake quiz
+        </button>
+        {title && slug && (
+          <ShareButtons title={title} slug={slug} text={`I scored ${score}/${total} on the ${title} quiz`} />
+        )}
+      </div>
     </div>
   );
 }

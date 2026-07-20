@@ -121,7 +121,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
           </div>
 
           {post.quiz && post.quiz.length > 0 && (
-            <QuizModal questions={post.quiz} accent={categoryColor(post.category)} />
+            <QuizModal questions={post.quiz} accent={categoryColor(post.category)} title={post.title} slug={post.slug} />
           )}
 
           <TableOfContents headings={headings} accent={categoryColor(post.category)} />

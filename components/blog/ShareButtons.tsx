@@ -24,9 +24,11 @@ function LinkedInIcon() {
 export default function ShareButtons({
   title,
   slug,
+  text,
 }: {
   title: string;
   slug: string;
+  text?: string;
 }) {
   const [copied, setCopied] = useState(false);
 
@@ -39,7 +41,7 @@ export default function ShareButtons({
   }
 
   const xHref = `https://twitter.com/intent/tweet?text=${encodeURIComponent(
-    title
+    text ?? title
   )}&url=${encodeURIComponent(shareUrl)}`;
 
   const linkedInHref = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(
