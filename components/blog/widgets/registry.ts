@@ -8,6 +8,7 @@ import UltimatumGame from './UltimatumGame';
 import GameOfChicken from './GameOfChicken';
 import TragedyOfCommons from './TragedyOfCommons';
 import FirstMoverAdvantage from './FirstMoverAdvantage';
+import WinnersCurse from './WinnersCurse';
 
 // Article content (stored as HTML in Supabase) can embed a widget by
 // including a placeholder element with a matching data-widget value, e.g.:
@@ -24,4 +25,5 @@ export const WIDGET_REGISTRY: Record<string, ComponentType> = {
   'game-of-chicken': GameOfChicken,
   'tragedy-of-commons': TragedyOfCommons,
   'first-mover-advantage': FirstMoverAdvantage,
+  'winners-curse': WinnersCurse,
 };
