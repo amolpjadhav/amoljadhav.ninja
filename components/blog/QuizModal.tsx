@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { Brain, X } from 'lucide-react';
 import type { QuizQuestion } from '@/types/database';
 import QuickCheck from './QuickCheck';
+import ShareButtons from './ShareButtons';
 
 export default function QuizModal({
   questions,
@@ -45,13 +46,16 @@ export default function QuizModal({
           <Brain size={16} style={{ color: accent }} />
           <span>Think you already know this? Test yourself before reading.</span>
         </div>
-        <button
-          onClick={() => setOpen(true)}
-          className="text-xs font-bold uppercase tracking-wide px-3 py-1.5 rounded transition-transform hover:scale-105 shrink-0"
-          style={{ background: accent, color: '#0a0a0a' }}
-        >
-          Take the quiz
-        </button>
+        <div className="flex items-center gap-3 shrink-0">
+          <button
+            onClick={() => setOpen(true)}
+            className="text-xs font-bold uppercase tracking-wide px-3 py-1.5 rounded transition-transform hover:scale-105"
+            style={{ background: accent, color: '#0a0a0a' }}
+          >
+            Take the quiz
+          </button>
+          <ShareButtons title={title} slug={slug} />
+        </div>
       </div>
 
       {open && (
