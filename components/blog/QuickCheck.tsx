@@ -75,6 +75,7 @@ export default function QuickCheck({
           onRetake={retake}
           title={title}
           slug={slug}
+          embedded={embedded}
         />
       ) : (
         <>
@@ -155,6 +156,7 @@ function ResultScreen({
   onRetake,
   title,
   slug,
+  embedded,
 }: {
   score: number;
   total: number;
@@ -162,6 +164,7 @@ function ResultScreen({
   onRetake: () => void;
   title?: string;
   slug?: string;
+  embedded?: boolean;
 }) {
   const pct = Math.round((score / total) * 100);
   const message = pct === 100 ? 'Perfect score!' : pct >= 60 ? 'Nice work.' : 'Worth a re-read.';
@@ -181,7 +184,12 @@ function ResultScreen({
           Retake quiz
         </button>
         {title && slug && (
-          <ShareButtons title={title} slug={slug} text={`I scored ${score}/${total} on the ${title} quiz`} />
+          <ShareButtons
+            title={title}
+            slug={slug}
+            text={`I scored ${score}/${total} on the ${title} quiz`}
+            quiz={embedded}
+          />
         )}
       </div>
     </div>

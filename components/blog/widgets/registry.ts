@@ -9,6 +9,9 @@ import GameOfChicken from './GameOfChicken';
 import TragedyOfCommons from './TragedyOfCommons';
 import FirstMoverAdvantage from './FirstMoverAdvantage';
 import WinnersCurse from './WinnersCurse';
+import StatementComparison from './StatementComparison';
+import BalanceSheetBuilder from './BalanceSheetBuilder';
+import IncomeWaterfall from './IncomeWaterfall';
 
 // Article content (stored as HTML in Supabase) can embed a widget by
 // including a placeholder element with a matching data-widget value, e.g.:
@@ -26,4 +29,7 @@ export const WIDGET_REGISTRY: Record<string, ComponentType> = {
   'tragedy-of-commons': TragedyOfCommons,
   'first-mover-advantage': FirstMoverAdvantage,
   'winners-curse': WinnersCurse,
+  'statement-comparison': StatementComparison,
+  'balance-sheet-builder': BalanceSheetBuilder,
+  'income-waterfall': IncomeWaterfall,
 };

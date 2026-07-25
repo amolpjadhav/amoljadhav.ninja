@@ -25,14 +25,16 @@ export default function ShareButtons({
   title,
   slug,
   text,
+  quiz,
 }: {
   title: string;
   slug: string;
   text?: string;
+  quiz?: boolean;
 }) {
   const [copied, setCopied] = useState(false);
 
-  const shareUrl = `${SITE_URL}/blog/${slug}`;
+  const shareUrl = quiz ? `${SITE_URL}/blog/${slug}?quiz=1` : `${SITE_URL}/blog/${slug}`;
 
   async function copyLink() {
     await navigator.clipboard.writeText(shareUrl);

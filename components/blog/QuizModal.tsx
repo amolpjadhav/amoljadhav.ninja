@@ -17,7 +17,21 @@ export default function QuizModal({
   title: string;
   slug: string;
 }) {
-  const [open, setOpen] = useState(false);
+  // Support links shared from the quiz itself (?quiz=1) opening straight
+  // into the modal instead of dropping the reader on the plain article.
+  const [open, setOpen] = useState(
+    () => typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('quiz') === '1'
+  );
+
+  // Strip the param once it's been read, so refreshing after closing the
+  // modal doesn't force it back open and the URL stays clean.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (!params.has('quiz')) return;
+    params.delete('quiz');
+    const rest = params.toString();
+    window.history.replaceState(null, '', `${window.location.pathname}${rest ? `?${rest}` : ''}`);
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -54,7 +68,7 @@ export default function QuizModal({
           >
             Take the quiz
           </button>
-          <ShareButtons title={title} slug={slug} />
+          <ShareButtons title={title} slug={slug} quiz />
         </div>
       </div>
 
