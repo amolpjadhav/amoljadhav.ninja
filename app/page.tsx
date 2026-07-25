@@ -49,9 +49,13 @@ export default function Home() {
                 </div>
               </div>
 
-              <h1 className="text-xl font-bold text-[#0aee3c] tracking-wide mb-3 drop-shadow-[0_0_10px_rgba(10,238,60,0.5)] animate-fadeInUp">
+              <h1 className="text-xl font-bold text-[#0aee3c] tracking-wide mb-1.5 drop-shadow-[0_0_10px_rgba(10,238,60,0.5)] animate-fadeInUp">
                 Amol Jadhav
               </h1>
+
+              <p className="italic text-[#0aee3c]/85 text-sm tracking-wide mb-3 animate-fadeInUp">
+                Love building utilities people love 🛠️🤖
+              </p>
 
               <div className="flex justify-center gap-2 text-xs animate-fadeInUp">
                 <a
