@@ -12,6 +12,8 @@ import WinnersCurse from './WinnersCurse';
 import StatementComparison from './StatementComparison';
 import BalanceSheetBuilder from './BalanceSheetBuilder';
 import IncomeWaterfall from './IncomeWaterfall';
+import AlphabetBalanceSheet from './AlphabetBalanceSheet';
+import AlphabetIncomeWaterfall from './AlphabetIncomeWaterfall';
 
 // Article content (stored as HTML in Supabase) can embed a widget by
 // including a placeholder element with a matching data-widget value, e.g.:
@@ -32,4 +34,6 @@ export const WIDGET_REGISTRY: Record<string, ComponentType> = {
   'statement-comparison': StatementComparison,
   'balance-sheet-builder': BalanceSheetBuilder,
   'income-waterfall': IncomeWaterfall,
+  'alphabet-balance-sheet': AlphabetBalanceSheet,
+  'alphabet-income-waterfall': AlphabetIncomeWaterfall,
 };

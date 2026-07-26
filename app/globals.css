@@ -191,7 +191,7 @@ body {
 .article-content table {
   width: 100%;
   border-collapse: collapse;
-  margin: 1.8em 0;
+  margin: 0 0 1.8em;
   font-size: 0.9em;
 }
 
