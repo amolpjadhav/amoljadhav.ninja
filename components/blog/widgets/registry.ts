@@ -19,6 +19,8 @@ import WavelengthWave from './WavelengthWave';
 import ScatteringDemo from './ScatteringDemo';
 import AtmosphereZoom from './AtmosphereZoom';
 import AirDensityPaths from './AirDensityPaths';
+import RatingScorecard from './RatingScorecard';
+import GrowthVsMarginTrend from './GrowthVsMarginTrend';
 
 // Article content (stored as HTML in Supabase) can embed a widget by
 // including a placeholder element with a matching data-widget value, e.g.:
@@ -46,4 +48,6 @@ export const WIDGET_REGISTRY: Record<string, ComponentType> = {
   'scattering-demo': ScatteringDemo,
   'atmosphere-zoom': AtmosphereZoom,
   'air-density-paths': AirDensityPaths,
+  'rating-scorecard': RatingScorecard,
+  'growth-vs-margin-trend': GrowthVsMarginTrend,
 };
