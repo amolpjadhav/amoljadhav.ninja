@@ -1,6 +1,6 @@
 'use client';
 
-import { memo, useEffect, useRef, useState } from 'react';
+import { ComponentType, memo, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { WIDGET_REGISTRY } from './widgets/registry';
 
@@ -8,6 +8,7 @@ interface WidgetSlot {
   key: string;
   el: Element;
   name: string;
+  props: Record<string, string>;
 }
 
 // Memoized so that mounting widget portals (which updates state in the
@@ -50,7 +51,13 @@ export default function ArticleContent({
     containerRef.current.querySelectorAll<HTMLElement>('[data-widget]').forEach((el, i) => {
       const name = el.getAttribute('data-widget');
       if (name && WIDGET_REGISTRY[name]) {
-        found.push({ key: `${name}-${i}`, el, name });
+        // Any other data-* attribute on the placeholder (besides data-widget
+        // itself) is passed through as a prop, e.g. data-initial-slider="100"
+        // becomes { initialSlider: "100" } — lets one widget be embedded
+        // multiple times with different starting states.
+        const props = { ...el.dataset } as Record<string, string>;
+        delete props.widget;
+        found.push({ key: `${name}-${i}`, el, name, props });
       }
     });
     setSlots(found);
@@ -59,9 +66,9 @@ export default function ArticleContent({
   return (
     <>
       <StaticHtml html={html} category={category} containerRef={containerRef} />
-      {slots.map(({ key, el, name }) => {
-        const Widget = WIDGET_REGISTRY[name];
-        return createPortal(<Widget key={key} />, el, key);
+      {slots.map(({ key, el, name, props }) => {
+        const Widget = WIDGET_REGISTRY[name] as ComponentType<Record<string, string>>;
+        return createPortal(<Widget key={key} {...props} />, el, key);
       })}
     </>
   );

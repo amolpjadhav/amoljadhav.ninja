@@ -71,6 +71,7 @@ const CATEGORY_COLORS: Record<string, string> = {
   Engineering: '#38bdf8',
   Investing: '#facc15',
   'Mental Models': '#fb7185',
+  Curiosity: '#2dd4bf',
 };
 
 const DEFAULT_CATEGORY_COLOR = '#0aee3c';
