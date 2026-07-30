@@ -50,6 +50,8 @@ Before the proof, here's what we're working with.
 
 **The setup:** at sunset, the sun sits on the horizon. Sunlight has to take a much longer trip, cutting sideways through the air, passing through far more of it than at noon.
 
+<div data-widget="sky-scattering" data-initial-slider="100"></div>
+
 **The math:**
 - The sun sends down white light (S).
 - That light hits the air (A) and starts its long journey.
@@ -59,8 +61,6 @@ Before the proof, here's what we're working with.
 **The solution:** looking straight at the setting sun, almost all the blue has already scattered away. The only color strong enough to survive that whole obstacle course is red.
 
 `Long trip − lost blue waves = a red sunset.`
-
-<div data-widget="sky-scattering" data-initial-slider="100"></div>
 
 ---
 
