@@ -2,7 +2,7 @@
 
 **The one-line idea:** inflation isn't things getting more expensive. It's money getting weaker. A price is just a ratio — how much money it takes to buy one thing. If there's suddenly a lot more money floating around chasing the same amount of stuff, each dollar buys less of it. The stuff didn't change. The money did.
 
-Here's that idea followed through one small economy, from the day it invents money to today. Population never changes — it stays exactly 10 people the whole story — so the only two things moving are money supply and how many fish get caught. Every price below is just **money supply ÷ fish caught**.
+Here's that idea followed through one small island's economy, start to finish. Population never changes — it stays exactly 10 people the whole story — so the only two things moving are money supply and how many fish get caught. Every price below is just **money supply ÷ fish caught**.
 
 ---
 
@@ -20,7 +20,7 @@ Now picture the unhealthy version instead: someone finds a treasure chest and ha
 | Healthy growth (more fish *and* more money) | 10 | $200 | 200 | $1 |
 | Unhealthy growth (treasure chest, same fish) | 10 | $200 | 100 | $2 |
 
-Keep both versions in mind. Everything below is one of those two things happening, at a bigger scale, for real.
+Keep both versions in mind. Everything below is one of those two things happening, again and again, as this island grows up.
 
 One honest note: real economies have plenty of other moving parts. This story deliberately simplifies to the one cause that matters most for everything that follows.
 
@@ -32,23 +32,13 @@ Why start here? The earliest fix to the treasure-chest problem was simple: tie m
 
 The island's money has always been paper notes — each one a promise you can trade in for a rare shell that only washes ashore now and then. Some years a lot of shells wash up. Some years almost none do, no matter how the fishing is going that year. Generation after generation, the island keeps getting a little more fish and a little more money at roughly the same pace, and a fish keeps costing close to $1. Nobody on the island is steering this on purpose — it just tends to work out, because nobody can hand out more notes than there are shells to back them.
 
-That's almost exactly what countries did too — a system called the **gold standard**. A dollar could be traded in for a fixed amount of gold, so nobody could print more dollars than the gold in the vault allowed. But like the island's shells, how much gold exists has nothing to do with how much the economy is producing — it depends on how much miners happen to dig up. That mismatch worked out fine for long periods, keeping inflation low, but it's also the standard's biggest weakness: if the gold supply grows slower than the economy does, prices get pushed down instead of up. (The main times prices spiked anyway were wars, when governments printed extra money to pay for fighting no matter what backed it.)
-
 <div data-widget="line-trend" data-eyebrow="Money supply vs. fish caught, over generations" data-caption="The two lines climb together, not exactly in lockstep, but close. That's why price per fish barely moves — it's just one line divided by the other." data-value-prefix="" data-series-a-label="Money supply" data-series-b-label="Fish caught" data-points='[{"label":"Year 1","value":100},{"label":"Year 20","value":112},{"label":"Year 40","value":118},{"label":"Year 60","value":128},{"label":"Year 80","value":142},{"label":"Year 100","value":150}]' data-points-b='[{"label":"Year 1","value":100},{"label":"Year 20","value":108},{"label":"Year 40","value":122},{"label":"Year 60","value":125},{"label":"Year 80","value":138},{"label":"Year 100","value":150}]'></div>
 
 ---
 
 ### Act 2: the shells stop backing the money
 
-One year, the island's council removes the shell-backing rule. The notes look exactly the same as always — nothing about the paper itself changes. But they're no longer a promise you can trade in for a shell; they're worth something now purely because everyone agrees to trust them. The money supply doesn't change that day, it's still $150. What changes is that the council is no longer limited by how many shells exist — it can create more notes whenever it wants, starting now.
-
-That's almost exactly what happened for real, in 1971. President Nixon ended the U.S. gold standard for good.
-
-The dollar was no longer backed by gold or anything physical. It was worth something purely because the government said so and people trusted it. Economists have a name for that: **fiat money** (fiat just means "by decree").
-
-After that, controlling inflation depended on policy instead of gold — mainly interest rates — since there was no longer a fixed limit doing the job automatically. You can see the moment it happened in the price of gold itself — flat for over a decade, then loose:
-
-<div data-widget="line-trend"></div>
+One year, the island's council removes the shell-backing rule. The notes look exactly the same as always — nothing about the paper itself changes. But they're no longer a promise you can trade in for a shell; they're worth something now purely because everyone agrees to trust them. The money supply doesn't change that day, it's still $150. What changes is that the council is no longer limited by how many shells exist — it can create more notes whenever it wants, starting now. Nothing bad happens right away. But the safety rail is gone.
 
 | Moment | Population | Money supply | Fish caught | Price per fish |
 |---|---|---|---|---|
@@ -69,8 +59,6 @@ One council elder finally forces a fix: make it very expensive to borrow notes t
 | After the storm, council prints extra | 10 | $250 | 100 | $2.50 |
 | After the elder's fix, boats rebuilt | 10 | $150 | 150 | $1 |
 
-This is the 1970s, almost beat for beat. Oil prices spiked hard after supply shocks in the Middle East — the real-world storm — and instead of tightening up, the U.S. kept money loose, holding interest rates down and spending high. Prices rose so fast that by 1980, inflation was running near 14% a year — a dollar in 1980 bought less than half of what it bought ten years earlier. The person who broke it was Paul Volcker, head of America's version of the council — the Federal Reserve — starting in 1979. His fix was blunt: raise interest rates, way up — over 19% at one point. Borrowing money got expensive, the economy slowed hard, and it caused a painful recession — but it killed the inflation. It's still the go-to example of how to stop inflation once it's out of control: make money expensive to borrow, so there's less of it chasing the same goods.
-
 ---
 
 ### Act 4: it happens again
@@ -83,9 +71,33 @@ Decades later, another storm hits the island. Boats are damaged again, the fish 
 | After the storm, emergency notes handed out | 10 | $270 | 110 | ~$2.45 |
 | After council raises borrowing costs, boats rebuilt | 10 | $160 | 160 | $1 |
 
-This is 2021–2023. After COVID hit in 2020, governments pumped huge amounts of money into their economies — stimulus checks, extra unemployment benefits, cheap loans — while factories and shipping were a mess, producing and moving less than normal. More money, less stuff, same as the island. U.S. inflation hit about 9% in mid-2022, the highest in over 40 years. The Federal Reserve answered with Volcker's playbook again — raising interest rates fast, from near 0% to over 5% in about a year and a half — to cool things back down.
+Storms like this aren't a one-time thing for this island — they keep happening, generation after generation. Each time, the fix looks the same: stop the printing, make borrowing expensive, wait it out.
 
-Storms like this aren't a one-time thing — they keep happening, for the island and for real economies alike. The storms change. The response is often the same.
+---
+
+### This is essentially what happened in many real economies
+
+None of this happened on an actual island. But something extremely close to it happened for real, more than once.
+
+#### Commodity money: the gold standard
+
+For a long stretch, a lot of countries — including the U.S. — tied their money to gold instead of shells. A dollar could be traded in for a fixed amount of gold, so nobody could print more dollars than the gold in the vault allowed. Just like the island's shells, how much gold miners happened to dig up had nothing to do with how much the economy was actually producing — which is both why the system worked for so long, and why it eventually strained.
+
+#### Fiat money: 1971
+
+In 1971, the U.S. president at the time, Richard Nixon, ended the gold standard for good. The dollar stopped being backed by gold or anything physical — it was worth something purely because the government said so and people trusted it. Economists have a name for that: **fiat money** (fiat just means "by decree"). After that, controlling inflation depended on policy instead of gold.
+
+<div data-widget="line-trend"></div>
+
+#### The 1970s: the first real stress test
+
+Oil prices spiked hard after supply shocks in the Middle East, and instead of tightening up, the U.S. kept money loose — borrowing stayed cheap, spending stayed high. Prices rose so fast that by 1980, inflation was running near 14% a year — a dollar in 1980 bought less than half of what it bought ten years earlier. The person who broke it was Paul Volcker, head of America's central bank, the Federal Reserve, starting in 1979. His fix was the same one the island's elder used: make borrowing very expensive. In the real world, the cost of borrowing money is called the **interest rate** — Volcker pushed it way up, over 19% at one point. Borrowing got expensive, the economy slowed hard, and it caused a painful recession (a stretch where the economy shrinks and jobs get harder to find) — but it killed the inflation.
+
+#### Post-COVID inflation: 2021–2023
+
+It happened again. After COVID hit in 2020, governments pumped huge amounts of money into their economies — stimulus checks, extra unemployment benefits, cheap loans — while factories and shipping were a mess, producing and moving less than normal. More money, less stuff — the same combination as every island storm. U.S. inflation hit about 9% in mid-2022, the highest in over 40 years. The Federal Reserve answered with Volcker's playbook again — raising interest rates fast, from near 0% to over 5% in about a year and a half — to cool things back down.
+
+The storms change. The response is usually the same.
 
 ---
 
