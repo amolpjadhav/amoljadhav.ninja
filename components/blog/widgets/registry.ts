@@ -21,6 +21,7 @@ import AtmosphereZoom from './AtmosphereZoom';
 import AirDensityPaths from './AirDensityPaths';
 import RatingScorecard from './RatingScorecard';
 import GrowthVsMarginTrend from './GrowthVsMarginTrend';
+import LineTrend from './LineTrend';
 
 // Article content (stored as HTML in Supabase) can embed a widget by
 // including a placeholder element with a matching data-widget value, e.g.:
@@ -50,4 +51,5 @@ export const WIDGET_REGISTRY: Record<string, ComponentType> = {
   'air-density-paths': AirDensityPaths,
   'rating-scorecard': RatingScorecard,
   'growth-vs-margin-trend': GrowthVsMarginTrend,
+  'line-trend': LineTrend,
 };
