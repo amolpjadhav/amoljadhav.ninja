@@ -225,7 +225,7 @@ export default function AnalysisBoard({
   return (
     <div
       ref={containerRef}
-      className="not-prose bg-gradient-to-b from-[#1f2023] to-[#1a1b1e] border border-white/10 rounded-xl p-6 my-6 shadow-[0_1px_0_rgba(255,255,255,0.04)_inset]"
+      className="not-prose bg-gradient-to-b from-[#1f2023] to-[#1a1b1e] border border-white/10 rounded-xl p-6 my-6 shadow-[0_1px_0_rgba(255,255,255,0.04)_inset] overflow-x-hidden"
     >
       <div className="flex items-center justify-between mb-1">
         <p className="text-xs uppercase tracking-wide text-white/40">{eyebrow || 'Analysis board'}</p>
@@ -263,8 +263,8 @@ export default function AnalysisBoard({
         </div>
       )}
 
-      <div className="flex flex-col lg:flex-row gap-5">
-        <div className="flex gap-2.5 lg:gap-3">
+      <div className="flex flex-col lg:flex-row gap-5 min-w-0">
+        <div className="flex gap-2.5 lg:gap-3 min-w-0 lg:w-auto" style={{ maxWidth: 360 + 14 + RANK_LABEL_W + 24 }}>
           <div className="relative rounded-full overflow-hidden bg-[#141414] shrink-0 self-start border border-black/40 shadow-[inset_0_1px_3px_rgba(0,0,0,0.6)]" style={{ width: 14, height: boardSize }}>
             <div
               className="w-full absolute bottom-0 left-0 bg-gradient-to-b from-[#fdfdfb] to-[#e8e8e3]"
@@ -299,7 +299,7 @@ export default function AnalysisBoard({
             ))}
           </div>
 
-          <div className="shrink-0" style={{ width: 'min(80vw, 360px)' }}>
+          <div className="min-w-0 flex-1" style={{ maxWidth: 360 }}>
             <div
               ref={boardWrapRef}
               className="rounded-md overflow-hidden border-[3px]"
