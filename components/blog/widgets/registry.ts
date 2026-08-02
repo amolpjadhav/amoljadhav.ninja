@@ -29,6 +29,8 @@ import VoltageDemo from './VoltageDemo';
 import CurrentDemo from './CurrentDemo';
 import ResistanceDemo from './ResistanceDemo';
 import LossAversionScale from './LossAversionScale';
+import ChessStepper from './ChessStepper';
+import AnalysisBoard from './AnalysisBoard';
 
 // Article content (stored as HTML in Supabase) can embed a widget by
 // including a placeholder element with a matching data-widget value, e.g.:
@@ -66,4 +68,6 @@ export const WIDGET_REGISTRY: Record<string, ComponentType> = {
   'current-demo': CurrentDemo,
   'resistance-demo': ResistanceDemo,
   'loss-aversion-scale': LossAversionScale,
+  'chess-stepper': ChessStepper,
+  'analysis-board': AnalysisBoard,
 };
