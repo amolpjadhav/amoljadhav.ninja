@@ -1,4 +1,4 @@
-# The Scotch Gambit: Giving Up a Pawn to Attack First
+# The Scotch Gambit: A Pawn Sacrificed for Early Advantage
 
 Here's a chess opening that starts with White giving away a pawn on purpose:
 
