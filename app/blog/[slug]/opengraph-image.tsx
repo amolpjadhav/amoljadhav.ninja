@@ -38,20 +38,17 @@ export default async function Image({ params }: { params: Promise<{ slug: string
             justifyContent: 'center',
             width: '100%',
             height: '100%',
-            border: '2px solid #0aee3c',
+            border: '2px solid rgba(245,245,245,0.85)',
             borderRadius: 16,
             padding: 64,
           }}
         >
-          <div style={{ display: 'flex', fontSize: 26, color: 'rgba(10,238,60,0.6)', marginBottom: 32 }}>
-            {'amoljadhav.ai/blog'}
-          </div>
           <div
             style={{
               display: 'flex',
               fontSize: 60,
               fontWeight: 700,
-              color: '#0aee3c',
+              color: '#f5f5f5',
               textAlign: 'center',
               lineHeight: 1.3,
             }}
