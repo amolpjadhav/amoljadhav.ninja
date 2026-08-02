@@ -73,6 +73,7 @@ const CATEGORY_COLORS: Record<string, string> = {
   'Mental Models': '#fb7185',
   Curiosity: '#2dd4bf',
   Economics: '#34d399',
+  Science: '#6366f1',
 };
 
 const DEFAULT_CATEGORY_COLOR = '#0aee3c';

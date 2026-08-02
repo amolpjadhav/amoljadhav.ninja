@@ -22,6 +22,12 @@ import AirDensityPaths from './AirDensityPaths';
 import RatingScorecard from './RatingScorecard';
 import GrowthVsMarginTrend from './GrowthVsMarginTrend';
 import LineTrend from './LineTrend';
+import OhmsLawDemo from './OhmsLawDemo';
+import BarCompare from './BarCompare';
+import WaterTowerDiagram from './WaterTowerDiagram';
+import VoltageDemo from './VoltageDemo';
+import CurrentDemo from './CurrentDemo';
+import ResistanceDemo from './ResistanceDemo';
 
 // Article content (stored as HTML in Supabase) can embed a widget by
 // including a placeholder element with a matching data-widget value, e.g.:
@@ -52,4 +58,10 @@ export const WIDGET_REGISTRY: Record<string, ComponentType> = {
   'rating-scorecard': RatingScorecard,
   'growth-vs-margin-trend': GrowthVsMarginTrend,
   'line-trend': LineTrend,
+  'ohms-law-demo': OhmsLawDemo,
+  'bar-compare': BarCompare,
+  'water-tower-diagram': WaterTowerDiagram,
+  'voltage-demo': VoltageDemo,
+  'current-demo': CurrentDemo,
+  'resistance-demo': ResistanceDemo,
 };
