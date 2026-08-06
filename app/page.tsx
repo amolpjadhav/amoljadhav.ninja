@@ -54,7 +54,7 @@ export default function Home() {
               </h1>
 
               <p className="italic text-[#0aee3c]/85 text-sm tracking-wide mb-3 animate-fadeInUp">
-                Love building utilities people love 🛠️🤖
+                I like to do random shit 🛠️🤖
               </p>
 
               <div className="flex justify-center gap-2 text-xs animate-fadeInUp">
