@@ -12,9 +12,9 @@ It's a great story. It's also almost certainly not true, or at least not provabl
 
 ### Yemen: where coffee became a drink, not just a plant
 
-The first solid written evidence of anyone actually cultivating and brewing coffee comes from Yemen, almost 900 years ago, just across the Red Sea from Ethiopia. Sufi Muslim monks there brewed it to stay alert through long nights of prayer — coffee's first job, essentially, was as a tool for staying awake on purpose.
+The first solid written evidence of anyone actually cultivating and brewing coffee comes from Yemen, about 600 years ago, in the 1400s, just across the Red Sea from Ethiopia. Sufi Muslim monks there brewed it to stay alert through long nights of prayer — coffee's first job, essentially, was as a tool for staying awake on purpose.
 
-By around 600 years ago, coffee beans were shipping out from Yemen through one port: Mocha. For a long stretch, Mocha was the *only* place in the world coffee legally left from, which is why "mocha" still means coffee today, centuries after the port stopped being the center of anything.
+Within a few generations, coffee beans were shipping out from Yemen through one port: Mocha. For a long stretch, Mocha was the *only* place in the world coffee legally left from, which is why "mocha" still means coffee today, centuries after the port stopped being the center of anything.
 
 ### The Ottoman Empire builds the first coffeehouses
 
@@ -30,7 +30,7 @@ Venetian merchants, trading heavily with the Ottomans, brought coffee into Europ
 
 ### The plant gets smuggled out of Arabia
 
-Notice that Europe's coffeehouses, from the last section, were already decades old at this point — Venice, Vienna, and Paris were all drinking coffee well before anyone outside Arabia could grow it themselves. That's because Europe was only ever getting the finished product. For a long time, Yemen — conquered by the Ottoman Empire in 1538 and ruled as one of its provinces from then on — tightly guarded its coffee monopoly, exporting only roasted or boiled beans that couldn't be planted. (The Ottoman Empire wasn't from Yemen; it's the other way around — the empire, based in what's now Turkey, expanded to take control of Yemen, the way it took control of many other regions.) That monopoly broke once other countries got their hands on a living plant.
+Europeans were drinking coffee for decades before anyone outside Arabia ever grew a single plant — Venice, Vienna, and Paris, all from the last section, were already established coffee cities at this point. That's because Europe was only ever getting the finished product. For a long time, Yemen — conquered by the Ottoman Empire in 1538 and ruled as one of its provinces from then on — tightly guarded its coffee monopoly, exporting only roasted or boiled beans that couldn't be planted. (The Ottoman Empire wasn't from Yemen; it's the other way around — the empire, based in what's now Turkey, expanded to take control of Yemen, the way it took control of many other regions.) That monopoly broke once other countries got their hands on a living plant.
 
 The Dutch got there first. Dutch traders obtained coffee seedlings and, by 1696, had them growing on the island of Java (in modern Indonesia) under the Dutch East India Company. Java's coffee did so well that "Java" became, and still is, a nickname for coffee itself. The Dutch also sent a coffee plant, grown from their Java crop, to a botanical garden in Amsterdam (the Netherlands) in 1706 — and that single plant is the ancestor of nearly every coffee plant that later reached the Americas.
 
@@ -44,7 +44,7 @@ Brazil got its coffee a few years later, in 1727, under its own dramatic legend:
 
 Coffee reached the American colonies by the 1640s, and coffeehouses followed within a few decades — Boston (United States) had a real coffeehouse scene by the 1670s, including one called the Green Dragon that later became famous for a very different reason.
 
-Coffee didn't become America's default hot drink through gradual popularity, though — it happened almost overnight, for political reasons. After the Boston Tea Party in 1773, when colonists dumped a British tea shipment into Boston Harbor to protest taxation, drinking tea started to look like siding with the British, and coffee became the patriotic choice instead. The plotting for the Tea Party itself is said to have happened inside the Green Dragon. Coffee was already cheaper and more available than tea in the colonies before any of this — but the Tea Party is the moment usually credited with locking in America's coffee habit for good, the same habit behind that 66%-of-adults-daily number from the start of this article.
+Coffee didn't become America's default hot drink through gradual popularity, though — it happened almost overnight, for political reasons. After the Boston Tea Party in 1773, when colonists dumped a British tea shipment into Boston Harbor to protest taxation, drinking tea started to look like siding with the British, and coffee became the patriotic choice instead. Local tradition holds that the Tea Party itself was plotted inside the Green Dragon — though historians aren't actually certain where the planning happened, and some evidence points instead to the print shop of Benjamin Edes, publisher of the Boston Gazette. Coffee was already cheaper and more available than tea in the colonies before any of this — but the Tea Party is the moment usually credited with locking in America's coffee habit for good, the same habit behind that 66%-of-adults-daily number from the start of this article.
 
 ### The modern era: instant coffee and the "third wave"
 
@@ -52,7 +52,7 @@ Coffee stayed a slow, hands-on drink for centuries until 1938, when a Nestlé ch
 
 More recently, coffee swung back the other way. Starting in the 2000s, a movement often called "third wave" coffee began treating coffee the way people treat wine — caring about exactly which farm the beans came from, how they were processed, and how precisely they were brewed — as a reaction against fast, industrial coffee.
 
-One more thing worth noting: every plant in this entire story, from Ethiopia to Boston, was the same species — <span style="color:#a0785a;font-weight:700">Arabica</span>. Coffee's other major species, <span style="color:#6b3410;font-weight:700">Robusta</span>, wasn't discovered until the 1890s, in Africa's Congo Basin — a completely separate story that only later merged into the same cup, as the next section explains.
+Worth flagging before moving to the science: every plant in this entire story, from Ethiopia to Boston, was the same species — <span style="color:#a0785a;font-weight:700">Arabica</span>. Coffee's other major species, <span style="color:#6b3410;font-weight:700">Robusta</span>, wasn't discovered until the 1890s, in Africa's Congo Basin — a completely separate story that only later merged into the same cup, as the next section explains.
 
 ---
 
@@ -67,9 +67,9 @@ People use "type of coffee" to mean four completely different things, and mixing
 | <span style="color:#a0785a;font-weight:700">Arabica</span> | ~60–70% | Smoother, more aromatic, more acidic; needs cooler, higher-altitude growing conditions | Almost 2x the sugar and ~50% more natural oils than Robusta — sugar caramelizes into sweetness when roasted, oil carries aroma and adds a fuller mouthfeel. Evolved in Ethiopia's cooler highlands with fewer pests, so it could "spend" energy on flavor instead of defense — the same trade-off that makes it the more fragile plant today |
 | <span style="color:#6b3410;font-weight:700">Robusta</span> | ~30–40% | Stronger, more bitter, higher caffeine; hardier plant, grows at lower altitudes | Almost 2x the caffeine (bitter on its own), plus more chlorogenic acid, a compound that turns sharper and more bitter when roasted. Evolved in hot, pest-heavy Congo forests, where extra caffeine and bitterness work as a natural pesticide — the same toughness that lets it grow at lower altitudes today |
 
-One more thing worth knowing: "high acidity" in a coffee review doesn't mean sour — it means bright, lively flavor, the way a squeeze of lemon perks up a dish. Arabica generally has more of this brightness, which is part of what people mean by "more complex."
+A quick definition, since the word gets thrown around loosely: "high acidity" in a coffee review doesn't mean sour — it means bright, lively flavor, the way a squeeze of lemon perks up a dish. Arabica generally has more of this brightness, which is part of what people mean by "more complex."
 
-<div data-widget="bar-compare" data-eyebrow="Caffeine by species" data-caption="Robusta packs close to double the caffeine of Arabica — which is exactly why it's a common ingredient in instant coffee and some espresso blends that want a stronger kick." data-value-suffix="%" data-accent-color="#a0785a" data-items='[{"label":"Arabica","value":1.35,"subtext":"~1.2–1.5% caffeine by weight"},{"label":"Robusta","value":2.45,"subtext":"~2.2–2.7% caffeine by weight"}]'></div>
+<div data-widget="bar-compare" data-eyebrow="Caffeine by species" data-caption="Robusta packs close to double the caffeine of Arabica — which is exactly why it's a common ingredient in instant coffee and some espresso blends that want a stronger kick." data-value-prefix="" data-value-suffix="%" data-accent-color="#a0785a" data-items='[{"label":"Arabica","value":1.35,"subtext":"~1.2–1.5% caffeine by weight"},{"label":"Robusta","value":2.45,"subtext":"~2.2–2.7% caffeine by weight"}]'></div>
 
 <div data-widget="family-tree" data-eyebrow="Coffee's family tree" data-caption="Everything in this article's history section, from Ethiopia to Brazil to Boston, comes from one branch. Robusta is a completely separate species that only joined the picture in the 1890s." data-tree='{"label":"Coffea","note":"the coffee genus","icon":"🌍","children":[{"label":"Coffea arabica","color":"#a0785a","icon":"🌱","note":"Ethiopia, 1,000+ yrs ago","children":[{"label":"Typica","color":"#a0785a","icon":"☕","note":"Amsterdam → Martinique, 1723"},{"label":"Bourbon","color":"#a0785a","icon":"☕","note":"via Réunion Island"}]},{"label":"Coffea canephora","color":"#6b3410","icon":"🫘","note":"Robusta — Congo Basin, 1890s"}]}'></div>
 
@@ -83,7 +83,7 @@ One more thing worth knowing: "high acidity" in a coffee review doesn't mean sou
 
 This is where the biggest myth in coffee lives: darker roast does **not** mean more caffeine. Roasting barely touches caffeine at all — what changes is flavor, as sugars caramelize and oils develop.
 
-<div data-widget="bar-compare" data-eyebrow="Caffeine by roast level" data-caption="Nearly flat — by weight, light, medium, and dark roast all land within a hair of each other. The real difference: dark roast beans lose more moisture and weigh less per bean, so a scoop of dark roast has more individual beans in it than the same scoop of light roast — which is the opposite of what most people assume." data-value-suffix="%" data-accent-color="#6b4226" data-items='[{"label":"Light roast","value":1.13},{"label":"Medium roast","value":1.17},{"label":"Dark roast","value":1.08}]'></div>
+<div data-widget="bar-compare" data-eyebrow="Caffeine by roast level" data-caption="Nearly flat — by weight, light, medium, and dark roast all land within a hair of each other. The catch is volume: dark roast beans lose more moisture and puff up while weighing less per bean, so when you're measuring by a scoop (not a scale), that scoop of dark roast packs in more individual beans than the same scoop of light roast — the opposite of what most people assume." data-value-prefix="" data-value-suffix="%" data-accent-color="#6b4226" data-items='[{"label":"Light roast","value":1.13},{"label":"Medium roast","value":1.17},{"label":"Dark roast","value":1.08}]'></div>
 
 **4. Drink recipe — what you actually order at a coffee shop.**
 
