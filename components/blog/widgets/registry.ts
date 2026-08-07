@@ -31,6 +31,8 @@ import ResistanceDemo from './ResistanceDemo';
 import LossAversionScale from './LossAversionScale';
 import ChessStepper from './ChessStepper';
 import AnalysisBoard from './AnalysisBoard';
+import WorldMap from './WorldMap';
+import FamilyTree from './FamilyTree';
 
 // Article content (stored as HTML in Supabase) can embed a widget by
 // including a placeholder element with a matching data-widget value, e.g.:
@@ -70,4 +72,6 @@ export const WIDGET_REGISTRY: Record<string, ComponentType> = {
   'loss-aversion-scale': LossAversionScale,
   'chess-stepper': ChessStepper,
   'analysis-board': AnalysisBoard,
+  'world-map': WorldMap,
+  'family-tree': FamilyTree,
 };
