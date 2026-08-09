@@ -51,6 +51,9 @@ export default function LineTrend({
   valueSuffix,
   markIndex,
   markLabel,
+  shadeFrom,
+  shadeTo,
+  shadeLabel,
 }: {
   points?: string;
   pointsB?: string;
@@ -64,6 +67,9 @@ export default function LineTrend({
   valueSuffix?: string;
   markIndex?: string;
   markLabel?: string;
+  shadeFrom?: string;
+  shadeTo?: string;
+  shadeLabel?: string;
 }) {
   const data: Point[] = points ? JSON.parse(points) : DEFAULT_DATA;
   const dataB: Point[] | null = pointsB ? JSON.parse(pointsB) : null;
@@ -97,6 +103,17 @@ export default function LineTrend({
   const linePathB = dataB ? linePathFor(dataB) : null;
   const gridTicks = Array.from({ length: 5 }, (_, i) => (maxValue / 4) * i);
 
+  // Optional shaded band over a range of x-indices, for calling out a
+  // period rather than a single moment (e.g. the hours spent asleep).
+  const shadeStart = shadeFrom !== undefined ? Number(shadeFrom) : null;
+  const shadeEnd = shadeTo !== undefined ? Number(shadeTo) : null;
+  const hasShade =
+    shadeStart !== null &&
+    shadeEnd !== null &&
+    Number.isFinite(shadeStart) &&
+    Number.isFinite(shadeEnd) &&
+    shadeEnd > shadeStart;
+
   return (
     <div className="not-prose bg-[#1c1d20] border border-white/10 rounded-lg p-6 my-6">
       <p className="text-xs uppercase tracking-wide text-white/40 mb-1">{eyebrow || DEFAULT_EYEBROW}</p>
@@ -115,6 +132,37 @@ export default function LineTrend({
               strokeWidth={1}
             />
           ))}
+
+          {hasShade && (
+            <>
+              <rect
+                x={pointX(shadeStart!)}
+                y={PLOT_TOP}
+                width={pointX(shadeEnd!) - pointX(shadeStart!)}
+                height={PLOT_BOTTOM - PLOT_TOP}
+                fill="rgba(148,163,255,0.10)"
+              />
+              <line
+                x1={pointX(shadeStart!)}
+                y1={PLOT_TOP}
+                x2={pointX(shadeStart!)}
+                y2={PLOT_BOTTOM}
+                stroke="rgba(148,163,255,0.35)"
+                strokeWidth={1}
+              />
+              {shadeLabel && (
+                <text
+                  x={(pointX(shadeStart!) + pointX(shadeEnd!)) / 2}
+                  y={PLOT_TOP + 12}
+                  fontSize={10}
+                  fill="rgba(148,163,255,0.8)"
+                  textAnchor="middle"
+                >
+                  {shadeLabel}
+                </text>
+              )}
+            </>
+          )}
 
           {Number.isInteger(mark) && mark >= 0 && mark < data.length && (
             <>

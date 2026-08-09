@@ -33,6 +33,9 @@ import ChessStepper from './ChessStepper';
 import AnalysisBoard from './AnalysisBoard';
 import WorldMap from './WorldMap';
 import FamilyTree from './FamilyTree';
+import StageTimeline from './StageTimeline';
+import DecisionFlow from './DecisionFlow';
+import SleepSystemDiagram from './SleepSystemDiagram';
 
 // Article content (stored as HTML in Supabase) can embed a widget by
 // including a placeholder element with a matching data-widget value, e.g.:
@@ -74,4 +77,7 @@ export const WIDGET_REGISTRY: Record<string, ComponentType> = {
   'analysis-board': AnalysisBoard,
   'world-map': WorldMap,
   'family-tree': FamilyTree,
+  'stage-timeline': StageTimeline,
+  'decision-flow': DecisionFlow,
+  'sleep-system-diagram': SleepSystemDiagram,
 };
