@@ -36,6 +36,12 @@ import FamilyTree from './FamilyTree';
 import StageTimeline from './StageTimeline';
 import DecisionFlow from './DecisionFlow';
 import SleepSystemDiagram from './SleepSystemDiagram';
+import ElementaryMagnets from './ElementaryMagnets';
+import MagnetPoles from './MagnetPoles';
+import EarthMagnet from './EarthMagnet';
+import Electromagnet from './Electromagnet';
+import NeedsLevels from './NeedsLevels';
+import NeedsBalance from './NeedsBalance';
 
 // Article content (stored as HTML in Supabase) can embed a widget by
 // including a placeholder element with a matching data-widget value, e.g.:
@@ -80,4 +86,10 @@ export const WIDGET_REGISTRY: Record<string, ComponentType> = {
   'stage-timeline': StageTimeline,
   'decision-flow': DecisionFlow,
   'sleep-system-diagram': SleepSystemDiagram,
+  'elementary-magnets': ElementaryMagnets,
+  'magnet-poles': MagnetPoles,
+  'earth-magnet': EarthMagnet,
+  'electromagnet': Electromagnet,
+  'needs-levels': NeedsLevels,
+  'needs-balance': NeedsBalance,
 };
