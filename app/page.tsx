@@ -5,6 +5,11 @@ import ProfileFireworks from '@/components/layout/ProfileFireworks';
 import ConstantsRain from '@/components/layout/ConstantsRain';
 import RecentArticles from '@/components/RecentArticles';
 
+// Without this the segment defaults to `revalidate: false` (cached
+// indefinitely), which freezes the view counts and the "Most Read" ranking in
+// RecentArticles at build time. 60s matches /blog, /blog/[slug] and /stats.
+export const revalidate = 60;
+
 export default function Home() {
   return (
     <>
