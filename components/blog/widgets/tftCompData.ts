@@ -8,6 +8,13 @@
 // go stale fast; Set 18 launched 26 Aug 2026, so early ratings are volatile.
 // Item icons come from Riot's own art via Community Dragon and are stable.
 //
+// The `early` boards come from tftflow instead, because the tierlist page shows
+// openers as icons only. tftflow treats an opener as a named, reusable thing —
+// "Blossom", "Coven", "Riftbeast" — that several comps share, and each one has
+// a formula (the units it needs) plus an example (formula + filler). What is
+// recorded here is the formula, with the opener's name in a trailing comment.
+// `node scripts/fetch-tft-openers.mjs` re-reads them all and reports drift.
+//
 // Note: Riot had not published Set 18 champion portraits to Community Dragon
 // at the time of writing, so champions are shown as text chips rather than
 // images. If/when portraits land, add an `icon` to the champion rendering.
@@ -397,7 +404,7 @@ export const COMPS: Comp[] = [
     difficulty: 'Medium',
     style: '4-cost Fast 8',
     carry: 'Soraka',
-    early: [],
+    early: ['Ornn', "Rek'Sai", 'Veigar', 'Alistar', 'LeBlanc'], // Elderwood opener
     final: ['Malphite', 'Soraka', 'Zyra', 'Azir', 'Fiddlesticks', 'Kennen'],
     items: [
       { unit: 'Soraka', items: ["Rabadon's Deathcap", "Nashor's Tooth", 'Adaptive Helm'] },
@@ -413,7 +420,7 @@ export const COMPS: Comp[] = [
     difficulty: 'Easy',
     style: '3-cost reroll',
     carry: 'Cassiopeia',
-    early: ['Karma'],
+    early: ['Cassiopeia', 'Fiddlesticks'], // Defender Cassiopeia opener
     final: ['Cassiopeia', 'Rammus', 'Fiddlesticks', 'Shen', 'Leona', 'Ornn', 'Lillia', '5-cost AP flex'],
     items: [
       { unit: 'Cassiopeia', items: ['Spear of Shojin', 'Hextech Gunblade', "Archangel's Staff"] },
@@ -464,7 +471,7 @@ export const COMPS: Comp[] = [
     difficulty: 'Medium',
     style: '3-cost reroll',
     carry: 'Master Yi',
-    early: ['Master Yi'],
+    early: ['Master Yi', 'Gromp', 'Scuttlecrab', 'Yorick'], // Adaptor Yi opener
     final: ['Sett', 'Krug', 'Vi', 'Yorick', 'Master Yi', "Kog'Maw"],
     items: [
       { unit: 'Master Yi', items: ["Guinsoo's Rageblade", 'Edge of Night', "Titan's Resolve"] },
@@ -513,7 +520,7 @@ export const COMPS: Comp[] = [
     difficulty: 'Medium',
     style: '4-cost Fast 8',
     carry: 'Nidalee',
-    early: [],
+    early: ['Camille', 'Caitlyn', 'Elise', 'Cassiopeia'], // Coven opener
     final: ['Nidalee', 'Morgana', 'Sentinel', 'Taric', 'Scuttlecrab', 'Vi', "Kog'Maw", 'Pebbles'],
     items: [
       { unit: 'Nidalee', items: ['Jeweled Gauntlet', "Guinsoo's Rageblade", "Striker's Flail"] },
@@ -565,7 +572,7 @@ export const COMPS: Comp[] = [
     style: '2-cost reroll',
     carry: 'Caitlyn',
     tag: 'Rising',
-    early: ['Caitlyn'],
+    early: ['Caitlyn', 'Scuttlecrab', 'Sejuani', 'Cinderling'], // Juggernaut Hunter opener
     final: ['Caitlyn', 'Rakan', 'Sejuani', 'Scuttlecrab', 'Tristana', 'Sivir'],
     items: [
       { unit: 'Caitlyn', items: ["Guinsoo's Rageblade", "Kraken's Fury", "Kraken's Fury"] },
@@ -581,7 +588,7 @@ export const COMPS: Comp[] = [
     difficulty: 'Easy',
     style: '1-cost reroll',
     carry: 'Pebbles',
-    early: ['Pebbles'],
+    early: ['Cinderling', 'Pebbles', 'Gromp', 'Murkwolf', 'Scuttlecrab'], // Riftbeast opener
     final: ['Pebbles', 'Scuttlecrab', 'Teemo', "Kog'Maw", 'Morgana', 'Sentinel', 'Ivern', 'Maokai', 'Taric'],
     items: [
       { unit: 'Pebbles', items: ['Blue Buff', "Rabadon's Deathcap", 'Hextech Gunblade'] },
@@ -596,7 +603,7 @@ export const COMPS: Comp[] = [
     difficulty: 'Medium',
     style: '2-cost reroll',
     carry: 'Yunara',
-    early: ['Yunara'],
+    early: ["Rek'Sai", 'Alistar', 'Yunara', 'Azir'], // Brawler Executioner opener
     final: ['Alistar', 'Yunara', 'Ezreal', 'Azir', 'Gnar', 'Yorick', 'Lifeblossom', 'Sett', "Rek'Sai", 'Stonebark'],
     items: [
       { unit: 'Yunara', items: ['Deathblade', 'Spear of Shojin', "Striker's Flail"] },
@@ -630,7 +637,7 @@ export const COMPS: Comp[] = [
     style: '3-cost reroll',
     carry: 'Rengar',
     tag: 'Risky',
-    early: ['Rengar'],
+    early: ['Rengar', 'Rakan', 'Xayah'], // Rengar Rapidfire opener
     final: ['Rengar', 'Hecarim', 'Diana', 'Crimson Raptor', 'Sentinel', 'Taric'],
     items: [
       { unit: 'Rengar', items: ['Edge of Night', "Titan's Resolve", "Guinsoo's Rageblade"] },
@@ -649,7 +656,7 @@ export const COMPS: Comp[] = [
     difficulty: 'Medium',
     style: '2-cost reroll',
     carry: 'Warwick',
-    early: [],
+    early: ['Warwick', "Rek'Sai"], // Blackthorn Brawler opener
     final: ["Rek'Sai", 'Murkwolf', 'Warwick', 'Azir', 'Krug', 'Brambleback', 'Malphite'],
     items: [
       { unit: 'Warwick', items: ["Sterak's Gage", "Titan's Resolve", 'Spear of Shojin'] },
@@ -717,7 +724,7 @@ export const COMPS: Comp[] = [
     style: '1-cost reroll',
     carry: 'Veigar',
     requires: 'Flora Fatalis emblem augment',
-    early: ['Veigar'],
+    early: ['Veigar', 'Kobuko', "Rek'Sai"], // Veigar Sprykin opener
     final: ['Veigar', "Rek'Sai", 'Kobuko', 'Rammus', 'Sett', 'Gnar', 'Fiddlesticks', 'Teemo'],
     items: [
       { unit: 'Veigar', items: ['Jeweled Gauntlet', 'Blue Buff'] },
@@ -750,7 +757,7 @@ export const COMPS: Comp[] = [
     style: '3-cost reroll',
     carry: "Kha'Zix",
     requires: 'Rivals / Unrivaled augment',
-    early: ["Kha'Zix"],
+    early: ["Kha'Zix", 'Rengar', 'Hecarim', 'LeBlanc'], // Unrivaled opener
     final: ['Hecarim', "Kha'Zix", 'Rengar', 'Lifeblossom', 'Stonebark', 'Diana', 'LeBlanc', 'Ezreal'],
     items: [
       { unit: "Kha'Zix", items: ['Hand of Justice', "Rabadon's Deathcap", 'Edge of Night'] },
@@ -783,7 +790,7 @@ export const COMPS: Comp[] = [
     style: '3-cost reroll',
     carry: 'Tristana',
     requires: 'Fae emblem',
-    early: [],
+    early: ['Tristana', 'Kobuko', 'Rakan'], // Sprykin Tristana opener
     final: ['Rammus', 'Tristana', 'Sivir', 'Vi', 'Lillia', 'Rakan', 'Kobuko'],
     items: [
       { unit: 'Tristana', items: ["Guinsoo's Rageblade", 'Hextech Gunblade', 'Giant Slayer'] },

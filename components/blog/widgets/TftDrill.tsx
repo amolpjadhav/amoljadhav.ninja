@@ -42,14 +42,15 @@ const EARLY = '#38bdf8'; // sky, same as the "Early game" row on the comp cards
 const BOARD_DECOYS = 8;
 const OPENER_DECOYS = 6;
 
-// A comp only gets an opener step if it lists at least two early units.
+// A comp only gets an opener step if it lists at least two early units. Where
+// a comp lists exactly one, that unit is usually named in the comp title
+// ("Rengar Reroll", "Sprykin Teemo"), so asking for it would test reading
+// rather than memory. Those comps drill the board only, and their opener is
+// shown in the reveal instead of being asked for.
 //
-// Two reasons, both about the data rather than the design: the source lists
-// two or more openers for only 10 of the 27 comps, and where it lists exactly
-// one that unit is usually named in the comp title ("Rengar Reroll", "Caitlyn
-// Hunters"), so asking for it would test reading, not memory. The other comps
-// drill the board only, and their opener — when there is one — is shown in the
-// reveal instead of being asked for.
+// 22 of the 27 comps clear the bar. The five that do not are the ones with no
+// opener published anywhere I could check — see the note at the top of
+// tftCompData.ts.
 const MIN_OPENER_UNITS = 2;
 
 const STORAGE_KEY = 'tft-drill-comp';
