@@ -42,6 +42,9 @@ import EarthMagnet from './EarthMagnet';
 import Electromagnet from './Electromagnet';
 import NeedsLevels from './NeedsLevels';
 import NeedsBalance from './NeedsBalance';
+import MixingBox from './MixingBox';
+import TheoryScorecard from './TheoryScorecard';
+import TftComps from './TftComps';
 
 // Article content (stored as HTML in Supabase) can embed a widget by
 // including a placeholder element with a matching data-widget value, e.g.:
@@ -92,4 +95,7 @@ export const WIDGET_REGISTRY: Record<string, ComponentType> = {
   'electromagnet': Electromagnet,
   'needs-levels': NeedsLevels,
   'needs-balance': NeedsBalance,
+  'mixing-box': MixingBox,
+  'theory-scorecard': TheoryScorecard,
+  'tft-comps': TftComps,
 };

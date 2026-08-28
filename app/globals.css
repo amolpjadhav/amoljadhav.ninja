@@ -248,6 +248,12 @@ body {
   display: none;
 }
 
+/* Widgets render their own imagery (game item icons, diagrams). That is
+   information, not decoration, so it opts out of the blanket hide above. */
+.article-content img.widget-img {
+  display: inline-block;
+}
+
 .article-content[data-category="Travel"] img {
   display: block;
   width: 100%;
