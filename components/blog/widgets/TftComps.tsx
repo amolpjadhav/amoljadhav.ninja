@@ -5,6 +5,7 @@ import {
   COMPS,
   itemIcon,
   unitPosition,
+  compTraits,
   POSITION_META,
   POSITION_ORDER,
   SET_LABEL,
@@ -143,6 +144,32 @@ function Board({ list, carry }: { list: string[]; carry: string }) {
   );
 }
 
+// Bronze / silver / gold / prismatic, matching how the game grades a trait
+// once it passes each breakpoint.
+const TRAIT_TIER = ['#b06a3b', '#9aa4ad', '#e2b53e', '#7fd6e8'];
+
+function TraitChips({ units }: { units: string[] }) {
+  const traits = compTraits(units);
+  if (!traits.length) return null;
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      {traits.map((t) => {
+        const col = TRAIT_TIER[Math.min(t.tier, TRAIT_TIER.length - 1)];
+        return (
+          <span
+            key={t.name}
+            className="inline-flex items-center gap-1.5 text-[12px] font-semibold px-2 py-1 rounded-md border"
+            style={{ background: `${col}1f`, borderColor: `${col}66`, color: col }}
+          >
+            <span>{t.name}</span>
+            <span className="font-black tabular-nums">{t.count}</span>
+          </span>
+        );
+      })}
+    </div>
+  );
+}
+
 function ItemChip({ name }: { name: string }) {
   const src = itemIcon(name);
   return (
@@ -182,7 +209,15 @@ export default function TftComps({ eyebrow, caption }: { eyebrow?: string; capti
     return COMPS.filter((c) => {
       if (tier !== 'All' && c.tier !== tier) return false;
       if (!needle) return true;
-      const hay = [c.name, c.carry, c.style, ...c.early, ...c.final, ...c.items.map((i) => i.unit)]
+      const hay = [
+        c.name,
+        c.carry,
+        c.style,
+        ...c.early,
+        ...c.final,
+        ...c.items.map((i) => i.unit),
+        ...compTraits(c.final).map((t) => t.name),
+      ]
         .join(' ')
         .toLowerCase();
       return hay.includes(needle);
@@ -342,6 +377,13 @@ export default function TftComps({ eyebrow, caption }: { eyebrow?: string; capti
                     <Board list={c.final} carry={c.carry} />
                   </div>
 
+                  <div className="rounded-lg p-3" style={{ background: `${TRAIT}0a`, border: `1px solid ${TRAIT}24` }}>
+                    <SectionLabel color={TRAIT} hint="what the final board turns on">
+                      Trait synergies
+                    </SectionLabel>
+                    <TraitChips units={c.final} />
+                  </div>
+
                   <div className="rounded-lg p-3" style={{ background: `${ITEMS}0a`, border: `1px solid ${ITEMS}24` }}>
                     <SectionLabel color={ITEMS} hint="top row first, always">
                       Items
@@ -372,13 +414,6 @@ export default function TftComps({ eyebrow, caption }: { eyebrow?: string; capti
                       })}
                     </div>
                   </div>
-
-                  {c.traits && (
-                    <div className="rounded-lg p-3" style={{ background: `${TRAIT}0a`, border: `1px solid ${TRAIT}24` }}>
-                      <SectionLabel color={TRAIT}>Traits</SectionLabel>
-                      <div className="text-[13px] text-white/70 leading-snug">{c.traits}</div>
-                    </div>
-                  )}
 
                   {c.plan && (
                     <div className="text-[13px] text-white/60 leading-relaxed border-l-2 pl-3" style={{ borderColor: `${t.color}66` }}>

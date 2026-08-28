@@ -158,6 +158,176 @@ export function unitPosition(name: string): Position {
   return POSITIONS[name] ?? 'flex';
 }
 
+// ---------------------------------------------------------------------------
+// Trait synergies, computed from the final board rather than written by hand.
+//
+// The comps originally carried a free-text `traits` note, but only 12 of 27
+// had one and the formats disagreed ("5 Blossom · 2 Defender" vs "Flora
+// Fatalis (2) · Blackthorn"). Counting from the board instead means every
+// comp gets the same treatment and the numbers cannot drift from the units
+// listed above them.
+//
+// A trait only shows once it reaches its first breakpoint, so a lone
+// Elderwood unit does not appear as "Elderwood 1".
+// ---------------------------------------------------------------------------
+
+const TRAIT_BREAKPOINTS: Record<string, number[]> = {
+  // Origins
+  Blackthorn: [2, 4, 6],
+  Blossom: [3, 5, 7, 9, 11],
+  Coven: [3, 4, 5, 7],
+  Elderwood: [3, 5, 7, 9, 11],
+  Fae: [2, 4],
+  'Flora Fatalis': [1, 2],
+  Inferno: [2, 3, 5, 7],
+  Lunar: [2, 3, 4, 5],
+  Primal: [2, 4],
+  Riftbeast: [3, 5, 7, 10],
+  Rival: [1],
+  Solar: [3],
+  Sprykin: [3, 5, 7],
+  // Classes
+  Adaptor: [2, 3, 4],
+  Brawler: [2, 4, 6],
+  Defender: [2, 4, 6],
+  Executioner: [2, 3, 4],
+  Hunter: [2, 3, 4, 5],
+  Invoker: [2, 3, 4, 5],
+  Juggernaut: [2, 4, 6],
+  Rapidfire: [2, 3, 4, 5],
+  Ravager: [2, 4, 6],
+  Spellweaver: [2, 4, 6],
+  Summoner: [2, 3],
+  Vanguard: [2, 4, 6],
+  // Uniques — one champion each
+  'Apex Predator': [1],
+  Attuned: [1],
+  Avatar: [1],
+  'Bounty Seeker': [1],
+  Caustic: [1],
+  Eclipse: [1],
+  'Emerald Aspect': [1],
+  Greenfather: [1],
+  Monolith: [1],
+  'Old Growth': [1],
+  Thornmaiden: [1],
+};
+
+const CHAMPION_TRAITS: Record<string, string[]> = {
+  // 1-cost
+  Akali: ['Ravager', 'Inferno', 'Adaptor'],
+  Camille: ['Ravager', 'Coven'],
+  Cinderling: ['Riftbeast', 'Hunter'],
+  Karma: ['Blossom', 'Spellweaver'],
+  Kobuko: ['Sprykin', 'Brawler'],
+  Leona: ['Solar', 'Defender'],
+  Ornn: ['Elderwood', 'Defender'],
+  Pebbles: ['Riftbeast', 'Invoker'],
+  Rakan: ['Juggernaut', 'Fae', 'Vanguard'],
+  "Rek'Sai": ['Brawler', 'Blackthorn'],
+  Varus: ['Rapidfire', 'Inferno'],
+  Veigar: ['Sprykin', 'Spellweaver', 'Blackthorn'],
+  Xayah: ['Elderwood', 'Fae', 'Rapidfire'],
+  Yorick: ['Juggernaut', 'Summoner', 'Blossom'],
+  // 2-cost
+  Alistar: ['Elderwood', 'Brawler'],
+  Caitlyn: ['Hunter', 'Coven'],
+  Elise: ['Vanguard', 'Coven'],
+  Gromp: ['Riftbeast', 'Adaptor'],
+  Kayle: ['Solar', 'Rapidfire'],
+  LeBlanc: ['Elderwood', 'Spellweaver'],
+  Murkwolf: ['Riftbeast', 'Ravager'],
+  Scuttlecrab: ['Juggernaut', 'Riftbeast'],
+  Sejuani: ['Juggernaut', 'Solar'],
+  Shen: ['Inferno', 'Defender'],
+  Teemo: ['Sprykin', 'Invoker'],
+  Warwick: ['Ravager', 'Blackthorn'],
+  Yunara: ['Blossom', 'Executioner'],
+  // 3-cost
+  Azir: ['Summoner', 'Executioner', 'Blackthorn'],
+  Cassiopeia: ['Spellweaver', 'Coven'],
+  Diana: ['Lunar', 'Vanguard', 'Ravager'],
+  Fiddlesticks: ['Spellweaver', 'Defender', 'Flora Fatalis'],
+  Hecarim: ['Elderwood', 'Vanguard'],
+  "Kha'Zix": ['Rival'],
+  "Kog'Maw": ['Invoker', 'Adaptor', 'Caustic'],
+  Krug: ['Riftbeast', 'Brawler'],
+  'Mama Beak': ['Summoner', 'Riftbeast', 'Rapidfire'],
+  'Master Yi': ['Blossom', 'Adaptor'],
+  Rammus: ['Sprykin', 'Defender'],
+  Rengar: ['Rival'],
+  Tristana: ['Sprykin', 'Fae', 'Hunter'],
+  Vi: ['Primal', 'Juggernaut'],
+  // 4-cost
+  Ahri: ['Blossom', 'Spellweaver'],
+  Amumu: ['Juggernaut', 'Inferno'],
+  Aphelios: ['Rapidfire', 'Lunar'],
+  Brambleback: ['Riftbeast', 'Ravager'],
+  Ezreal: ['Elderwood', 'Executioner'],
+  Lillia: ['Fae', 'Defender'],
+  Malphite: ['Monolith', 'Blackthorn'],
+  Morgana: ['Invoker', 'Coven'],
+  Nidalee: ['Primal', 'Adaptor'],
+  Sentinel: ['Riftbeast', 'Invoker', 'Vanguard'],
+  Sett: ['Blossom', 'Brawler'],
+  Sivir: ['Primal', 'Hunter'],
+  Soraka: ['Executioner', 'Flora Fatalis'],
+  Zyra: ['Summoner', 'Thornmaiden'],
+  // 5-cost
+  Alune: ['Lunar', 'Spellweaver', 'Attuned'],
+  Ashe: ['Hunter', 'Blossom'],
+  Draven: ['Bounty Seeker'],
+  'Elder Dragon': ['Riftbeast', 'Apex Predator'],
+  Gnar: ['Sprykin', 'Elderwood', 'Brawler'],
+  Ivern: ['Greenfather'],
+  Kennen: ['Inferno', 'Executioner'],
+  Lux: ['Avatar'],
+  Maokai: ['Juggernaut', 'Old Growth'],
+  Taric: ['Emerald Aspect', 'Vanguard'],
+};
+
+// The comp lists call Mama Beak by its in-game display name in some boards.
+const CHAMPION_ALIASES: Record<string, string> = {
+  'Crimson Raptor': 'Mama Beak',
+};
+
+// Single-champion traits that every copy of that unit brings along. They are
+// always "active" and never a reason to pick one board over another, so they
+// are left out of the synergy row — same as the tierlist sites do. Rival is
+// deliberately not here: it is an origin, and the comps are built around it.
+const UNIQUE_TRAITS = new Set([
+  'Apex Predator', 'Attuned', 'Avatar', 'Bounty Seeker', 'Caustic', 'Eclipse',
+  'Emerald Aspect', 'Greenfather', 'Monolith', 'Old Growth', 'Thornmaiden',
+]);
+
+export interface ActiveTrait {
+  name: string;
+  count: number;
+  /** Index of the highest breakpoint reached — drives the bronze/silver/gold styling. */
+  tier: number;
+}
+
+export function compTraits(units: string[]): ActiveTrait[] {
+  const counts: Record<string, number> = {};
+  for (const u of units) {
+    const traits = CHAMPION_TRAITS[CHAMPION_ALIASES[u] ?? u];
+    if (!traits) continue;
+    for (const t of traits) counts[t] = (counts[t] ?? 0) + 1;
+  }
+
+  const active: ActiveTrait[] = [];
+  for (const [name, count] of Object.entries(counts)) {
+    if (UNIQUE_TRAITS.has(name)) continue;
+    const breaks = TRAIT_BREAKPOINTS[name];
+    if (!breaks) continue;
+    const tier = breaks.filter((b) => count >= b).length - 1;
+    if (tier < 0) continue; // hasn't reached its first breakpoint
+    active.push({ name, count, tier });
+  }
+
+  return active.sort((a, b) => b.tier - a.tier || b.count - a.count || a.name.localeCompare(b.name));
+}
+
 export type Tier = 'S' | 'A' | 'B' | 'C' | 'X';
 
 export interface ItemSet {
@@ -176,7 +346,6 @@ export interface Comp {
   early: string[];
   final: string[];
   items: ItemSet[];
-  traits?: string;
   plan?: string;
 }
 
@@ -205,7 +374,6 @@ export const COMPS: Comp[] = [
     difficulty: 'Easy',
     style: '4-cost Fast 8',
     carry: 'Ahri',
-    traits: '5 Blossom · 2 Defender · 2 Primal',
     early: ['Karma', 'Rakan', 'Yorick', 'Yunara'],
     final: ['Karma', 'Yorick', 'Vi', 'Sivir', 'Zyra', 'Ahri', 'Sett', 'Gnar', 'Ashe'],
     items: [
@@ -222,7 +390,6 @@ export const COMPS: Comp[] = [
     difficulty: 'Medium',
     style: '4-cost Fast 8',
     carry: 'Soraka',
-    traits: 'Flora Fatalis (2) · Blackthorn · Executor · Mystic · Defender',
     early: [],
     final: ['Malphite', 'Soraka', 'Zyra', 'Azir', 'Fiddlesticks', 'Kennen'],
     items: [
@@ -239,7 +406,6 @@ export const COMPS: Comp[] = [
     difficulty: 'Easy',
     style: '3-cost reroll',
     carry: 'Cassiopeia',
-    traits: '6 Defender, held constantly',
     early: ['Karma'],
     final: ['Cassiopeia', 'Rammus', 'Fiddlesticks', 'Shen', 'Leona', 'Ornn', 'Lillia', '5-cost AP flex'],
     items: [
@@ -276,7 +442,6 @@ export const COMPS: Comp[] = [
     difficulty: 'Hard',
     style: 'Losestreak · Invoker',
     carry: 'Morgana',
-    traits: '4 Invoker · 2 Sentinel (Coven early)',
     early: ['Kobuko', 'Sentry', 'Teemo', 'Rammus'],
     final: ['Morgana', 'Sentinel', 'Diana', 'Hecarim', 'Taric', 'Sentry', 'Alune', 'Brambleback'],
     items: [
@@ -324,7 +489,6 @@ export const COMPS: Comp[] = [
     difficulty: 'Easy',
     style: '1-cost reroll',
     carry: 'Cinderling',
-    traits: '7 Riftbeast',
     early: ['Cinderling', 'Sentry'],
     final: ['Cinderling', 'Sentry', 'Murkwolf', 'Scuttlecrab', 'Krug', 'Sentinel', 'Brambleback'],
     items: [
@@ -342,7 +506,6 @@ export const COMPS: Comp[] = [
     difficulty: 'Medium',
     style: '4-cost Fast 8',
     carry: 'Nidalee',
-    traits: '4 Invoker · 2 Vanguard · 2 Sentinel · Coven · Riftbeast',
     early: [],
     final: ['Nidalee', 'Morgana', 'Sentinel', 'Taric', 'Scuttlecrab', 'Vi', "Kog'Maw", 'Sentry'],
     items: [
@@ -395,7 +558,6 @@ export const COMPS: Comp[] = [
     style: '2-cost reroll',
     carry: 'Caitlyn',
     tag: 'Rising',
-    traits: '4 Juggernaut · 2 Hunter',
     early: ['Caitlyn'],
     final: ['Caitlyn', 'Rakan', 'Sejuani', 'Scuttlecrab', 'Tristana', 'Sivir'],
     items: [
@@ -412,7 +574,6 @@ export const COMPS: Comp[] = [
     difficulty: 'Easy',
     style: '1-cost reroll',
     carry: 'Sentry',
-    traits: '5 Riftbeast · 3 Invoker · 2 Sentinel',
     early: ['Sentry'],
     final: ['Sentry', 'Scuttlecrab', 'Teemo', "Kog'Maw", 'Morgana', 'Sentinel', 'Ivern', 'Maokai', 'Taric'],
     items: [
@@ -481,7 +642,6 @@ export const COMPS: Comp[] = [
     difficulty: 'Medium',
     style: '2-cost reroll',
     carry: 'Warwick',
-    traits: '5 Blackthorn · 2 Ravager · 1 Ascendant · 1 Defender',
     early: [],
     final: ["Rek'Sai", 'Murkwolf', 'Warwick', 'Azir', 'Krug', 'Brambleback', 'Malphite'],
     items: [
@@ -498,7 +658,6 @@ export const COMPS: Comp[] = [
     difficulty: 'Medium',
     style: '3-cost reroll',
     carry: "Kha'Zix",
-    traits: '3 Elderwood · 2 Lunar · 3 Spellweaver',
     early: ["Kha'Zix"],
     final: ['LeBlanc', 'Diana', 'Hecarim', "Kha'Zix", 'Ezreal', 'Aphelios', 'Alune'],
     items: [
@@ -515,7 +674,6 @@ export const COMPS: Comp[] = [
     difficulty: 'Medium',
     style: 'Fast 8 into 9',
     carry: 'Ezreal',
-    traits: '7 Elderwood · 3 Executioner · 2 Spellweaver',
     early: ['Xayah'],
     final: ['Ornn', 'Alistar', 'Taric', 'Fiddlesticks', 'Ezreal', 'Soraka', 'Lux', 'Stonebark', 'Gnar', 'Hecarim', 'Lifeblossom'],
     items: [
@@ -552,7 +710,6 @@ export const COMPS: Comp[] = [
     style: '1-cost reroll',
     carry: 'Veigar',
     requires: 'Flora Fatalis emblem augment',
-    traits: '3 Sprykin · 3 Blackthorn · 3 Brawler · Flora · Coven · Mystic',
     early: ['Veigar'],
     final: ['Veigar', "Rek'Sai", 'Kobuko', 'Rammus', 'Sett', 'Gnar', 'Fiddlesticks', 'Teemo'],
     items: [
@@ -569,7 +726,6 @@ export const COMPS: Comp[] = [
     style: '2-cost reroll · all 3-star',
     carry: 'Kayle',
     requires: 'Cursed Crown',
-    traits: '8 Solar · 4 Elderwood · Inferno',
     early: ['Kayle', 'Ornn'],
     final: ['Kayle', 'Xayah', 'Ornn', 'Sejuani', 'Leona', 'Rakan', 'Lifeblossom', 'Stonebark'],
     items: [
@@ -620,7 +776,6 @@ export const COMPS: Comp[] = [
     style: '3-cost reroll',
     carry: 'Tristana',
     requires: 'Fae emblem',
-    traits: '4 Fae (gold engine) · Sprykin · Hunter · Primal flex',
     early: [],
     final: ['Rammus', 'Tristana', 'Sivir', 'Vi', 'Lillia', 'Rakan', 'Kobuko'],
     items: [
@@ -638,7 +793,6 @@ export const COMPS: Comp[] = [
     style: '3-cost reroll',
     carry: 'Rengar',
     requires: 'Sprykin emblem on Rengar',
-    traits: '4 Fae · 3 Sprykin',
     early: [],
     final: ['Kobuko', 'Rammus', 'Rengar', 'Tristana', 'Lillia', 'Sivir', 'Gnar'],
     items: [
