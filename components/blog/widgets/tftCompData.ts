@@ -105,6 +105,12 @@ export function itemIcon(name: string): string | null {
 //
 // Stonebark and Lifeblossom are not shop units at all — they are plants the
 // Elderwood trait gives you to place, so they get their own band.
+//
+// Anything missing from these lists falls through to `flex`, which the drill
+// treats as "not a unit you buy" and drops from its answers. Sentry was
+// missing at first and silently vanished from five boards, including the one
+// where it is the carry — so if a real champion shows up under Flex on a
+// card, it belongs in a band above.
 // ---------------------------------------------------------------------------
 
 export type Position = 'front' | 'mid' | 'back' | 'plant' | 'flex';
@@ -139,8 +145,8 @@ const MID = [
 const BACK = [
   'Ahri', 'Alune', 'Aphelios', 'Ashe', 'Azir', 'Caitlyn', 'Cassiopeia', 'Cinderling',
   'Crimson Raptor', 'Draven', 'Ezreal', 'Fiddlesticks', 'Ivern', 'Karma', 'Kayle', 'Kennen',
-  "Kog'Maw", 'Lux', 'LeBlanc', 'Mama Beak', 'Morgana', 'Pebbles', 'Sivir', 'Soraka', 'Teemo',
-  'Tristana', 'Varus', 'Veigar', 'Xayah', 'Yunara', 'Zyra',
+  "Kog'Maw", 'Lux', 'LeBlanc', 'Mama Beak', 'Morgana', 'Pebbles', 'Sentry', 'Sivir', 'Soraka',
+  'Teemo', 'Tristana', 'Varus', 'Veigar', 'Xayah', 'Yunara', 'Zyra',
 ];
 
 const PLANT = ['Stonebark', 'Lifeblossom'];
