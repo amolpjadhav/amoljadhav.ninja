@@ -86,17 +86,23 @@ export function itemIcon(name: string): string | null {
 // ---------------------------------------------------------------------------
 // Where each unit stands on the board.
 //
-// TFT positioning is really three bands: the row that absorbs the hits, the
-// melee units that need to reach an enemy without being focused first, and
-// the ranged damage tucked out of harm's way. Derived from each champion's
-// Set 18 class rather than assigned by feel:
+// Three bands, split by what a unit DOES rather than by its class trait:
 //
-//   front  <- Defender, Juggernaut, Brawler, Vanguard
-//   mid    <- Ravager, Adaptor, and the melee Rival assassins
-//   back   <- Rapidfire, Hunter, Spellweaver, Invoker, Summoner, Executioner
+//   front  tanks — soak the damage
+//   mid    fighters — melee damage, including magic fighters like Diana
+//   back   carries — ranged damage, mages and support
 //
-// A few units override the rule: Fiddlesticks carries Defender but is played
-// as a backline mage, and Nidalee's Adaptor sits her mid despite being ranged.
+// An earlier version derived these from the Set 18 class and got it wrong,
+// because Vanguard is not a tank class: Taric and Sentinel are Vanguards who
+// hold the front, while Diana and Hecarim are Vanguards who dive and belong
+// mid. No single class maps cleanly onto a row, so every unit is listed by
+// hand below.
+//
+// Verified against a real positioning board for Aphelios Vanguards:
+// Taric + Sentinel front, Brambleback + Diana + Hecarim mid, Aphelios +
+// Mama Beak + Zyra back. The rest follow the same role logic — if one looks
+// wrong in game, it is a one-line fix here.
+//
 // Stonebark and Lifeblossom are not shop units at all — they are plants the
 // Elderwood trait gives you to place, so they get their own band.
 // ---------------------------------------------------------------------------
@@ -104,26 +110,32 @@ export function itemIcon(name: string): string | null {
 export type Position = 'front' | 'mid' | 'back' | 'plant' | 'flex';
 
 export const POSITION_META: Record<Position, { icon: string; label: string; hint: string; color: string }> = {
-  front: { icon: '🛡', label: 'Front line', hint: 'takes the hits', color: '#60a5fa' },
-  mid: { icon: '⚔', label: 'Midline', hint: 'melee, needs to reach', color: '#fb923c' },
-  back: { icon: '🏹', label: 'Back line', hint: 'damage, keep it safe', color: '#f472b6' },
+  front: { icon: '🛡', label: 'Front line', hint: 'tanks — soak the damage', color: '#60a5fa' },
+  mid: { icon: '⚔', label: 'Midline', hint: 'fighters — melee damage', color: '#fb923c' },
+  back: { icon: '🏹', label: 'Back line', hint: 'carries, mages, support', color: '#f472b6' },
   plant: { icon: '🌱', label: 'Plants', hint: 'Elderwood placeables, not shop units', color: '#34d399' },
   flex: { icon: '◇', label: 'Flex', hint: 'place to taste', color: '#94a3b8' },
 };
 
 export const POSITION_ORDER: Position[] = ['front', 'mid', 'back', 'plant', 'flex'];
 
+// Tanks. Defenders, Brawlers, Juggernauts and the two Vanguards that really
+// do hold the line (Taric, Sentinel).
 const FRONT = [
-  'Alistar', 'Amumu', 'Diana', 'Elder Dragon', 'Elise', 'Gnar', 'Hecarim', 'Kobuko', 'Krug',
-  'Leona', 'Lillia', 'Malphite', 'Maokai', 'Ornn', 'Rakan', 'Rammus', "Rek'Sai", 'Scuttlecrab',
-  'Sejuani', 'Sentinel', 'Sett', 'Shen', 'Taric', 'Vi', 'Yorick',
+  'Alistar', 'Amumu', 'Elder Dragon', 'Gnar', 'Kobuko', 'Krug', 'Leona', 'Lillia', 'Malphite',
+  'Maokai', 'Ornn', 'Rakan', 'Rammus', "Rek'Sai", 'Scuttlecrab', 'Sejuani', 'Sentinel', 'Sett',
+  'Shen', 'Taric', 'Vi', 'Yorick',
 ];
 
+// Melee damage. Ravagers, Adaptors, the Rival assassins, and the diving
+// Vanguards — Diana is a magic fighter, not a tank.
 const MID = [
-  'Akali', 'Brambleback', 'Camille', 'Gromp', "Kha'Zix", 'Master Yi', 'Murkwolf', 'Nidalee',
-  'Rengar', 'Warwick',
+  'Akali', 'Brambleback', 'Camille', 'Diana', 'Elise', 'Gromp', 'Hecarim', "Kha'Zix",
+  'Master Yi', 'Murkwolf', 'Nidalee', 'Rengar', 'Warwick',
 ];
 
+// Ranged damage, mages and support. Fiddlesticks is here despite Defender
+// because he is played as a backline mage carry.
 const BACK = [
   'Ahri', 'Alune', 'Aphelios', 'Ashe', 'Azir', 'Caitlyn', 'Cassiopeia', 'Cinderling',
   'Crimson Raptor', 'Draven', 'Ezreal', 'Fiddlesticks', 'Ivern', 'Karma', 'Kayle', 'Kennen',
