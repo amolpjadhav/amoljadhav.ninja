@@ -107,10 +107,11 @@ export function itemIcon(name: string): string | null {
 // Elderwood trait gives you to place, so they get their own band.
 //
 // Anything missing from these lists falls through to `flex`, which the drill
-// treats as "not a unit you buy" and drops from its answers. Sentry was
-// missing at first and silently vanished from five boards, including the one
-// where it is the carry — so if a real champion shows up under Flex on a
-// card, it belongs in a band above.
+// treats as "not a unit you buy" and drops from its answers. That is a useful
+// alarm: five boards used to list a "Sentry", which showed up under Flex here
+// and was skipped by compTraits — because no such champion exists. It was
+// Pebbles all along. If a champion you recognise renders as Flex, either the
+// band list below is missing it or the comp data has its name wrong.
 // ---------------------------------------------------------------------------
 
 export type Position = 'front' | 'mid' | 'back' | 'plant' | 'flex';
@@ -145,8 +146,8 @@ const MID = [
 const BACK = [
   'Ahri', 'Alune', 'Aphelios', 'Ashe', 'Azir', 'Caitlyn', 'Cassiopeia', 'Cinderling',
   'Crimson Raptor', 'Draven', 'Ezreal', 'Fiddlesticks', 'Ivern', 'Karma', 'Kayle', 'Kennen',
-  "Kog'Maw", 'Lux', 'LeBlanc', 'Mama Beak', 'Morgana', 'Pebbles', 'Sentry', 'Sivir', 'Soraka',
-  'Teemo', 'Tristana', 'Varus', 'Veigar', 'Xayah', 'Yunara', 'Zyra',
+  "Kog'Maw", 'Lux', 'LeBlanc', 'Mama Beak', 'Morgana', 'Pebbles', 'Sivir', 'Soraka', 'Teemo',
+  'Tristana', 'Varus', 'Veigar', 'Xayah', 'Yunara', 'Zyra',
 ];
 
 const PLANT = ['Stonebark', 'Lifeblossom'];
@@ -448,8 +449,8 @@ export const COMPS: Comp[] = [
     difficulty: 'Hard',
     style: 'Losestreak · Invoker',
     carry: 'Morgana',
-    early: ['Kobuko', 'Sentry', 'Teemo', 'Rammus'],
-    final: ['Morgana', 'Sentinel', 'Diana', 'Hecarim', 'Taric', 'Sentry', 'Alune', 'Brambleback'],
+    early: ['Kobuko', 'Pebbles', 'Teemo', 'Rammus'],
+    final: ['Morgana', 'Sentinel', 'Diana', 'Hecarim', 'Taric', 'Pebbles', 'Alune', 'Brambleback'],
     items: [
       { unit: 'Morgana', items: ['Morellonomicon', "Rabadon's Deathcap", 'Void Staff'] },
       { unit: 'Brambleback', items: ['Giant Slayer', 'Quicksilver'] },
@@ -495,11 +496,11 @@ export const COMPS: Comp[] = [
     difficulty: 'Easy',
     style: '1-cost reroll',
     carry: 'Cinderling',
-    early: ['Cinderling', 'Sentry'],
-    final: ['Cinderling', 'Sentry', 'Murkwolf', 'Scuttlecrab', 'Krug', 'Sentinel', 'Brambleback'],
+    early: ['Cinderling', 'Pebbles'],
+    final: ['Cinderling', 'Pebbles', 'Murkwolf', 'Scuttlecrab', 'Krug', 'Sentinel', 'Brambleback'],
     items: [
       { unit: 'Cinderling', items: ['Infinity Edge', 'Blue Buff', 'Last Whisper'] },
-      { unit: 'Sentry', items: ["Rabadon's Deathcap", 'Jeweled Gauntlet'] },
+      { unit: 'Pebbles', items: ["Rabadon's Deathcap", 'Jeweled Gauntlet'] },
       { unit: 'Krug', items: ["Warmog's Armor", 'Gargoyle Stoneplate', 'Spirit Visage'] },
       { unit: 'Brambleback', items: ["Thief's Gloves"] },
     ],
@@ -513,7 +514,7 @@ export const COMPS: Comp[] = [
     style: '4-cost Fast 8',
     carry: 'Nidalee',
     early: [],
-    final: ['Nidalee', 'Morgana', 'Sentinel', 'Taric', 'Scuttlecrab', 'Vi', "Kog'Maw", 'Sentry'],
+    final: ['Nidalee', 'Morgana', 'Sentinel', 'Taric', 'Scuttlecrab', 'Vi', "Kog'Maw", 'Pebbles'],
     items: [
       { unit: 'Nidalee', items: ['Jeweled Gauntlet', "Guinsoo's Rageblade", "Striker's Flail"] },
       { unit: 'Morgana', items: ['Morellonomicon', "Archangel's Staff", 'Adaptive Helm'] },
@@ -546,7 +547,7 @@ export const COMPS: Comp[] = [
     difficulty: 'Hard',
     style: 'Fast 9 · 5-cost',
     carry: 'Elder Dragon',
-    early: ['Cinderling', 'Sentry', 'Yorick', 'Scuttlecrab'],
+    early: ['Cinderling', 'Pebbles', 'Yorick', 'Scuttlecrab'],
     final: ['Elder Dragon', 'Amumu', 'Sentinel', 'Morgana', 'Ivern', 'Taric', 'Kennen', 'Maokai'],
     items: [
       { unit: 'Elder Dragon', items: ['Infinity Edge', 'Deathblade', "Striker's Flail"] },
@@ -575,15 +576,15 @@ export const COMPS: Comp[] = [
       'Rageblade plus bows on Caitlyn to winstreak. Level 6 in stage 3, econ above 50 gold and slow-roll, finish your 3-stars mid stage 4, then level for more Hunter.',
   },
   {
-    name: 'Pebbles 3 Tempo (Sentry)',
+    name: 'Pebbles 3 Tempo',
     tier: 'B',
     difficulty: 'Easy',
     style: '1-cost reroll',
-    carry: 'Sentry',
-    early: ['Sentry'],
-    final: ['Sentry', 'Scuttlecrab', 'Teemo', "Kog'Maw", 'Morgana', 'Sentinel', 'Ivern', 'Maokai', 'Taric'],
+    carry: 'Pebbles',
+    early: ['Pebbles'],
+    final: ['Pebbles', 'Scuttlecrab', 'Teemo', "Kog'Maw", 'Morgana', 'Sentinel', 'Ivern', 'Maokai', 'Taric'],
     items: [
-      { unit: 'Sentry', items: ['Blue Buff', "Rabadon's Deathcap", 'Hextech Gunblade'] },
+      { unit: 'Pebbles', items: ['Blue Buff', "Rabadon's Deathcap", 'Hextech Gunblade'] },
       { unit: 'Sentinel', items: ["Protector's Vow", "Warmog's Armor", 'Adaptive Helm'] },
     ],
     plan:
