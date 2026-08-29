@@ -35,8 +35,8 @@ const ANCHOR = '<h3>Three habits that beat any tier list</h3>';
 
 const SECTION = `<h3>Traits and champions</h3>
 <p>The 35 traits come in three sorts, and the list below is grouped that way.</p>
-<p><strong>Classes</strong> (12 of them) are what a champion does in a fight &mdash; a Defender holds the front, a Spellweaver casts from the back. Stack a class and the whole team gets better at fighting that way.</p>
-<p><strong>Origins</strong> (13) are where a champion is from &mdash; Elderwood, Inferno, Coven. Stacking one of these tends to do something stranger than hand out stats: Elderwood gives you plants to place on the board, Riftbeast floods your next shop with more Riftbeasts.</p>
+<p><strong>Origins</strong> (13 of them) are where a champion is from &mdash; Elderwood, Inferno, Coven. Stacking one of these tends to do something stranger than hand out stats: Elderwood gives you plants to place on the board, Riftbeast floods your next shop with more Riftbeasts.</p>
+<p><strong>Classes</strong> (12) are what a champion does in a fight &mdash; a Defender holds the front, a Spellweaver casts from the back. Stack a class and the whole team gets better at fighting that way.</p>
 <p><strong>Uniques</strong> (10) belong to one champion each. There is nothing to collect &mdash; the trait is on the moment that champion is on your board, so it works more like a second, permanent ability than a tag you stack.</p>
 <p>Each of the 65 champions has one ability, which they cast when their mana bar fills. 21 of them also have a <strong>passive</strong>: something that is simply true all the time, with no casting needed. Nine of the Riftbeasts have a third thing on top &mdash; a bonus they only get once you hand them the Alpha Mark.</p>
 <p>Search a champion to see what their ability does, or a trait to see who carries it. The wording is Riot&rsquo;s own, read straight out of the game files, so nothing is lost in a re-telling.</p>

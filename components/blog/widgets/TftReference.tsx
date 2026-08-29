@@ -47,9 +47,9 @@ const KIND_META: Record<TraitKind, { label: string; plural: string; gloss: strin
   },
 };
 
-// Classes first: they are the ones that decide how a board fights, and the
-// grouping matches the order the article introduces them in.
-const KIND_ORDER: TraitKind[] = ['class', 'origin', 'unique'];
+// Origins first, matching the order the article introduces them in. Uniques
+// last because there is nothing to collect: they are one champion each.
+const KIND_ORDER: TraitKind[] = ['origin', 'class', 'unique'];
 
 const ACCENT = '#4ade80';
 const PASSIVE = '#38bdf8';
