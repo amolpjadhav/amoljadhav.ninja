@@ -44,6 +44,7 @@ import NeedsLevels from './NeedsLevels';
 import NeedsBalance from './NeedsBalance';
 import TftComps from './TftComps';
 import TftDrill from './TftDrill';
+import TftReference from './TftReference';
 
 // Article content (stored as HTML in Supabase) can embed a widget by
 // including a placeholder element with a matching data-widget value, e.g.:
@@ -96,4 +97,5 @@ export const WIDGET_REGISTRY: Record<string, ComponentType> = {
   'needs-balance': NeedsBalance,
   'tft-comps': TftComps,
   'tft-drill': TftDrill,
+  'tft-reference': TftReference,
 };
