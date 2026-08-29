@@ -8,7 +8,7 @@
 // Usage:
 //   node scripts/generate-tft-set18-reference.mjs
 
-import { writeFileSync } from 'fs';
+import { writeFileSync, readFileSync } from 'fs';
 
 const DATA_URL = 'https://raw.communitydragon.org/latest/cdragon/tft/en_us.json';
 const OUT = new URL('../components/blog/widgets/tftReferenceData.ts', import.meta.url);
@@ -202,6 +202,82 @@ function traitRows(trait) {
   };
 }
 
+// tftCompData.ts keeps its own hand-written copy of three things Riot also
+// publishes: the trait breakpoints, which traits belong to one champion, and
+// each champion's traits. Every data bug found in that file so far has been a
+// transcription slip in one of them — a champion called "Sentry" who does not
+// exist, a Rival breakpoint short by one step, an Eclipse trait nobody has — so
+// they get diffed against Riot on every run rather than by luck.
+function crossCheckCompData(traits, champions) {
+  let src;
+  try {
+    src = readFileSync(new URL('../components/blog/widgets/tftCompData.ts', import.meta.url), 'utf-8');
+  } catch {
+    return; // the comp sheet is optional as far as this script is concerned
+  }
+
+  const section = (from, to) => src.slice(src.indexOf(from), src.indexOf(to));
+  const unquote = (s) => s.trim().replace(/^['"]|['"]$/g, '');
+  const problems = [];
+
+  // Breakpoints.
+  const bpBlock = section('const TRAIT_BREAKPOINTS', 'const CHAMPION_TRAITS');
+  const ours = new Map();
+  for (const m of bpBlock.matchAll(/^ {2}(?:'([^']+)'|"([^"]+)"|([A-Za-z][A-Za-z ]*?)): \[([0-9, ]+)\],/gm)) {
+    const name = (m[1] ?? m[2] ?? m[3]).trim();
+    ours.set(name, m[4].split(',').map((n) => Number(n.trim())));
+  }
+  for (const t of traits) {
+    const mine = ours.get(t.name);
+    const riot = [...new Set(t.breakpoints)];
+    if (!mine) problems.push(`TRAIT_BREAKPOINTS is missing ${t.name} (Riot: ${riot.join('/')})`);
+    else if (mine.join('/') !== riot.join('/')) {
+      problems.push(`${t.name} breakpoints: ours ${mine.join('/')} vs Riot ${riot.join('/')}`);
+    }
+  }
+  for (const name of ours.keys()) {
+    if (!traits.some((t) => t.name === name)) problems.push(`${name} is in TRAIT_BREAKPOINTS but no Set 18 champion has it`);
+  }
+
+  // Uniques.
+  const uniqueBlock = section('const UNIQUE_TRAITS', 'export interface ActiveTrait');
+  const oursUnique = new Set([...uniqueBlock.matchAll(/'([^']+)'/g)].map((m) => m[1]));
+  const riotUnique = new Set(traits.filter((t) => t.kind === 'unique').map((t) => t.name));
+  for (const n of riotUnique) if (!oursUnique.has(n)) problems.push(`${n} has one champion but is not in UNIQUE_TRAITS`);
+  // Rival is deliberately shown rather than hidden, so it is exempt.
+  for (const n of oursUnique) {
+    if (!riotUnique.has(n) && n !== 'Rival') problems.push(`${n} is in UNIQUE_TRAITS but is not a single-champion trait`);
+  }
+
+  // Champion traits.
+  const champBlock = section('const CHAMPION_TRAITS', 'const CHAMPION_ALIASES');
+  const oursChamps = new Map();
+  for (const m of champBlock.matchAll(/^ {2}(?:'([^']+)'|"([^"]+)"|([A-Za-z][A-Za-z' ]*?)): \[([^\]]*)\],/gm)) {
+    const name = (m[1] ?? m[2] ?? m[3]).trim();
+    oursChamps.set(name, m[4].split(',').map(unquote).filter(Boolean));
+  }
+  for (const c of champions) {
+    const mine = oursChamps.get(c.name);
+    if (!mine) {
+      problems.push(`CHAMPION_TRAITS is missing ${c.name}`);
+      continue;
+    }
+    if ([...mine].sort().join('/') !== [...c.traits].sort().join('/')) {
+      problems.push(`${c.name} traits: ours ${mine.join('/')} vs Riot ${c.traits.join('/')}`);
+    }
+  }
+  for (const name of oursChamps.keys()) {
+    if (!champions.some((c) => c.name === name)) problems.push(`${name} is in CHAMPION_TRAITS but is not a Set 18 champion`);
+  }
+
+  if (!problems.length) {
+    console.log('  cross-check against tftCompData.ts: clean');
+    return;
+  }
+  console.log(`  cross-check against tftCompData.ts found ${problems.length} mismatch(es):`);
+  for (const p of problems) console.log(`    - ${p}`);
+}
+
 async function main() {
   const res = await fetch(DATA_URL);
   if (!res.ok) throw new Error(`${res.status} ${res.statusText} fetching Community Dragon`);
@@ -241,6 +317,8 @@ async function main() {
     }))
     .filter((t) => t.champions.length)
     .sort((a, b) => a.name.localeCompare(b.name));
+
+  crossCheckCompData(traits, champions);
 
   // Sanity checks. A unique with more than one champion, or a listed
   // origin/class with exactly one, means the grouping above has gone stale.

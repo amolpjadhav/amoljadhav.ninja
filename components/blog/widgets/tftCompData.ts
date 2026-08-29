@@ -197,7 +197,9 @@ const TRAIT_BREAKPOINTS: Record<string, number[]> = {
   Lunar: [2, 3, 4, 5],
   Primal: [2, 4],
   Riftbeast: [3, 5, 7, 10],
-  Rival: [1],
+  // Riot's data has a step at 1 and at 2: fielding both Rivals together is a
+  // real upgrade, not just the same bonus twice.
+  Rival: [1, 2],
   Solar: [3],
   Sprykin: [3, 5, 7],
   // Classes
@@ -219,7 +221,6 @@ const TRAIT_BREAKPOINTS: Record<string, number[]> = {
   Avatar: [1],
   'Bounty Seeker': [1],
   Caustic: [1],
-  Eclipse: [1],
   'Emerald Aspect': [1],
   Greenfather: [1],
   Monolith: [1],
@@ -310,8 +311,8 @@ const CHAMPION_ALIASES: Record<string, string> = {
 // are left out of the synergy row — same as the tierlist sites do. Rival is
 // deliberately not here: it is an origin, and the comps are built around it.
 const UNIQUE_TRAITS = new Set([
-  'Apex Predator', 'Attuned', 'Avatar', 'Bounty Seeker', 'Caustic', 'Eclipse',
-  'Emerald Aspect', 'Greenfather', 'Monolith', 'Old Growth', 'Thornmaiden',
+  'Apex Predator', 'Attuned', 'Avatar', 'Bounty Seeker', 'Caustic', 'Emerald Aspect',
+  'Greenfather', 'Monolith', 'Old Growth', 'Thornmaiden',
 ]);
 
 export interface ActiveTrait {
