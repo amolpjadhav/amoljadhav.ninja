@@ -1,17 +1,13 @@
-// One-off: adds the "Traits and champions" section to the published TFT Set 18
-// comps article, between "Reading the boards" and "Three habits". The comp list
-// stays first for someone checking it mid-match; this sits with the other
-// explain-the-game material.
+// One-off: replaces the one-line "three sorts" paragraph in the "Traits and
+// champions" section with a short paragraph per sort, since nothing in the
+// article explained what a unique was, and the reference widget now groups its
+// list by sort with classes first.
 //
-// Idempotent: exits cleanly if the section is already there, and refuses to
-// write if the anchor is missing rather than guessing at a position.
-//
-// The opening "what a trait is" paragraph was cut after publishing — "Reading
-// the boards" already covers it — so SECTION below matches what is live, not
-// what was first written. See scripts/update-tft-traits-intro.mjs.
+// Idempotent: exits cleanly once the new copy is in, and refuses to write
+// unless the old paragraph matches exactly once.
 //
 // Usage:
-//   node scripts/publish-tft-traits-champions.mjs
+//   node scripts/update-tft-traits-kinds.mjs
 
 import { createClient } from '@supabase/supabase-js';
 import { readFileSync, existsSync } from 'fs';
@@ -31,18 +27,16 @@ const supabase = createClient(supabaseUrl, serviceKey, {
 });
 
 const SLUG = 'tft-set-18-comps-all-27-teams-for-enchanted-wilds';
-const ANCHOR = '<h3>Three habits that beat any tier list</h3>';
 
-const SECTION = `<h3>Traits and champions</h3>
-<p>The 35 traits come in three sorts, and the list below is grouped that way.</p>
+const OLD =
+  '<p>There are 35 traits, and they come in three sorts. An <strong>origin</strong> is where a champion is from. ' +
+  'A <strong>class</strong> is what they do in a fight. And 10 of them belong to a single champion, so they are on ' +
+  'the moment that champion is on your board.</p>';
+
+const NEW = `<p>The 35 traits come in three sorts, and the list below is grouped that way.</p>
 <p><strong>Classes</strong> (12 of them) are what a champion does in a fight &mdash; a Defender holds the front, a Spellweaver casts from the back. Stack a class and the whole team gets better at fighting that way.</p>
 <p><strong>Origins</strong> (13) are where a champion is from &mdash; Elderwood, Inferno, Coven. Stacking one of these tends to do something stranger than hand out stats: Elderwood gives you plants to place on the board, Riftbeast floods your next shop with more Riftbeasts.</p>
-<p><strong>Uniques</strong> (10) belong to one champion each. There is nothing to collect &mdash; the trait is on the moment that champion is on your board, so it works more like a second, permanent ability than a tag you stack.</p>
-<p>Each of the 65 champions has one ability, which they cast when their mana bar fills. 21 of them also have a <strong>passive</strong>: something that is simply true all the time, with no casting needed. Nine of the Riftbeasts have a third thing on top &mdash; a bonus they only get once you hand them the Alpha Mark.</p>
-<p>Search a champion to see what their ability does, or a trait to see who carries it. The wording is Riot&rsquo;s own, read straight out of the game files, so nothing is lost in a re-telling.</p>
-<div data-widget="tft-reference" data-eyebrow="Set 18 reference" data-caption="Every trait and every champion, and what each one actually does. Tap a row to open it."></div>
-
-`;
+<p><strong>Uniques</strong> (10) belong to one champion each. There is nothing to collect &mdash; the trait is on the moment that champion is on your board, so it works more like a second, permanent ability than a tag you stack.</p>`;
 
 async function main() {
   const { data: post, error: readErr } = await supabase
@@ -56,18 +50,18 @@ async function main() {
     process.exit(1);
   }
 
-  if (post.content.includes('data-widget="tft-reference"')) {
-    console.log('Section already present — nothing to do.');
+  if (post.content.includes('<strong>Uniques</strong>')) {
+    console.log('Already updated — nothing to do.');
     return;
   }
 
-  const hits = post.content.split(ANCHOR).length - 1;
+  const hits = post.content.split(OLD).length - 1;
   if (hits !== 1) {
-    console.error(`Refusing to write: expected 1 match for the anchor heading, found ${hits}.`);
+    console.error(`Refusing to write: expected 1 match for the old paragraph, found ${hits}.`);
     process.exit(1);
   }
 
-  const content = post.content.replace(ANCHOR, SECTION + ANCHOR);
+  const content = post.content.replace(OLD, NEW);
 
   const { data, error } = await supabase
     .from('blog_posts')
@@ -81,9 +75,13 @@ async function main() {
     process.exit(1);
   }
 
+  const at = data.content.indexOf('<h3>Traits and champions</h3>');
+  const end = data.content.indexOf('<h3>Three habits');
   console.log(`Updated: ${data.title}`);
-  console.log('  sections now:');
-  for (const m of data.content.matchAll(/<h3>([^<]+)<\/h3>/g)) console.log(`    ${m[1]}`);
+  console.log('  section is now:');
+  for (const line of data.content.slice(at, end).trim().split('\n')) {
+    console.log(`    ${line.slice(0, 110)}${line.length > 110 ? '…' : ''}`);
+  }
 }
 
 function loadEnvLocal() {

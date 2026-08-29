@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { Fragment, useMemo, useState } from 'react';
 import { TRAITS, CHAMPIONS, type TraitKind } from './tftReferenceData';
 
 // Set 18 trait and champion reference. The comp sheet answers "what do I
@@ -26,11 +26,30 @@ const COST_COLOR: Record<number, string> = {
   5: '#ffc857',
 };
 
-const KIND_META: Record<TraitKind, { label: string; color: string }> = {
-  origin: { label: 'Origin', color: '#38bdf8' },
-  class: { label: 'Class', color: '#fb923c' },
-  unique: { label: 'Unique', color: '#c084fc' },
+const KIND_META: Record<TraitKind, { label: string; plural: string; gloss: string; color: string }> = {
+  class: {
+    label: 'Class',
+    plural: 'Classes',
+    gloss: 'what a champion does in a fight',
+    color: '#fb923c',
+  },
+  origin: {
+    label: 'Origin',
+    plural: 'Origins',
+    gloss: 'where a champion is from',
+    color: '#38bdf8',
+  },
+  unique: {
+    label: 'Unique',
+    plural: 'Uniques',
+    gloss: 'one champion each, always on',
+    color: '#c084fc',
+  },
 };
+
+// Classes first: they are the ones that decide how a board fights, and the
+// grouping matches the order the article introduces them in.
+const KIND_ORDER: TraitKind[] = ['class', 'origin', 'unique'];
 
 const ACCENT = '#4ade80';
 const PASSIVE = '#38bdf8';
@@ -83,7 +102,9 @@ export default function TftReference({ eyebrow, caption }: { eyebrow?: string; c
           .join(' ')
           .toLowerCase()
           .includes(needle);
-      }),
+      }).sort(
+        (a, b) => KIND_ORDER.indexOf(a.kind) - KIND_ORDER.indexOf(b.kind) || a.name.localeCompare(b.name)
+      ),
     [kind, needle]
   );
 
@@ -164,7 +185,7 @@ export default function TftReference({ eyebrow, caption }: { eyebrow?: string; c
 
       {tab === 'traits' ? (
         <div className="flex flex-wrap items-center gap-2 mb-4">
-          {(['all', 'origin', 'class', 'unique'] as const).map((k) => {
+          {(['all', ...KIND_ORDER] as const).map((k) => {
             const on = kind === k;
             const color = k === 'all' ? '#ffffff' : KIND_META[k].color;
             return (
@@ -178,7 +199,7 @@ export default function TftReference({ eyebrow, caption }: { eyebrow?: string; c
                   color: on ? color : `${color}99`,
                 }}
               >
-                {k === 'all' ? 'All' : `${KIND_META[k].label}s`}
+                {k === 'all' ? 'All' : KIND_META[k].plural}
               </button>
             );
           })}
@@ -210,72 +231,94 @@ export default function TftReference({ eyebrow, caption }: { eyebrow?: string; c
 
       <div className="flex flex-col gap-1.5">
         {tab === 'traits' &&
-          traits.map((t) => {
-            const key = `trait:${t.name}`;
-            const isOpen = open === key;
-            const meta = KIND_META[t.kind];
+          KIND_ORDER.map((groupKind) => {
+            const rows = traits.filter((t) => t.kind === groupKind);
+            if (!rows.length) return null;
+            const groupMeta = KIND_META[groupKind];
             return (
-              <div
-                key={t.name}
-                className="rounded-lg overflow-hidden"
-                style={{
-                  border: `1px solid ${isOpen ? `${meta.color}55` : 'rgba(255,255,255,0.10)'}`,
-                  background: isOpen ? `${meta.color}0a` : 'rgba(255,255,255,0.02)',
-                }}
-              >
-                <button onClick={() => toggle(key)} className="w-full text-left px-3 py-2.5 flex items-center gap-2">
-                  <span className="text-[14px] font-bold text-white">{t.name}</span>
-                  <Chip text={meta.label} color={meta.color} dim />
-                  <span className="ml-auto flex items-center gap-1">
-                    {t.kind === 'unique' ? (
-                      <span className="text-[11px] text-white/40">{t.champions[0]}</span>
-                    ) : (
-                      [...new Set(t.breakpoints)].map((b) => <Chip key={b} text={String(b)} color={meta.color} />)
-                    )}
-                  </span>
-                </button>
-
-                {isOpen && (
-                  <div className="px-3 pb-3 flex flex-col gap-2.5">
-                    {t.intro && (
-                      <div className="text-[13px] text-white/75 leading-snug whitespace-pre-line">{t.intro}</div>
-                    )}
-                    <div className="flex flex-col gap-1.5">
-                      {t.rows.map((r, i) => (
-                        <div key={i} className="flex gap-2">
-                          <span
-                            className="text-[11px] font-bold w-7 h-5 shrink-0 rounded flex items-center justify-center border"
-                            style={{
-                              background: `${meta.color}1f`,
-                              borderColor: `${meta.color}55`,
-                              color: meta.color,
-                            }}
-                          >
-                            {r.at}
-                          </span>
-                          <span className="text-[13px] text-white/80 leading-snug whitespace-pre-line">{r.text}</span>
-                        </div>
-                      ))}
-                    </div>
-                    <div>
-                      <div className="text-[10px] uppercase tracking-wider text-white/35 mb-1">
-                        {t.champions.length} champion{t.champions.length === 1 ? '' : 's'}
-                      </div>
-                      <div className="flex flex-wrap gap-1">
-                        {t.champions.map((c) => {
-                          const info = CHAMPIONS.find((x) => x.name === c);
-                          const color = COST_COLOR[info?.cost ?? 1];
-                          return (
-                            <button key={c} onClick={() => showChampion(c)} className="transition-opacity hover:opacity-100 opacity-90">
-                              <Chip text={c} color={color} />
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
+              <Fragment key={groupKind}>
+                {/* Only worth a heading when all three are on screen at once. */}
+                {kind === 'all' && (
+                  <div className="flex items-baseline gap-2 mt-2 first:mt-0">
+                    <span
+                      className="text-[11px] font-bold uppercase tracking-wider"
+                      style={{ color: groupMeta.color }}
+                    >
+                      {groupMeta.plural}
+                    </span>
+                    <span className="text-[11px] text-white/35">{groupMeta.gloss}</span>
+                    <span className="text-[11px] text-white/25 ml-auto">{rows.length}</span>
                   </div>
                 )}
-              </div>
+                {rows.map((t) => {
+                  const key = `trait:${t.name}`;
+                  const isOpen = open === key;
+                  const meta = KIND_META[t.kind];
+                  return (
+                    <div
+                      key={t.name}
+                      className="rounded-lg overflow-hidden"
+                      style={{
+                        border: `1px solid ${isOpen ? `${meta.color}55` : 'rgba(255,255,255,0.10)'}`,
+                        background: isOpen ? `${meta.color}0a` : 'rgba(255,255,255,0.02)',
+                      }}
+                    >
+                      <button onClick={() => toggle(key)} className="w-full text-left px-3 py-2.5 flex items-center gap-2">
+                        <span className="text-[14px] font-bold text-white">{t.name}</span>
+                        <Chip text={meta.label} color={meta.color} dim />
+                        <span className="ml-auto flex items-center gap-1">
+                          {t.kind === 'unique' ? (
+                            <span className="text-[11px] text-white/40">{t.champions[0]}</span>
+                          ) : (
+                            [...new Set(t.breakpoints)].map((b) => <Chip key={b} text={String(b)} color={meta.color} />)
+                          )}
+                        </span>
+                      </button>
+
+                      {isOpen && (
+                        <div className="px-3 pb-3 flex flex-col gap-2.5">
+                          {t.intro && (
+                            <div className="text-[13px] text-white/75 leading-snug whitespace-pre-line">{t.intro}</div>
+                          )}
+                          <div className="flex flex-col gap-1.5">
+                            {t.rows.map((r, i) => (
+                              <div key={i} className="flex gap-2">
+                                <span
+                                  className="text-[11px] font-bold w-7 h-5 shrink-0 rounded flex items-center justify-center border"
+                                  style={{
+                                    background: `${meta.color}1f`,
+                                    borderColor: `${meta.color}55`,
+                                    color: meta.color,
+                                  }}
+                                >
+                                  {r.at}
+                                </span>
+                                <span className="text-[13px] text-white/80 leading-snug whitespace-pre-line">{r.text}</span>
+                              </div>
+                            ))}
+                          </div>
+                          <div>
+                            <div className="text-[10px] uppercase tracking-wider text-white/35 mb-1">
+                              {t.champions.length} champion{t.champions.length === 1 ? '' : 's'}
+                            </div>
+                            <div className="flex flex-wrap gap-1">
+                              {t.champions.map((c) => {
+                                const info = CHAMPIONS.find((x) => x.name === c);
+                                const color = COST_COLOR[info?.cost ?? 1];
+                                return (
+                                  <button key={c} onClick={() => showChampion(c)} className="transition-opacity hover:opacity-100 opacity-90">
+                                    <Chip text={c} color={color} />
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </Fragment>
             );
           })}
 
