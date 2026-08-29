@@ -6,6 +6,10 @@
 // Idempotent: exits cleanly if the section is already there, and refuses to
 // write if the anchor is missing rather than guessing at a position.
 //
+// The opening "what a trait is" paragraph was cut after publishing — "Reading
+// the boards" already covers it — so SECTION below matches what is live, not
+// what was first written. See scripts/update-tft-traits-intro.mjs.
+//
 // Usage:
 //   node scripts/publish-tft-traits-champions.mjs
 
@@ -30,7 +34,6 @@ const SLUG = 'tft-set-18-comps-all-27-teams-for-enchanted-wilds';
 const ANCHOR = '<h3>Three habits that beat any tier list</h3>';
 
 const SECTION = `<h3>Traits and champions</h3>
-<p>Every champion carries one or two traits &mdash; a tag like Elderwood or Brawler. Collect enough champions with the same tag and the tag switches on, and gives your whole team a bonus. Most tags switch on more than once: three Elderwood is good, five is better, seven is better still. The small numbers next to each trait below are how many champions you need for each step.</p>
 <p>There are 35 traits, and they come in three sorts. An <strong>origin</strong> is where a champion is from. A <strong>class</strong> is what they do in a fight. And 10 of them belong to a single champion, so they are on the moment that champion is on your board.</p>
 <p>Each of the 65 champions has one ability, which they cast when their mana bar fills. 21 of them also have a <strong>passive</strong>: something that is simply true all the time, with no casting needed. Nine of the Riftbeasts have a third thing on top &mdash; a bonus they only get once you hand them the Alpha Mark.</p>
 <p>Search a champion to see what their ability does, or a trait to see who carries it. The wording is Riot&rsquo;s own, read straight out of the game files, so nothing is lost in a re-telling.</p>
