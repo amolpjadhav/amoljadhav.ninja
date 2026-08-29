@@ -1,7 +1,7 @@
 'use client';
 
 import { Fragment, useMemo, useState } from 'react';
-import { TRAITS, CHAMPIONS, type TraitKind } from './tftReferenceData';
+import { TRAITS, CHAMPIONS, type ChampionInfo, type TraitKind } from './tftReferenceData';
 
 // Set 18 trait and champion reference. The comp sheet answers "what do I
 // play"; this answers "what does this thing actually do", which is the question
@@ -56,7 +56,7 @@ const PASSIVE = '#38bdf8';
 const ACTIVE = '#ffc857';
 const BUFF = '#4ade80';
 
-type Tab = 'traits' | 'champions';
+type Tab = 'traits' | 'champions' | 'tree';
 
 function Chip({ text, color, dim }: { text: string; color: string; dim?: boolean }) {
   return (
@@ -90,6 +90,7 @@ export default function TftReference({ eyebrow, caption }: { eyebrow?: string; c
   const [kind, setKind] = useState<TraitKind | 'all'>('all');
   const [cost, setCost] = useState<number | 'all'>('all');
   const [open, setOpen] = useState<string | null>(null);
+  const [openBranches, setOpenBranches] = useState<string[]>([]);
 
   const needle = q.trim().toLowerCase();
 
@@ -122,6 +123,87 @@ export default function TftReference({ eyebrow, caption }: { eyebrow?: string; c
     [cost, needle]
   );
 
+  // The tree: origin, then the classes inside it, then the champions. It is the
+  // shape of the roster that the two flat lists cannot show — that an origin is
+  // a spread of different jobs rather than a set of similar units, which is why
+  // a comp name like "Elderwood Executioners" picks one of each.
+  //
+  // A champion with two classes appears under both. That is the honest answer
+  // to "where does Sentinel live", and hiding one of them would misrepresent
+  // why it gets played.
+  const kindByTrait = useMemo(() => new Map(TRAITS.map((t) => [t.name, t.kind])), []);
+
+  const tree = useMemo(() => {
+    const byName = new Map(CHAMPIONS.map((c) => [c.name, c]));
+    const withKind = (c: ChampionInfo, k: TraitKind) => c.traits.filter((t) => kindByTrait.get(t) === k);
+
+    // Branch labels are classes. Seven champions have no class at all — their
+    // own unique trait stands in for one, and two Rivals have neither.
+    const branchesOf = (champions: ChampionInfo[]) => {
+      const map = new Map<string, ChampionInfo[]>();
+      for (const c of champions) {
+        const classes = withKind(c, 'class');
+        const labels = classes.length ? classes : withKind(c, 'unique');
+        for (const label of labels.length ? labels : ['No class']) {
+          if (!map.has(label)) map.set(label, []);
+          map.get(label)!.push(c);
+        }
+      }
+      return [...map.entries()]
+        // A champion with no class falls back to its unique, so a branch label
+        // is not always a class — it carries its own kind so it is coloured and
+        // linked as what it actually is.
+        .map(([label, champs]) => ({ label, champs, kind: kindByTrait.get(label) }))
+        .sort((a, b) => b.champs.length - a.champs.length || a.label.localeCompare(b.label));
+    };
+
+    const origins = TRAITS.filter((t) => t.kind === 'origin')
+      .map((t) => {
+        const champs = t.champions.map((n) => byName.get(n)).filter((c): c is ChampionInfo => Boolean(c));
+        return {
+          name: t.name,
+          note: `${champs.length} champion${champs.length === 1 ? '' : 's'}`,
+          isTrait: true,
+          champs,
+          branches: branchesOf(champs),
+        };
+      })
+      .sort((a, b) => a.name.localeCompare(b.name));
+
+    const orphans = CHAMPIONS.filter((c) => !withKind(c, 'origin').length);
+    return orphans.length
+      ? [
+          ...origins,
+          {
+            name: 'No origin',
+            note: 'a unique trait of their own instead',
+            isTrait: false,
+            champs: orphans,
+            branches: branchesOf(orphans),
+          },
+        ]
+      : origins;
+  }, [kindByTrait]);
+
+  // Searching a tree that is collapsed shows nothing, so a match opens its
+  // branch and narrows it to the champions that matched.
+  const shownTree = useMemo(() => {
+    if (!needle) return tree;
+    return tree
+      .map((group) => {
+        if (group.name.toLowerCase().includes(needle)) return group;
+        const branches = group.branches
+          .map((b) =>
+            b.label.toLowerCase().includes(needle)
+              ? b
+              : { ...b, champs: b.champs.filter((c) => c.name.toLowerCase().includes(needle)) }
+          )
+          .filter((b) => b.champs.length);
+        return { ...group, branches };
+      })
+      .filter((group) => group.branches.length);
+  }, [tree, needle]);
+
   // Jumping from a trait's champion list to that champion is the move you
   // actually want next: you read what Riftbeast does, now who has it.
   const showChampion = (name: string) => {
@@ -140,6 +222,9 @@ export default function TftReference({ eyebrow, caption }: { eyebrow?: string; c
 
   const toggle = (key: string) => setOpen((o) => (o === key ? null : key));
 
+  const toggleBranch = (key: string) =>
+    setOpenBranches((keys) => (keys.includes(key) ? keys.filter((k) => k !== key) : [...keys, key]));
+
   return (
     <div className="not-prose font-sans rounded-xl p-4 sm:p-6 my-6 border border-white/12 bg-[#17181b]">
       {eyebrow && (
@@ -150,9 +235,9 @@ export default function TftReference({ eyebrow, caption }: { eyebrow?: string; c
       {caption && <div className="text-white/70 text-sm mb-4 leading-snug">{caption}</div>}
 
       <div className="flex gap-2 mb-3">
-        {(['traits', 'champions'] as Tab[]).map((t) => {
+        {(['traits', 'champions', 'tree'] as Tab[]).map((t) => {
           const on = tab === t;
-          const count = t === 'traits' ? TRAITS.length : CHAMPIONS.length;
+          const count = t === 'traits' ? TRAITS.length : t === 'champions' ? CHAMPIONS.length : tree.length;
           return (
             <button
               key={t}
@@ -178,7 +263,13 @@ export default function TftReference({ eyebrow, caption }: { eyebrow?: string; c
         <input
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder={tab === 'traits' ? 'Search a trait, or a champion who has it…' : 'Search a champion, trait or ability…'}
+          placeholder={
+            tab === 'traits'
+              ? 'Search a trait, or a champion who has it…'
+              : tab === 'champions'
+                ? 'Search a champion, trait or ability…'
+                : 'Search an origin, a class or a champion…'
+          }
           className="w-full rounded-lg bg-black/50 border border-white/15 pl-9 pr-3 py-2.5 text-[14px] text-white/90 placeholder:text-white/35 outline-none focus:border-sky-400/60"
         />
       </div>
@@ -205,7 +296,7 @@ export default function TftReference({ eyebrow, caption }: { eyebrow?: string; c
           })}
           <span className="text-[12px] text-white/40 ml-auto">{traits.length} shown</span>
         </div>
-      ) : (
+      ) : tab === 'champions' ? (
         <div className="flex flex-wrap items-center gap-2 mb-4">
           {(['all', 1, 2, 3, 4, 5] as const).map((c) => {
             const on = cost === c;
@@ -226,6 +317,20 @@ export default function TftReference({ eyebrow, caption }: { eyebrow?: string; c
             );
           })}
           <span className="text-[12px] text-white/40 ml-auto">{champions.length} shown</span>
+        </div>
+      ) : (
+        <div className="flex flex-wrap items-center gap-2 mb-4">
+          <span className="text-[12px] text-white/40">
+            Origin, then the classes inside it, then who they are. Tap to open a branch.
+          </span>
+          {openBranches.length > 0 && (
+            <button
+              onClick={() => setOpenBranches([])}
+              className="text-[12px] text-white/40 ml-auto underline decoration-white/20 hover:text-white/70"
+            >
+              collapse all
+            </button>
+          )}
         </div>
       )}
 
@@ -402,7 +507,79 @@ export default function TftReference({ eyebrow, caption }: { eyebrow?: string; c
             );
           })}
 
-        {((tab === 'traits' && !traits.length) || (tab === 'champions' && !champions.length)) && (
+        {tab === 'tree' &&
+          shownTree.map((group) => {
+            const key = `tree:${group.name}`;
+            const isOpen = Boolean(needle) || openBranches.includes(key);
+            const color = group.isTrait ? KIND_META.origin.color : '#94a3b8';
+            return (
+              <div
+                key={group.name}
+                className="rounded-lg overflow-hidden"
+                style={{
+                  border: `1px solid ${isOpen ? `${color}55` : 'rgba(255,255,255,0.10)'}`,
+                  background: isOpen ? `${color}0a` : 'rgba(255,255,255,0.02)',
+                }}
+              >
+                <button
+                  onClick={() => toggleBranch(key)}
+                  className="w-full text-left px-3 py-2.5 flex items-center gap-2"
+                >
+                  <span className="text-[11px] w-3 shrink-0" style={{ color: `${color}aa` }}>
+                    {isOpen ? '▾' : '▸'}
+                  </span>
+                  <span className="text-[14px] font-bold text-white">{group.name}</span>
+                  <span className="text-[11px] text-white/35">{group.note}</span>
+                  <span className="ml-auto text-[11px] text-white/30">
+                    {group.branches.length} {group.branches.length === 1 ? 'branch' : 'branches'}
+                  </span>
+                </button>
+
+                {isOpen && (
+                  <div className="px-3 pb-3 pl-6 flex flex-col gap-1.5">
+                    {group.isTrait && (
+                      <button
+                        onClick={() => showTrait(group.name)}
+                        className="self-start text-[11px] underline decoration-white/20 hover:text-white/80"
+                        style={{ color: `${color}cc` }}
+                      >
+                        what {group.name} does &rarr;
+                      </button>
+                    )}
+                    {group.branches.map((branch) => (
+                      <div key={branch.label} className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-2">
+                        <span className="w-[112px] shrink-0 flex items-center gap-1">
+                          <span className="text-white/20 text-[11px]">└</span>
+                          {branch.kind ? (
+                            <button
+                              onClick={() => showTrait(branch.label)}
+                              className="text-[12px] font-semibold text-left"
+                              style={{ color: KIND_META[branch.kind].color }}
+                            >
+                              {branch.label}
+                            </button>
+                          ) : (
+                            <span className="text-[12px] text-white/40">{branch.label}</span>
+                          )}
+                        </span>
+                        <span className="flex flex-wrap gap-1">
+                          {branch.champs.map((c) => (
+                            <button key={c.name} onClick={() => showChampion(c.name)}>
+                              <Chip text={c.name} color={COST_COLOR[c.cost]} />
+                            </button>
+                          ))}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+
+        {((tab === 'traits' && !traits.length) ||
+          (tab === 'champions' && !champions.length) ||
+          (tab === 'tree' && !shownTree.length)) && (
           <div className="text-[13px] text-white/40 py-4">Nothing matches that.</div>
         )}
       </div>
