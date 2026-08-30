@@ -6,6 +6,7 @@ import {
   itemIcon,
   unitPosition,
   compTraits,
+  unitTraits,
   POSITION_META,
   POSITION_ORDER,
   SET_LABEL,
@@ -15,6 +16,7 @@ import {
   type Tier,
   type Position,
 } from './tftCompData';
+import { TRAITS } from './tftReferenceData';
 
 // In-game reference for TFT comps. Designed to be glanced at mid-match, so
 // the priorities are: find your comp in under two seconds, then see the three
@@ -54,6 +56,11 @@ const DIFF: Record<Comp['difficulty'], string> = {
   Hard: '#ff4655',
 };
 
+// Origin / class / unique, coloured the same way the trait reference does it,
+// so the two widgets teach one vocabulary rather than two.
+const KIND_COLOR = { origin: '#38bdf8', class: '#fb923c', unique: '#c084fc' } as const;
+const TRAIT_KIND = new Map(TRAITS.map((t) => [t.name, t.kind]));
+
 const CARRY = '#ffc857';
 const EARLY = '#38bdf8';
 const FINAL = '#c084fc';
@@ -76,29 +83,47 @@ function SectionLabel({ color, children, hint }: { color: string; children: stri
   );
 }
 
+// Each unit carries its own traits, stacked under the name. Answering "why is
+// this champion here" used to mean scrolling to the synergy row and working
+// backwards; now the board says it. Stacked rather than inline because the
+// chips sit in a wrapping row — three trait names side by side would double the
+// chip's width and cost a column on a phone, while three short lines only cost
+// height.
 function UnitChip({ name, carry, color }: { name: string; carry: string; color: string }) {
   const isCarry = name === carry;
+  const traits = unitTraits(name);
   return (
     <span
-      className="text-[13px] px-2.5 py-1 rounded-md whitespace-nowrap border"
+      className="inline-flex flex-col items-start px-2 py-1 rounded-md border"
       style={
         isCarry
           ? {
               background: `${CARRY}1f`,
-              color: CARRY,
               borderColor: `${CARRY}66`,
-              fontWeight: 700,
               boxShadow: `0 0 12px ${CARRY}22`,
             }
           : {
               background: `${color}14`,
-              color: 'rgba(255,255,255,0.85)',
               borderColor: `${color}3a`,
             }
       }
     >
-      {isCarry && <span className="mr-1">★</span>}
-      {name}
+      <span
+        className="text-[13px] leading-tight whitespace-nowrap"
+        style={{ color: isCarry ? CARRY : 'rgba(255,255,255,0.85)', fontWeight: isCarry ? 700 : 400 }}
+      >
+        {isCarry && <span className="mr-1">★</span>}
+        {name}
+      </span>
+      {traits.map((t) => (
+        <span
+          key={t}
+          className="text-[10px] leading-[1.3] whitespace-nowrap"
+          style={{ color: `${KIND_COLOR[TRAIT_KIND.get(t) ?? 'class']}cc` }}
+        >
+          {t}
+        </span>
+      ))}
     </span>
   );
 }
@@ -461,6 +486,22 @@ export default function TftComps({ eyebrow, caption }: { eyebrow?: string; capti
           </span>
           <span className="text-white/35">gets the items</span>
         </span>
+      </div>
+
+      <div className="mt-2 pt-2 flex flex-wrap gap-x-4 gap-y-1.5">
+        {([
+          ['origin', 'where a champion is from'],
+          ['class', 'what it does in a fight'],
+          ['unique', 'that champion only'],
+        ] as const).map(([kind, hint]) => (
+          <span key={kind} className="text-[11px] flex items-center gap-1.5">
+            <span className="font-bold capitalize" style={{ color: KIND_COLOR[kind] }}>
+              {kind}
+            </span>
+            <span className="text-white/35">{hint}</span>
+          </span>
+        ))}
+        <span className="text-[11px] text-white/30">the small lines under each champion</span>
       </div>
 
       <div className="mt-2 text-[11px] text-white/30 leading-snug">

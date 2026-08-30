@@ -322,12 +322,19 @@ export interface ActiveTrait {
   tier: number;
 }
 
+/**
+ * Traits a single unit brings, resolving the display-name aliases the boards
+ * use. Empty for anything that is not a shop champion — the Elderwood plants,
+ * and placeholders like "5-cost AP flex" — so callers can just check length.
+ */
+export function unitTraits(name: string): string[] {
+  return CHAMPION_TRAITS[CHAMPION_ALIASES[name] ?? name] ?? [];
+}
+
 export function compTraits(units: string[]): ActiveTrait[] {
   const counts: Record<string, number> = {};
   for (const u of units) {
-    const traits = CHAMPION_TRAITS[CHAMPION_ALIASES[u] ?? u];
-    if (!traits) continue;
-    for (const t of traits) counts[t] = (counts[t] ?? 0) + 1;
+    for (const t of unitTraits(u)) counts[t] = (counts[t] ?? 0) + 1;
   }
 
   const active: ActiveTrait[] = [];

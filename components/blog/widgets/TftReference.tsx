@@ -51,6 +51,12 @@ const KIND_META: Record<TraitKind, { label: string; plural: string; gloss: strin
 // last because there is nothing to collect: they are one champion each.
 const KIND_ORDER: TraitKind[] = ['origin', 'class', 'unique'];
 
+// A champion's trait chips are coloured by what kind of trait it is, so the
+// origin/class split is legible on the champion rows too and not only in the
+// trait list. The comp sheet uses the same three colours.
+const TRAIT_KIND = new Map(TRAITS.map((t) => [t.name, t.kind]));
+const traitColor = (name: string) => KIND_META[TRAIT_KIND.get(name) ?? 'class'].color;
+
 const ACCENT = '#4ade80';
 const PASSIVE = '#38bdf8';
 const ACTIVE = '#ffc857';
@@ -453,7 +459,7 @@ export default function TftReference({ eyebrow, caption }: { eyebrow?: string; c
                   <span className="text-[12px] text-white/40 truncate">{a.name}</span>
                   <span className="ml-auto hidden sm:flex items-center gap-1">
                     {c.traits.map((t) => (
-                      <Chip key={t} text={t} color="#94a3b8" dim />
+                      <Chip key={t} text={t} color={traitColor(t)} dim />
                     ))}
                   </span>
                 </button>
@@ -463,14 +469,14 @@ export default function TftReference({ eyebrow, caption }: { eyebrow?: string; c
                     <div className="flex flex-wrap gap-1 sm:hidden">
                       {c.traits.map((t) => (
                         <button key={t} onClick={() => showTrait(t)}>
-                          <Chip text={t} color="#94a3b8" />
+                          <Chip text={t} color={traitColor(t)} />
                         </button>
                       ))}
                     </div>
                     <div className="hidden sm:flex flex-wrap gap-1">
                       {c.traits.map((t) => (
                         <button key={t} onClick={() => showTrait(t)}>
-                          <Chip text={`${t} →`} color="#94a3b8" />
+                          <Chip text={`${t} →`} color={traitColor(t)} />
                         </button>
                       ))}
                     </div>
