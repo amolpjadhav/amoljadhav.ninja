@@ -4,7 +4,6 @@ import MatrixBackground from '@/components/layout/MatrixBackground';
 import ProfileFireworks from '@/components/layout/ProfileFireworks';
 import ConstantsRain from '@/components/layout/ConstantsRain';
 import RecentArticles from '@/components/RecentArticles';
-import EarthAgeClock from '@/components/layout/EarthAgeClock';
 
 // Without this the segment defaults to `revalidate: false` (cached
 // indefinitely), which freezes the view counts and the "Most Read" ranking in
@@ -74,8 +73,6 @@ export default function Home() {
                 </a>
               </div>
             </div>
-
-            <EarthAgeClock />
 
             {/* Latest Blog Posts */}
             <div className="relative">
