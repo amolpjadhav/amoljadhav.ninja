@@ -59,7 +59,7 @@ export default function Home() {
               </h1>
 
               <p className="italic text-[#0aee3c]/85 text-sm tracking-wide mb-3 animate-fadeInUp">
-                I like to do random shit 🛠️🤖
+                A random walk, written down
               </p>
 
               <div className="flex justify-center gap-2 text-xs animate-fadeInUp">
