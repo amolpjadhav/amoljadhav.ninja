@@ -285,3 +285,23 @@ body {
     font-size: 0.975rem;
   }
 }
+
+/* Widgets are cards inside the article card. On a phone the article's own 16px
+   padding is the only reading margin worth keeping, so a widget breaks out of
+   it and runs edge to edge: the comp boards and the trait tree are dense grids
+   of chips, and 32px of nested padding costs a column of them.
+
+   The -1rem has to match the p-4 on the <article> in app/blog/[slug]/page.tsx.
+   The selector is the portal mount point's child, which is exactly the widget's
+   root element — targeting .not-prose would also catch the inner ones a few
+   widgets use. Stops just short of 640px because that is where Tailwind's `sm:`
+   puts the page gutter and the card's padding back. */
+@media (max-width: 639.98px) {
+  .article-content [data-widget] > * {
+    margin-left: -1rem;
+    margin-right: -1rem;
+    border-radius: 0;
+    border-left-width: 0;
+    border-right-width: 0;
+  }
+}

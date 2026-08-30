@@ -71,8 +71,12 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
     <>
       <Header />
 
-      <main className="min-h-screen pt-24 pb-16 px-4">
-        <article className="container mx-auto max-w-3xl bg-[#1c1d20] border border-white/10 rounded-lg p-6 md:p-10">
+      {/* Edge-to-edge on a phone. The page gutter and the card's own padding
+          used to stack up to 40px a side, which is a fifth of a 390px screen
+          spent on nothing. Below sm the gutter, the side borders and the
+          rounded corners all go, leaving a single 16px reading margin. */}
+      <main className="min-h-screen pt-24 pb-16 px-0 sm:px-4">
+        <article className="container mx-auto max-w-3xl bg-[#1c1d20] border-y sm:border border-white/10 sm:rounded-lg p-4 sm:p-6 md:p-10">
           <div className="mb-10 animate-fadeIn">
             {post.category && (
               <span
