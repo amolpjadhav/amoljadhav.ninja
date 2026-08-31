@@ -368,6 +368,7 @@ export interface Comp {
   early: string[];
   final: string[];
   items: ItemSet[];
+  /** Free-text note. Newlines split it into paragraphs on the card. */
   plan?: string;
 }
 
@@ -387,8 +388,17 @@ export const COMPS: Comp[] = [
       { unit: 'Sentinel', items: ["Protector's Vow", "Protector's Vow", "Warmog's Armor"] },
       { unit: 'Crimson Raptor', items: ['Last Whisper'] },
     ],
-    plan:
-      'True core is Aphelios + Diana + Sentinel + Crimson Raptor ("Mama Beak"). Red Buff is best-in-slot on Aphelios; Rageblade is a fine substitute. Flex slots: Hecarim, Rakan, Scuttlecrab, Zyra, Morgana, Alune.',
+    // Newline-separated paragraphs; the card renders each on its own line.
+    // This is the worked example for item logic — the reasoning is meant to
+    // transfer to the other comps rather than be repeated 27 times. Every
+    // mechanic cited here comes from Riot's own item and trait text, so it can
+    // be re-checked against the reference widget.
+    plan: [
+      'True core is Aphelios + Diana + Sentinel + Crimson Raptor ("Mama Beak"). Flex slots: Hecarim, Rakan, Scuttlecrab, Zyra, Morgana, Alune.',
+      'Why Aphelios gets those three. Both his traits hand out attack speed, and Rapidfire adds more on every single attack, so he ends up swinging faster than anything else you own. That is what makes Red Buff best-in-slot: its burn and its healing cut ride along on his attacks and on his ability, which finishes with a blast that splashes — so he keeps the whole enemy team burning and unable to heal, not just the one unit he is hitting. The burn also takes a slice of the target’s own health rather than a flat number, so enemy tanks feel it. Giant Slayer answers those same tanks a second way, and Deathblade simply adds damage with no conditions attached. Rageblade substitutes fine because it feeds the same engine — more attack speed, more hits.',
+      'Why Sentinel wants two Protector’s Vow and a Warmog’s. He has as much health as anything on the board and by far the biggest mana bar — 150, where Aphelios needs 70 — so he is hard to kill but slow to do anything. Each Vow hands him mana the moment the fight starts and more again when he drops low, so two of them get his shield-and-knock-up out far sooner. And because he is an Invoker, every cast of his also drips mana to the rest of your team. Warmog’s is the multiplier: his own shield grows with his health, the Vanguard shield is a slice of his health, and each Vow’s shield is another slice of it. One health item, three bigger shields.',
+      'Last Whisper on Mama Beak is a team item, not a personal one. She summons four beaks that attack whatever she attacks, so the armour shred goes up constantly — and Aphelios, whose damage is all physical, is the one who cashes it in.',
+    ].join('\n'),
   },
   {
     name: 'Spirit Blossom Ahri',

@@ -482,8 +482,13 @@ export default function TftComps({ eyebrow, caption }: { eyebrow?: string; capti
                   </div>
 
                   {c.plan && (
-                    <div className="text-[13px] text-white/60 leading-relaxed border-l-2 pl-3" style={{ borderColor: `${t.color}66` }}>
-                      {c.plan}
+                    <div
+                      className="text-[13px] text-white/60 leading-relaxed border-l-2 pl-3 flex flex-col gap-2"
+                      style={{ borderColor: `${t.color}66` }}
+                    >
+                      {c.plan.split('\n').map((para, pi) => (
+                        <div key={pi}>{para}</div>
+                      ))}
                     </div>
                   )}
                 </div>
