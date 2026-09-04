@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import {
   COMPS,
   unitPosition,
+  type BoardUnit,
   POSITION_META,
   POSITION_ORDER,
   type Comp,
@@ -48,9 +49,8 @@ const OPENER_DECOYS = 6;
 // rather than memory. Those comps drill the board only, and their opener is
 // shown in the reveal instead of being asked for.
 //
-// 22 of the 27 comps clear the bar. The five that do not are the ones with no
-// opener published anywhere I could check — see the note at the top of
-// tftCompData.ts.
+// Every comp clears the bar now: the source publishes an opener for all of
+// them, so the five that used to drill the board alone no longer exist.
 const MIN_OPENER_UNITS = 2;
 
 const STORAGE_KEY = 'tft-drill-comp';
@@ -73,13 +73,11 @@ function saveComp(name: string | null) {
   }
 }
 
-// Placeholders like "5-cost AP flex" and the Elderwood plants are not units
-// you buy, so they are never part of an answer.
-function realUnits(list: string[]): string[] {
-  return list.filter((u) => {
-    const p = unitPosition(u);
-    return p !== 'flex' && p !== 'plant';
-  });
+// The Elderwood plants are placed rather than bought and the level-N flex slots
+// are not a unit at all, so neither is ever part of an answer. Both are marked
+// by the position they carry on the board.
+function realUnits(list: BoardUnit[]): string[] {
+  return list.filter((u) => u.position !== 'flex' && u.position !== 'plant').map((u) => u.name);
 }
 
 function shuffle<T>(arr: T[]): T[] {

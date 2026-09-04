@@ -4,16 +4,16 @@ import { useMemo, useState } from 'react';
 import {
   COMPS,
   itemIcon,
-  unitPosition,
   compTraits,
   unitTraits,
   POSITION_META,
   POSITION_ORDER,
+  unitNames,
   SET_LABEL,
-  PATCH_LABEL,
   SOURCE_URL,
+  SOURCE_UPDATED,
+  type BoardUnit,
   type Comp,
-  type ItemSet,
   type Tier,
   type Position,
 } from './tftCompData';
@@ -55,6 +55,7 @@ const DIFF: Record<Comp['difficulty'], string> = {
   Easy: '#4ade80',
   Medium: '#ffb84d',
   Hard: '#ff4655',
+  Conditional: '#a78bfa',
 };
 
 // Origin / class / unique, coloured the same way the trait reference does it,
@@ -63,6 +64,7 @@ const KIND_COLOR = { origin: '#38bdf8', class: '#fb923c', unique: '#c084fc' } as
 const TRAIT_KIND = new Map(TRAITS.map((t) => [t.name, t.kind]));
 
 const CARRY = '#ffc857';
+const STARS = '#ffd93d';
 const EARLY = '#38bdf8';
 const FINAL = '#c084fc';
 const ITEMS = '#fbbf24';
@@ -90,17 +92,8 @@ function SectionLabel({ color, children, hint }: { color: string; children: stri
 // chips sit in a wrapping row — three trait names side by side would double the
 // chip's width and cost a column on a phone, while three short lines only cost
 // height.
-function UnitChip({
-  name,
-  carry,
-  color,
-  items,
-}: {
-  name: string;
-  carry: string;
-  color: string;
-  items?: string[];
-}) {
+function UnitChip({ unit, carry, color }: { unit: BoardUnit; carry: string; color: string }) {
+  const { name, items = [], stars, emblem } = unit;
   const isCarry = name === carry;
   const traits = unitTraits(name);
   return (
@@ -125,7 +118,19 @@ function UnitChip({
       >
         {isCarry && <span className="mr-1">★</span>}
         {name}
+        {/* Reroll comps want specific units above 1-star; the source says which. */}
+        {stars && stars > 1 && (
+          <span className="ml-1 font-bold" style={{ color: STARS }}>
+            {stars}
+            {'\u2605'}
+          </span>
+        )}
       </span>
+      {emblem && (
+        <span className="text-[10px] leading-[1.3] whitespace-nowrap" style={{ color: `${ITEMS}cc` }}>
+          +{emblem} emblem
+        </span>
+      )}
       {traits.map((t) => (
         <span
           key={t}
@@ -135,7 +140,7 @@ function UnitChip({
           {t}
         </span>
       ))}
-      {items && items.length > 0 && (
+      {items.length > 0 && (
         // Icons only, in build order. The name is on hover and in alt text —
         // three item names per unit would not fit a chip, and the art is how
         // players recognise items anyway.
@@ -178,20 +183,17 @@ function UnitChip({
 // Boards are grouped into positional bands rather than listed flat, so the
 // card doubles as a placement diagram: read it top to bottom and you have
 // your rows. Empty bands are dropped.
-function Board({ list, carry, items }: { list: string[]; carry: string; items?: ItemSet[] }) {
+function Board({ list, carry }: { list: BoardUnit[]; carry: string }) {
   if (!list.length) return <div className="text-[13px] text-white/30">&mdash;</div>;
 
-  const held = new Map((items ?? []).map((row) => [row.unit, row.items]));
-
+  // Each unit carries the row it is placed in, read off the source's own board,
+  // so grouping is a filter rather than a guess. Items ride on the units too,
+  // which is why there is no longer a stray-item line: nothing can be listed
+  // for a unit that is not on the board.
   const bands = POSITION_ORDER.map((p) => ({
     pos: p,
-    units: list.filter((u) => unitPosition(u) === p),
+    units: list.filter((u) => u.position === p),
   })).filter((b) => b.units.length > 0);
-
-  // Three item sets across all 27 comps name a unit that is on neither board —
-  // a flex pick the plan mentions, or a "Gnar / Diana" either-or. Folding items
-  // into the chips would drop those, so they get a line of their own.
-  const spare = (items ?? []).filter((row) => !list.includes(row.unit));
 
   return (
     <div className="flex flex-col gap-1.5">
@@ -213,30 +215,13 @@ function Board({ list, carry, items }: { list: string[]; carry: string; items?: 
             </span>
             <span className="flex flex-wrap gap-1.5">
               {units.map((u, i) => (
-                <UnitChip key={`${u}-${i}`} name={u} carry={carry} color={meta.color} items={held.get(u)} />
+                <UnitChip key={`${u.name}-${i}`} unit={u} carry={carry} color={meta.color} />
               ))}
             </span>
           </div>
         );
       })}
 
-      {spare.length > 0 && (
-        <div className="flex flex-col sm:flex-row sm:items-start gap-1.5 sm:gap-2 pt-0.5">
-          <span className="text-[11px] font-bold uppercase tracking-wide shrink-0 sm:w-[132px] pt-1" style={{ color: ITEMS }}>
-            ◇ If you play
-          </span>
-          <span className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
-            {spare.map((row) => (
-              <span key={row.unit} className="flex items-center gap-1.5">
-                <span className="text-[12px] text-white/60">{row.unit}</span>
-                {row.items.map((it, i) => (
-                  <ItemChip key={`${it}-${i}`} name={it} />
-                ))}
-              </span>
-            ))}
-          </span>
-        </div>
-      )}
     </div>
   );
 }
@@ -267,34 +252,6 @@ function TraitChips({ units }: { units: string[] }) {
   );
 }
 
-function ItemChip({ name }: { name: string }) {
-  const src = itemIcon(name);
-  return (
-    <span
-      className="inline-flex items-center gap-1.5 rounded-md pl-1 pr-2 py-1 border"
-      style={{ background: `${ITEMS}0f`, borderColor: `${ITEMS}2e` }}
-    >
-      {src ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={src}
-          alt=""
-          width={26}
-          height={26}
-          loading="lazy"
-          className="widget-img rounded"
-          style={{ width: 26, height: 26, border: '1px solid rgba(255,255,255,0.14)' }}
-        />
-      ) : (
-        <span
-          className="inline-block rounded"
-          style={{ width: 26, height: 26, background: 'rgba(255,255,255,0.08)' }}
-        />
-      )}
-      <span className="text-[12px] text-white/85 whitespace-nowrap">{name}</span>
-    </span>
-  );
-}
 
 export default function TftComps({ eyebrow, caption }: { eyebrow?: string; caption?: string }) {
   const [tier, setTier] = useState<Tier | 'All'>('All');
@@ -310,10 +267,9 @@ export default function TftComps({ eyebrow, caption }: { eyebrow?: string; capti
         c.name,
         c.carry,
         c.style,
-        ...c.early,
-        ...c.final,
-        ...c.items.map((i) => i.unit),
-        ...compTraits(c.final).map((t) => t.name),
+        ...unitNames(c.early),
+        ...unitNames(c.final),
+        ...compTraits(unitNames(c.final)).map((t) => t.name),
       ]
         .join(' ')
         .toLowerCase();
@@ -341,7 +297,7 @@ export default function TftComps({ eyebrow, caption }: { eyebrow?: string; capti
           className="text-[11px] font-semibold px-2.5 py-1 rounded-md border"
           style={{ color: FINAL, background: `${FINAL}14`, borderColor: `${FINAL}3a` }}
         >
-          {PATCH_LABEL}
+          {SOURCE_UPDATED ? `Updated ${SOURCE_UPDATED}` : 'Live tierlist'}
         </span>
       </div>
 
@@ -415,18 +371,6 @@ export default function TftComps({ eyebrow, caption }: { eyebrow?: string; capti
                 <span className="min-w-0 flex-1">
                   <span className="flex items-center gap-2 flex-wrap">
                     <span className="text-[15px] font-bold text-white leading-tight">{c.name}</span>
-                    {c.tag && (
-                      <span
-                        className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded border"
-                        style={{
-                          background: c.tag === 'Rising' ? '#4ade8022' : '#ff9e3d22',
-                          color: c.tag === 'Rising' ? '#4ade80' : '#ff9e3d',
-                          borderColor: c.tag === 'Rising' ? '#4ade8055' : '#ff9e3d55',
-                        }}
-                      >
-                        {c.tag === 'Rising' ? '▲ Rising' : '⚠ Risky'}
-                      </span>
-                    )}
                   </span>
                   <span className="flex items-center gap-2 flex-wrap mt-1">
                     <span
@@ -439,14 +383,6 @@ export default function TftComps({ eyebrow, caption }: { eyebrow?: string; capti
                     <span className="text-[12px] font-semibold" style={{ color: DIFF[c.difficulty] }}>
                       {c.difficulty}
                     </span>
-                    {c.requires && (
-                      <span
-                        className="text-[11px] px-1.5 py-0.5 rounded"
-                        style={{ background: `${TIER.X.color}1a`, color: TIER.X.color }}
-                      >
-                        needs {c.requires}
-                      </span>
-                    )}
                   </span>
                 </span>
 
@@ -471,26 +407,48 @@ export default function TftComps({ eyebrow, caption }: { eyebrow?: string; capti
                     <SectionLabel color={FINAL} hint="what you build toward, and who holds which items">
                       Final board
                     </SectionLabel>
-                    <Board list={c.final} carry={c.carry} items={c.items} />
+                    <Board list={c.final} carry={c.carry} />
                   </div>
 
                   <div className="rounded-lg p-3" style={{ background: `${TRAIT}0a`, border: `1px solid ${TRAIT}24` }}>
                     <SectionLabel color={TRAIT} hint="what the final board turns on">
                       Trait synergies
                     </SectionLabel>
-                    <TraitChips units={c.final} />
+                    <TraitChips units={unitNames(c.final)} />
                   </div>
 
-                  {c.plan && (
+                  {c.tips.length > 0 && (
+                    <div className="rounded-lg p-3" style={{ background: `${EARLY}0a`, border: `1px solid ${EARLY}24` }}>
+                      <SectionLabel color={EARLY} hint="what to do, stage by stage">
+                        How to play it
+                      </SectionLabel>
+                      <div className="flex flex-col gap-2">
+                        {c.tips.map((t) => (
+                          <div key={t.stage} className="flex flex-col sm:flex-row gap-0.5 sm:gap-2">
+                            <span
+                              className="text-[11px] font-bold uppercase tracking-wide shrink-0 sm:w-[68px] pt-0.5"
+                              style={{ color: EARLY }}
+                            >
+                              {t.stage}
+                            </span>
+                            <span className="text-[13px] text-white/70 leading-relaxed">{t.tip}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {c.note && (
                     <div
                       className="text-[13px] text-white/60 leading-relaxed border-l-2 pl-3 flex flex-col gap-2"
                       style={{ borderColor: `${t.color}66` }}
                     >
-                      {c.plan.split('\n').map((para, pi) => (
+                      {c.note.split('\n').map((para, pi) => (
                         <div key={pi}>{para}</div>
                       ))}
                     </div>
                   )}
+
                 </div>
               )}
             </div>
