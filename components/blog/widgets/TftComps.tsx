@@ -97,54 +97,56 @@ function UnitChip({ unit, carry, color }: { unit: BoardUnit; carry: string; colo
   const isCarry = name === carry;
   const traits = unitTraits(name);
   return (
+    // A fixed floor on the width keeps a row reading as a grid instead of a
+    // ragged edge, and justify-between pins the items to the bottom so they
+    // form a line across the row rather than floating at three heights.
     <span
-      className="inline-flex flex-col items-start px-2 py-1 rounded-md border"
+      className="inline-flex flex-col items-start justify-between min-w-[92px] px-2 py-1.5 rounded-lg border"
       style={
         isCarry
-          ? {
-              background: `${CARRY}1f`,
-              borderColor: `${CARRY}66`,
-              boxShadow: `0 0 12px ${CARRY}22`,
-            }
-          : {
-              background: `${color}14`,
-              borderColor: `${color}3a`,
-            }
+          ? { background: `${CARRY}1a`, borderColor: `${CARRY}55` }
+          : { background: 'rgba(255,255,255,0.03)', borderColor: `${color}26` }
       }
     >
-      <span
-        className="text-[13px] leading-tight whitespace-nowrap"
-        style={{ color: isCarry ? CARRY : 'rgba(255,255,255,0.85)', fontWeight: isCarry ? 700 : 400 }}
-      >
-        {isCarry && <span className="mr-1">★</span>}
-        {name}
-        {/* Reroll comps want specific units above 1-star; the source says which. */}
-        {stars && stars > 1 && (
-          <span className="ml-1 font-bold" style={{ color: STARS }}>
-            {stars}
-            {'\u2605'}
+      <span className="w-full">
+        <span
+          className="block text-[13px] leading-tight whitespace-nowrap"
+          style={{ color: isCarry ? CARRY : 'rgba(255,255,255,0.92)', fontWeight: isCarry ? 700 : 500 }}
+        >
+          {name}
+          {/* Reroll comps want specific units above 1-star; the source says which. */}
+          {stars && stars > 1 && (
+            <span className="ml-1 text-[11px] font-bold" style={{ color: STARS }}>
+              {stars}
+              {'\u2605'}
+            </span>
+          )}
+        </span>
+        {/* Traits are context, not the headline: one size down, dimmed, and
+            capped at two lines so a three-trait unit does not tower over its
+            neighbours. The colour still says origin vs class. */}
+        <span className="mt-0.5 flex flex-wrap gap-x-1.5 leading-[1.35] max-w-[132px]">
+          {traits.map((t) => (
+            <span
+              key={t}
+              className="text-[9.5px] whitespace-nowrap"
+              style={{ color: `${KIND_COLOR[TRAIT_KIND.get(t) ?? 'class']}99` }}
+            >
+              {t}
+            </span>
+          ))}
+        </span>
+        {emblem && (
+          <span className="block text-[9.5px] leading-[1.35]" style={{ color: `${ITEMS}bb` }}>
+            +{emblem} emblem
           </span>
         )}
       </span>
-      {emblem && (
-        <span className="text-[10px] leading-[1.3] whitespace-nowrap" style={{ color: `${ITEMS}cc` }}>
-          +{emblem} emblem
-        </span>
-      )}
-      {traits.map((t) => (
-        <span
-          key={t}
-          className="text-[10px] leading-[1.3] whitespace-nowrap"
-          style={{ color: `${KIND_COLOR[TRAIT_KIND.get(t) ?? 'class']}cc` }}
-        >
-          {t}
-        </span>
-      ))}
       {items.length > 0 && (
         // Icons only, in build order. The name is on hover and in alt text —
         // three item names per unit would not fit a chip, and the art is how
         // players recognise items anyway.
-        <span className="flex items-center gap-0.5 mt-1">
+        <span className="flex items-center gap-0.5 mt-1.5">
           {items.map((it, i) => {
             const src = itemIcon(it);
             return src ? (
@@ -154,20 +156,20 @@ function UnitChip({ unit, carry, color }: { unit: BoardUnit; carry: string; colo
                 src={src}
                 alt={it}
                 title={it}
-                width={18}
-                height={18}
+                width={17}
+                height={17}
                 loading="lazy"
-                className="widget-img rounded"
-                style={{ width: 18, height: 18, border: `1px solid ${ITEMS}55` }}
+                className="widget-img rounded-[3px]"
+                style={{ width: 17, height: 17, border: '1px solid rgba(255,255,255,0.14)' }}
               />
             ) : (
               <span
                 key={`${it}-${i}`}
                 title={it}
-                className="inline-block rounded"
+                className="inline-block rounded-[3px]"
                 style={{
-                  width: 18,
-                  height: 18,
+                  width: 17,
+                  height: 17,
                   background: 'rgba(255,255,255,0.08)',
                   border: '1px solid rgba(255,255,255,0.14)',
                 }}
@@ -196,24 +198,31 @@ function Board({ list, carry }: { list: BoardUnit[]; carry: string }) {
   })).filter((b) => b.units.length > 0);
 
   return (
-    <div className="flex flex-col gap-1.5">
+    <div className="flex flex-col gap-2">
       {bands.map(({ pos, units }) => {
         const meta = POSITION_META[pos as Position];
         return (
-          <div key={pos} className="flex flex-col sm:flex-row sm:items-start gap-1.5 sm:gap-2">
-            <span
-              className="flex items-center gap-1.5 shrink-0 sm:w-[132px] pt-1"
-              title={meta.hint}
-            >
-              <span className="text-[13px] leading-none">{meta.icon}</span>
+          // items-stretch is what stops the row looking ragged: a unit holding
+          // items used to be a head taller than the one beside it, and a unit
+          // with three traits taller than one with two. Now every chip in a row
+          // is the height of the tallest and the items line up along the bottom.
+          <div key={pos} className="flex flex-col sm:flex-row sm:items-stretch gap-1 sm:gap-2.5">
+            <span className="flex items-center gap-2 shrink-0 sm:w-[84px] sm:pt-1.5" title={meta.hint}>
+              {/* A colour bar rather than an icon. The emoji were doing the
+                  labelling work and ⚔ renders as a hairline × in this font
+                  stack, which read as a broken glyph. */}
               <span
-                className="text-[11px] font-bold uppercase tracking-wide"
+                className="hidden sm:block w-[3px] self-stretch rounded-full"
+                style={{ background: `${meta.color}88` }}
+              />
+              <span
+                className="text-[10px] font-bold uppercase tracking-wider leading-tight"
                 style={{ color: meta.color }}
               >
                 {meta.label}
               </span>
             </span>
-            <span className="flex flex-wrap gap-1.5">
+            <span className="flex flex-wrap items-stretch gap-1.5">
               {units.map((u, i) => (
                 <UnitChip key={`${u.name}-${i}`} unit={u} carry={carry} color={meta.color} />
               ))}
@@ -221,7 +230,6 @@ function Board({ list, carry }: { list: BoardUnit[]; carry: string }) {
           </div>
         );
       })}
-
     </div>
   );
 }
@@ -396,21 +404,21 @@ export default function TftComps({ eyebrow, caption }: { eyebrow?: string; capti
 
               {isOpen && (
                 <div className="px-3 pb-4 pt-2 flex flex-col gap-4">
-                  <div className="rounded-lg p-3" style={{ background: `${EARLY}0a`, border: `1px solid ${EARLY}24` }}>
+                  <div className="rounded-lg px-3 py-2.5" style={{ background: `${EARLY}0d` }}>
                     <SectionLabel color={EARLY} hint="play these first, stop losing health">
                       Early game
                     </SectionLabel>
                     <Board list={c.early} carry={c.carry} />
                   </div>
 
-                  <div className="rounded-lg p-3" style={{ background: `${FINAL}0a`, border: `1px solid ${FINAL}24` }}>
+                  <div className="rounded-lg px-3 py-2.5" style={{ background: `${FINAL}0d` }}>
                     <SectionLabel color={FINAL} hint="what you build toward, and who holds which items">
                       Final board
                     </SectionLabel>
                     <Board list={c.final} carry={c.carry} />
                   </div>
 
-                  <div className="rounded-lg p-3" style={{ background: `${TRAIT}0a`, border: `1px solid ${TRAIT}24` }}>
+                  <div className="rounded-lg px-3 py-2.5" style={{ background: `${TRAIT}0d` }}>
                     <SectionLabel color={TRAIT} hint="what the final board turns on">
                       Trait synergies
                     </SectionLabel>
@@ -418,7 +426,7 @@ export default function TftComps({ eyebrow, caption }: { eyebrow?: string; capti
                   </div>
 
                   {c.tips.length > 0 && (
-                    <div className="rounded-lg p-3" style={{ background: `${EARLY}0a`, border: `1px solid ${EARLY}24` }}>
+                    <div className="rounded-lg px-3 py-2.5" style={{ background: `${EARLY}0d` }}>
                       <SectionLabel color={EARLY} hint="what to do, stage by stage">
                         How to play it
                       </SectionLabel>
@@ -476,7 +484,10 @@ export default function TftComps({ eyebrow, caption }: { eyebrow?: string; capti
       <div className="mt-2 pt-2 flex flex-wrap gap-x-4 gap-y-1.5">
         {POSITION_ORDER.map((p) => (
           <span key={p} className="text-[11px] flex items-center gap-1.5">
-            <span>{POSITION_META[p].icon}</span>
+            <span
+              className="inline-block w-[3px] h-[11px] rounded-full"
+              style={{ background: `${POSITION_META[p].color}aa` }}
+            />
             <span className="font-bold" style={{ color: POSITION_META[p].color }}>
               {POSITION_META[p].label}
             </span>
