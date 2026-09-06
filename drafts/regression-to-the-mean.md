@@ -32,21 +32,25 @@ tarmac and said nothing at all.
 
 ## Skill plus luck
 
-Any performance is two things added together: how good you are, and how the day
-went.
+Every performance is exactly two things added together: how good you are, and
+how the day went.
 
-How good you are is stable. It's there next time. How the day went is not —
-the gust of wind, the hour of sleep, the question that happened to be on the
-paper, the shot that hit the post instead of going in.
+How good you are is stable. It shows up every time you do. How the day went is
+volatile—it is the sudden gust of wind, the lost hour of sleep, the specific
+question that happened to be on the exam, or the shot that hits the post instead
+of going in.
 
-Now here is the whole trick. When you pick out the **most extreme** results —
-the best landing, the worst quarter, the top of the league — you are not just
-picking the most skilful people. You are picking the people whose skill *and*
-luck both pointed the same way. The skill stays. The luck doesn't. So the next
-measurement drifts back toward the middle, and it looks for all the world like
-something happened to them.
+When you isolate the absolute extremes—the flawless landing, the disastrous
+quarter, the team at the very top of the league—you are never just looking at
+the most skilled people. You are looking at people whose skill and luck
+temporarily pointed in the exact same direction.
 
-Nothing happened to them. You just selected on a number that had luck in it.
+The skill stays. The luck evaporates. So when the next measurement inevitably
+drifts back toward the middle, it looks for all the world like something
+intervened.
+
+But nothing happened to them. You just made a judgment on a number that had luck
+built into it, and then watched the luck run out.
 
 <!-- widget: regression-to-mean -->
 
