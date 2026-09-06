@@ -1,24 +1,37 @@
-# Why the Best Always Get Worse
+# Regression to the Mean: Why the Best Always Get Worse
 
 Category: Mental Models
 
 ---
 
-In the 1960s a young psychologist was teaching flight instructors in the
-Israeli Air Force. He told them what the research said: praise works better
-than punishment.
+Here is one idea. It explains an uncomfortable number of things.
 
-The instructors pushed back, and they had evidence. Every time they praised a
-cadet for a beautiful landing, the next one was worse. Every time they screamed
-at a cadet for a terrible landing, the next one was better. They had watched it
-happen for years. Whatever the textbooks said, in the air it was obvious that
-criticism worked and praise made pilots complacent.
+**Pick out anything that sits at an extreme, and the next look at it will be
+closer to ordinary.** The best month, the worst quarter, the team on top of the
+table, the happiest week of your life. Not because anything went wrong. Because
+you picked an extreme, and extremes do not hold still.
 
-The psychologist was Daniel Kahneman, and he realised something on the spot
-that took him years to explain properly: the instructors had watched the
-pattern correctly, drawn the only conclusion that seemed available, and been
-completely wrong. The landings would have done exactly the same thing if the
-instructors had said nothing at all.
+It is called **regression to the mean**, and the reason it is worth an article
+is that people keep explaining it with a cause. Something moved back toward
+normal, so we go looking for what pushed it — and there is usually a candidate
+standing right there, taking the credit or the blame.
+
+Start with the story that made it famous.
+
+In the 1960s Daniel Kahneman was teaching flight instructors in the Israeli Air
+Force. He told them what the research said: praise works better than
+punishment.
+
+The instructors disagreed, and they had years of evidence. Praise a cadet for a
+beautiful landing and his next one is worse. Scream at a cadet for a terrible
+landing and his next one is better. Every instructor in the room had watched it
+happen.
+
+They were right about the pattern. The landings really did move that way. What
+they had wrong was the cause &mdash; because a beautiful landing is a good pilot
+*plus a good day*, and the good day does not come back for the next one. Those
+landings would have done exactly the same thing if the instructors had said
+nothing at all.
 
 ## Skill plus luck
 
@@ -75,6 +88,43 @@ run. The exceptional run was exceptional.
 exam, the worst performer you put on a training programme. All of them will
 move toward the middle next time, and someone will get promoted or blamed for
 it.
+
+## Why the good news wears off
+
+You get the promotion. You win the thing. You meet the person. For a while
+everything is brighter, and then it settles, and it is easy to read that as
+something being taken away.
+
+Two different things are doing that, and they are worth keeping apart.
+
+**One is the same trick as the landings.** That first fortnight was a peak
+because several things lined up at once: the news itself, plus you were
+sleeping well, plus the weather, plus nothing went wrong at home that week.
+Those do not line up again next month. Nothing has been removed from you. You
+were standing on a spike and you stepped off it.
+
+**The other is real, and it is your brain doing it.** Your sense of "normal"
+moves to include the new thing. The corner office becomes the office. The new
+person becomes the person you live with. That is habituation &mdash; an actual
+process, not a measurement artefact &mdash; and it is why the second thing you
+buy never feels like the first one did.
+
+The famous version of this claim is too strong. You have probably heard that
+lottery winners end up no happier than anyone else. When researchers followed
+Swedish winners for up to twenty-two years, they found lasting improvements in
+how satisfied people were with their lives &mdash; considerably smaller than
+winners had predicted, but real, and still there decades later. Day-to-day mood
+barely moved. Adaptation is powerful and it is also incomplete, and it is not
+even-handed: people adapt to most good news faster than they expect, and to
+some bad things &mdash; long unemployment, losing someone &mdash; barely at all.
+
+What the idea actually buys you is a rule about timing. Do not judge a change by
+the fortnight after it, because the fortnight is a spike. Judge it by what
+ordinary looks like once the spike has passed, which is the only number that was
+ever going to stick around.
+
+And the same logic is kinder than it sounds in the other direction. Your worst
+week is also a spike. It is also not the level.
 
 ## Where the name comes from
 
