@@ -29,6 +29,26 @@ const StaticHtml = memo(function StaticHtml({
       ref={containerRef}
       className="article-content animate-fadeInUp"
       data-category={category}
+      // React hydrates dangerouslySetInnerHTML by comparing the string it was
+      // given against the DOM's innerHTML, which is a re-serialisation. This
+      // container is the wrong node to run that check on, for two reasons that
+      // have nothing to do with our markup being wrong:
+      //
+      //   1. It is the subtree React does not own. Widgets are portalled into
+      //      the [data-widget] placeholders inside this HTML, so its contents
+      //      are deliberately changed out from under React.
+      //   2. It is a large block of prose, which is exactly what writing and
+      //      accessibility browser extensions rewrite before React loads —
+      //      one injected attribute anywhere in 9,000 characters and the whole
+      //      comparison fails.
+      //
+      // Verified before reaching for this: the server HTML and the string in
+      // the RSC payload are byte-identical, and the HTML round-trips unchanged
+      // through parse5's spec parser and serialiser, so the DOM gives back
+      // exactly what we hand it. React also states it will not patch a
+      // mismatch here up, so the warning costs a console error and changes
+      // nothing on screen.
+      suppressHydrationWarning
       dangerouslySetInnerHTML={{ __html: html }}
     />
   );
