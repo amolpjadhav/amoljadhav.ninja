@@ -1,4 +1,4 @@
-# Regression to the Mean: Why the Best Always Get Worse
+# Regression to the Mean: Why the Best Get Worse and the Worst Get Better
 
 Category: Mental Models
 
