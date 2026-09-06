@@ -4,126 +4,168 @@ Category: AI
 
 ---
 
-Nobody ever told a language model the rules of Python.
+Nobody ever told a computer the rules of writing code.
 
-No one sat down and typed out that a colon opens a block, that indentation
-matters, that you cannot add a number to a string, that a variable has to exist
-before you use it. There is no rulebook inside the model. There is no grammar
-file. And yet you can ask one for a working function and get one.
+Nobody sat down and typed out where the brackets go. Nobody explained that you
+cannot add the number 5 to the word "hello", or that you have to make a thing
+before you can use it. There is no rulebook hidden inside these programs. There is no list of
+rules at all. And yet you can ask one to write you a working program, and it
+will.
 
-What it did instead was roll downhill, several trillion times.
+What it did instead was walk downhill. About a trillion times.
 
-## Downhill in the fog
+## Walking downhill in fog
 
-Imagine you are standing somewhere on a hillside in thick fog. You want to
-reach the bottom of the valley, and you cannot see it. You cannot see anything.
+Picture yourself standing on a hill, in fog so thick you can only see your own
+shoes. You want to get to the bottom. You cannot see the bottom. You cannot see
+anything.
 
-But you can feel the ground under your feet. You can tell which direction
-slopes down most steeply. So you take a small step that way, stop, feel the
-ground again, and take another. You do not need a map of the valley. You only
-ever need to know which way is down from exactly where you are standing.
+But you can still feel the ground. You can feel which way slopes down. So you
+take one small step that way. Then you stop, feel the ground again, and take
+another. Step after step, you end up at the bottom of the valley — without ever
+seeing where you were going.
 
-That is gradient descent, and that is genuinely the whole idea. Everything else
-is bookkeeping.
+That is the whole idea. It has a fancy name, gradient descent, and the fancy
+name hides how simple it is.
 
-The trick is what the hillside is made of. It is not made of ground — it is
-made of **wrongness**. Every possible setting of the thing you are trying to
-learn is a position on that hill, and the height at that position is how badly
-that setting performs. Low ground is a setting that works. So walking downhill
-is improvement, by definition.
+The clever part is what the hill is made of. It is not made of mud and grass.
+It is made of **being wrong**. Every possible answer is a spot on the hill, and
+how high that spot is means how badly that answer does. Bad answers are high
+up. Good answers are down in the valley. So walking downhill is the same thing
+as getting better.
 
-## Give wrongness a number
+## Turning "wrong" into a number
 
-Take the simplest version. You have some dots on a chart and you want the
-straight line that fits them best. Your line has two dials: how steep it is,
-and how high it starts.
+Start with something small enough to see.
 
-Now define wrongness. For each dot, measure how far the line misses it, square
-that, and average it over all the dots. One number. Small means the line is
-close, big means it is nowhere near.
+You have some dots on a chart, and you want to draw the straight line that fits
+them best. Your line has two knobs you can turn: how steep it is, and how high
+up it starts.
 
-Then do the fog walk. Which way should the steepness dial move to make that
-number smaller? Which way for the height dial? Nudge both a little. Measure
-again. Repeat.
+Now turn "wrong" into a number. Look at each dot, measure the gap between the
+dot and your line, and add all those gaps up. One number. A small number means
+your line is close to the dots. A big number means it is nowhere near.
+
+Then do the fog walk. Should the steepness knob go up or down to make that
+number smaller? What about the height knob? Nudge them both a tiny bit. Measure
+again. Do it again.
 
 <!-- widget: gradient-descent -->
 
-Press *Learn* and watch it. Nobody tells the yellow line where the answer is.
-It only ever knows which way is downhill from where it currently stands, and
-that is enough to walk it to a line it was never shown.
+Press **Learn** and watch. Nobody tells the yellow line where the right answer
+is. All it ever knows is which way is downhill from where it is standing right
+now. That turns out to be enough.
 
-## The one dial that ruins everything
+## The one knob that ruins everything
 
-Now drag the step size up past about 0.03, and the whole thing detonates.
+Now drag the step size up past about 0.03, and watch the whole thing blow up.
 
-This is the most important thing in the widget. If the steps are too small, you
-crawl and never arrive. If they are too big, every step overshoots the bottom
-of the valley and lands further up the opposite slope, so each correction makes
-things worse than the mistake it was correcting. The method was never wrong.
-Only the distance it was allowed to move at once.
+This is the most useful thing in the widget. Take steps that are too small and
+you creep along and never get there. Take steps that are too big and you leap straight
+over the bottom of the valley and land higher up the other side. Every fix then
+makes things worse than the mistake it was fixing.
 
-That failure has nothing to do with the data or the problem. It is a property
-of the hill. And an enormous amount of practical machine learning is people
-arguing about step sizes.
+Nothing was wrong with the walking. The only problem was how far it was allowed
+to go at once. A surprising amount of real-life computer science is people
+arguing about exactly this.
 
-## From two dials to a hundred billion
+## From two knobs to a hundred billion
 
-Here is the leap, and it is the only leap in the article.
+Here is the only big jump in this whole article.
 
-A language model is the same loop. It is just that instead of two dials it has
-tens or hundreds of billions of them, and instead of "how far did the line miss
-the dot" its wrongness is:
+A program that writes code is doing the same walk. The difference is that
+instead of two knobs it has tens of billions of them. And its idea of "wrong"
+is this:
 
-**Given everything before this point, how surprised was I by the word that
+**Looking at everything written so far, how surprised was I by the word that
 actually came next?**
 
-That is it. Show it a fragment of real code, let it predict the next token,
-compare its prediction to what the code really said, and score its surprise.
-Then work out, for every single one of those billions of dials, which way that
-dial would have to move to make the model slightly less surprised. Nudge them
-all. Take the next fragment.
+That is really all of it. Show it a piece of real code. Let it guess the next
+bit. Compare its guess with what the code truly said, and score how surprised
+it was. Then work out, for every one of those billions of knobs, which way to
+turn it so that next time the surprise is a little smaller. Nudge them all.
+Move on to the next piece of code.
 
-Do that across an ocean of real code, and something strange comes out the far
-side. The model never learned that a colon opens a block. It learned that after
-`def add(a, b)` the least surprising next character is a colon — which, from
-the outside, is indistinguishable from knowing the rule. Stack enough of that
-and you get something that writes functions.
+Do that across a mountain of real code and something strange comes out the
+other end. It never learned the rule about where brackets go. It learned that
+after certain words, a bracket is the least surprising thing to come next —
+which, from the outside, looks exactly like knowing the rule. Do enough of
+that, and it can write programs.
 
-Two footnotes for accuracy. Working out which way each dial should move is
-itself a clever algorithm, called backpropagation, and it is the reason any of
-this is affordable. And in practice nobody uses plain gradient descent — the
-real thing is a fussier cousin that adapts its own step sizes. The idea
-underneath is unchanged.
+Two honest footnotes. Working out which way to turn billions of knobs sounds
+impossible, and there is a clever piece of maths that does them all in one
+sweep instead of one at a time. It is called backpropagation, and without it
+none of this would be affordable. Also, nobody uses the plain version of the
+downhill walk any more; the real one is fussier and changes its own step size
+as it goes. Underneath, it is the same walk.
 
-## What the loop never optimised for
+## What else this solves
 
-This is the part worth carrying around, because it explains the tool you
-actually use.
+The walk works whenever you can do two things: score how wrong you are with a
+single number, and work out which way to nudge each knob to make that number
+smaller. That is the whole entry requirement. It does not care what the knobs
+mean.
 
-At no point in that entire process did anything run the code.
+Which is why the same loop is doing all of this:
 
-Gradient descent minimised surprise. It did not minimise wrongness in the sense
-you care about — it never once checked whether the function returned the right
-answer, compiled, or terminated. It was rewarded for producing the most
-plausible continuation, and "plausible" is a judgement about how code usually
-looks, not about whether this code works.
+**Spotting illness in a scan.** The knobs decide what counts as a suspicious
+shape. Wrongness is how often it disagrees with the doctors who labelled the
+old scans.
 
-So the characteristic failure is not gibberish. Gibberish would be surprising,
-and surprise is precisely what got trained away. The characteristic failure is
-code that looks exactly right and is not: the API that ought to exist, the
-argument in the order it usually goes, the edge case handled the way it usually
-is. Confident, idiomatic, wrong.
+**Hearing what you said.** Wrongness is how far the words it wrote down are
+from the words you actually spoke.
 
-That is not a bug in gradient descent. It is gradient descent working perfectly
-on the thing it was pointed at. Which is why the expensive part of programming
-has quietly moved from writing the code to
+**Guessing what you want to watch next.** Wrongness is how often it recommends
+something you scroll straight past.
+
+**Working out how a protein folds up.** Wrongness is the distance between its
+predicted shape and shapes that have been measured in a lab. This one won a
+Nobel Prize in 2024.
+
+**Tomorrow's weather.** Wrongness is how far off yesterday's forecast turned
+out to be.
+
+**The shape of an aeroplane wing.** The knobs are the curves of the wing.
+Wrongness is drag.
+
+Now the useful half: **when it does not work.** Say you want the shortest route
+that visits twenty cities. There is no such thing as a slightly better route,
+because you cannot nudge a route a tiny bit. Every change is a jump to a
+completely different route. So there is no hill to feel, no downhill direction,
+and nothing to walk along. Problems like that need entirely different tricks.
+
+So the question to ask about any problem is not "is this AI?" It is: **can I
+put a number on how wrong I am, and can I tell which way is downhill?** If yes,
+this loop probably works. If no, it definitely does not.
+
+## What the walk never checked
+
+This is the part worth keeping, because it explains the tool you actually use.
+
+At no point in all of that did anything ever *run* the code.
+
+The walk made the program less surprised. It never checked whether the code
+worked. It never ran it, never tested it, never asked whether the answer was
+right. It was only ever rewarded for writing the most ordinary-looking next
+bit — and "ordinary-looking" is about how code usually looks, not about whether
+this code does the job.
+
+So when it goes wrong, it does not produce nonsense. Nonsense would be
+surprising, and being surprised is exactly what got trained out of it. It
+produces something that looks completely right and is not: a command that ought
+to exist but doesn't, numbers in the order they usually go, a tricky case
+handled the way it is usually handled. Confident, normal-looking, wrong.
+
+That is not a fault in the downhill walk. That is the walk working perfectly on
+the thing it was aimed at. And it is why the expensive part of programming has
+quietly moved from writing the code to
 [checking it](/blog/ai-made-code-cheap-verification-just-got-expensive).
 
-## The whole of it
+## All of it, in four steps
 
-Guess. Measure how wrong the guess is. Nudge the guess in the direction that
-makes it less wrong. Repeat until you stop improving.
+Guess. Measure how wrong the guess is. Nudge it in the direction that is less
+wrong. Do it again.
 
-Every image generator, every recommendation feed, every model that writes your
-tests is that loop, wearing different clothes and running on a bigger hill.
+Every picture generator, every recommendation feed, every program that writes
+your tests is that loop in different clothes, walking down a much bigger hill.
 There is no second trick.
