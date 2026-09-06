@@ -44,6 +44,8 @@ interface Person {
   ability: number;
   first: number;
   second: number;
+  /** Vertical offset so 240 dots on one line are readable. */
+  jitter: number;
 }
 
 function makePeople(seed: number, luck: number): Person[] {
@@ -58,15 +60,25 @@ function makePeople(seed: number, luck: number): Person[] {
       ability,
       first: ability + normal(next) * luckSd,
       second: ability + normal(next) * luckSd,
+      // Drawn from the same stream rather than computed from the index. An
+      // index-based offset gave only 13 distinct heights with a step of 11
+      // between neighbours, which striped the cloud into diagonals.
+      jitter: (next() * 2 - 1) * JITTER,
     };
   });
 }
 
 const W = 640;
-const ROW_H = 54;
-const PAD_X = 16;
-const LO = 10;
-const HI = 90;
+const H = 214;
+const PAD_X = 18;
+const JITTER = 9;
+const ROW_ONE = 52;
+const ROW_TWO = 156;
+// Total spread is 12, so 15-85 is three standard deviations either side of the
+// mean and holds about 99.7% of the dots. The old 10-90 left a third of the
+// width permanently empty on the right.
+const LO = 15;
+const HI = 85;
 
 export default function RegressionToMean({ eyebrow, caption }: { eyebrow?: string; caption?: string }) {
   const [luck, setLuck] = useState(0.5);
@@ -92,33 +104,30 @@ export default function RegressionToMean({ eyebrow, caption }: { eyebrow?: strin
   const x = (score: number) => PAD_X + ((Math.min(HI, Math.max(LO, score)) - LO) / (HI - LO)) * (W - PAD_X * 2);
   const move = secondMean - firstMean;
 
-  const row = (key: 'first' | 'second', label: string, y: number) => (
+  const dotY = (p: Person, base: number) => base + p.jitter;
+
+  const rowDots = (key: 'first' | 'second', base: number) =>
+    people.map((p, i) => {
+      const on = chosen.has(p);
+      return (
+        <circle
+          key={i}
+          cx={x(p[key])}
+          cy={dotY(p, base)}
+          r={on ? 3.2 : 1.9}
+          fill={on ? color : DIM}
+          opacity={on ? 0.95 : 0.55}
+        />
+      );
+    });
+
+  /** The group's own average, marked so "toward the middle" has two ends. */
+  const groupMark = (value: number, base: number, label: string) => (
     <g>
-      <text x={PAD_X} y={y - 16} fontSize={10} fill="rgba(255,255,255,0.4)">
-        {label}
+      <line x1={x(value)} x2={x(value)} y1={base - 15} y2={base + 15} stroke={color} strokeWidth={2.5} />
+      <text x={x(value)} y={base - 20} fontSize={9.5} fill={color} textAnchor="middle">
+        {label} {value.toFixed(1)}
       </text>
-      <line x1={PAD_X} x2={W - PAD_X} y1={y} y2={y} stroke="rgba(255,255,255,0.08)" />
-      {people.map((p, i) => {
-        const on = chosen.has(p);
-        return (
-          <circle
-            key={i}
-            cx={x(p[key])}
-            cy={y + ((i * 37) % 13) - 6}
-            r={on ? 3 : 2}
-            fill={on ? color : DIM}
-            opacity={on ? 0.95 : 0.5}
-          />
-        );
-      })}
-      <line
-        x1={x(key === 'first' ? firstMean : secondMean)}
-        x2={x(key === 'first' ? firstMean : secondMean)}
-        y1={y - 11}
-        y2={y + 11}
-        stroke={color}
-        strokeWidth={2}
-      />
     </g>
   );
 
@@ -174,9 +183,69 @@ export default function RegressionToMean({ eyebrow, caption }: { eyebrow?: strin
         </button>
       </div>
 
-      <svg viewBox={`0 0 ${W} ${ROW_H * 2 + 30}`} width="100%" role="img" aria-label="Scores in two rounds">
-        {row('first', 'Round 1 — nobody has done anything yet', 28)}
-        {row('second', 'Round 2 — same people, no coaching, no changes', 28 + ROW_H + 18)}
+      <svg viewBox={`0 0 ${W} ${H}`} width="100%" role="img" aria-label="Scores in two rounds">
+        {/* The mean, which the whole idea is named after and which the first
+            version of this chart somehow did not draw. */}
+        <line
+          x1={x(MEAN)}
+          x2={x(MEAN)}
+          y1={ROW_ONE - 34}
+          y2={ROW_TWO + 22}
+          stroke="rgba(255,255,255,0.28)"
+          strokeDasharray="3 4"
+        />
+        <text x={x(MEAN) + 5} y={ROW_ONE - 36} fontSize={9.5} fill="rgba(255,255,255,0.45)">
+          the mean ({MEAN})
+        </text>
+
+        {[ROW_ONE, ROW_TWO].map((base) => (
+          <line
+            key={base}
+            x1={PAD_X}
+            x2={W - PAD_X}
+            y1={base}
+            y2={base}
+            stroke="rgba(255,255,255,0.07)"
+          />
+        ))}
+
+        {/* One line per selected person, so the reader watches individuals move
+            instead of comparing two clouds by eye. It also shows the honest
+            part: a few of them go the other way. It is the group that falls
+            back, not every member of it. */}
+        {[...chosen].map((p, i) => (
+          <line
+            key={i}
+            x1={x(p.first)}
+            y1={dotY(p, ROW_ONE)}
+            x2={x(p.second)}
+            y2={dotY(p, ROW_TWO)}
+            stroke={color}
+            strokeWidth={1}
+            opacity={0.28}
+          />
+        ))}
+
+        <text x={PAD_X} y={ROW_ONE - 22} fontSize={10} fill="rgba(255,255,255,0.4)">
+          Round 1 &mdash; nobody has done anything yet
+        </text>
+        {rowDots('first', ROW_ONE)}
+        {groupMark(firstMean, ROW_ONE, 'their average')}
+
+        <text x={PAD_X} y={ROW_TWO - 22} fontSize={10} fill="rgba(255,255,255,0.4)">
+          Round 2 &mdash; same people, no coaching, no changes
+        </text>
+        {rowDots('second', ROW_TWO)}
+        {groupMark(secondMean, ROW_TWO, 'their average')}
+
+        {[30, 50, 70].map((t) => (
+          <text key={t} x={x(t)} y={H - 6} fontSize={9} fill="rgba(255,255,255,0.3)" textAnchor="middle">
+            {t}
+          </text>
+        ))}
+        <text x={PAD_X} y={H - 6} fontSize={9} fill="rgba(255,255,255,0.25)">
+          score
+        </text>
       </svg>
 
       <div className="mt-3 rounded-lg px-3 py-2.5 text-[13px] leading-relaxed" style={{ background: `${color}12` }}>
