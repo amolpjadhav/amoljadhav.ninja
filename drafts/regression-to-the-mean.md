@@ -4,34 +4,31 @@ Category: Mental Models
 
 ---
 
-Here is one idea. It explains an uncomfortable number of things.
+Pick out anything that sits at an absolute extreme—the best month, the worst
+quarter, the team on top of the table, the happiest week of your life—and the
+next time you measure it, it will almost certainly be closer to ordinary. Not
+because anything went wrong, but simply because extremes do not hold still.
 
-**Pick out anything that sits at an extreme, and the next look at it will be
-closer to ordinary.** The best month, the worst quarter, the team on top of the
-table, the happiest week of your life. Not because anything went wrong. Because
-you picked an extreme, and extremes do not hold still.
+Statisticians call this regression to the mean. The reason it tricks us so
+consistently is that when something moves back toward normal, human beings
+automatically look for what pushed it. We want a narrative. And there is usually
+a convincing candidate standing right there, ready to take the credit or the
+blame.
 
-It is called **regression to the mean**, and the reason it is worth an article
-is that people keep explaining it with a cause. Something moved back toward
-normal, so we go looking for what pushed it — and there is usually a candidate
-standing right there, taking the credit or the blame.
+Just ask the flight instructors of the 1960s Israeli Air Force.
 
-Start with the story that made it famous.
+When a young psychologist named Daniel Kahneman stood in front of them and
+explained that research proved praise worked better than punishment, the
+instructors pushed back. They had years of hard evidence to the contrary. Praise
+a cadet for a beautiful landing, they argued, and his next one is worse. Scream
+at a cadet for a terrible landing, and his next one is better. Every instructor
+in the room had watched it happen.
 
-In the 1960s Daniel Kahneman was teaching flight instructors in the Israeli Air
-Force. He told them what the research said: praise works better than
-punishment.
-
-The instructors disagreed, and they had years of evidence. Praise a cadet for a
-beautiful landing and his next one is worse. Scream at a cadet for a terrible
-landing and his next one is better. Every instructor in the room had watched it
-happen.
-
-They were right about the pattern. The landings really did move that way. What
-they had wrong was the cause &mdash; because a beautiful landing is a good pilot
-*plus a good day*, and the good day does not come back for the next one. Those
-landings would have done exactly the same thing if the instructors had said
-nothing at all.
+They were absolutely right about the pattern. The landings really did move that
+way. What they had wrong was the cause. A beautiful landing is a good pilot plus
+a good day, and the good day does not come back for the next one. Those landings
+would have done exactly the same thing if the instructors had stood on the
+tarmac and said nothing at all.
 
 ## Skill plus luck
 
