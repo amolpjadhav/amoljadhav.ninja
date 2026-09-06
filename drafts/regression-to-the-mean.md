@@ -109,46 +109,22 @@ mandatory training program. All of them will drift back toward the middle on
 their next evaluation. And every time, someone in management will confidently
 take the credit or the blame.
 
-## Where the name comes from
+## What to do with it
 
-Francis Galton noticed it in 1886, measuring parents and children. Very tall
-parents had children who were tall — but a little less tall. Very short parents
-had children a little less short. He called it "regression towards mediocrity",
-which is where statistics got the word *regression*, now attached to half the
-tools in the field.
+One question does most of the work: **was this picked for being extreme?**
 
-Galton briefly worried this meant everyone was slowly converging on the same
-height. It doesn't. Individual families drift toward the middle, but new
-extremes keep appearing, and the spread of human heights stays put. The
-distribution is stable even though the individuals inside it move around. That
-is worth holding onto, because it is the part people get wrong when they
-overapply the idea.
+If it was — the top of the leaderboard, the worst-performing team, the patient
+at their sickest, the junction with the terrible year — then expect it to drift
+toward the middle on its own, and be suspicious of whatever happens to be
+standing nearby taking the credit. The only way to know whether the drug, the
+camera or the training program actually did anything is to compare it against a
+group that was equally extreme and got nothing at all. That is the entire
+purpose of a control group.
 
-## The thing it is not
+The same goes for people. Judge them on more than one reading. A single
+measurement is skill plus luck; several measurements are mostly skill.
 
-This gets tangled up with the idea that a run of bad luck is "owed" a run of
-good luck. Those are different, and the difference matters.
-
-A coin that has come up tails five times is not more likely to come up heads.
-It has no memory and owes you nothing. The next flip is 50/50 forever.
-
-Regression to the mean isn't a force pulling results back. It's about which
-results you chose to look at. You went and found the extremes, and extremes are
-crowded with luck, so the next look is calmer. Nothing is being corrected.
-Nothing is being balanced. You just stopped standing in an unusual spot.
-
-## Three questions that protect you
-
-**Was this group picked for being extreme?** If yes, expect movement toward the
-middle before you credit anything for it.
-
-**Is there a group that was equally extreme and got nothing?** That is the only
-comparison that can tell you whether your intervention did anything. It is also
-exactly what a control group is.
-
-**Am I judging someone on their best or worst day, or on many days?** One
-measurement is skill plus luck. Many measurements are mostly skill.
-
-None of this says praise works and criticism doesn't — that's a separate
-question with its own evidence. It says the flight instructors could never have
-answered it from what they were watching. Neither can you, from a league table.
+And nothing here is being corrected or repaid. A coin that has come up tails
+five times is not due for heads, and a bad quarter does not earn you a good one.
+You simply went looking in an unusual spot, and the next look was always going
+to be calmer.
