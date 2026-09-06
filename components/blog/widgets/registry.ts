@@ -46,6 +46,7 @@ import TftComps from './TftComps';
 import TftDrill from './TftDrill';
 import TftReference from './TftReference';
 import TftGoldCurve from './TftGoldCurve';
+import RegressionToMean from './RegressionToMean';
 
 // Article content (stored as HTML in Supabase) can embed a widget by
 // including a placeholder element with a matching data-widget value, e.g.:
@@ -100,4 +101,5 @@ export const WIDGET_REGISTRY: Record<string, ComponentType> = {
   'tft-drill': TftDrill,
   'tft-reference': TftReference,
   'tft-gold-curve': TftGoldCurve,
+  'regression-to-mean': RegressionToMean,
 };
