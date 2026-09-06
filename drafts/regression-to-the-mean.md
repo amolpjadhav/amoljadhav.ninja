@@ -109,43 +109,6 @@ mandatory training program. All of them will drift back toward the middle on
 their next evaluation. And every time, someone in management will confidently
 take the credit or the blame.
 
-## Why the good news wears off
-
-You get the promotion. You win the thing. You meet the person. For a while
-everything is brighter, and then it settles, and it is easy to read that as
-something being taken away.
-
-Two different things are doing that, and they are worth keeping apart.
-
-**One is the same trick as the landings.** That first fortnight was a peak
-because several things lined up at once: the news itself, plus you were
-sleeping well, plus the weather, plus nothing went wrong at home that week.
-Those do not line up again next month. Nothing has been removed from you. You
-were standing on a spike and you stepped off it.
-
-**The other is real, and it is your brain doing it.** Your sense of "normal"
-moves to include the new thing. The corner office becomes the office. The new
-person becomes the person you live with. That is habituation &mdash; an actual
-process, not a measurement artefact &mdash; and it is why the second thing you
-buy never feels like the first one did.
-
-The famous version of this claim is too strong. You have probably heard that
-lottery winners end up no happier than anyone else. When researchers followed
-Swedish winners for up to twenty-two years, they found lasting improvements in
-how satisfied people were with their lives &mdash; considerably smaller than
-winners had predicted, but real, and still there decades later. Day-to-day mood
-barely moved. Adaptation is powerful and it is also incomplete, and it is not
-even-handed: people adapt to most good news faster than they expect, and to
-some bad things &mdash; long unemployment, losing someone &mdash; barely at all.
-
-What the idea actually buys you is a rule about timing. Do not judge a change by
-the fortnight after it, because the fortnight is a spike. Judge it by what
-ordinary looks like once the spike has passed, which is the only number that was
-ever going to stick around.
-
-And the same logic is kinder than it sounds in the other direction. Your worst
-week is also a spike. It is also not the level.
-
 ## Where the name comes from
 
 Francis Galton noticed it in 1886, measuring parents and children. Very tall
