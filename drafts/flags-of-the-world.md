@@ -20,11 +20,15 @@ Finland and the Faroe Islands all use the same off-centre cross in their own
 colours. One idea, six flags. Spot that shape and you are looking at northern
 Europe.
 
+<!-- widget: flag-row family=nordic-cross -->
+
 **Pan-Arab colours.** Black, white, green and red. These four come from the flag
 of the Arab Revolt in 1916, and each colour stood for a historic ruling family.
 Egypt, Iraq, Syria, Jordan, Kuwait, the United Arab Emirates, Palestine, Sudan
 and Yemen all use them. The flags look different at a glance, but they are the
 same four colours shuffled into stripes and triangles.
+
+<!-- widget: flag-row family=pan-arab -->
 
 **Pan-African colours.** Red, gold and green, taken from Ethiopia. Ethiopia
 mattered because it held off European colonisation while almost everywhere
@@ -32,20 +36,28 @@ around it did not, so when other African countries became independent they
 adopted its colours on purpose. Ghana went first in 1957, and a dozen more
 followed.
 
+<!-- widget: flag-row family=pan-african -->
+
 **The crescent and star.** Carried across three continents by the Ottoman
 Empire, and kept afterwards as a mark of Islamic identity rather than of who
 used to be in charge. Turkey, Tunisia, Algeria, Pakistan, Malaysia and
 Azerbaijan all have one.
+
+<!-- widget: flag-row family=crescent-star -->
 
 **The Union Jack in the corner.** Australia, New Zealand, Fiji and Tuvalu still
 carry the British flag in the top left. What is interesting is that keeping it
 is now a choice — several of them have held votes about taking it off, and so
 far it has stayed.
 
+<!-- widget: flag-row family=union-canton -->
+
 **The Southern Cross.** A group of stars you can only see from the southern
 half of the world. Australia, New Zealand, Brazil, Papua New Guinea and Samoa
 all put it on their flags, which means half the planet is using a decoration
 the other half cannot even see.
+
+<!-- widget: flag-row family=southern-cross -->
 
 <!-- widget: flag-browser -->
 
@@ -69,6 +81,8 @@ sides of the flag do not match. No other country does that.
 designed to avoid the symbols of the different communities living inside them,
 and a plain outline of the country was the one shape nobody could object to.
 
+<!-- widget: flag-row codes=NP,CH,VA,PY,CY,XK note=Nepal is the only flag that is not a rectangle. Switzerland and the Vatican are the only squares. -->
+
 ## The flags that are almost the same flag
 
 Here is where it gets genuinely hard, and it is the reason a flag quiz is worth
@@ -86,6 +100,8 @@ depending on which end you start from.
 
 **Slovenia, Slovakia and Serbia** are three white-blue-red tricolours that you
 can only really tell apart by the badge on the front.
+
+<!-- widget: flag-row codes=TD,RO,ID,MC,IE,CI,SI,SK,RS note=Look for as long as you like. -->
 
 <!-- widget: flag-quiz -->
 

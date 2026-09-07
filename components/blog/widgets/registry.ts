@@ -50,6 +50,7 @@ import RegressionToMean from './RegressionToMean';
 import GradientDescent from './GradientDescent';
 import FlagBrowser from './FlagBrowser';
 import FlagQuiz from './FlagQuiz';
+import FlagRow from './FlagRow';
 
 // Article content (stored as HTML in Supabase) can embed a widget by
 // including a placeholder element with a matching data-widget value, e.g.:
@@ -108,4 +109,5 @@ export const WIDGET_REGISTRY: Record<string, ComponentType> = {
   'gradient-descent': GradientDescent,
   'flag-browser': FlagBrowser,
   'flag-quiz': FlagQuiz,
+  'flag-row': FlagRow,
 };

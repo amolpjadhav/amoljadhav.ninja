@@ -297,7 +297,10 @@ body {
    widgets use. Stops just short of 640px because that is where Tailwind's `sm:`
    puts the page gutter and the card's padding back. */
 @media (max-width: 639.98px) {
-  .article-content [data-widget] > * {
+  /* [data-inline] marks a small illustration sitting inside the prose — a row
+     of flags, say. Those should keep the text's own margins rather than break
+     out of them, so only the full-width widgets are pulled edge to edge. */
+  .article-content [data-widget]:not([data-inline]) > * {
     margin-left: -1rem;
     margin-right: -1rem;
     border-radius: 0;
