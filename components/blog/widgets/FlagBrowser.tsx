@@ -6,7 +6,7 @@ import { COUNTRIES, FLAG_FAMILIES, flagUrl } from './countryFlagData';
 // Every flag, searchable, and filterable by the design family it belongs to —
 // which is the part a plain alphabetical grid cannot show. Filter to the Nordic
 // cross and you see one idea copied six times; filter to Pan-Arab and you see
-// four colours rearranged nine ways.
+// four colors rearranged nine ways.
 //
 // Styling notes:
 //  - `.article-content` sets a serif font and p-margins in plain CSS (not
@@ -169,7 +169,7 @@ export default function FlagBrowser({ eyebrow, caption }: { eyebrow?: string; ca
 
       <div className="border-t border-white/10 mt-4 pt-3 text-[11px] text-white/30 leading-snug">
         Country list and regions from the World Bank, flags from flagcdn. Families are editorial: a flag is in one
-        because the shared design is the accepted account of it, not because the colours happen to match.
+        because the shared design is the accepted account of it, not because the colors happen to match.
       </div>
     </div>
   );

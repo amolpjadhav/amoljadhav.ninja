@@ -75,7 +75,7 @@ function makeQuestion(avoid?: string): Question {
     if (!because && family && picked.length) because = `All four are ${family.name.toLowerCase()} flags.`;
   }
 
-  // Then its neighbours, so a miss is at least a plausible miss.
+  // Then its neighbors, so a miss is at least a plausible miss.
   const sameRegion = shuffle(POOL.filter((c) => c.code !== answer.code && c.region === answer.region));
   for (const c of sameRegion) {
     if (picked.length >= OPTIONS - 1) break;

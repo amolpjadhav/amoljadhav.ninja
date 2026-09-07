@@ -58,27 +58,27 @@ const MANUAL = [
 
 // Flag families. Each list is membership by ISO 3166-1 alpha-2, kept to flags
 // where the shared design is the accepted account of the flag rather than a
-// coincidence of colour.
+// coincidence of color.
 const FAMILIES = [
   {
     id: 'nordic-cross',
     name: 'The Nordic cross',
     origin:
-      'Denmark’s Dannebrog, the oldest national flag still in use. The off-centre cross spread across every Nordic country and their island territories.',
+      'Denmark’s Dannebrog, the oldest national flag still in use. The off-center cross spread across every Nordic country and their island territories.',
     codes: ['DK', 'SE', 'NO', 'IS', 'FI', 'FO'],
   },
   {
     id: 'pan-arab',
-    name: 'Pan-Arab colours',
+    name: 'Pan-Arab colors',
     origin:
-      'The flag of the 1916 Arab Revolt, whose black, white, green and red stand for four historic dynasties. Almost every flag in the region is a rearrangement of those four.',
+      'The flag of the 1916 Arab Revolt, whose black, white, green, and red stand for four historic dynasties. Almost every flag in the region is a rearrangement of those four.',
     codes: ['EG', 'IQ', 'SY', 'JO', 'KW', 'AE', 'PS', 'SD', 'YE'],
   },
   {
     id: 'pan-african',
-    name: 'Pan-African colours',
+    name: 'Pan-African colors',
     origin:
-      'Ethiopia’s red, gold and green. Ethiopia was the African state that resisted colonisation, so newly independent countries adopted its colours deliberately — Ghana first, in 1957.',
+      'Ethiopia’s red, gold, and green. Ethiopia was the African state that resisted colonization, so newly independent countries adopted its colors deliberately — Ghana first, in 1957.',
     codes: ['ET', 'GH', 'SN', 'ML', 'GN', 'CM', 'TG', 'BJ', 'BF', 'CG', 'GW', 'ST', 'ZW'],
   },
   {
@@ -126,7 +126,7 @@ const LOOKALIKES = [
   { codes: ['IE', 'CI'], note: 'Mirror images of each other — green is on the hoist for Ireland, the fly for Côte d’Ivoire.' },
   { codes: ['NL', 'LU'], note: 'Same three bands; Luxembourg’s blue is lighter and its flag longer.' },
   { codes: ['AU', 'NZ'], note: 'Both are Union-canton flags with the Southern Cross. New Zealand has four stars, Australia six.' },
-  { codes: ['SI', 'SK', 'RS'], note: 'Three Pan-Slavic tricolours separated only by their coats of arms.' },
+  { codes: ['SI', 'SK', 'RS'], note: 'Three Pan-Slavic tricolors separated only by their coats of arms.' },
 ];
 
 async function getJson(url) {

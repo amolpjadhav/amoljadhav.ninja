@@ -13,57 +13,60 @@ came from, just by knowing the six main families.
 
 ## The six families
 
-**The Nordic cross.** Denmark's flag is the oldest national flag still in use,
-and it has a cross pushed slightly towards the left. Sweden, Norway, Iceland,
-Finland and the Faroe Islands all use the same off-centre cross in their own
-colours. One idea, six flags. Spot that shape and you are looking at northern
+Take the Nordic Cross. Denmark’s flag is the oldest national flag still in use
+anywhere on Earth, defined by a simple cross pushed slightly to the left. Over
+the centuries, Sweden, Norway, Iceland, Finland, and the Faroe Islands all
+copied that exact same off-center geometry. It’s one idea spread across six
+flags. Spot that shape, and you know instantly you are looking at Northern
 Europe.
 
 <!-- widget: flag-row family=nordic-cross -->
 
-So where do the colours come from? This is worth a moment, because the answer
-is not one answer, and the pattern in it tells you something about flags
-generally.
+But the colors they chose reveal a fascinating pattern about how flags actually
+work.
 
-**Denmark** is the oldest and explains itself the least. Its red and white have
-no official meaning. There is a legend that the flag fell out of the sky during
-a battle in 1219, which is a lovely story and not a reason for a colour.
+Denmark is the oldest, so it explains itself the least. Its red and white have
+absolutely no official meaning. There is a famous legend that the flag
+miraculously fell out of the sky during a battle in 1219—which is a lovely
+story, but not an actual reason for picking a color.
 
-**Sweden's** blue and gold are lifted from the royal coat of arms — a blue
-shield with three gold crowns. The flag is the shield, stretched out.
+Sweden’s blue and gold were simply lifted from the king’s coat of arms—a blue
+shield stamped with three gold crowns. The flag is literally just that shield,
+stretched out onto a piece of cloth.
 
-**Norway's** was designed in 1821 by a member of parliament, and its colours
-are an argument rather than a description. He took Denmark's red and white,
-because Norway had spent centuries in union with Denmark, and added blue —
-because red, white and blue were the colours of liberty at the time, worn by
-France and the United States. The flag is a sentence about which side Norway
-was on.
+Norway’s flag, designed in 1821 by a member of parliament, uses color as a
+political argument rather than a description. He kept Denmark’s red and
+white—since Norway had spent centuries united with them—but added blue. Why?
+Because at the time, red, white, and blue were the internationally recognized
+colors of liberty, worn proudly by France and the United States. The flag was a
+sentence declaring which side of history Norway wanted to be on.
 
-**Iceland** is usually explained as blue for the mountains, white for the ice
-and snow, and red for volcanic fire. **Finland's** is blue for the thousands of
-lakes and white for the snow. The **Faroe Islands** made theirs in 1919: white
-for the sky and the foam, with the red and blue borrowed on purpose from the
-neighbours they wanted to be grouped with.
+Then you get to the newer flags, which suddenly start sounding like travel
+brochures. Iceland’s colors are usually explained as blue for the mountains,
+white for the ice, and red for volcanic fire. Finland’s is blue for its
+thousands of lakes and white for the snow. The Faroe Islands, who designed
+theirs in 1919, chose white for the sky and sea foam, while borrowing red and
+blue specifically to fit in with the neighbors they wanted to be grouped with.
 
-Now notice the pattern. The flags with a tidy story about landscape — Iceland,
-Finland — are the newest ones, made in 1915 and 1918. The old ones inherited
-their colours from coats of arms and never explained themselves at all. Flags
-only started coming with meanings attached once the world began expecting them
-to.
+There is a clear historical divide here. The flags with tidy, poetic stories
+about landscape and nature (Iceland, Finland) are the newest ones, created in
+the early 20th century. The ancient flags just inherited their colors from royal
+shields or political alliances and never bothered to explain themselves at all.
+It turns out, flags only started coming with deep, symbolic meanings attached
+once the world started expecting them to.
 
-
-**Pan-Arab colours.** Black, white, green and red. These four come from the flag
-of the Arab Revolt in 1916, and each colour stood for a historic ruling family.
+**Pan-Arab colors.** Black, white, green and red. These four come from the flag
+of the Arab Revolt in 1916, and each color stood for a historic ruling family.
 Egypt, Iraq, Syria, Jordan, Kuwait, the United Arab Emirates, Palestine, Sudan
 and Yemen all use them. The flags look different at a glance, but they are the
-same four colours shuffled into stripes and triangles.
+same four colors shuffled into stripes and triangles.
 
 <!-- widget: flag-row family=pan-arab -->
 
-**Pan-African colours.** Red, gold and green, taken from Ethiopia. Ethiopia
-mattered because it held off European colonisation while almost everywhere
+**Pan-African colors.** Red, gold and green, taken from Ethiopia. Ethiopia
+mattered because it held off European colonization while almost everywhere
 around it did not, so when other African countries became independent they
-adopted its colours on purpose. Ghana went first in 1957, and a dozen more
+adopted its colors on purpose. Ghana went first in 1957, and a dozen more
 followed.
 
 <!-- widget: flag-row family=pan-african -->
@@ -128,7 +131,7 @@ longer, and that is the whole difference.
 **Ireland and Côte d'Ivoire** are mirror images. Green, white, orange —
 depending on which end you start from.
 
-**Slovenia, Slovakia and Serbia** are three white-blue-red tricolours that you
+**Slovenia, Slovakia and Serbia** are three white-blue-red tricolors that you
 can only really tell apart by the badge on the front.
 
 <!-- widget: flag-row codes=TD,RO,ID,MC,IE,CI,SI,SK,RS note=Look for as long as you like. -->
@@ -137,25 +140,25 @@ can only really tell apart by the badge on the front.
 
 The quiz starts on the hardest question there is, and the wrong answers are
 never random. They come from the same family as the right one, so you are being
-asked to tell apart flags that genuinely look alike, rather than to recognise
+asked to tell apart flags that genuinely look alike, rather than to recognize
 which continent you are on.
 
 ## What flags mostly do not mean
 
 One warning, because this is where flag facts go wrong.
 
-You will often read that a colour on a flag stands for something — red for the
+You will often read that a color on a flag stands for something — red for the
 blood of people who died, white for peace, green for the land. Sometimes that
 is exactly right and written into the law that created the flag. Quite often it
 was invented afterwards by somebody who assumed there must be a reason.
 
 The clearest example is the United Kingdom. The Union Jack's red, white and
-blue have **no official meaning at all**. They are the colours of three older
+blue have **no official meaning at all**. They are the colors of three older
 flags that got layered on top of each other. Any explanation you have heard of
-what those colours stand for was made up later.
+what those colors stand for was made up later.
 
 So the honest version is this: some flags have meanings, and they are usually
 written down. Many flags just have ancestors. And when a country picked its
-colours because a neighbour or an ally had them first, that borrowing is the
+colors because a neighbour or an ally had them first, that borrowing is the
 real story — a more interesting one than a made-up meaning, because it tells
 you who a country wanted to be seen standing next to.

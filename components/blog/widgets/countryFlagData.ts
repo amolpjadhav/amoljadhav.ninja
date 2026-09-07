@@ -45,7 +45,7 @@ export const FLAG_FAMILIES: FlagFamily[] = [
   {
     "id": "nordic-cross",
     "name": "The Nordic cross",
-    "origin": "Denmark’s Dannebrog, the oldest national flag still in use. The off-centre cross spread across every Nordic country and their island territories.",
+    "origin": "Denmark’s Dannebrog, the oldest national flag still in use. The off-center cross spread across every Nordic country and their island territories.",
     "codes": [
       "DK",
       "SE",
@@ -57,8 +57,8 @@ export const FLAG_FAMILIES: FlagFamily[] = [
   },
   {
     "id": "pan-arab",
-    "name": "Pan-Arab colours",
-    "origin": "The flag of the 1916 Arab Revolt, whose black, white, green and red stand for four historic dynasties. Almost every flag in the region is a rearrangement of those four.",
+    "name": "Pan-Arab colors",
+    "origin": "The flag of the 1916 Arab Revolt, whose black, white, green, and red stand for four historic dynasties. Almost every flag in the region is a rearrangement of those four.",
     "codes": [
       "EG",
       "IQ",
@@ -73,8 +73,8 @@ export const FLAG_FAMILIES: FlagFamily[] = [
   },
   {
     "id": "pan-african",
-    "name": "Pan-African colours",
-    "origin": "Ethiopia’s red, gold and green. Ethiopia was the African state that resisted colonisation, so newly independent countries adopted its colours deliberately — Ghana first, in 1957.",
+    "name": "Pan-African colors",
+    "origin": "Ethiopia’s red, gold, and green. Ethiopia was the African state that resisted colonization, so newly independent countries adopted its colors deliberately — Ghana first, in 1957.",
     "codes": [
       "ET",
       "GH",
@@ -196,7 +196,7 @@ export const LOOKALIKES: Lookalike[] = [
       "SK",
       "RS"
     ],
-    "note": "Three Pan-Slavic tricolours separated only by their coats of arms."
+    "note": "Three Pan-Slavic tricolors separated only by their coats of arms."
   }
 ];
 
