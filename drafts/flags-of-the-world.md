@@ -22,6 +22,37 @@ Europe.
 
 <!-- widget: flag-row family=nordic-cross -->
 
+So where do the colours come from? This is worth a moment, because the answer
+is not one answer, and the pattern in it tells you something about flags
+generally.
+
+**Denmark** is the oldest and explains itself the least. Its red and white have
+no official meaning. There is a legend that the flag fell out of the sky during
+a battle in 1219, which is a lovely story and not a reason for a colour.
+
+**Sweden's** blue and gold are lifted from the royal coat of arms — a blue
+shield with three gold crowns. The flag is the shield, stretched out.
+
+**Norway's** was designed in 1821 by a member of parliament, and its colours
+are an argument rather than a description. He took Denmark's red and white,
+because Norway had spent centuries in union with Denmark, and added blue —
+because red, white and blue were the colours of liberty at the time, worn by
+France and the United States. The flag is a sentence about which side Norway
+was on.
+
+**Iceland** is usually explained as blue for the mountains, white for the ice
+and snow, and red for volcanic fire. **Finland's** is blue for the thousands of
+lakes and white for the snow. The **Faroe Islands** made theirs in 1919: white
+for the sky and the foam, with the red and blue borrowed on purpose from the
+neighbours they wanted to be grouped with.
+
+Now notice the pattern. The flags with a tidy story about landscape — Iceland,
+Finland — are the newest ones, made in 1915 and 1918. The old ones inherited
+their colours from coats of arms and never explained themselves at all. Flags
+only started coming with meanings attached once the world began expecting them
+to.
+
+
 **Pan-Arab colours.** Black, white, green and red. These four come from the flag
 of the Arab Revolt in 1916, and each colour stood for a historic ruling family.
 Egypt, Iraq, Syria, Jordan, Kuwait, the United Arab Emirates, Palestine, Sudan
