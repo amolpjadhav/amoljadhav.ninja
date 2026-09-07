@@ -48,6 +48,8 @@ import TftReference from './TftReference';
 import TftGoldCurve from './TftGoldCurve';
 import RegressionToMean from './RegressionToMean';
 import GradientDescent from './GradientDescent';
+import FlagBrowser from './FlagBrowser';
+import FlagQuiz from './FlagQuiz';
 
 // Article content (stored as HTML in Supabase) can embed a widget by
 // including a placeholder element with a matching data-widget value, e.g.:
@@ -104,4 +106,6 @@ export const WIDGET_REGISTRY: Record<string, ComponentType> = {
   'tft-gold-curve': TftGoldCurve,
   'regression-to-mean': RegressionToMean,
   'gradient-descent': GradientDescent,
+  'flag-browser': FlagBrowser,
+  'flag-quiz': FlagQuiz,
 };
