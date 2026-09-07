@@ -4,13 +4,12 @@ Category: Curiosity
 
 ---
 
-There are 195 countries, so it feels like there should be 195 ideas. There are
-not. Most flags in the world are copies of a handful of older flags, and once
-you know the handful, you can look at a flag you have never seen and make a
-good guess at which part of the world it belongs to.
-
-That is the useful thing hiding in here. Not memorising 195 pictures — knowing
-the six families they mostly come from.
+There are 195 countries in the world, so it feels like there should be 195
+completely original flags. There aren't. Most of the world's flags are just
+remixes of a handful of older designs. Once you recognize those foundational
+templates, you don't have to memorize 195 separate pictures. You can look at a
+flag you’ve never seen before and instantly guess which corner of the globe it
+came from, just by knowing the six main families.
 
 ## The six families
 
