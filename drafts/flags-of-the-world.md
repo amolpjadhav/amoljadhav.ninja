@@ -55,13 +55,47 @@ shields or political alliances and never bothered to explain themselves at all.
 It turns out, flags only started coming with deep, symbolic meanings attached
 once the world started expecting them to.
 
-**Pan-Arab colors.** Black, white, green and red. These four come from the flag
-of the Arab Revolt in 1916, and each color stood for a historic ruling family.
-Egypt, Iraq, Syria, Jordan, Kuwait, the United Arab Emirates, Palestine, Sudan
-and Yemen all use them. The flags look different at a glance, but they are the
-same four colors shuffled into stripes and triangles.
+Now take the Pan-Arab colors: black, white, green, and red. All four trace back
+to a single flag — the banner of the Arab Revolt of 1916, raised against
+Ottoman rule. And unlike Denmark, this one came with its meanings attached from
+the start, because each color was chosen to stand for a dynasty that had once
+ruled the Arab world.
 
-<!-- widget: flag-row family=pan-arab -->
+Black was the Abbasids, who ruled from Baghdad and fought under black banners.
+White was the Umayyads before them, from Damascus. Green was the Fatimids, out
+of Cairo. And red was the Hashemites, the family actually leading the revolt —
+which is a fairly bold thing to do, putting your own family's color on a flag
+alongside three of the greatest empires in your history.
+
+There is a second, older explanation that gets quoted just as often, from a line
+of fourteenth-century poetry: white are our deeds, black our battles, green our
+fields, red our swords. Nobody has to choose. Both versions were available, and
+a flag can carry two stories at once.
+
+<!-- widget: flag-row codes=YE,SD,JO,PS,AE,KW,IQ,EG note=Yemen is the plain version. Every other flag adds exactly one idea to it. -->
+
+What makes this family worth studying is how little each country changed.
+
+**Yemen** is the plain original: three stripes, nothing added. Everyone else
+takes that and adds one thing. **Sudan** puts a green triangle at the left.
+**Jordan** puts a red triangle there instead, with a seven-pointed star inside
+it, one point for each verse of the opening chapter of the Quran.
+**Palestine** is Jordan's flag without the star. The **United Arab Emirates**
+stands the red up as a vertical band at the hoist. **Kuwait** rearranges the
+stripes and bends the black into a trapezoid. **Iraq** leaves the stripes alone
+and writes on them, in green. And **Egypt** breaks the rule outright — it drops
+green altogether and puts a gold eagle in the white stripe instead.
+
+Syria's was redesigned in 2025, which is worth remembering when a flag starts
+to feel like decoration. These are political documents, and they change when
+the politics do.
+
+Here is the part I like most, and it only shows up when you put this family
+next to the last one. The Nordic flags all share a **shape** and differ in
+their colors. The Pan-Arab flags all share the **colors** and differ in their
+shapes. Two families, opposite strategies, and both of them work the same way:
+one recognizable thing held constant so that everything built on top of it
+still reads as belonging.
 
 **Pan-African colors.** Red, gold and green, taken from Ethiopia. Ethiopia
 mattered because it held off European colonization while almost everywhere
