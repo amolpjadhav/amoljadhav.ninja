@@ -245,12 +245,12 @@ can only really tell apart by the badge on the front.
 
 <!-- widget: flag-row codes=TD,RO,ID,MC,IE,CI,SI,SK,RS note=Look for as long as you like. -->
 
-<!-- widget: flag-quiz -->
-
-The quiz starts on the hardest question there is, and the wrong answers are
-never random. They come from the same family as the right one, so you are being
-asked to tell apart flags that genuinely look alike, rather than to recognize
-which continent you are on.
+If you want to find out how much of this actually stuck, the quiz at the top of
+this page has a question for every flag in the world — all 195 of them, with
+the near-identical pairs first. The wrong answers are never random either. They
+come from the same family as the right one, so you are being asked to tell
+apart flags that genuinely look alike, rather than to work out which continent
+you are on.
 
 ## What flags mostly do not mean
 

@@ -36,6 +36,15 @@ export interface Lookalike {
   note: string;
 }
 
+export interface FlagQuizQuestion {
+  question: string;
+  image: string;
+  imageAlt: string;
+  options: string[];
+  correctIndex: number;
+  explanation: string;
+}
+
 /** 320px wide PNG. Use the svg variant only where the flag is shown large. */
 export function flagUrl(code: string, width: 40 | 80 | 160 | 320 = 320): string {
   return `https://flagcdn.com/w${width}/${code.toLowerCase()}.png`;
@@ -2042,5 +2051,2548 @@ export const COUNTRIES: Country[] = [
     "families": [
       "pan-african"
     ]
+  }
+];
+
+/**
+ * One question per sovereign flag, in a fixed order: the near-identical pairs
+ * first, then a deterministic shuffle. Shape matches QuizQuestion in
+ * types/database.ts so it can be handed straight to the quiz.
+ */
+export const FLAG_QUIZ: FlagQuizQuestion[] = [
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/td.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Tanzania",
+      "Chad",
+      "Mauritius",
+      "Romania"
+    ],
+    "correctIndex": 1,
+    "explanation": "Chad. Identical layout; Chad’s blue is darker. Chad has raised it at the UN."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/ro.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Sweden",
+      "Chad",
+      "Romania",
+      "France"
+    ],
+    "correctIndex": 2,
+    "explanation": "Romania. Identical layout; Chad’s blue is darker. Chad has raised it at the UN."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/id.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Indonesia",
+      "Samoa",
+      "Timor-Leste",
+      "Monaco"
+    ],
+    "correctIndex": 0,
+    "explanation": "Indonesia. The same two bands. Indonesia’s flag is longer."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/mc.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Indonesia",
+      "Kazakhstan",
+      "Switzerland",
+      "Monaco"
+    ],
+    "correctIndex": 3,
+    "explanation": "Monaco. The same two bands. Indonesia’s flag is longer."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/ie.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Côte d’Ivoire",
+      "Georgia",
+      "Ireland",
+      "Bulgaria"
+    ],
+    "correctIndex": 2,
+    "explanation": "Ireland. Mirror images of each other — green is on the hoist for Ireland, the fly for Côte d’Ivoire."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/ci.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Ireland",
+      "The Gambia",
+      "Chad",
+      "Côte d’Ivoire"
+    ],
+    "correctIndex": 3,
+    "explanation": "Côte d’Ivoire. Mirror images of each other — green is on the hoist for Ireland, the fly for Côte d’Ivoire."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/nl.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Netherlands",
+      "Türkiye",
+      "Luxembourg",
+      "Belarus"
+    ],
+    "correctIndex": 0,
+    "explanation": "Netherlands. Same three bands; Luxembourg’s blue is lighter and its flag longer."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/lu.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Denmark",
+      "Estonia",
+      "Luxembourg",
+      "Netherlands"
+    ],
+    "correctIndex": 2,
+    "explanation": "Luxembourg. Same three bands; Luxembourg’s blue is lighter and its flag longer."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/au.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Fiji",
+      "Tuvalu",
+      "New Zealand",
+      "Australia"
+    ],
+    "correctIndex": 3,
+    "explanation": "Australia. Both are Union-canton flags with the Southern Cross. New Zealand has four stars, Australia six."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/nz.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "New Zealand",
+      "Australia",
+      "Fiji",
+      "Tuvalu"
+    ],
+    "correctIndex": 0,
+    "explanation": "New Zealand. Both are Union-canton flags with the Southern Cross. New Zealand has four stars, Australia six."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/si.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Slovakia",
+      "Serbia",
+      "Finland",
+      "Slovenia"
+    ],
+    "correctIndex": 3,
+    "explanation": "Slovenia. Three Pan-Slavic tricolors separated only by their coats of arms."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/sk.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Slovenia",
+      "Serbia",
+      "Netherlands",
+      "Slovakia"
+    ],
+    "correctIndex": 3,
+    "explanation": "Slovakia. Three Pan-Slavic tricolors separated only by their coats of arms."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/rs.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Slovenia",
+      "Serbia",
+      "Slovakia",
+      "Türkiye"
+    ],
+    "correctIndex": 1,
+    "explanation": "Serbia. Three Pan-Slavic tricolors separated only by their coats of arms."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/hu.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Andorra",
+      "Bosnia and Herzegovina",
+      "Hungary",
+      "Cyprus"
+    ],
+    "correctIndex": 2,
+    "explanation": "Hungary. All four are in Europe & Central Asia."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/gd.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "The Bahamas",
+      "Uruguay",
+      "Grenada",
+      "Antigua and Barbuda"
+    ],
+    "correctIndex": 2,
+    "explanation": "Grenada. All four are in Latin America & Caribbean."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/sv.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "El Salvador",
+      "Grenada",
+      "Belize",
+      "Brazil"
+    ],
+    "correctIndex": 0,
+    "explanation": "El Salvador. All four are in Latin America & Caribbean."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/cd.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Uganda",
+      "DR Congo",
+      "Guinea",
+      "Chad"
+    ],
+    "correctIndex": 1,
+    "explanation": "DR Congo. All four are in Sub-Saharan Africa."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/kn.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Panama",
+      "Brazil",
+      "Venezuela",
+      "Saint Kitts and Nevis"
+    ],
+    "correctIndex": 3,
+    "explanation": "Saint Kitts and Nevis. All four are in Latin America & Caribbean."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/tt.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Peru",
+      "Honduras",
+      "El Salvador",
+      "Trinidad and Tobago"
+    ],
+    "correctIndex": 3,
+    "explanation": "Trinidad and Tobago. All four are in Latin America & Caribbean."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/my.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Pakistan",
+      "Tunisia",
+      "Malaysia",
+      "Algeria"
+    ],
+    "correctIndex": 2,
+    "explanation": "Malaysia. All four are crescent and star flags."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/se.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Iceland",
+      "Sweden",
+      "Denmark",
+      "Finland"
+    ],
+    "correctIndex": 1,
+    "explanation": "Sweden. All four are the nordic cross flags."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/zm.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Zambia",
+      "Sierra Leone",
+      "Eswatini",
+      "Nigeria"
+    ],
+    "correctIndex": 0,
+    "explanation": "Zambia. All four are in Sub-Saharan Africa."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/no.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Finland",
+      "Norway",
+      "Iceland",
+      "Sweden"
+    ],
+    "correctIndex": 1,
+    "explanation": "Norway. All four are the nordic cross flags."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/bh.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Pakistan",
+      "Bahrain",
+      "Israel",
+      "United Arab Emirates"
+    ],
+    "correctIndex": 1,
+    "explanation": "Bahrain. All four are in Middle East, North Africa, Afghanistan & Pakistan."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/mt.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Yemen",
+      "Pakistan",
+      "Kuwait",
+      "Malta"
+    ],
+    "correctIndex": 3,
+    "explanation": "Malta. All four are in Middle East, North Africa, Afghanistan & Pakistan."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/dm.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Jamaica",
+      "Dominica",
+      "Nicaragua",
+      "Antigua and Barbuda"
+    ],
+    "correctIndex": 1,
+    "explanation": "Dominica. All four are in Latin America & Caribbean."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/lc.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Saint Lucia",
+      "Dominica",
+      "Suriname",
+      "Saint Vincent and the Grenadines"
+    ],
+    "correctIndex": 0,
+    "explanation": "Saint Lucia. All four are in Latin America & Caribbean."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/to.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Marshall Islands",
+      "Laos",
+      "Tonga",
+      "Naoero"
+    ],
+    "correctIndex": 2,
+    "explanation": "Tonga. All four are in East Asia & Pacific."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/gm.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Namibia",
+      "The Gambia",
+      "Zambia",
+      "Mauritius"
+    ],
+    "correctIndex": 1,
+    "explanation": "The Gambia. All four are in Sub-Saharan Africa."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/by.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Belarus",
+      "Moldova",
+      "Italy",
+      "Kyrgyzstan"
+    ],
+    "correctIndex": 0,
+    "explanation": "Belarus. All four are in Europe & Central Asia."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/az.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Uzbekistan",
+      "Mauritania",
+      "Azerbaijan",
+      "Türkiye"
+    ],
+    "correctIndex": 2,
+    "explanation": "Azerbaijan. All four are crescent and star flags."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/tn.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Tunisia",
+      "Libya",
+      "Uzbekistan",
+      "Malaysia"
+    ],
+    "correctIndex": 0,
+    "explanation": "Tunisia. All four are crescent and star flags."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/gn.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Guinea",
+      "Zimbabwe",
+      "Togo",
+      "Republic of the Congo"
+    ],
+    "correctIndex": 0,
+    "explanation": "Guinea. All four are pan-african colors flags."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/km.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Comoros",
+      "Uzbekistan",
+      "Türkiye",
+      "Pakistan"
+    ],
+    "correctIndex": 0,
+    "explanation": "Comoros. All four are crescent and star flags."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/lk.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Maldives",
+      "Bhutan",
+      "Sri Lanka",
+      "Bangladesh"
+    ],
+    "correctIndex": 2,
+    "explanation": "Sri Lanka. All four are in South Asia."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/ch.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Vatican City",
+      "Switzerland",
+      "Andorra",
+      "Nepal"
+    ],
+    "correctIndex": 1,
+    "explanation": "Switzerland. All four are not a rectangle flags."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/ve.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Peru",
+      "Venezuela",
+      "The Bahamas",
+      "Mexico"
+    ],
+    "correctIndex": 1,
+    "explanation": "Venezuela. All four are in Latin America & Caribbean."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/sr.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Suriname",
+      "Bolivia",
+      "Nicaragua",
+      "Peru"
+    ],
+    "correctIndex": 0,
+    "explanation": "Suriname. All four are in Latin America & Caribbean."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/dj.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Jordan",
+      "Djibouti",
+      "Morocco",
+      "Afghanistan"
+    ],
+    "correctIndex": 1,
+    "explanation": "Djibouti. All four are in Middle East, North Africa, Afghanistan & Pakistan."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/ml.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Cameroon",
+      "Guinea-Bissau",
+      "Mali",
+      "Burkina Faso"
+    ],
+    "correctIndex": 2,
+    "explanation": "Mali. All four are pan-african colors flags."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/vn.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Vietnam",
+      "Cambodia",
+      "Japan",
+      "Philippines"
+    ],
+    "correctIndex": 0,
+    "explanation": "Vietnam. All four are in East Asia & Pacific."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/mm.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Thailand",
+      "Myanmar",
+      "Singapore",
+      "Malaysia"
+    ],
+    "correctIndex": 1,
+    "explanation": "Myanmar. All four are in East Asia & Pacific."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/mz.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Mozambique",
+      "Eritrea",
+      "South Africa",
+      "Chad"
+    ],
+    "correctIndex": 0,
+    "explanation": "Mozambique. All four are in Sub-Saharan Africa."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/mr.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Tunisia",
+      "Mauritania",
+      "Türkiye",
+      "Pakistan"
+    ],
+    "correctIndex": 1,
+    "explanation": "Mauritania. All four are crescent and star flags."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/cv.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Guinea",
+      "Zimbabwe",
+      "South Africa",
+      "Cabo Verde"
+    ],
+    "correctIndex": 3,
+    "explanation": "Cabo Verde. All four are in Sub-Saharan Africa."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/cu.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Dominican Republic",
+      "Antigua and Barbuda",
+      "Cuba",
+      "Ecuador"
+    ],
+    "correctIndex": 2,
+    "explanation": "Cuba. All four are in Latin America & Caribbean."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/nr.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Indonesia",
+      "Mongolia",
+      "Palau",
+      "Naoero"
+    ],
+    "correctIndex": 3,
+    "explanation": "Naoero. All four are in East Asia & Pacific."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/gr.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Spain",
+      "Georgia",
+      "Vatican City",
+      "Greece"
+    ],
+    "correctIndex": 3,
+    "explanation": "Greece. All four are in Europe & Central Asia."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/fj.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Fiji",
+      "Tuvalu",
+      "New Zealand",
+      "Australia"
+    ],
+    "correctIndex": 0,
+    "explanation": "Fiji. All four are the union jack in the corner flags."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/pt.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "France",
+      "Albania",
+      "Andorra",
+      "Portugal"
+    ],
+    "correctIndex": 3,
+    "explanation": "Portugal. All four are in Europe & Central Asia."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/tl.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Micronesia",
+      "Thailand",
+      "Naoero",
+      "Timor-Leste"
+    ],
+    "correctIndex": 3,
+    "explanation": "Timor-Leste. All four are in East Asia & Pacific."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/mw.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Central African Republic",
+      "Benin",
+      "Malawi",
+      "Nigeria"
+    ],
+    "correctIndex": 2,
+    "explanation": "Malawi. All four are in Sub-Saharan Africa."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/cg.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Ghana",
+      "Mali",
+      "Sao Tome and Principe",
+      "Republic of the Congo"
+    ],
+    "correctIndex": 3,
+    "explanation": "Republic of the Congo. All four are pan-african colors flags."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/st.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Republic of the Congo",
+      "Mali",
+      "Sao Tome and Principe",
+      "Cameroon"
+    ],
+    "correctIndex": 2,
+    "explanation": "Sao Tome and Principe. All four are pan-african colors flags."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/mg.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Liberia",
+      "Uganda",
+      "Equatorial Guinea",
+      "Madagascar"
+    ],
+    "correctIndex": 3,
+    "explanation": "Madagascar. All four are in Sub-Saharan Africa."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/kz.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Slovenia",
+      "Spain",
+      "North Macedonia",
+      "Kazakhstan"
+    ],
+    "correctIndex": 3,
+    "explanation": "Kazakhstan. All four are in Europe & Central Asia."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/iq.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Kuwait",
+      "Iraq",
+      "United Arab Emirates",
+      "Jordan"
+    ],
+    "correctIndex": 1,
+    "explanation": "Iraq. All four are pan-arab colors flags."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/uy.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Uruguay",
+      "Grenada",
+      "Barbados",
+      "Panama"
+    ],
+    "correctIndex": 0,
+    "explanation": "Uruguay. All four are in Latin America & Caribbean."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/sd.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Egypt",
+      "Jordan",
+      "Yemen",
+      "Sudan"
+    ],
+    "correctIndex": 3,
+    "explanation": "Sudan. All four are pan-arab colors flags."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/sz.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Madagascar",
+      "Ethiopia",
+      "Eswatini",
+      "Liberia"
+    ],
+    "correctIndex": 2,
+    "explanation": "Eswatini. All four are in Sub-Saharan Africa."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/sm.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Bulgaria",
+      "San Marino",
+      "Austria",
+      "France"
+    ],
+    "correctIndex": 1,
+    "explanation": "San Marino. All four are in Europe & Central Asia."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/za.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Malawi",
+      "Guinea-Bissau",
+      "South Africa",
+      "Côte d’Ivoire"
+    ],
+    "correctIndex": 2,
+    "explanation": "South Africa. All four are in Sub-Saharan Africa."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/pl.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Poland",
+      "Montenegro",
+      "Tajikistan",
+      "Monaco"
+    ],
+    "correctIndex": 0,
+    "explanation": "Poland. All four are in Europe & Central Asia."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/kr.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "South Korea",
+      "Japan",
+      "Tuvalu",
+      "Vanuatu"
+    ],
+    "correctIndex": 0,
+    "explanation": "South Korea. All four are in East Asia & Pacific."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/ye.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Egypt",
+      "Iraq",
+      "United Arab Emirates",
+      "Yemen"
+    ],
+    "correctIndex": 3,
+    "explanation": "Yemen. All four are pan-arab colors flags."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/th.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Thailand",
+      "Vanuatu",
+      "Solomon Islands",
+      "Micronesia"
+    ],
+    "correctIndex": 0,
+    "explanation": "Thailand. All four are in East Asia & Pacific."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/gt.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Guatemala",
+      "Jamaica",
+      "Saint Vincent and the Grenadines",
+      "Saint Martin"
+    ],
+    "correctIndex": 0,
+    "explanation": "Guatemala. All four are in Latin America & Caribbean."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/mf.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Honduras",
+      "Guyana",
+      "Suriname",
+      "Saint Martin"
+    ],
+    "correctIndex": 3,
+    "explanation": "Saint Martin. All four are in Latin America & Caribbean."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/gw.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Guinea-Bissau",
+      "Ghana",
+      "Sao Tome and Principe",
+      "Mali"
+    ],
+    "correctIndex": 0,
+    "explanation": "Guinea-Bissau. All four are pan-african colors flags."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/ru.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Russia",
+      "Slovenia",
+      "Georgia",
+      "Czechia"
+    ],
+    "correctIndex": 0,
+    "explanation": "Russia. All four are in Europe & Central Asia."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/mk.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "North Macedonia",
+      "Serbia",
+      "Luxembourg",
+      "Czechia"
+    ],
+    "correctIndex": 0,
+    "explanation": "North Macedonia. All four are in Europe & Central Asia."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/vu.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Vanuatu",
+      "New Zealand",
+      "Samoa",
+      "Laos"
+    ],
+    "correctIndex": 0,
+    "explanation": "Vanuatu. All four are in East Asia & Pacific."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/tz.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Tanzania",
+      "Guinea",
+      "Niger",
+      "Zimbabwe"
+    ],
+    "correctIndex": 0,
+    "explanation": "Tanzania. All four are in Sub-Saharan Africa."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/md.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Armenia",
+      "Tajikistan",
+      "Portugal",
+      "Moldova"
+    ],
+    "correctIndex": 3,
+    "explanation": "Moldova. All four are in Europe & Central Asia."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/sg.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Malaysia",
+      "Singapore",
+      "Turkmenistan",
+      "Libya"
+    ],
+    "correctIndex": 1,
+    "explanation": "Singapore. All four are crescent and star flags."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/ae.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Kuwait",
+      "Egypt",
+      "Iraq",
+      "United Arab Emirates"
+    ],
+    "correctIndex": 3,
+    "explanation": "United Arab Emirates. All four are pan-arab colors flags."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/vc.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Saint Vincent and the Grenadines",
+      "Jamaica",
+      "Peru",
+      "Costa Rica"
+    ],
+    "correctIndex": 0,
+    "explanation": "Saint Vincent and the Grenadines. All four are in Latin America & Caribbean."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/gq.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Botswana",
+      "Namibia",
+      "Equatorial Guinea",
+      "Benin"
+    ],
+    "correctIndex": 2,
+    "explanation": "Equatorial Guinea. All four are in Sub-Saharan Africa."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/ni.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Saint Lucia",
+      "Nicaragua",
+      "Argentina",
+      "Trinidad and Tobago"
+    ],
+    "correctIndex": 1,
+    "explanation": "Nicaragua. All four are in Latin America & Caribbean."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/er.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Botswana",
+      "Sudan",
+      "Madagascar",
+      "Eritrea"
+    ],
+    "correctIndex": 3,
+    "explanation": "Eritrea. All four are in Sub-Saharan Africa."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/va.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Nepal",
+      "Iceland",
+      "Switzerland",
+      "Vatican City"
+    ],
+    "correctIndex": 3,
+    "explanation": "Vatican City. All four are not a rectangle flags."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/am.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Denmark",
+      "Albania",
+      "Armenia",
+      "Finland"
+    ],
+    "correctIndex": 2,
+    "explanation": "Armenia. All four are in Europe & Central Asia."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/rw.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Rwanda",
+      "Mozambique",
+      "Sierra Leone",
+      "Madagascar"
+    ],
+    "correctIndex": 0,
+    "explanation": "Rwanda. All four are in Sub-Saharan Africa."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/pg.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "New Zealand",
+      "Samoa",
+      "Papua New Guinea",
+      "Brazil"
+    ],
+    "correctIndex": 2,
+    "explanation": "Papua New Guinea. All four are the southern cross flags."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/mx.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Costa Rica",
+      "Mexico",
+      "Saint Lucia",
+      "Haiti"
+    ],
+    "correctIndex": 1,
+    "explanation": "Mexico. All four are in Latin America & Caribbean."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/sy.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Jordan",
+      "Syria",
+      "United Arab Emirates",
+      "Sudan"
+    ],
+    "correctIndex": 1,
+    "explanation": "Syria. All four are pan-arab colors flags."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/fi.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Denmark",
+      "Finland",
+      "Norway",
+      "Sweden"
+    ],
+    "correctIndex": 1,
+    "explanation": "Finland. All four are the nordic cross flags."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/il.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Yemen",
+      "Egypt",
+      "Israel",
+      "Libya"
+    ],
+    "correctIndex": 2,
+    "explanation": "Israel. All four are in Middle East, North Africa, Afghanistan & Pakistan."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/ss.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "South Sudan",
+      "Côte d’Ivoire",
+      "Angola",
+      "Zimbabwe"
+    ],
+    "correctIndex": 0,
+    "explanation": "South Sudan. All four are in Sub-Saharan Africa."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/ga.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Eritrea",
+      "Gabon",
+      "Sao Tome and Principe",
+      "Kenya"
+    ],
+    "correctIndex": 1,
+    "explanation": "Gabon. All four are in Sub-Saharan Africa."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/bz.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "The Bahamas",
+      "Belize",
+      "Haiti",
+      "Dominica"
+    ],
+    "correctIndex": 1,
+    "explanation": "Belize. All four are in Latin America & Caribbean."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/bw.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Nigeria",
+      "Lesotho",
+      "Botswana",
+      "Sierra Leone"
+    ],
+    "correctIndex": 2,
+    "explanation": "Botswana. All four are in Sub-Saharan Africa."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/pw.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "North Korea",
+      "New Zealand",
+      "Marshall Islands",
+      "Palau"
+    ],
+    "correctIndex": 3,
+    "explanation": "Palau. All four are in East Asia & Pacific."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/ua.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Serbia",
+      "Ukraine",
+      "Austria",
+      "Monaco"
+    ],
+    "correctIndex": 1,
+    "explanation": "Ukraine. All four are in Europe & Central Asia."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/tj.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Liechtenstein",
+      "Tajikistan",
+      "Romania",
+      "Kyrgyzstan"
+    ],
+    "correctIndex": 1,
+    "explanation": "Tajikistan. All four are in Europe & Central Asia."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/hr.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Vatican City",
+      "Estonia",
+      "Croatia",
+      "Norway"
+    ],
+    "correctIndex": 2,
+    "explanation": "Croatia. All four are in Europe & Central Asia."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/cf.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Mauritius",
+      "Tanzania",
+      "Central African Republic",
+      "Rwanda"
+    ],
+    "correctIndex": 2,
+    "explanation": "Central African Republic. All four are in Sub-Saharan Africa."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/om.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Qatar",
+      "Egypt",
+      "Iraq",
+      "Oman"
+    ],
+    "correctIndex": 3,
+    "explanation": "Oman. All four are in Middle East, North Africa, Afghanistan & Pakistan."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/cr.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Saint Kitts and Nevis",
+      "Cuba",
+      "Barbados",
+      "Costa Rica"
+    ],
+    "correctIndex": 3,
+    "explanation": "Costa Rica. All four are in Latin America & Caribbean."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/es.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Tajikistan",
+      "Andorra",
+      "United Kingdom",
+      "Spain"
+    ],
+    "correctIndex": 3,
+    "explanation": "Spain. All four are in Europe & Central Asia."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/zw.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Cameroon",
+      "Sao Tome and Principe",
+      "Zimbabwe",
+      "Guinea-Bissau"
+    ],
+    "correctIndex": 2,
+    "explanation": "Zimbabwe. All four are pan-african colors flags."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/fm.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Micronesia",
+      "Tonga",
+      "Samoa",
+      "Kiribati"
+    ],
+    "correctIndex": 0,
+    "explanation": "Micronesia. All four are in East Asia & Pacific."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/be.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Slovakia",
+      "Belgium",
+      "Uzbekistan",
+      "Ireland"
+    ],
+    "correctIndex": 1,
+    "explanation": "Belgium. All four are in Europe & Central Asia."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/sc.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Liberia",
+      "Zambia",
+      "Seychelles",
+      "Malawi"
+    ],
+    "correctIndex": 2,
+    "explanation": "Seychelles. All four are in Sub-Saharan Africa."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/ly.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Uzbekistan",
+      "Mauritania",
+      "Libya",
+      "Algeria"
+    ],
+    "correctIndex": 2,
+    "explanation": "Libya. All four are crescent and star flags."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/bt.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Bhutan",
+      "Maldives",
+      "Sri Lanka",
+      "India"
+    ],
+    "correctIndex": 0,
+    "explanation": "Bhutan. All four are in South Asia."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/fr.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "France",
+      "Slovakia",
+      "Croatia",
+      "Austria"
+    ],
+    "correctIndex": 0,
+    "explanation": "France. All four are in Europe & Central Asia."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/ke.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Kenya",
+      "Equatorial Guinea",
+      "Republic of the Congo",
+      "Mauritania"
+    ],
+    "correctIndex": 0,
+    "explanation": "Kenya. All four are in Sub-Saharan Africa."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/jo.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Jordan",
+      "Kuwait",
+      "Sudan",
+      "United Arab Emirates"
+    ],
+    "correctIndex": 0,
+    "explanation": "Jordan. All four are pan-arab colors flags."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/tg.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Togo",
+      "Ghana",
+      "Senegal",
+      "Ethiopia"
+    ],
+    "correctIndex": 0,
+    "explanation": "Togo. All four are pan-african colors flags."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/np.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Vatican City",
+      "Nepal",
+      "India",
+      "Switzerland"
+    ],
+    "correctIndex": 1,
+    "explanation": "Nepal. All four are not a rectangle flags."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/bi.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Burkina Faso",
+      "Burundi",
+      "Rwanda",
+      "Mauritania"
+    ],
+    "correctIndex": 1,
+    "explanation": "Burundi. All four are in Sub-Saharan Africa."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/ag.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Paraguay",
+      "Saint Martin",
+      "Antigua and Barbuda",
+      "Ecuador"
+    ],
+    "correctIndex": 2,
+    "explanation": "Antigua and Barbuda. All four are in Latin America & Caribbean."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/sl.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Senegal",
+      "Malawi",
+      "Sierra Leone",
+      "Zambia"
+    ],
+    "correctIndex": 2,
+    "explanation": "Sierra Leone. All four are in Sub-Saharan Africa."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/gy.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Grenada",
+      "Uruguay",
+      "Saint Martin",
+      "Guyana"
+    ],
+    "correctIndex": 3,
+    "explanation": "Guyana. All four are in Latin America & Caribbean."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/la.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Philippines",
+      "Laos",
+      "Mongolia",
+      "South Korea"
+    ],
+    "correctIndex": 1,
+    "explanation": "Laos. All four are in East Asia & Pacific."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/ar.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Dominican Republic",
+      "Argentina",
+      "Paraguay",
+      "Haiti"
+    ],
+    "correctIndex": 1,
+    "explanation": "Argentina. All four are in Latin America & Caribbean."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/cl.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Dominica",
+      "Trinidad and Tobago",
+      "Honduras",
+      "Chile"
+    ],
+    "correctIndex": 3,
+    "explanation": "Chile. All four are in Latin America & Caribbean."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/mv.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "India",
+      "Sri Lanka",
+      "Maldives",
+      "Bhutan"
+    ],
+    "correctIndex": 2,
+    "explanation": "Maldives. All four are in South Asia."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/kp.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Myanmar",
+      "Tuvalu",
+      "Fiji",
+      "North Korea"
+    ],
+    "correctIndex": 3,
+    "explanation": "North Korea. All four are in East Asia & Pacific."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/bf.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Burkina Faso",
+      "Senegal",
+      "Togo",
+      "Guinea-Bissau"
+    ],
+    "correctIndex": 0,
+    "explanation": "Burkina Faso. All four are pan-african colors flags."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/cm.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Cameroon",
+      "Guinea",
+      "Guinea-Bissau",
+      "Senegal"
+    ],
+    "correctIndex": 0,
+    "explanation": "Cameroon. All four are pan-african colors flags."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/sn.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Guinea-Bissau",
+      "Sao Tome and Principe",
+      "Senegal",
+      "Benin"
+    ],
+    "correctIndex": 2,
+    "explanation": "Senegal. All four are pan-african colors flags."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/mh.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Mongolia",
+      "Myanmar",
+      "Marshall Islands",
+      "Solomon Islands"
+    ],
+    "correctIndex": 2,
+    "explanation": "Marshall Islands. All four are in East Asia & Pacific."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/kw.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Egypt",
+      "Kuwait",
+      "Syria",
+      "Yemen"
+    ],
+    "correctIndex": 1,
+    "explanation": "Kuwait. All four are pan-arab colors flags."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/de.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Latvia",
+      "Belgium",
+      "Germany",
+      "Greece"
+    ],
+    "correctIndex": 2,
+    "explanation": "Germany. All four are in Europe & Central Asia."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/bo.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Brazil",
+      "Barbados",
+      "Paraguay",
+      "Bolivia"
+    ],
+    "correctIndex": 3,
+    "explanation": "Bolivia. All four are in Latin America & Caribbean."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/ne.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Senegal",
+      "Côte d’Ivoire",
+      "Nigeria",
+      "Niger"
+    ],
+    "correctIndex": 3,
+    "explanation": "Niger. All four are in Sub-Saharan Africa."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/ki.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Tuvalu",
+      "Malaysia",
+      "Kiribati",
+      "Marshall Islands"
+    ],
+    "correctIndex": 2,
+    "explanation": "Kiribati. All four are in East Asia & Pacific."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/tm.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Turkmenistan",
+      "Comoros",
+      "Türkiye",
+      "Singapore"
+    ],
+    "correctIndex": 0,
+    "explanation": "Turkmenistan. All four are crescent and star flags."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/kh.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Timor-Leste",
+      "Cambodia",
+      "Japan",
+      "Australia"
+    ],
+    "correctIndex": 1,
+    "explanation": "Cambodia. All four are in East Asia & Pacific."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/bs.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Venezuela",
+      "Bolivia",
+      "The Bahamas",
+      "Dominica"
+    ],
+    "correctIndex": 2,
+    "explanation": "The Bahamas. All four are in Latin America & Caribbean."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/bn.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Brunei",
+      "Timor-Leste",
+      "Vanuatu",
+      "Micronesia"
+    ],
+    "correctIndex": 0,
+    "explanation": "Brunei. All four are in East Asia & Pacific."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/gh.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Senegal",
+      "Guinea",
+      "Ethiopia",
+      "Ghana"
+    ],
+    "correctIndex": 3,
+    "explanation": "Ghana. All four are pan-african colors flags."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/ge.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Italy",
+      "Serbia",
+      "Georgia",
+      "Switzerland"
+    ],
+    "correctIndex": 2,
+    "explanation": "Georgia. All four are in Europe & Central Asia."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/tv.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Fiji",
+      "New Zealand",
+      "Tuvalu",
+      "Australia"
+    ],
+    "correctIndex": 2,
+    "explanation": "Tuvalu. All four are the union jack in the corner flags."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/us.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "United States",
+      "Canada",
+      "Poland",
+      "Micronesia"
+    ],
+    "correctIndex": 0,
+    "explanation": "United States. All four are in North America."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/cz.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "France",
+      "Poland",
+      "Czechia",
+      "Bosnia and Herzegovina"
+    ],
+    "correctIndex": 2,
+    "explanation": "Czechia. All four are in Europe & Central Asia."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/bj.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Benin",
+      "Guinea",
+      "Zimbabwe",
+      "Ghana"
+    ],
+    "correctIndex": 0,
+    "explanation": "Benin. All four are pan-african colors flags."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/lb.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Iran",
+      "Lebanon",
+      "Afghanistan",
+      "Algeria"
+    ],
+    "correctIndex": 1,
+    "explanation": "Lebanon. All four are in Middle East, North Africa, Afghanistan & Pakistan."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/mn.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Kiribati",
+      "Singapore",
+      "Timor-Leste",
+      "Mongolia"
+    ],
+    "correctIndex": 3,
+    "explanation": "Mongolia. All four are in East Asia & Pacific."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/ls.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Mali",
+      "Ethiopia",
+      "South Sudan",
+      "Lesotho"
+    ],
+    "correctIndex": 3,
+    "explanation": "Lesotho. All four are in Sub-Saharan Africa."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/eg.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Egypt",
+      "Syria",
+      "Jordan",
+      "United Arab Emirates"
+    ],
+    "correctIndex": 0,
+    "explanation": "Egypt. All four are pan-arab colors flags."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/qa.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Tunisia",
+      "Jordan",
+      "Malta",
+      "Qatar"
+    ],
+    "correctIndex": 3,
+    "explanation": "Qatar. All four are in Middle East, North Africa, Afghanistan & Pakistan."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/uz.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Mauritania",
+      "Uzbekistan",
+      "Comoros",
+      "Türkiye"
+    ],
+    "correctIndex": 1,
+    "explanation": "Uzbekistan. All four are crescent and star flags."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/dz.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Algeria",
+      "Libya",
+      "Pakistan",
+      "Tunisia"
+    ],
+    "correctIndex": 0,
+    "explanation": "Algeria. All four are crescent and star flags."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/cy.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Belgium",
+      "Luxembourg",
+      "Finland",
+      "Cyprus"
+    ],
+    "correctIndex": 3,
+    "explanation": "Cyprus. All four are a map of itself flags."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/ca.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Canada",
+      "Germany",
+      "Fiji",
+      "United States"
+    ],
+    "correctIndex": 0,
+    "explanation": "Canada. All four are in North America."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/li.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Croatia",
+      "Montenegro",
+      "Liechtenstein",
+      "Belgium"
+    ],
+    "correctIndex": 2,
+    "explanation": "Liechtenstein. All four are in Europe & Central Asia."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/so.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Somalia",
+      "Ghana",
+      "South Sudan",
+      "Kenya"
+    ],
+    "correctIndex": 0,
+    "explanation": "Somalia. All four are in Sub-Saharan Africa."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/dk.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Finland",
+      "Norway",
+      "Sweden",
+      "Denmark"
+    ],
+    "correctIndex": 3,
+    "explanation": "Denmark. All four are the nordic cross flags."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/jp.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Myanmar",
+      "China",
+      "Japan",
+      "Fiji"
+    ],
+    "correctIndex": 2,
+    "explanation": "Japan. All four are in East Asia & Pacific."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/pa.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Argentina",
+      "Antigua and Barbuda",
+      "Panama",
+      "Nicaragua"
+    ],
+    "correctIndex": 2,
+    "explanation": "Panama. All four are in Latin America & Caribbean."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/gb.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Latvia",
+      "United Kingdom",
+      "Estonia",
+      "Monaco"
+    ],
+    "correctIndex": 1,
+    "explanation": "United Kingdom. All four are in Europe & Central Asia."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/do.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Bolivia",
+      "Suriname",
+      "Colombia",
+      "Dominican Republic"
+    ],
+    "correctIndex": 3,
+    "explanation": "Dominican Republic. All four are in Latin America & Caribbean."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/al.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Albania",
+      "Serbia",
+      "Armenia",
+      "Switzerland"
+    ],
+    "correctIndex": 0,
+    "explanation": "Albania. All four are in Europe & Central Asia."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/cn.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "South Korea",
+      "Singapore",
+      "Japan",
+      "China"
+    ],
+    "correctIndex": 3,
+    "explanation": "China. All four are in East Asia & Pacific."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/et.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Guinea-Bissau",
+      "Ghana",
+      "Ethiopia",
+      "Burkina Faso"
+    ],
+    "correctIndex": 2,
+    "explanation": "Ethiopia. All four are pan-african colors flags."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/ht.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Belize",
+      "Haiti",
+      "Mexico",
+      "Trinidad and Tobago"
+    ],
+    "correctIndex": 1,
+    "explanation": "Haiti. All four are in Latin America & Caribbean."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/kg.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "San Marino",
+      "Armenia",
+      "Kyrgyzstan",
+      "Latvia"
+    ],
+    "correctIndex": 2,
+    "explanation": "Kyrgyzstan. All four are in Europe & Central Asia."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/in.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "India",
+      "Sri Lanka",
+      "Bhutan",
+      "Maldives"
+    ],
+    "correctIndex": 0,
+    "explanation": "India. All four are in South Asia."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/ph.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "South Korea",
+      "Naoero",
+      "Philippines",
+      "Palau"
+    ],
+    "correctIndex": 2,
+    "explanation": "Philippines. All four are in East Asia & Pacific."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/ao.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Republic of the Congo",
+      "Zimbabwe",
+      "Central African Republic",
+      "Angola"
+    ],
+    "correctIndex": 3,
+    "explanation": "Angola. All four are in Sub-Saharan Africa."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/ec.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Suriname",
+      "Venezuela",
+      "Ecuador",
+      "Guatemala"
+    ],
+    "correctIndex": 2,
+    "explanation": "Ecuador. All four are in Latin America & Caribbean."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/af.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Afghanistan",
+      "Egypt",
+      "United Arab Emirates",
+      "Israel"
+    ],
+    "correctIndex": 0,
+    "explanation": "Afghanistan. All four are in Middle East, North Africa, Afghanistan & Pakistan."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/ws.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Samoa",
+      "Papua New Guinea",
+      "Australia",
+      "Brazil"
+    ],
+    "correctIndex": 0,
+    "explanation": "Samoa. All four are the southern cross flags."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/ad.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Monaco",
+      "Turkmenistan",
+      "Kyrgyzstan",
+      "Andorra"
+    ],
+    "correctIndex": 3,
+    "explanation": "Andorra. All four are in Europe & Central Asia."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/tr.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Azerbaijan",
+      "Turkmenistan",
+      "Comoros",
+      "Türkiye"
+    ],
+    "correctIndex": 3,
+    "explanation": "Türkiye. All four are crescent and star flags."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/is.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Norway",
+      "Denmark",
+      "Iceland",
+      "Finland"
+    ],
+    "correctIndex": 2,
+    "explanation": "Iceland. All four are the nordic cross flags."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/at.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "France",
+      "Kyrgyzstan",
+      "Austria",
+      "Kazakhstan"
+    ],
+    "correctIndex": 2,
+    "explanation": "Austria. All four are in Europe & Central Asia."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/br.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "New Zealand",
+      "Samoa",
+      "Papua New Guinea",
+      "Brazil"
+    ],
+    "correctIndex": 3,
+    "explanation": "Brazil. All four are the southern cross flags."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/jm.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Brazil",
+      "Dominican Republic",
+      "Jamaica",
+      "Costa Rica"
+    ],
+    "correctIndex": 2,
+    "explanation": "Jamaica. All four are in Latin America & Caribbean."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/py.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Barbados",
+      "Antigua and Barbuda",
+      "Dominica",
+      "Paraguay"
+    ],
+    "correctIndex": 3,
+    "explanation": "Paraguay. All four are in Latin America & Caribbean."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/ug.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Madagascar",
+      "Senegal",
+      "South Sudan",
+      "Uganda"
+    ],
+    "correctIndex": 3,
+    "explanation": "Uganda. All four are in Sub-Saharan Africa."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/ee.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Estonia",
+      "Bosnia and Herzegovina",
+      "Serbia",
+      "Armenia"
+    ],
+    "correctIndex": 0,
+    "explanation": "Estonia. All four are in Europe & Central Asia."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/bg.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Bulgaria",
+      "Armenia",
+      "Serbia",
+      "Belgium"
+    ],
+    "correctIndex": 0,
+    "explanation": "Bulgaria. All four are in Europe & Central Asia."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/pk.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Pakistan",
+      "Comoros",
+      "Tunisia",
+      "Türkiye"
+    ],
+    "correctIndex": 0,
+    "explanation": "Pakistan. All four are crescent and star flags."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/me.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Bulgaria",
+      "Montenegro",
+      "Poland",
+      "Sweden"
+    ],
+    "correctIndex": 1,
+    "explanation": "Montenegro. All four are in Europe & Central Asia."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/sb.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Solomon Islands",
+      "Japan",
+      "New Zealand",
+      "Marshall Islands"
+    ],
+    "correctIndex": 0,
+    "explanation": "Solomon Islands. All four are in East Asia & Pacific."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/lv.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Liechtenstein",
+      "Germany",
+      "Slovenia",
+      "Latvia"
+    ],
+    "correctIndex": 3,
+    "explanation": "Latvia. All four are in Europe & Central Asia."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/mu.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Sao Tome and Principe",
+      "Mauritius",
+      "Chad",
+      "Comoros"
+    ],
+    "correctIndex": 1,
+    "explanation": "Mauritius. All four are in Sub-Saharan Africa."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/ma.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Morocco",
+      "Afghanistan",
+      "Qatar",
+      "Yemen"
+    ],
+    "correctIndex": 0,
+    "explanation": "Morocco. All four are in Middle East, North Africa, Afghanistan & Pakistan."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/bb.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Barbados",
+      "Dominica",
+      "Guyana",
+      "Saint Kitts and Nevis"
+    ],
+    "correctIndex": 0,
+    "explanation": "Barbados. All four are in Latin America & Caribbean."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/bd.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Sri Lanka",
+      "Nepal",
+      "Maldives",
+      "Bangladesh"
+    ],
+    "correctIndex": 3,
+    "explanation": "Bangladesh. All four are in South Asia."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/hn.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Honduras",
+      "Uruguay",
+      "Chile",
+      "Barbados"
+    ],
+    "correctIndex": 0,
+    "explanation": "Honduras. All four are in Latin America & Caribbean."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/lr.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Comoros",
+      "Liberia",
+      "Benin",
+      "Angola"
+    ],
+    "correctIndex": 1,
+    "explanation": "Liberia. All four are in Sub-Saharan Africa."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/na.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Botswana",
+      "Cabo Verde",
+      "Côte d’Ivoire",
+      "Namibia"
+    ],
+    "correctIndex": 3,
+    "explanation": "Namibia. All four are in Sub-Saharan Africa."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/pe.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Uruguay",
+      "Bolivia",
+      "Peru",
+      "Belize"
+    ],
+    "correctIndex": 2,
+    "explanation": "Peru. All four are in Latin America & Caribbean."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/it.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Georgia",
+      "Albania",
+      "Russia",
+      "Italy"
+    ],
+    "correctIndex": 3,
+    "explanation": "Italy. All four are in Europe & Central Asia."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/lt.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Belarus",
+      "Lithuania",
+      "North Macedonia",
+      "Ireland"
+    ],
+    "correctIndex": 1,
+    "explanation": "Lithuania. All four are in Europe & Central Asia."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/co.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Brazil",
+      "Nicaragua",
+      "Venezuela",
+      "Colombia"
+    ],
+    "correctIndex": 3,
+    "explanation": "Colombia. All four are in Latin America & Caribbean."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/ba.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Bosnia and Herzegovina",
+      "Luxembourg",
+      "Greece",
+      "Belarus"
+    ],
+    "correctIndex": 0,
+    "explanation": "Bosnia and Herzegovina. All four are in Europe & Central Asia."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/ng.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Seychelles",
+      "Tanzania",
+      "Nigeria",
+      "Sudan"
+    ],
+    "correctIndex": 2,
+    "explanation": "Nigeria. All four are in Sub-Saharan Africa."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/sa.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Kuwait",
+      "Iran",
+      "United Arab Emirates",
+      "Saudi Arabia"
+    ],
+    "correctIndex": 3,
+    "explanation": "Saudi Arabia. All four are in Middle East, North Africa, Afghanistan & Pakistan."
+  },
+  {
+    "question": "Which country flies this flag?",
+    "image": "https://flagcdn.com/w320/ir.png",
+    "imageAlt": "A national flag to identify",
+    "options": [
+      "Oman",
+      "Iraq",
+      "Libya",
+      "Iran"
+    ],
+    "correctIndex": 3,
+    "explanation": "Iran. All four are in Middle East, North Africa, Afghanistan & Pakistan."
   }
 ];

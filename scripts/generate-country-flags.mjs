@@ -175,6 +175,93 @@ const LOOKALIKES = [
   { codes: ['SI', 'SK', 'RS'], note: 'Three Pan-Slavic tricolors separated only by their coats of arms.' },
 ];
 
+
+// ---------------------------------------------------------------------------
+// The quiz. Every sovereign flag gets a question, generated here so the article
+// preview and the publish script read the same list instead of each building
+// their own and drifting apart.
+//
+// Wrong answers come from the flag's own family first and its region second,
+// which is the whole point: Nepal against three random countries is answerable
+// from the shape, while Chad against Romania is the real skill. Deterministic,
+// so republishing does not reshuffle a reader's quiz.
+// ---------------------------------------------------------------------------
+
+const QUIZ_SEED = 20260907;
+
+function mulberry32(seed) {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function buildQuiz(countries) {
+  const pool = countries.filter((c) => c.sovereign);
+  const byCode = new Map(pool.map((c) => [c.code, c]));
+  const rand = mulberry32(QUIZ_SEED);
+  const shuffle = (arr) => {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(rand() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  };
+
+  // The near-identical pairs lead, because they set the expectation that this
+  // is a real test. Everything else follows in a fixed shuffle.
+  const first = [];
+  for (const pair of LOOKALIKES) {
+    for (const code of pair.codes) {
+      const c = byCode.get(code);
+      if (c && !first.some((x) => x.code === c.code)) first.push(c);
+    }
+  }
+  const rest = shuffle(pool.filter((c) => !first.some((x) => x.code === c.code)));
+  const order = [...first, ...rest];
+
+  return order.map((answer) => {
+    const decoys = [];
+    const add = (list) => {
+      for (const c of list) {
+        if (decoys.length >= 3) return;
+        if (c.code !== answer.code && !decoys.some((d) => d.code === c.code)) decoys.push(c);
+      }
+    };
+
+    const pair = LOOKALIKES.find((l) => l.codes.includes(answer.code));
+    if (pair) add(pair.codes.map((c) => byCode.get(c)).filter(Boolean));
+    if (answer.families.length) {
+      add(shuffle(pool.filter((c) => c.families.includes(answer.families[0]))));
+    }
+    add(shuffle(pool.filter((c) => c.region === answer.region)));
+    // North America holds two countries here, so without this those questions
+    // would come out as a two-way coin flip.
+    add(shuffle(pool));
+
+    const options = shuffle([answer, ...decoys.slice(0, 3)]);
+    const family = FAMILIES.find((f) => f.id === answer.families[0]);
+    const why = pair
+      ? ` ${pair.note}`
+      : family
+        ? ` All four are ${family.name.toLowerCase()} flags.`
+        : ` All four are in ${answer.region}.`;
+
+    return {
+      question: 'Which country flies this flag?',
+      image: `https://flagcdn.com/w320/${answer.code.toLowerCase()}.png`,
+      imageAlt: 'A national flag to identify',
+      options: options.map((c) => c.name),
+      correctIndex: options.findIndex((c) => c.code === answer.code),
+      explanation: `${answer.name}.${why}`.replace(/\s+/g, ' ').trim(),
+    };
+  });
+}
+
 async function getJson(url) {
   const res = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0 (compatible; flag-reference/1.0)' } });
   if (!res.ok) throw new Error(`${res.status} ${res.statusText} for ${url}`);
@@ -222,6 +309,7 @@ async function main() {
 
   const sovereign = countries.filter((c) => c.sovereign);
   const lookalikes = LOOKALIKES.filter((l) => l.codes.every((c) => countries.some((x) => x.code === c)));
+  const quiz = buildQuiz(countries);
   const droppedLookalikes = LOOKALIKES.filter((l) => !lookalikes.includes(l));
 
   const body = `// GENERATED FILE — do not edit by hand.
@@ -262,6 +350,15 @@ export interface Lookalike {
   note: string;
 }
 
+export interface FlagQuizQuestion {
+  question: string;
+  image: string;
+  imageAlt: string;
+  options: string[];
+  correctIndex: number;
+  explanation: string;
+}
+
 /** 320px wide PNG. Use the svg variant only where the flag is shown large. */
 export function flagUrl(code: string, width: 40 | 80 | 160 | 320 = 320): string {
   return \`https://flagcdn.com/w\${width}/\${code.toLowerCase()}.png\`;
@@ -272,6 +369,13 @@ export const FLAG_FAMILIES: FlagFamily[] = ${JSON.stringify(FAMILIES, null, 2)};
 export const LOOKALIKES: Lookalike[] = ${JSON.stringify(lookalikes, null, 2)};
 
 export const COUNTRIES: Country[] = ${JSON.stringify(countries, null, 2)};
+
+/**
+ * One question per sovereign flag, in a fixed order: the near-identical pairs
+ * first, then a deterministic shuffle. Shape matches QuizQuestion in
+ * types/database.ts so it can be handed straight to the quiz.
+ */
+export const FLAG_QUIZ: FlagQuizQuestion[] = ${JSON.stringify(quiz, null, 2)};
 `;
 
   writeFileSync(OUT, body);
@@ -279,7 +383,8 @@ export const COUNTRIES: Country[] = ${JSON.stringify(countries, null, 2)};
   console.log(`  added by hand: ${MANUAL.map((m) => m.name).join(', ')}`);
   console.log(`  families: ${FAMILIES.length}, covering ${familyOf.size} countries`);
   console.log(`  lookalike sets: ${lookalikes.length}${droppedLookalikes.length ? ` (dropped ${droppedLookalikes.map((l) => l.codes.join('/')).join(', ')} — code not in the list)` : ''}`);
-  if (missingArt.length) console.log(`  NO FLAG ART for: ${missingArt.join(', ')}`);
+  console.log(`  quiz: ${quiz.length} questions, ${quiz.filter((q) => q.options.length === 4).length} with four options`);
+  if (missingArt.length) console.log(`  dropped for having no flag art: ${missingArt.join(', ')}`);
   else console.log('  every country has flag art');
 
   for (const f of FAMILIES) {

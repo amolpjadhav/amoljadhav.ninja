@@ -79,17 +79,30 @@ export default function QuickCheck({
         />
       ) : (
         <>
-          <div className="flex gap-1.5 mb-5">
-            {questions.map((_, i) => (
+          {/* One segment per question is the right picture for a five-question
+              quiz and the wrong one for a two-hundred-question quiz, where the
+              segments collapse into a smear. Past a couple of dozen it becomes
+              a single filling bar instead. */}
+          {questions.length <= 24 ? (
+            <div className="flex gap-1.5 mb-5">
+              {questions.map((_, i) => (
+                <span
+                  key={i}
+                  className="h-1.5 flex-1 rounded-full transition-colors"
+                  style={{
+                    background: i < index ? accent : i === index ? `${accent}80` : 'rgba(255,255,255,0.12)',
+                  }}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="h-1.5 mb-5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.12)' }}>
               <span
-                key={i}
-                className="h-1.5 flex-1 rounded-full transition-colors"
-                style={{
-                  background: i < index ? accent : i === index ? `${accent}80` : 'rgba(255,255,255,0.12)',
-                }}
+                className="block h-full rounded-full transition-all"
+                style={{ width: `${((index + 1) / questions.length) * 100}%`, background: accent }}
               />
-            ))}
-          </div>
+            </div>
+          )}
 
           <p className="text-xs text-white/40 mb-2">
             Question {index + 1} of {questions.length}
