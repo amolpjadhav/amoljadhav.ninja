@@ -7,6 +7,19 @@ import ShareButtons from './ShareButtons';
 const CORRECT = '#0aee3c';
 const WRONG = '#f472b6';
 
+// Past two dozen questions the order stops being authored and starts being
+// arbitrary, so that is where shuffling begins.
+const SHUFFLE_ABOVE = 24;
+
+function shuffledIndices(count: number): number[] {
+  const order = Array.from({ length: count }, (_, i) => i);
+  for (let i = order.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [order[i], order[j]] = [order[j], order[i]];
+  }
+  return order;
+}
+
 export default function QuickCheck({
   questions,
   accent,
@@ -20,13 +33,33 @@ export default function QuickCheck({
   title?: string;
   slug?: string;
 }) {
+  // A long quiz is shuffled, so someone who comes back does not sit through
+  // the same opening twenty flags and never meet the rest. Short quizzes keep
+  // the order they were written in, because five questions can be deliberately
+  // sequenced and shuffling would throw that away.
+  //
+  // Safe to randomise in an initialiser rather than an effect: QuickCheck only
+  // mounts once the reader has opened the quiz, so this never runs during
+  // server rendering and there is nothing to mismatch.
+  const shuffleOnOpen = questions.length > SHUFFLE_ABOVE;
+  const [order, setOrder] = useState<number[]>(() =>
+    shuffleOnOpen ? shuffledIndices(questions.length) : questions.map((_, i) => i)
+  );
   const [index, setIndex] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
   const [score, setScore] = useState(0);
   const [done, setDone] = useState(false);
 
-  const question = questions[index];
+  const question = questions[order[index] ?? 0];
   const isLast = index === questions.length - 1;
+
+  function reshuffle() {
+    setOrder(shuffledIndices(questions.length));
+    setIndex(0);
+    setSelected(null);
+    setScore(0);
+    setDone(false);
+  }
 
   function choose(optionIndex: number) {
     if (selected !== null) return;
@@ -116,21 +149,31 @@ export default function QuickCheck({
             <p className="text-xs text-white/40">
               Question {index + 1} of {questions.length}
             </p>
-            {(() => {
-              const answered = index + (selected !== null ? 1 : 0);
-              const wrong = answered - score;
-              return (
-                answered > 0 && (
-                  <p className="text-xs tabular-nums flex items-center gap-2.5">
-                    <span style={{ color: accent }}>
-                      {score} &#10003;
+            <span className="flex items-center gap-3">
+              {(() => {
+                const answered = index + (selected !== null ? 1 : 0);
+                const wrong = answered - score;
+                return (
+                  answered > 0 && (
+                    <span className="text-xs tabular-nums flex items-center gap-2.5">
+                      <span style={{ color: accent }}>{score} &#10003;</span>
+                      <span className="text-white/35">{wrong} &#10007;</span>
+                      <span className="text-white/25">{Math.round((score / answered) * 100)}%</span>
                     </span>
-                    <span className="text-white/35">{wrong} &#10007;</span>
-                    <span className="text-white/25">{Math.round((score / answered) * 100)}%</span>
-                  </p>
-                )
-              );
-            })()}
+                  )
+                );
+              })()}
+              {/* Deals a fresh order from the top. Worth having whatever the
+                  length: on a long quiz it is how you get away from flags you
+                  already know, and on a short one it is a replay. */}
+              <button
+                onClick={reshuffle}
+                className="text-xs text-white/35 hover:text-white/70 transition-colors"
+                title="Shuffle the questions and start again"
+              >
+                Shuffle
+              </button>
+            </span>
           </div>
           <p className="text-white/95 font-semibold mb-4">{question.question}</p>
 
