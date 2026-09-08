@@ -97,13 +97,47 @@ shapes. Two families, opposite strategies, and both of them work the same way:
 one recognizable thing held constant so that everything built on top of it
 still reads as belonging.
 
-**Pan-African colors.** Red, gold and green, taken from Ethiopia. Ethiopia
-mattered because it held off European colonization while almost everywhere
-around it did not, so when other African countries became independent they
-adopted its colors on purpose. Ghana went first in 1957, and a dozen more
-followed.
+Then there are the Pan-African colors: red, gold, and green, taken from
+Ethiopia. And to understand why an entire continent borrowed from one country,
+you need one date.
 
-<!-- widget: flag-row family=pan-african -->
+In 1896, at Adwa, an Ethiopian army defeated an invading Italian one. Not a
+skirmish — a full European colonial army, beaten in a set-piece battle. While
+the rest of Africa was being carved up in European capitals, Ethiopia stayed
+independent, and it kept flying green, gold, and red the entire time.
+
+So when other African countries started becoming independent sixty years later,
+those colors already meant something specific. They meant the place that never
+had to ask. This is the crucial difference from the Nordic flags: Denmark and
+Sweden inherited their colors from old royal shields without ever choosing
+them. These countries chose theirs, deliberately, as an argument about who they
+intended to stand beside.
+
+<!-- widget: flag-row codes=ET,GH,GN,ML,SN,CM,TG,BJ,BF,ZW note=Ethiopia first, then Ghana, then the ones that followed. -->
+
+**Ghana** went first, in 1957, and its flag is worth a close look. Red, gold,
+and green for Ethiopia — officially, red for the blood of those who died for
+independence, gold for the country's mineral wealth, green for its forests. But
+the black star in the middle comes from somewhere unexpected: the **Black Star
+Line**, a shipping company founded by Marcus Garvey in 1919 to carry Black
+passengers and cargo between continents on ships that Black people owned. The
+company failed within a few years. Its emblem ended up on a national flag, and
+then on the national football team, and it is still there.
+
+A dozen countries followed — Guinea, Mali, Senegal, Cameroon, Togo, Benin,
+Burkina Faso, Guinea-Bissau, Zimbabwe and more.
+
+And there is a quiet tell in several of them. Look at Mali, Senegal, Guinea and
+Cameroon: those are **vertical** stripes, and vertical stripes are a French
+idea, straight off the French tricolor. These were French colonies. They kept
+the layout of the country they had just left and swapped in the colors of the
+country that was never taken. Ghana, a British colony, went horizontal like
+Ethiopia instead.
+
+Which gives us a third way to build a family. The Nordic flags share a shape.
+The Pan-Arab flags share a set of colors. The Pan-African flags share an
+argument — and that turns out to be the strongest glue of the three, because it
+is the only one where every country involved had to decide.
 
 **The crescent and star.** Carried across three continents by the Ottoman
 Empire, and kept afterwards as a mark of Islamic identity rather than of who
