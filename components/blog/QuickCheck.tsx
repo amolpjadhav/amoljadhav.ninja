@@ -105,9 +105,13 @@ export default function QuickCheck({
           )}
 
           {/* A running tally, because a long quiz is unreadable without one:
-              after forty flags nobody remembers how they are doing. Answered
-              is index + (this one answered), so the counts never lead the
-              question the reader is still looking at. */}
+              after forty flags nobody remembers how they are doing.
+              `answered` is index plus this one if it is answered, so the
+              counts never lead the question still on screen.
+
+              A tick and a cross rather than the words: this component is
+              shared by every quiz on the site, and a symbol keeps score
+              without scolding anyone forty questions deep. */}
           <div className="flex items-baseline justify-between gap-3 mb-2">
             <p className="text-xs text-white/40">
               Question {index + 1} of {questions.length}
@@ -118,8 +122,10 @@ export default function QuickCheck({
               return (
                 answered > 0 && (
                   <p className="text-xs tabular-nums flex items-center gap-2.5">
-                    <span style={{ color: accent }}>{score} right</span>
-                    <span className="text-white/35">{wrong} wrong</span>
+                    <span style={{ color: accent }}>
+                      {score} &#10003;
+                    </span>
+                    <span className="text-white/35">{wrong} &#10007;</span>
                     <span className="text-white/25">{Math.round((score / answered) * 100)}%</span>
                   </p>
                 )
