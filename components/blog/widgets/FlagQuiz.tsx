@@ -28,8 +28,8 @@ const WRONG = '#ff4655';
 
 const OPTIONS = 4;
 
-const POOL = COUNTRIES.filter((c) => c.sovereign);
-const BY_CODE = new Map(POOL.map((c) => [c.code, c]));
+const SOVEREIGN = COUNTRIES.filter((c) => c.sovereign);
+const BY_CODE = new Map(COUNTRIES.map((c) => [c.code, c]));
 
 function shuffle<T>(arr: T[]): T[] {
   const a = [...arr];
@@ -47,9 +47,7 @@ interface Question {
   because: string | null;
 }
 
-function makeQuestion(avoid?: string): Question {
-  const candidates = POOL.filter((c) => c.code !== avoid);
-  const answer = candidates[Math.floor(Math.random() * candidates.length)];
+function makeQuestion(answer: Country, pool: Country[]): Question {
 
   const picked: Country[] = [];
   let because: string | null = null;
@@ -67,7 +65,7 @@ function makeQuestion(avoid?: string): Question {
   // Then the rest of the flag's own family.
   if (picked.length < OPTIONS - 1 && answer.families.length) {
     const family = FLAG_FAMILIES.find((f) => f.id === answer.families[0]);
-    const kin = shuffle(POOL.filter((c) => c.code !== answer.code && c.families.includes(answer.families[0])));
+    const kin = shuffle(pool.filter((c) => c.code !== answer.code && c.families.includes(answer.families[0])));
     for (const c of kin) {
       if (picked.length >= OPTIONS - 1) break;
       if (!picked.some((p) => p.code === c.code)) picked.push(c);
@@ -76,12 +74,23 @@ function makeQuestion(avoid?: string): Question {
   }
 
   // Then its neighbors, so a miss is at least a plausible miss.
-  const sameRegion = shuffle(POOL.filter((c) => c.code !== answer.code && c.region === answer.region));
+  const sameRegion = shuffle(pool.filter((c) => c.code !== answer.code && c.region === answer.region));
   for (const c of sameRegion) {
     if (picked.length >= OPTIONS - 1) break;
     if (!picked.some((p) => p.code === c.code)) picked.push(c);
   }
   if (!because) because = `All four are in ${answer.region.trim()}.`;
+
+  // Last resort, and it is not hypothetical: the World Bank puts only Canada
+  // and the United States in North America, so those two questions came out as
+  // a two-way coin flip until this existed.
+  if (picked.length < OPTIONS - 1) {
+    for (const c of shuffle(pool.filter((c) => c.code !== answer.code))) {
+      if (picked.length >= OPTIONS - 1) break;
+      if (!picked.some((p) => p.code === c.code)) picked.push(c);
+    }
+    because = `Not many flags to confuse this one with — ${answer.region.trim()} is a small region here.`;
+  }
 
   return { answer, options: shuffle([answer, ...picked.slice(0, OPTIONS - 1)]), because };
 }
@@ -106,13 +115,36 @@ export default function FlagQuiz({ eyebrow, caption }: { eyebrow?: string; capti
   const [score, setScore] = useState({ right: 0, asked: 0 });
   const [streak, setStreak] = useState(0);
   const [best, setBest] = useState(0);
+  const [withTerritories, setWithTerritories] = useState(false);
+  // Codes already asked, so the quiz works through the whole world instead of
+  // sampling it. Picking at random meant a reader could answer fifty questions
+  // and never be shown most of the flags — and never be shown the ones they do
+  // not know, which are the only ones worth asking about.
+  const [seen, setSeen] = useState<string[]>([FIRST.answer.code]);
+
+  const pool = withTerritories ? COUNTRIES : SOVEREIGN;
+  const unseen = pool.filter((c) => !seen.includes(c.code));
+  const done = unseen.length === 0;
 
   // Every later question comes from a click, so the randomness never runs
   // during a render or an effect.
   const next = useCallback(() => {
-    setQuestion((q) => makeQuestion(q.answer.code));
+    const remaining = pool.filter((c) => !seen.includes(c.code));
+    // When the world runs out, start a fresh pass rather than stopping.
+    const source = remaining.length ? remaining : pool;
+    const answer = source[Math.floor(Math.random() * source.length)];
+    setQuestion(makeQuestion(answer, pool));
+    setSeen((s) => (remaining.length ? [...s, answer.code] : [answer.code]));
     setPicked(null);
-  }, []);
+  }, [pool, seen]);
+
+  const restart = () => {
+    setQuestion(FIRST);
+    setSeen([FIRST.answer.code]);
+    setPicked(null);
+    setScore({ right: 0, asked: 0 });
+    setStreak(0);
+  };
 
   const answered = picked !== null;
   const correct = picked === question.answer.code;
@@ -141,6 +173,9 @@ export default function FlagQuiz({ eyebrow, caption }: { eyebrow?: string; capti
         <div className="flex items-center gap-3 text-[11px]">
           <span className="text-white/40">
             {score.right}/{score.asked}
+          </span>
+          <span className="text-white/30">
+            {seen.length} of {pool.length} flags
           </span>
           <span className="text-white/40">
             streak <span className="font-bold" style={{ color: streak > 0 ? RIGHT : 'rgba(255,255,255,0.4)' }}>{streak}</span>
@@ -221,19 +256,43 @@ export default function FlagQuiz({ eyebrow, caption }: { eyebrow?: string; capti
             ))}
           </div>
 
-          <button
-            onClick={next}
-            className="self-start text-[13px] font-bold px-4 py-2 rounded-lg border transition-all"
-            style={{ background: 'rgba(255,255,255,0.07)', borderColor: 'rgba(255,255,255,0.2)', color: '#fff' }}
-          >
-            Next flag &rarr;
-          </button>
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              onClick={next}
+              className="text-[13px] font-bold px-4 py-2 rounded-lg border transition-all"
+              style={{ background: 'rgba(255,255,255,0.07)', borderColor: 'rgba(255,255,255,0.2)', color: '#fff' }}
+            >
+              {done ? 'Start again' : 'Next flag'} &rarr;
+            </button>
+            {done && (
+              <span className="text-[12px]" style={{ color: RIGHT }}>
+                That is every flag in the set &mdash; {score.right} of {score.asked} right.
+              </span>
+            )}
+            {seen.length > 1 && !done && (
+              <button onClick={restart} className="text-[11px] text-white/35 underline decoration-white/20 hover:text-white/60">
+                start over
+              </button>
+            )}
+          </div>
         </div>
       )}
 
-      <div className="border-t border-white/10 mt-4 pt-3 text-[11px] text-white/30 leading-snug">
-        {POOL.length} countries. The wrong answers are picked from the flag&rsquo;s own design family first and its
-        region second, so the question is always one worth being able to answer.
+      <div className="border-t border-white/10 mt-4 pt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
+        <span className="text-[11px] text-white/30 leading-snug flex-1 min-w-[220px]">
+          Works through all {pool.length} flags before repeating any. The wrong answers are picked from the
+          flag&rsquo;s own design family first and its region second, so the question is always one worth being able
+          to answer.
+        </span>
+        <label className="flex items-center gap-1.5 text-[11px] text-white/40 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={withTerritories}
+            onChange={(e) => setWithTerritories(e.target.checked)}
+            className="accent-sky-400"
+          />
+          include territories
+        </label>
       </div>
     </div>
   );
