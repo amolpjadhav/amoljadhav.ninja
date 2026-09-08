@@ -29,7 +29,7 @@ const supabase = createClient(supabaseUrl, serviceKey, {
   auth: { autoRefreshToken: false, persistSession: false },
 });
 
-const TITLE = 'Every Flag in the World, and the Six Families They Come From';
+const TITLE = "Decoding the World's Flags: The Six Families You Need to Know";
 // Short and conceptual, so it cannot go stale the way a slug with a count in it
 // does — the TFT article still says all-27-teams now the source lists 31.
 const SLUG = 'flags-of-the-world';

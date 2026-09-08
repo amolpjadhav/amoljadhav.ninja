@@ -1,4 +1,4 @@
-# Every Flag in the World, and the Six Families They Come From
+# Decoding the World's Flags: The Six Families You Need to Know
 
 Category: Curiosity
 
