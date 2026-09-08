@@ -85,8 +85,11 @@ const FAMILIES = [
     id: 'crescent-star',
     name: 'Crescent and star',
     origin:
-      'Carried across three continents by the Ottoman Empire, and kept afterwards as a marker of Islamic identity rather than of Ottoman rule.',
-    codes: ['TR', 'TN', 'DZ', 'PK', 'MY', 'AZ', 'KM', 'MR', 'LY', 'UZ', 'TM', 'SG'],
+      'Spread first by the Ottoman Empire, then adopted as a marker of Islamic identity by countries the Ottomans never ruled. Not every crescent means that, though: Singapore’s stands for a young country rising, and has no religious sense at all.',
+    // Ordered so the story reads left to right: Turkey and the territories that
+    // were actually Ottoman, then the countries that chose the symbol, then the
+    // post-Soviet ones, then Singapore — which is in the family by shape only.
+    codes: ['TR', 'TN', 'DZ', 'LY', 'PK', 'MY', 'MR', 'KM', 'AZ', 'UZ', 'TM', 'SG'],
   },
   {
     id: 'union-canton',

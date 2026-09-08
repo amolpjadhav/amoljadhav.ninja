@@ -10,7 +10,7 @@
 // is written down with its origin. Flag meanings are deliberately absent — see
 // the note at the top of the generator.
 //
-// Generated 2026-09-07.
+// Generated 2026-09-08.
 
 export interface FlagFamily {
   id: string;
@@ -94,17 +94,17 @@ export const FLAG_FAMILIES: FlagFamily[] = [
   {
     "id": "crescent-star",
     "name": "Crescent and star",
-    "origin": "Carried across three continents by the Ottoman Empire, and kept afterwards as a marker of Islamic identity rather than of Ottoman rule.",
+    "origin": "Spread first by the Ottoman Empire, then adopted as a marker of Islamic identity by countries the Ottomans never ruled. Not every crescent means that, though: Singapore’s stands for a young country rising, and has no religious sense at all.",
     "codes": [
       "TR",
       "TN",
       "DZ",
+      "LY",
       "PK",
       "MY",
-      "AZ",
-      "KM",
       "MR",
-      "LY",
+      "KM",
+      "AZ",
       "UZ",
       "TM",
       "SG"

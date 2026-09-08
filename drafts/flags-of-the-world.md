@@ -142,14 +142,46 @@ The Pan-Arab flags share a set of colors. The Pan-African flags share an
 argument — and that turns out to be the strongest glue of the three, because it
 is the only one where every country involved had to decide.
 
-## The crescent and star
+## The crescent and star: three different reasons
 
-Carried across three continents by the Ottoman
-Empire, and kept afterwards as a mark of Islamic identity rather than of who
-used to be in charge. Turkey, Tunisia, Algeria, Pakistan, Malaysia and
-Azerbaijan all have one.
+The crescent is the most widely copied symbol on this list, and the reason is
+not one reason. There are three groups here wearing the same badge.
 
-<!-- widget: flag-row family=crescent-star -->
+<!-- widget: flag-row family=crescent-star note=Turkey and the actually-Ottoman ones, then the countries that chose it, then two post-Soviet ones — then Singapore. -->
+
+**The ones the Ottomans actually ruled.** Turkey is the direct descendant: the
+Ottoman flag carried a crescent for centuries, and the five-pointed star
+settled into place in the 1800s. Tunisia has had its version since 1831, when
+it was an Ottoman vassal, which makes it older than most flags in the world.
+Algeria and Libya were Ottoman territory too. For these four, the crescent is
+inheritance — the same kind of thing as Sweden lifting its colors off a royal
+shield.
+
+**The ones who chose it.** Now it gets more interesting. Pakistan was never
+Ottoman. Neither was Malaysia, or Mauritania, or the Comoros. They picked the
+crescent up after independence precisely *because* it had stopped meaning
+Ottoman rule and started meaning something broader. Pakistan's white stripe is
+for its religious minorities; Malaysia's star has fourteen points and its
+stripes number fourteen, one for each state and the federal territory — and
+that striped-with-a-canton layout owes as much to the American flag as to
+anything Ottoman. The Comoros put four stars on for its four islands.
+Azerbaijan's star has eight points, one for each of eight Turkic peoples.
+
+**And then the ones that only look like they belong.** Uzbekistan and
+Turkmenistan both added crescents in the early 1990s, on independence from the
+Soviet Union — the same shape, but a brand-new decision rather than a
+continuation of anything.
+
+Singapore is the outright imposter, and it is my favorite flag on the page for
+it. Its crescent has no religious meaning whatsoever. It stands for a young
+country on the rise, and the five stars beside it are democracy, peace,
+progress, justice and equality. It sits in this family purely because of what
+it looks like.
+
+Which is the honest warning built into the whole idea of families. Grouping
+flags by shape gets you a long way — it will place a flag on a map for you
+nine times out of ten. But a shape is not a meaning, and every so often two
+countries arrive at the same picture from completely unrelated directions.
 
 ## The Union Jack in the corner
 
