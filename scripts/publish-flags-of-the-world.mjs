@@ -38,65 +38,117 @@ const READ_TIME = 13;
 const EXCERPT =
   'There are 195 countries but nowhere near 195 ideas. Six design families cover most of the world, and once you know them you can place a flag you have never seen. Includes every flag, searchable, and a quiz that works through all of them.';
 
-// Pre-read quiz. Every answer is something the article explains, and the wrong
-// options are what people usually believe instead.
-const QUIZ = [
-  {
-    question: 'What do the red, white and blue of the Union Jack officially stand for?',
-    options: [
-      'Red for courage, white for peace, blue for justice',
-      'The three kingdoms of England, Scotland and Ireland',
-      'Nothing — they have no official meaning at all',
-      'Red for the navy, white for the church, blue for the crown',
-    ],
-    correctIndex: 2,
-    explanation:
-      'The flag is three older flags stacked on top of each other, so the colors are simply what those flags already were. Every meaning you have heard was written afterwards by someone filling in a blank.',
-  },
-  {
-    question: 'Which is the only national flag that is not a rectangle?',
-    options: ['Switzerland', 'Nepal', 'Vatican City', 'Bhutan'],
-    correctIndex: 1,
-    explanation:
-      'Nepal is two stacked pennants. Switzerland and the Vatican are unusual too, but in a different way — they are the only two squares.',
-  },
-  {
-    question: 'The flags of Chad and Romania are famously hard to tell apart. What is the difference?',
-    options: [
-      'Romania has a coat of arms in the middle',
-      'The stripes are in the opposite order',
-      'Chad’s blue is slightly darker — and that is all',
-      'Chad’s flag is square',
-    ],
-    correctIndex: 2,
-    explanation:
-      'Same three vertical bands, same order. Chad has raised the matter at the United Nations, and nothing has changed.',
-  },
-  {
-    question: 'Why did so many newly independent African countries adopt red, gold and green?',
-    options: [
-      'They were the colors of the United Nations at the time',
-      'They are the cheapest dyes to produce at scale',
-      'They came from Ethiopia, which had defeated a European army and stayed independent',
-      'They were required by the Organisation of African Unity',
-    ],
-    correctIndex: 2,
-    explanation:
-      'In 1896 at Adwa an Ethiopian army beat an invading Italian one. Sixty years later those colors already meant the place that never had to ask, so Ghana took them in 1957 and a dozen countries followed.',
-  },
-  {
-    question: 'Singapore’s flag has a crescent moon. What does it represent?',
-    options: [
-      'Islam, as in Turkey and Pakistan',
-      'A young country on the rise',
-      'The country’s position on the equator',
-      'Its independence from Malaysia',
-    ],
-    correctIndex: 1,
-    explanation:
-      'It has no religious meaning at all. The crescent is a young nation ascending, and the five stars beside it are democracy, peace, progress, justice and equality. It only looks like it belongs with the others.',
-  },
-];
+// The pre-read quiz is generated from the flag data, not hand-written: it shows
+// a flag and asks which country it is, which is the only question this article
+// is really about.
+//
+// It cannot cover all 195, because QuickCheck walks every question it is given
+// and draws a progress dot for each — 195 dots is not a quiz, it is a
+// punishment. Full coverage is the job of the in-article flag-quiz widget,
+// which works through the whole set. This one is a representative sample: the
+// famous near-identical pairs first, because they make the point, then one
+// country from each World Bank region so no part of the world is missing.
+//
+// Deterministic, so republishing does not silently reshuffle a reader's quiz.
+const QUIZ_SIZE = 12;
+
+function mulberry32(seed) {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function readFlagData() {
+  const src = readFileSync(new URL('../components/blog/widgets/countryFlagData.ts', import.meta.url), 'utf-8');
+  const slice = (from, to) => {
+    const start = src.indexOf(from) + from.length;
+    const end = to ? src.indexOf(to) : src.length;
+    return JSON.parse(src.slice(start, end).trim().replace(/;\s*$/, ''));
+  };
+  return {
+    families: slice('FLAG_FAMILIES: FlagFamily[] =', 'export const LOOKALIKES'),
+    lookalikes: slice('LOOKALIKES: Lookalike[] =', 'export const COUNTRIES'),
+    countries: slice('COUNTRIES: Country[] ='),
+  };
+}
+
+function buildQuiz() {
+  const { families, lookalikes, countries } = readFlagData();
+  const pool = countries.filter((c) => c.sovereign);
+  const byCode = new Map(pool.map((c) => [c.code, c]));
+  const rand = mulberry32(20260907);
+  const shuffle = (arr) => {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(rand() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  };
+  const flag = (code) => `https://flagcdn.com/w320/${code.toLowerCase()}.png`;
+
+  // The hard pairs are worth asking first; one member of each is enough.
+  const chosen = [];
+  for (const pair of lookalikes) {
+    const c = byCode.get(pair.codes[0]);
+    if (c && !chosen.some((x) => x.code === c.code)) chosen.push(c);
+  }
+  // Then one per region, so the sample spans the world rather than Europe.
+  for (const region of [...new Set(pool.map((c) => c.region))]) {
+    if (chosen.length >= QUIZ_SIZE) break;
+    const candidate = shuffle(pool.filter((c) => c.region === region && !chosen.some((x) => x.code === c.code)))[0];
+    if (candidate) chosen.push(candidate);
+  }
+  while (chosen.length < QUIZ_SIZE) {
+    const candidate = shuffle(pool.filter((c) => !chosen.some((x) => x.code === c.code)))[0];
+    if (!candidate) break;
+    chosen.push(candidate);
+  }
+
+  return chosen.slice(0, QUIZ_SIZE).map((answer) => {
+    const decoys = [];
+    const pair = lookalikes.find((l) => l.codes.includes(answer.code));
+    if (pair) for (const code of pair.codes) {
+      const c = code === answer.code ? null : byCode.get(code);
+      if (c && !decoys.some((d) => d.code === c.code)) decoys.push(c);
+    }
+    if (decoys.length < 3 && answer.families.length) {
+      for (const c of shuffle(pool.filter((x) => x.code !== answer.code && x.families.includes(answer.families[0])))) {
+        if (decoys.length >= 3) break;
+        if (!decoys.some((d) => d.code === c.code)) decoys.push(c);
+      }
+    }
+    for (const c of shuffle(pool.filter((x) => x.code !== answer.code && x.region === answer.region))) {
+      if (decoys.length >= 3) break;
+      if (!decoys.some((d) => d.code === c.code)) decoys.push(c);
+    }
+    // North America holds only Canada and the United States here, so a
+    // last-resort fill stops those questions coming out as a coin flip.
+    for (const c of shuffle(pool.filter((x) => x.code !== answer.code))) {
+      if (decoys.length >= 3) break;
+      if (!decoys.some((d) => d.code === c.code)) decoys.push(c);
+    }
+
+    const options = shuffle([answer, ...decoys.slice(0, 3)]);
+    const family = families.find((f) => f.id === answer.families[0]);
+    const note = pair ? ` ${pair.note}` : family ? ` All four are ${family.name.toLowerCase()} flags.` : '';
+
+    return {
+      question: 'Which country flies this flag?',
+      image: flag(answer.code),
+      imageAlt: 'A national flag to identify',
+      options: options.map((c) => c.name),
+      correctIndex: options.findIndex((c) => c.code === answer.code),
+      explanation: `${answer.name}.${note}`.trim(),
+    };
+  });
+}
+
+const QUIZ = buildQuiz();
 
 // Widget captions live here rather than in the draft, so the prose file stays
 // prose. The big two get an eyebrow and a caption; the inline flag rows carry

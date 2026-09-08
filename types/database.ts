@@ -3,6 +3,13 @@ export type QuizQuestion = {
   options: string[];
   correctIndex: number;
   explanation?: string;
+  /**
+   * Optional picture shown above the question — a flag, a diagram, a photo.
+   * Lets a quiz ask "which country is this?" instead of only asking in words.
+   */
+  image?: string;
+  /** Alt text for `image`, required whenever one is set. */
+  imageAlt?: string;
 };
 
 export type Database = {

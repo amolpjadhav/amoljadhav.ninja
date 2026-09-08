@@ -94,7 +94,27 @@ export default function QuickCheck({
           <p className="text-xs text-white/40 mb-2">
             Question {index + 1} of {questions.length}
           </p>
-          <p className="text-white/95 font-semibold mb-5">{question.question}</p>
+          <p className="text-white/95 font-semibold mb-4">{question.question}</p>
+
+          {/* A question can carry a picture — a flag, a diagram — so a quiz can
+              ask "which country is this?" rather than only asking in words. */}
+          {question.image && (
+            <div className="flex justify-center mb-5">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                key={question.image}
+                src={question.image}
+                alt={question.imageAlt ?? ''}
+                className="widget-img rounded-lg border border-white/15"
+                style={{
+                  width: 'min(260px, 100%)',
+                  aspectRatio: '4 / 3',
+                  objectFit: 'cover',
+                  background: 'rgba(255,255,255,0.04)',
+                }}
+              />
+            </div>
+          )}
 
           <div className="flex flex-col gap-2.5">
             {question.options.map((option, i) => {

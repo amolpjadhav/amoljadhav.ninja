@@ -56,6 +56,49 @@ const MANUAL = [
   { code: 'VA', name: 'Vatican City', region: 'Europe & Central Asia', capital: 'Vatican City' },
 ];
 
+// The World Bank writes names for statistical tables, not for reading: "Bahamas,
+// The", "Korea, Rep.", "Egypt, Arab Rep.". Those are wrong in a sentence and
+// worse as a quiz option, so they are mapped to the names people use. Keyed by
+// ISO code rather than by the old string, so a change of wording upstream
+// cannot silently un-fix one.
+const RENAME = {
+  BS: 'The Bahamas',
+  BN: 'Brunei',
+  CD: 'DR Congo',
+  CG: 'Republic of the Congo',
+  CI: 'Côte d’Ivoire',
+  EG: 'Egypt',
+  GM: 'The Gambia',
+  HK: 'Hong Kong',
+  IR: 'Iran',
+  KP: 'North Korea',
+  KR: 'South Korea',
+  KG: 'Kyrgyzstan',
+  LA: 'Laos',
+  MO: 'Macao',
+  FM: 'Micronesia',
+  RU: 'Russia',
+  SK: 'Slovakia',
+  SO: 'Somalia',
+  KN: 'Saint Kitts and Nevis',
+  LC: 'Saint Lucia',
+  MF: 'Saint Martin',
+  VC: 'Saint Vincent and the Grenadines',
+  TR: 'Türkiye',
+  VE: 'Venezuela',
+  VN: 'Vietnam',
+  YE: 'Yemen',
+  SY: 'Syria',
+  TZ: 'Tanzania',
+  MD: 'Moldova',
+  CV: 'Cabo Verde',
+  SZ: 'Eswatini',
+  MK: 'North Macedonia',
+  PS: 'Palestine',
+  BO: 'Bolivia',
+  LY: 'Libya',
+};
+
 // Flag families. Each list is membership by ISO 3166-1 alpha-2, kept to flags
 // where the shared design is the accepted account of the flag rather than a
 // coincidence of color.
@@ -158,7 +201,7 @@ async function main() {
       if (!flagNames[code.toLowerCase()]) missingArt.push(`${code} ${r.name}`);
       return {
         code,
-        name: r.name.trim(),
+        name: RENAME[code] ?? r.name.trim(),
         region: r.region.value.trim(),
         capital: (r.capitalCity ?? '').trim() || null,
         sovereign: !TERRITORIES.has(code),

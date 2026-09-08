@@ -313,14 +313,6 @@ export const COUNTRIES: Country[] = [
     ]
   },
   {
-    "code": "BS",
-    "name": "Bahamas, The",
-    "region": "Latin America & Caribbean",
-    "capital": "Nassau",
-    "sovereign": true,
-    "families": []
-  },
-  {
     "code": "BH",
     "name": "Bahrain",
     "region": "Middle East, North Africa, Afghanistan & Pakistan",
@@ -438,7 +430,7 @@ export const COUNTRIES: Country[] = [
   },
   {
     "code": "BN",
-    "name": "Brunei Darussalam",
+    "name": "Brunei",
     "region": "East Asia & Pacific",
     "capital": "Bandar Seri Begawan",
     "sovereign": true,
@@ -563,24 +555,6 @@ export const COUNTRIES: Country[] = [
     ]
   },
   {
-    "code": "CD",
-    "name": "Congo, Dem. Rep.",
-    "region": "Sub-Saharan Africa",
-    "capital": "Kinshasa",
-    "sovereign": true,
-    "families": []
-  },
-  {
-    "code": "CG",
-    "name": "Congo, Rep.",
-    "region": "Sub-Saharan Africa",
-    "capital": "Brazzaville",
-    "sovereign": true,
-    "families": [
-      "pan-african"
-    ]
-  },
-  {
     "code": "CR",
     "name": "Costa Rica",
     "region": "Latin America & Caribbean",
@@ -590,7 +564,7 @@ export const COUNTRIES: Country[] = [
   },
   {
     "code": "CI",
-    "name": "Cote d'Ivoire",
+    "name": "Côte d’Ivoire",
     "region": "Sub-Saharan Africa",
     "capital": "Yamoussoukro",
     "sovereign": true,
@@ -673,6 +647,14 @@ export const COUNTRIES: Country[] = [
     "families": []
   },
   {
+    "code": "CD",
+    "name": "DR Congo",
+    "region": "Sub-Saharan Africa",
+    "capital": "Kinshasa",
+    "sovereign": true,
+    "families": []
+  },
+  {
     "code": "EC",
     "name": "Ecuador",
     "region": "Latin America & Caribbean",
@@ -682,7 +664,7 @@ export const COUNTRIES: Country[] = [
   },
   {
     "code": "EG",
-    "name": "Egypt, Arab Rep.",
+    "name": "Egypt",
     "region": "Middle East, North Africa, Afghanistan & Pakistan",
     "capital": "Cairo",
     "sovereign": true,
@@ -791,14 +773,6 @@ export const COUNTRIES: Country[] = [
     "name": "Gabon",
     "region": "Sub-Saharan Africa",
     "capital": "Libreville",
-    "sovereign": true,
-    "families": []
-  },
-  {
-    "code": "GM",
-    "name": "Gambia, The",
-    "region": "Sub-Saharan Africa",
-    "capital": "Banjul",
     "sovereign": true,
     "families": []
   },
@@ -922,7 +896,7 @@ export const COUNTRIES: Country[] = [
   },
   {
     "code": "HK",
-    "name": "Hong Kong SAR, China",
+    "name": "Hong Kong",
     "region": "East Asia & Pacific",
     "capital": null,
     "sovereign": false,
@@ -964,7 +938,7 @@ export const COUNTRIES: Country[] = [
   },
   {
     "code": "IR",
-    "name": "Iran, Islamic Rep.",
+    "name": "Iran",
     "region": "Middle East, North Africa, Afghanistan & Pakistan",
     "capital": "Tehran",
     "sovereign": true,
@@ -1063,22 +1037,6 @@ export const COUNTRIES: Country[] = [
     "families": []
   },
   {
-    "code": "KP",
-    "name": "Korea, Dem. People's Rep.",
-    "region": "East Asia & Pacific",
-    "capital": "Pyongyang",
-    "sovereign": true,
-    "families": []
-  },
-  {
-    "code": "KR",
-    "name": "Korea, Rep.",
-    "region": "East Asia & Pacific",
-    "capital": "Seoul",
-    "sovereign": true,
-    "families": []
-  },
-  {
     "code": "XK",
     "name": "Kosovo",
     "region": "Europe & Central Asia",
@@ -1100,7 +1058,7 @@ export const COUNTRIES: Country[] = [
   },
   {
     "code": "KG",
-    "name": "Kyrgyz Republic",
+    "name": "Kyrgyzstan",
     "region": "Europe & Central Asia",
     "capital": "Bishkek",
     "sovereign": true,
@@ -1108,7 +1066,7 @@ export const COUNTRIES: Country[] = [
   },
   {
     "code": "LA",
-    "name": "Lao PDR",
+    "name": "Laos",
     "region": "East Asia & Pacific",
     "capital": "Vientiane",
     "sovereign": true,
@@ -1182,7 +1140,7 @@ export const COUNTRIES: Country[] = [
   },
   {
     "code": "MO",
-    "name": "Macao SAR, China",
+    "name": "Macao",
     "region": "East Asia & Pacific",
     "capital": null,
     "sovereign": false,
@@ -1276,7 +1234,7 @@ export const COUNTRIES: Country[] = [
   },
   {
     "code": "FM",
-    "name": "Micronesia, Fed. Sts.",
+    "name": "Micronesia",
     "region": "East Asia & Pacific",
     "capital": "Palikir",
     "sovereign": true,
@@ -1416,6 +1374,14 @@ export const COUNTRIES: Country[] = [
     "families": []
   },
   {
+    "code": "KP",
+    "name": "North Korea",
+    "region": "East Asia & Pacific",
+    "capital": "Pyongyang",
+    "sovereign": true,
+    "families": []
+  },
+  {
     "code": "MK",
     "name": "North Macedonia",
     "region": "Europe & Central Asia",
@@ -1466,6 +1432,16 @@ export const COUNTRIES: Country[] = [
     "capital": "Koror",
     "sovereign": true,
     "families": []
+  },
+  {
+    "code": "PS",
+    "name": "Palestine",
+    "region": "Middle East, North Africa, Afghanistan & Pakistan",
+    "capital": null,
+    "sovereign": false,
+    "families": [
+      "pan-arab"
+    ]
   },
   {
     "code": "PA",
@@ -1542,6 +1518,16 @@ export const COUNTRIES: Country[] = [
     "families": []
   },
   {
+    "code": "CG",
+    "name": "Republic of the Congo",
+    "region": "Sub-Saharan Africa",
+    "capital": "Brazzaville",
+    "sovereign": true,
+    "families": [
+      "pan-african"
+    ]
+  },
+  {
     "code": "RO",
     "name": "Romania",
     "region": "Europe & Central Asia",
@@ -1551,7 +1537,7 @@ export const COUNTRIES: Country[] = [
   },
   {
     "code": "RU",
-    "name": "Russian Federation",
+    "name": "Russia",
     "region": "Europe & Central Asia",
     "capital": "Moscow",
     "sovereign": true,
@@ -1562,6 +1548,38 @@ export const COUNTRIES: Country[] = [
     "name": "Rwanda",
     "region": "Sub-Saharan Africa",
     "capital": "Kigali",
+    "sovereign": true,
+    "families": []
+  },
+  {
+    "code": "KN",
+    "name": "Saint Kitts and Nevis",
+    "region": "Latin America & Caribbean",
+    "capital": "Basseterre",
+    "sovereign": true,
+    "families": []
+  },
+  {
+    "code": "LC",
+    "name": "Saint Lucia",
+    "region": "Latin America & Caribbean",
+    "capital": "Castries",
+    "sovereign": true,
+    "families": []
+  },
+  {
+    "code": "MF",
+    "name": "Saint Martin",
+    "region": "Latin America & Caribbean",
+    "capital": "Marigot",
+    "sovereign": true,
+    "families": []
+  },
+  {
+    "code": "VC",
+    "name": "Saint Vincent and the Grenadines",
+    "region": "Latin America & Caribbean",
+    "capital": "Kingstown",
     "sovereign": true,
     "families": []
   },
@@ -1655,7 +1673,7 @@ export const COUNTRIES: Country[] = [
   },
   {
     "code": "SK",
-    "name": "Slovak Republic",
+    "name": "Slovakia",
     "region": "Europe & Central Asia",
     "capital": "Bratislava",
     "sovereign": true,
@@ -1679,7 +1697,7 @@ export const COUNTRIES: Country[] = [
   },
   {
     "code": "SO",
-    "name": "Somalia, Fed. Rep.",
+    "name": "Somalia",
     "region": "Sub-Saharan Africa",
     "capital": "Mogadishu",
     "sovereign": true,
@@ -1690,6 +1708,14 @@ export const COUNTRIES: Country[] = [
     "name": "South Africa",
     "region": "Sub-Saharan Africa",
     "capital": "Pretoria",
+    "sovereign": true,
+    "families": []
+  },
+  {
+    "code": "KR",
+    "name": "South Korea",
+    "region": "East Asia & Pacific",
+    "capital": "Seoul",
     "sovereign": true,
     "families": []
   },
@@ -1714,38 +1740,6 @@ export const COUNTRIES: Country[] = [
     "name": "Sri Lanka",
     "region": "South Asia",
     "capital": "Colombo",
-    "sovereign": true,
-    "families": []
-  },
-  {
-    "code": "KN",
-    "name": "St. Kitts and Nevis",
-    "region": "Latin America & Caribbean",
-    "capital": "Basseterre",
-    "sovereign": true,
-    "families": []
-  },
-  {
-    "code": "LC",
-    "name": "St. Lucia",
-    "region": "Latin America & Caribbean",
-    "capital": "Castries",
-    "sovereign": true,
-    "families": []
-  },
-  {
-    "code": "MF",
-    "name": "St. Martin (French part)",
-    "region": "Latin America & Caribbean",
-    "capital": "Marigot",
-    "sovereign": true,
-    "families": []
-  },
-  {
-    "code": "VC",
-    "name": "St. Vincent and the Grenadines",
-    "region": "Latin America & Caribbean",
-    "capital": "Kingstown",
     "sovereign": true,
     "families": []
   },
@@ -1789,7 +1783,7 @@ export const COUNTRIES: Country[] = [
   },
   {
     "code": "SY",
-    "name": "Syrian Arab Republic",
+    "name": "Syria",
     "region": "Middle East, North Africa, Afghanistan & Pakistan",
     "capital": "Damascus",
     "sovereign": true,
@@ -1818,6 +1812,22 @@ export const COUNTRIES: Country[] = [
     "name": "Thailand",
     "region": "East Asia & Pacific",
     "capital": "Bangkok",
+    "sovereign": true,
+    "families": []
+  },
+  {
+    "code": "BS",
+    "name": "The Bahamas",
+    "region": "Latin America & Caribbean",
+    "capital": "Nassau",
+    "sovereign": true,
+    "families": []
+  },
+  {
+    "code": "GM",
+    "name": "The Gambia",
+    "region": "Sub-Saharan Africa",
+    "capital": "Banjul",
     "sovereign": true,
     "families": []
   },
@@ -1867,7 +1877,7 @@ export const COUNTRIES: Country[] = [
   },
   {
     "code": "TR",
-    "name": "Turkiye",
+    "name": "Türkiye",
     "region": "Europe & Central Asia",
     "capital": "Ankara",
     "sovereign": true,
@@ -1983,7 +1993,7 @@ export const COUNTRIES: Country[] = [
   },
   {
     "code": "VE",
-    "name": "Venezuela, RB",
+    "name": "Venezuela",
     "region": "Latin America & Caribbean",
     "capital": "Caracas",
     "sovereign": true,
@@ -1991,7 +2001,7 @@ export const COUNTRIES: Country[] = [
   },
   {
     "code": "VN",
-    "name": "Viet Nam",
+    "name": "Vietnam",
     "region": "East Asia & Pacific",
     "capital": "Hanoi",
     "sovereign": true,
@@ -2006,18 +2016,8 @@ export const COUNTRIES: Country[] = [
     "families": []
   },
   {
-    "code": "PS",
-    "name": "West Bank and Gaza",
-    "region": "Middle East, North Africa, Afghanistan & Pakistan",
-    "capital": null,
-    "sovereign": false,
-    "families": [
-      "pan-arab"
-    ]
-  },
-  {
     "code": "YE",
-    "name": "Yemen, Rep.",
+    "name": "Yemen",
     "region": "Middle East, North Africa, Afghanistan & Pakistan",
     "capital": "Sana'a",
     "sovereign": true,
