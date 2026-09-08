@@ -104,9 +104,28 @@ export default function QuickCheck({
             </div>
           )}
 
-          <p className="text-xs text-white/40 mb-2">
-            Question {index + 1} of {questions.length}
-          </p>
+          {/* A running tally, because a long quiz is unreadable without one:
+              after forty flags nobody remembers how they are doing. Answered
+              is index + (this one answered), so the counts never lead the
+              question the reader is still looking at. */}
+          <div className="flex items-baseline justify-between gap-3 mb-2">
+            <p className="text-xs text-white/40">
+              Question {index + 1} of {questions.length}
+            </p>
+            {(() => {
+              const answered = index + (selected !== null ? 1 : 0);
+              const wrong = answered - score;
+              return (
+                answered > 0 && (
+                  <p className="text-xs tabular-nums flex items-center gap-2.5">
+                    <span style={{ color: accent }}>{score} right</span>
+                    <span className="text-white/35">{wrong} wrong</span>
+                    <span className="text-white/25">{Math.round((score / answered) * 100)}%</span>
+                  </p>
+                )
+              );
+            })()}
+          </div>
           <p className="text-white/95 font-semibold mb-4">{question.question}</p>
 
           {/* A question can carry a picture — a flag, a diagram — so a quiz can
@@ -164,7 +183,21 @@ export default function QuickCheck({
           </div>
 
           {selected !== null && question.explanation && (
-            <p className="mt-4 text-sm text-white/60 leading-relaxed">{question.explanation}</p>
+            <div className="mt-4">
+              <p className="text-sm text-white/60 leading-relaxed">{question.explanation}</p>
+              {/* The flag notes come from Wikipedia, which is CC BY-SA, so the
+                  article they came from gets a credit and a link. */}
+              {question.sourceUrl && (
+                <a
+                  href={question.sourceUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block mt-1.5 text-[11px] text-white/30 underline decoration-white/15 hover:text-white/60"
+                >
+                  More on this flag — Wikipedia
+                </a>
+              )}
+            </div>
           )}
 
           {selected !== null && (

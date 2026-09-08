@@ -10,6 +10,11 @@ export type QuizQuestion = {
   image?: string;
   /** Alt text for `image`, required whenever one is set. */
   imageAlt?: string;
+  /**
+   * Where the explanation came from, credited and linked under it. Required
+   * when the text is quoted from a source that asks for attribution.
+   */
+  sourceUrl?: string;
 };
 
 export type Database = {
