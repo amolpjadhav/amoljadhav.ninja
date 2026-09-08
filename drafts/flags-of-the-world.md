@@ -11,9 +11,9 @@ templates, you don't have to memorize 195 separate pictures. You can look at a
 flag you’ve never seen before and instantly guess which corner of the globe it
 came from, just by knowing the six main families.
 
-## The six families
+## The Nordic cross: one idea, six flags
 
-Take the Nordic Cross. Denmark’s flag is the oldest national flag still in use
+Denmark’s flag is the oldest national flag still in use
 anywhere on Earth, defined by a simple cross pushed slightly to the left. Over
 the centuries, Sweden, Norway, Iceland, Finland, and the Faroe Islands all
 copied that exact same off-center geometry. It’s one idea spread across six
@@ -55,7 +55,9 @@ shields or political alliances and never bothered to explain themselves at all.
 It turns out, flags only started coming with deep, symbolic meanings attached
 once the world started expecting them to.
 
-Now take the Pan-Arab colors: black, white, green, and red. All four trace back
+## Pan-Arab colors: four colors, nine flags
+
+Black, white, green, and red. All four trace back
 to a single flag — the banner of the Arab Revolt of 1916, raised against
 Ottoman rule. And unlike Denmark, this one came with its meanings attached from
 the start, because each color was chosen to stand for a dynasty that had once
@@ -97,8 +99,9 @@ shapes. Two families, opposite strategies, and both of them work the same way:
 one recognizable thing held constant so that everything built on top of it
 still reads as belonging.
 
-Then there are the Pan-African colors: red, gold, and green, taken from
-Ethiopia. And to understand why an entire continent borrowed from one country,
+## Pan-African colors: chosen, not inherited
+
+Red, gold, and green, taken from Ethiopia. And to understand why an entire continent borrowed from one country,
 you need one date.
 
 In 1896, at Adwa, an Ethiopian army defeated an invading Italian one. Not a
@@ -139,21 +142,27 @@ The Pan-Arab flags share a set of colors. The Pan-African flags share an
 argument — and that turns out to be the strongest glue of the three, because it
 is the only one where every country involved had to decide.
 
-**The crescent and star.** Carried across three continents by the Ottoman
+## The crescent and star
+
+Carried across three continents by the Ottoman
 Empire, and kept afterwards as a mark of Islamic identity rather than of who
 used to be in charge. Turkey, Tunisia, Algeria, Pakistan, Malaysia and
 Azerbaijan all have one.
 
 <!-- widget: flag-row family=crescent-star -->
 
-**The Union Jack in the corner.** Australia, New Zealand, Fiji and Tuvalu still
+## The Union Jack in the corner
+
+Australia, New Zealand, Fiji and Tuvalu still
 carry the British flag in the top left. What is interesting is that keeping it
 is now a choice — several of them have held votes about taking it off, and so
 far it has stayed.
 
 <!-- widget: flag-row family=union-canton -->
 
-**The Southern Cross.** A group of stars you can only see from the southern
+## The Southern Cross
+
+A group of stars you can only see from the southern
 half of the world. Australia, New Zealand, Brazil, Papua New Guinea and Samoa
 all put it on their flags, which means half the planet is using a decoration
 the other half cannot even see.
