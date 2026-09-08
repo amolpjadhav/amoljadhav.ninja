@@ -254,20 +254,49 @@ which continent you are on.
 
 ## What flags mostly do not mean
 
-One warning, because this is where flag facts go wrong.
+One warning to finish on, because this is where flag facts go wrong more than
+anywhere else.
 
-You will often read that a color on a flag stands for something — red for the
-blood of people who died, white for peace, green for the land. Sometimes that
-is exactly right and written into the law that created the flag. Quite often it
-was invented afterwards by somebody who assumed there must be a reason.
+You will constantly read that a color on a flag stands for something. Red for
+the blood of those who died, white for peace, green for the land. Sometimes
+that is exactly right and written into the law that created the flag. Very
+often somebody assumed there had to be a reason and supplied one.
 
-The clearest example is the United Kingdom. The Union Jack's red, white and
-blue have **no official meaning at all**. They are the colors of three older
-flags that got layered on top of each other. Any explanation you have heard of
-what those colors stand for was made up later.
+**The clearest case is the United Kingdom.** The Union Jack's red, white and
+blue have no official meaning at all. The flag is three older flags stacked on
+top of each other — England's red cross on white, Scotland's white diagonal on
+blue, Ireland's red diagonal on white. The colors are simply what those three
+flags already were. Every explanation you have ever heard of what British red,
+white and blue stand for was written afterwards by someone filling in a blank.
 
-So the honest version is this: some flags have meanings, and they are usually
-written down. Many flags just have ancestors. And when a country picked its
-colors because a neighbour or an ally had them first, that borrowing is the
-real story — a more interesting one than a made-up meaning, because it tells
-you who a country wanted to be seen standing next to.
+**The most repeated case is the United States.** The resolution that created
+the flag in 1777 is two sentences long and says nothing whatsoever about what
+the colors mean. The famous meanings — white for purity, red for valor, blue
+for vigilance and justice — do exist, but they come from a description of the
+**Great Seal**, written five years later, about a different object. They were
+never about the flag. They got attached to it anyway, and now they are in
+schoolbooks.
+
+**And France.** Blue, white and red are not liberty, equality and fraternity,
+however often you see that. Blue and red were the colors of Paris, and white
+was the color of the king. The tricolor is a revolution putting the city on
+either side of the monarchy — which is a far better story than the slogan, and
+it is the true one.
+
+<!-- widget: flag-row codes=BR,MY,PK,GH note=Four flags whose meanings genuinely are documented. -->
+
+Because real meanings do exist, and they tend to be strangely specific.
+Brazil's stars are not decorative: they are the actual night sky over Rio de
+Janeiro on 15 November 1889, the day the republic was declared. Malaysia's star
+has fourteen points for its fourteen states and territories. Pakistan's white
+stripe is there for its religious minorities. Ghana's colors are defined in
+law. When a meaning is genuine, it is usually oddly precise, and it is usually
+written down somewhere official.
+
+So here is the test worth carrying. If a flag's meaning is real, you can find
+it in the document that created the flag. If you can only find it in an article
+about flags, somebody made it up.
+
+And when a country picked its colors because a neighbor or an ally had them
+first, that borrowing is the real story — a better one than any invented
+meaning, because it tells you who a country wanted to be seen standing next to.
