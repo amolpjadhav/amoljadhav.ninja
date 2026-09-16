@@ -50,6 +50,7 @@ import RegressionToMean from './RegressionToMean';
 import GradientDescent from './GradientDescent';
 import FlagBrowser from './FlagBrowser';
 import FlagRow from './FlagRow';
+import TftItemCombinator from './TftItemCombinator';
 
 // Article content (stored as HTML in Supabase) can embed a widget by
 // including a placeholder element with a matching data-widget value, e.g.:
@@ -108,4 +109,5 @@ export const WIDGET_REGISTRY: Record<string, ComponentType> = {
   'gradient-descent': GradientDescent,
   'flag-browser': FlagBrowser,
   'flag-row': FlagRow,
+  'tft-item-combinator': TftItemCombinator,
 };
