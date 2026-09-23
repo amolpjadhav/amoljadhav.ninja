@@ -48,6 +48,7 @@ export default function RootLayout({
     >
       <head>
         <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossOrigin="anonymous" async></script>
+        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8214113221977631" crossOrigin="anonymous"></script>
       </head>
       <body className="min-h-full flex flex-col">
         {children}
