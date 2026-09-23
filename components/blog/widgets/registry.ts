@@ -50,6 +50,10 @@ import RegressionToMean from './RegressionToMean';
 import GradientDescent from './GradientDescent';
 import FlagBrowser from './FlagBrowser';
 import FlagRow from './FlagRow';
+import EqualTransitMyth from './EqualTransitMyth';
+import DownwashPushback from './DownwashPushback';
+import UpsideDownWing from './UpsideDownWing';
+import HandWingStall from './HandWingStall';
 import TftItemCombinator from './TftItemCombinator';
 
 // Article content (stored as HTML in Supabase) can embed a widget by
@@ -109,5 +113,9 @@ export const WIDGET_REGISTRY: Record<string, ComponentType> = {
   'gradient-descent': GradientDescent,
   'flag-browser': FlagBrowser,
   'flag-row': FlagRow,
+  'equal-transit-myth': EqualTransitMyth,
+  'downwash-pushback': DownwashPushback,
+  'upside-down-wing': UpsideDownWing,
+  'hand-wing-stall': HandWingStall,
   'tft-item-combinator': TftItemCombinator,
 };
