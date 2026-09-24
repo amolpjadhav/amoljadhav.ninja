@@ -54,6 +54,7 @@ import EqualTransitMyth from './EqualTransitMyth';
 import DownwashPushback from './DownwashPushback';
 import UpsideDownWing from './UpsideDownWing';
 import HandWingStall from './HandWingStall';
+import LindyCurves from './LindyCurves';
 import TftItemCombinator from './TftItemCombinator';
 
 // Article content (stored as HTML in Supabase) can embed a widget by
@@ -117,5 +118,6 @@ export const WIDGET_REGISTRY: Record<string, ComponentType> = {
   'downwash-pushback': DownwashPushback,
   'upside-down-wing': UpsideDownWing,
   'hand-wing-stall': HandWingStall,
+  'lindy-curves': LindyCurves,
   'tft-item-combinator': TftItemCombinator,
 };
