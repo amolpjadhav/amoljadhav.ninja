@@ -14,11 +14,17 @@ import type { ReactNode } from 'react';
 const FILES = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
 const LIGHT = '#eeeed2';
 const DARK = '#769656';
+// Faux-3D bevels: top light-catch plus a floor shadow, tuned per square
+// tone so the board reads as one carved object.
+const LIGHT_BEVEL =
+  'inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -3px 6px rgba(120,90,40,0.20)';
+const DARK_BEVEL =
+  'inset 0 1px 0 rgba(255,255,255,0.22), inset 0 -3px 6px rgba(0,0,0,0.30)';
 const BLITZ_SECONDS = 30;
-// v2: bumped to invalidate test values stored under the v1 keys (including
-// any inflated bests from development play) the moment this ships.
-const BEST_BLITZ_KEY = 'square-trainer-best-blitz-v2';
-const BEST_SURVIVAL_KEY = 'square-trainer-best-survival-v2';
+// v3: bests are plain correct-counts (one point per correct answer) —
+// v2 keys held bonus-inflated point values from the scoring era.
+const BEST_BLITZ_KEY = 'square-trainer-best-blitz-v3';
+const BEST_SURVIVAL_KEY = 'square-trainer-best-survival-v3';
 const MISS_HIST_KEY = 'square-trainer-miss-history-v2';
 const MAX_HIST_ROUNDS = 10;
 const MAX_DRILL_SQUARES = 8;
@@ -168,8 +174,10 @@ function SegBtn({
       type="button"
       title={title}
       onClick={onClick}
-      className={`rounded-lg px-2 py-2.5 text-sm font-bold transition-colors ${
-        active ? 'bg-[#f3ecd9] text-black' : 'text-white/55 hover:text-white'
+      className={`rounded-lg px-2 py-1.5 text-[13px] font-bold transition-all duration-150 active:scale-[0.97] ${
+        active
+          ? 'bg-[#f3ecd9] text-black shadow-[0_2px_10px_rgba(0,0,0,0.45)]'
+          : 'text-white/55 hover:text-white'
       }`}
     >
       {children}
@@ -197,7 +205,7 @@ function SwitchRow({
         aria-checked={on}
         aria-label={label}
         onClick={onToggle}
-        className={`relative h-7 w-12 shrink-0 rounded-full transition-colors ${
+        className={`relative h-7 w-12 shrink-0 rounded-full transition-all duration-150 active:scale-95 ${
           on ? (blue ? 'bg-blue-500' : 'bg-green-500') : 'bg-white/15'
         }`}
       >
@@ -246,7 +254,6 @@ export default function SquareTrainer() {
   const [lastMiss, setLastMiss] = useState<string | null>(null);
   const [inputError, setInputError] = useState<string | null>(null);
   const [nameInput, setNameInput] = useState('');
-  const [lastGain, setLastGain] = useState<number | null>(null);
   const [hard, setHard] = useState(true);
   const [muted, setMuted] = useState(false);
   const [timeLeft, setTimeLeft] = useState(BLITZ_SECONDS);
@@ -447,7 +454,6 @@ export default function SquareTrainer() {
     setLastMiss(null);
     setInputError(null);
     setNameInput('');
-    setLastGain(null);
     setCursor(null);
     if (mode === 'survival') {
       setLives(3);
@@ -478,7 +484,6 @@ export default function SquareTrainer() {
     setLastMiss(null);
     setInputError(null);
     setNameInput('');
-    setLastGain(null);
     setCursor(null);
     setTimeLeft(BLITZ_SECONDS);
     if (orientation === 'random') setFlipped(coinFlip());
@@ -495,11 +500,11 @@ export default function SquareTrainer() {
   }
 
   function registerHit() {
-    const gain = scored ? 100 + Math.min(streak, 10) * 10 : 0;
+    // One point per correct answer in every scored mode — no bonus math,
+    // so the score always equals the solved count.
     correctRef.current += 1;
     setCorrect((c) => c + 1);
-    setLastGain(scored ? gain : null);
-    if (scored) setScore((s) => s + gain);
+    if (scored) setScore((s) => s + 1);
     setStreak((s) => {
       const nextStreak = s + 1;
       setBestStreak((b) => Math.max(b, nextStreak));
@@ -514,7 +519,6 @@ export default function SquareTrainer() {
     beep(false);
     setStreak(0);
     setLastMiss(picked);
-    setLastGain(null);
     setInputError(null);
     setReveal(true);
     tallyRef.current = { ...tallyRef.current, [target]: (tallyRef.current[target] ?? 0) + 1 };
@@ -616,7 +620,6 @@ export default function SquareTrainer() {
     setLastMiss(null);
     setInputError(null);
     setNameInput('');
-    setLastGain(null);
     setCursor(null);
     deal();
   }
@@ -656,13 +659,6 @@ export default function SquareTrainer() {
 
   const secs = Math.ceil(timeLeft);
   const clock = `${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')}`;
-  const headNote = timed
-    ? phase === 'idle'
-      ? 'Clock starts on your first tap · 30s'
-      : 'Streaks earn bonus points'
-    : mode === 'survival'
-      ? '3 misses ends the run'
-      : 'Timer off — learn at your pace';
   const modeBlurb =
     mode === 'blitz'
       ? '30 seconds. Score as many as you can.'
@@ -671,12 +667,8 @@ export default function SquareTrainer() {
         : 'No clock. Slice the board and drill.';
 
   return (
-    <div className="relative not-prose bg-[#1c1d20] border border-white/10 rounded-xl p-4 sm:p-6 my-6 lg:-mx-24 xl:-mx-32">
-      <p className="text-xs uppercase tracking-widest text-white/40 mb-1">Try it yourself</p>
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-        <h3 className="font-serif text-2xl sm:text-4xl font-bold text-[#f3ecd9]">
-          {reverse ? 'Name the square' : 'Find the square'}
-        </h3>
+    <div className="relative not-prose bg-[#1c1d20] border border-white/10 rounded-xl p-4 pt-2 sm:p-6 sm:pt-3 my-6 lg:-mx-24 xl:-mx-32 [-webkit-tap-highlight-color:transparent]">
+      <div className="mb-2 flex flex-wrap items-center gap-x-3 gap-y-1 lg:hidden">
         <button
           type="button"
           onClick={() =>
@@ -684,7 +676,7 @@ export default function SquareTrainer() {
               .getElementById('st-controls')
               ?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
           }
-          className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-bold text-white/85 lg:hidden"
+          className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-bold text-white/85"
         >
           {modeLabel} · {sideLabel}
           <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
@@ -697,44 +689,66 @@ export default function SquareTrainer() {
             />
           </svg>
         </button>
-        <p className="w-full text-xs text-white/45 lg:w-auto lg:text-sm">{headNote}</p>
       </div>
 
-      <div className="mb-3 flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
-        <div
-          className={`text-5xl font-bold tabular-nums leading-none ${
-            timed && phase === 'playing' && timeLeft <= 5
-              ? 'text-red-400'
-              : timed && phase === 'playing' && timeLeft <= 10
-                ? 'text-amber-300'
-                : 'text-white'
-          }`}
-        >
-          {timed ? clock : mode === 'survival' ? lives : streak}
-        </div>
-        <dl className="flex gap-5 sm:gap-8 text-right">
+      <div className="mb-2 flex flex-wrap items-end justify-between gap-x-4 gap-y-2">
+        {mode === 'survival' ? (
+          <div
+            className="flex h-[30px] items-center gap-1.5"
+            aria-label={`${lives} lives left`}
+          >
+            {[0, 1, 2].map((i) => (
+              <svg
+                key={i}
+                width="26"
+                height="26"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                aria-hidden="true"
+                className={i < lives ? 'text-red-400' : 'text-white/15'}
+              >
+                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+              </svg>
+            ))}
+          </div>
+        ) : (
+          <div
+            className={`font-mono text-3xl font-bold tabular-nums leading-none ${
+              timed && phase === 'playing' && timeLeft <= 5
+                ? 'text-red-400'
+                : timed && phase === 'playing' && timeLeft <= 10
+                  ? 'text-amber-300'
+                  : 'text-[#0aee3c]'
+            }`}
+          >
+            {timed ? clock : streak}
+          </div>
+        )}
+        <dl className="flex gap-4 sm:gap-6 text-right">
           <div>
-            <dt className="text-[11px] uppercase tracking-widest text-white/40">
+            <dt className="text-[10px] uppercase tracking-widest text-white/40">
               {scored ? 'Score' : 'Solved'}
             </dt>
-            <dd className="text-2xl font-bold tabular-nums text-white">
+            <dd className="font-mono text-lg font-bold tabular-nums text-[#0aee3c]">
               {scored ? score : correct}
             </dd>
           </div>
+          {mode !== 'survival' && (
+            <div>
+              <dt className="text-[10px] uppercase tracking-widest text-white/40">Streak</dt>
+              <dd className="font-mono text-lg font-bold tabular-nums text-[#0aee3c]">{streak}</dd>
+            </div>
+          )}
           <div>
-            <dt className="text-[11px] uppercase tracking-widest text-white/40">Streak</dt>
-            <dd className="text-2xl font-bold tabular-nums text-white">{streak}</dd>
-          </div>
-          <div>
-            <dt className="text-[11px] uppercase tracking-widest text-white/40">Accuracy</dt>
-            <dd className="text-2xl font-bold tabular-nums text-white">
+            <dt className="text-[10px] uppercase tracking-widest text-white/40">Accuracy</dt>
+            <dd className="font-mono text-lg font-bold tabular-nums text-[#0aee3c]">
               {accuracy === null ? '—' : `${accuracy}%`}
             </dd>
           </div>
-          {scored && (
+          {mode !== 'practice' && (
             <div>
-              <dt className="text-[11px] uppercase tracking-widest text-white/40">Best</dt>
-              <dd className="text-2xl font-bold tabular-nums text-amber-300">
+              <dt className="text-[10px] uppercase tracking-widest text-white/40">Best</dt>
+              <dd className="font-mono text-lg font-bold tabular-nums text-amber-300">
                 {best > 0 ? best : '—'}
               </dd>
             </div>
@@ -743,7 +757,7 @@ export default function SquareTrainer() {
       </div>
 
       {mode !== 'practice' && (
-        <div className="mb-5 h-1.5 overflow-hidden rounded-full bg-white/10">
+        <div className="mb-3 h-1 overflow-hidden rounded-full bg-white/10">
           <div
             className={`h-full rounded-full ${
               timed && phase === 'playing' && timeLeft <= 5
@@ -761,8 +775,8 @@ export default function SquareTrainer() {
 
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_270px]">
         <div className="min-w-0">
-          <div className="mb-2 flex min-h-[28px] flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-            <p className="text-sm text-white/70">
+          <div className="mb-2 flex min-h-[28px] flex-nowrap items-baseline justify-between gap-x-3">
+            <p className="truncate text-sm text-white/70">
               {reverse ? (
                 <>
                   What square is lit?{' '}
@@ -783,11 +797,9 @@ export default function SquareTrainer() {
                 </>
               )}
             </p>
-            <p className="text-xs text-white/50" aria-live="polite">
+            <p className="shrink-0 text-xs text-white/50" aria-live="polite">
               {flash?.ok || choiceFlash?.ok ? (
-                <span className="font-bold text-green-400">
-                  Correct{lastGain !== null ? ` +${lastGain}` : ''}!
-                </span>
+                <span className="font-bold text-green-400">Correct!</span>
               ) : inputError ? (
                 <span className="text-amber-300">{inputError}</span>
               ) : lastMiss ? (
@@ -799,20 +811,15 @@ export default function SquareTrainer() {
               )}
             </p>
           </div>
-          {mode === 'survival' && phase !== 'idle' && (
-            <div className="mb-2 flex items-center gap-1.5" aria-label={`${lives} lives left`}>
-              {[0, 1, 2].map((i) => (
-                <span
-                  key={i}
-                  className={`h-2.5 w-2.5 rounded-full ${i < lives ? 'bg-green-400' : 'bg-white/15'}`}
-                />
-              ))}
-            </div>
+          {mode === 'survival' && phase !== 'idle' && lives <= 1 && (
+            <p className="mb-2 text-xs font-bold uppercase tracking-widest text-red-400">
+              Last life — every tap counts
+            </p>
           )}
 
-      {/* Single mat frame — the board fills the column. */}
-      <div className="relative mx-auto rounded-lg border border-white/10 bg-[#101114] p-2.5 sm:p-3">
-        <div className="grid grid-cols-[26px_1fr]">
+      {/* Dark frame — depth from the floor shadow, not color. */}
+      <div className="relative mx-auto rounded-xl border border-white/10 bg-[#101114] p-1.5 sm:p-2 shadow-[0_24px_60px_-12px_rgba(0,0,0,0.75)] flex flex-col h-fit w-full">
+        <div className="m-auto grid w-full grid-cols-[26px_1fr_26px]">
           <div className="grid grid-rows-[repeat(8,1fr)]">
             {displayRanks.map((rank) => (
               <div key={rank} className="flex items-center justify-center">
@@ -823,13 +830,14 @@ export default function SquareTrainer() {
             ))}
           </div>
           <div
-            className="grid grid-cols-8 overflow-hidden rounded border-[3px] border-[#5d4a33] focus-visible:outline focus-visible:outline-2 focus-visible:outline-white/40"
+            className="grid grid-cols-8 overflow-hidden rounded-md border-[3px] border-[#2a2015] shadow-[inset_0_3px_16px_rgba(0,0,0,0.5)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-white/40"
             tabIndex={0}
             onKeyDown={onBoardKey}
           >
             {displayRanks.map((rank, ri) =>
               displayFiles.map((file, di) => {
                 const sq = `${file}${rank}`;
+                const dark = squareColor(sq) === DARK;
                 const isFlash = !reverse && flash?.sq === sq;
                 const lit = reverse && sq === target;
                 const revealed = reveal && sq === target;
@@ -841,18 +849,22 @@ export default function SquareTrainer() {
                     tabIndex={-1}
                     onClick={() => guess(sq)}
                     aria-label={`square ${sq}`}
-                    className={`aspect-square w-full touch-manipulation ${lit ? 'ring-4 ring-inset ring-amber-300' : ''} ${
+                    className={`aspect-square w-full touch-manipulation cursor-pointer select-none transition-[filter,transform] duration-75 hover:brightness-[1.04] active:translate-y-px active:brightness-90 ${lit ? 'ring-4 ring-inset ring-amber-300' : ''} ${
                       revealed ? 'ring-4 ring-inset ring-green-400' : ''
                     } ${cursored ? 'outline outline-2 outline-dashed outline-offset-[-6px] outline-white/90' : ''}`}
                     style={{
                       background: isFlash ? (flash.ok ? '#0aee3c' : '#f87171') : squareColor(sq),
+                      boxShadow: dark ? DARK_BEVEL : LIGHT_BEVEL,
                     }}
                   />
                 );
               })
             )}
           </div>
-          <div />
+          {/* Gutters are permanent symmetric space — the coordinates toggle
+              flips visibility only, so the board never moves or resizes. */}
+          <div aria-hidden="true" />
+          <div aria-hidden="true" />
           <div className="grid grid-cols-8">
             {displayFiles.map((file) => (
               <div key={file} className="flex items-center justify-center pt-1">
@@ -862,6 +874,7 @@ export default function SquareTrainer() {
               </div>
             ))}
           </div>
+          <div aria-hidden="true" />
         </div>
 
       </div>
@@ -896,7 +909,7 @@ export default function SquareTrainer() {
                 </SegBtn>
               ))}
             </div>
-            <p className="mt-2 text-sm text-white/45">{modeBlurb}</p>
+            <p className="mt-2 min-h-[2.5rem] text-sm text-white/45">{modeBlurb}</p>
           </section>
           <section>
             <h4 className="mb-2 text-xs font-bold uppercase tracking-widest text-white/40">
@@ -984,7 +997,7 @@ export default function SquareTrainer() {
           <button
             type="button"
             onClick={startRun}
-            className="flex items-center justify-center gap-2 rounded-xl border border-white/20 px-4 py-3 text-[15px] font-bold text-white/85 hover:bg-white/5"
+            className="flex items-center justify-center gap-2 rounded-xl border border-white/20 px-4 py-3 text-[15px] font-bold text-white/85 transition-all duration-150 hover:bg-white/5 active:scale-[0.97]"
           >
             <svg
               width="16"
@@ -1027,7 +1040,7 @@ export default function SquareTrainer() {
           />
           <button
             type="submit"
-            className="shrink-0 rounded-lg bg-white px-4 py-2 text-sm font-bold text-black"
+            className="shrink-0 rounded-lg bg-white px-4 py-2 text-sm font-bold text-black transition-all duration-150 hover:brightness-105 active:scale-[0.97]"
           >
             Go
           </button>
@@ -1043,7 +1056,7 @@ export default function SquareTrainer() {
                 key={name}
                 type="button"
                 onClick={() => answerChoice(name)}
-                className={`rounded-lg border px-3 py-2.5 font-mono text-base font-bold touch-manipulation ${
+                className={`rounded-lg border px-3 py-2.5 font-mono text-base font-bold touch-manipulation select-none transition-all duration-150 active:scale-[0.97] ${
                   picked
                     ? choiceFlash.ok
                       ? 'border-green-400 bg-green-400/15 text-green-300'
@@ -1082,7 +1095,7 @@ export default function SquareTrainer() {
           <button
             type="button"
             onClick={() => setHard((h) => !h)}
-            className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-medium text-white/80"
+            className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-medium text-white/80 transition-all duration-150 active:scale-95"
           >
             Coordinates: {hard ? 'Off' : 'On'}
           </button>
@@ -1090,14 +1103,14 @@ export default function SquareTrainer() {
             type="button"
             onClick={cycleSide}
             title="Cycle White → Black → Random"
-            className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-medium text-white/80"
+            className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-medium text-white/80 transition-all duration-150 active:scale-95"
           >
             Play as: {sideLabel}
           </button>
           <button
             type="button"
             onClick={() => setMuted((m) => !m)}
-            className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-medium text-white/80"
+            className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-medium text-white/80 transition-all duration-150 active:scale-95"
           >
             Sound: {muted ? 'Off' : 'On'}
           </button>
@@ -1137,15 +1150,16 @@ export default function SquareTrainer() {
         <button
           type="button"
           onClick={startRun}
-          className="w-full rounded-xl border border-white/20 px-4 py-3 text-[15px] font-bold text-white/85"
+          className="w-full rounded-xl border border-white/20 px-4 py-3 text-[15px] font-bold text-white/85 transition-all duration-150 active:scale-[0.97]"
         >
           Restart round
         </button>
       </div>
 
       {over && (
-        <div className="absolute inset-0 z-10 overflow-y-auto rounded-xl bg-black/85">
-          <div className="mx-auto flex min-h-full w-full max-w-sm flex-col justify-center px-5 py-8">
+        <div className="absolute inset-0 z-10 overflow-y-auto rounded-xl bg-black/90 backdrop-blur-[2px]">
+          <div className="mx-auto flex min-h-full w-full max-w-sm flex-col justify-center px-4 py-8">
+            <div className="w-full rounded-2xl border border-white/10 bg-[#141518]/95 p-5 shadow-[0_24px_70px_rgba(0,0,0,0.65)] sm:p-6">
             <div className="flex items-start justify-between gap-3">
               <h3 className="font-serif text-2xl font-bold text-[#f3ecd9]">
                 {timed ? 'Round complete' : 'Out of lives'}
@@ -1169,7 +1183,7 @@ export default function SquareTrainer() {
             <p className="mt-1 text-center text-xs font-bold uppercase tracking-widest text-white/40">
               {modeLabel.toUpperCase()} · {timed ? '30S' : '3 LIVES'} · {sideLabel.toUpperCase()}
             </p>
-            <p className="mt-1 text-center text-7xl font-bold tabular-nums text-white">{score}</p>
+            <p className="mt-1 text-center font-mono text-7xl font-bold tabular-nums text-[#0aee3c]">{score}</p>
             {score >= best && score > 0 ? (
               <p className="mt-3 text-center">
                 <span className="inline-block rounded-full bg-amber-300 px-4 py-1 text-sm font-bold text-black">
@@ -1265,7 +1279,7 @@ export default function SquareTrainer() {
                 <button
                   type="button"
                   onClick={drillSlips}
-                  className="mt-4 w-full rounded-xl bg-[#f3ecd9] px-4 py-3 text-[15px] font-bold text-black"
+                  className="mt-4 w-full rounded-xl bg-[#f3ecd9] px-4 py-3 text-[15px] font-bold text-black transition-all duration-150 hover:brightness-105 active:scale-[0.97]"
                 >
                   Drill these {slipTop.length} square{slipTop.length === 1 ? '' : 's'}
                 </button>
@@ -1278,10 +1292,11 @@ export default function SquareTrainer() {
             <button
               type="button"
               onClick={startRun}
-              className="mt-2 w-full rounded-xl border border-white/20 px-4 py-3 text-[15px] font-bold text-white/85 hover:bg-white/5"
+              className="mt-2 w-full rounded-xl border border-white/20 px-4 py-3 text-[15px] font-bold text-white/85 transition-all duration-150 hover:bg-white/5 active:scale-[0.97]"
             >
               Play again
             </button>
+            </div>
           </div>
         </div>
       )}
