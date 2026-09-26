@@ -55,6 +55,8 @@ import DownwashPushback from './DownwashPushback';
 import UpsideDownWing from './UpsideDownWing';
 import HandWingStall from './HandWingStall';
 import LindyCurves from './LindyCurves';
+import SkillMoveFinder from './SkillMoveFinder';
+import SkillInput from './SkillInput';
 import TftItemCombinator from './TftItemCombinator';
 
 // Article content (stored as HTML in Supabase) can embed a widget by
@@ -119,5 +121,7 @@ export const WIDGET_REGISTRY: Record<string, ComponentType> = {
   'upside-down-wing': UpsideDownWing,
   'hand-wing-stall': HandWingStall,
   'lindy-curves': LindyCurves,
+  'skill-move-finder': SkillMoveFinder,
+  'skill-input': SkillInput,
   'tft-item-combinator': TftItemCombinator,
 };
