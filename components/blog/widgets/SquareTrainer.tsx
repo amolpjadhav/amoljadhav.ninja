@@ -665,6 +665,8 @@ export default function SquareTrainer() {
     total: String(attempts > 0 ? attempts : score),
     ...(accuracy === null ? {} : { acc: String(accuracy) }),
     ...(avgPer === null ? {} : { avg: avgPer.toFixed(1) }),
+    ...(best > 0 ? { pb: String(best) } : {}),
+    ...(timed ? { secs: String(BLITZ_SECONDS) } : {}),
     ...(isNewBest ? { best: '1' } : {}),
   });
   const shareUrl = `https://amoljadhav.ai/share/chess-notation?${cardParams.toString()}`;

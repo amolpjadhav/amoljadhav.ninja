@@ -40,6 +40,8 @@ export async function generateMetadata({
     total,
     ...(first(sp.acc) ? { acc: first(sp.acc) as string } : {}),
     ...(first(sp.avg) ? { avg: first(sp.avg) as string } : {}),
+    ...(first(sp.pb) ? { pb: first(sp.pb) as string } : {}),
+    ...(first(sp.secs) ? { secs: first(sp.secs) as string } : {}),
     ...(first(sp.best) === '1' ? { best: '1' } : {}),
   });
   const cardUrl = `${SITE}/api/og/score?${cardParams.toString()}`;

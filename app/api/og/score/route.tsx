@@ -47,6 +47,8 @@ export async function GET(req: Request) {
   const total = clampNum(q.get('total'), 1, 999) ?? 20;
   const accN = clampNum(q.get('acc'), 0, 100);
   const avgN = clampNum(q.get('avg'), 0, 99);
+  const pbN = clampNum(q.get('pb'), 0, 999);
+  const secsN = clampNum(q.get('secs'), 0, 999);
   const isBest = q.get('best') === '1';
 
   const font = await loadFont();
@@ -111,14 +113,14 @@ export async function GET(req: Request) {
             <span style={{ fontSize: 72, fontWeight: 800, color: MUTED }}>/{total}</span>
           </div>
           <div style={{ fontSize: 30, color: MUTED, fontWeight: 700, letterSpacing: 2, marginTop: 4 }}>
-            SQUARES NAMED IN 30 SECONDS
+            {secsN !== null && secsN > 0 ? `SQUARES NAMED IN ${Math.round(secsN)} SECONDS` : 'SQUARES NAMED · CHESS NOTATION'}
           </div>
 
           <div style={{ display: 'flex', gap: 20, marginTop: 36 }}>
             {[
               ['ACCURACY', accN === null ? '—' : `${Math.round(accN)}%`],
               ['AVG / SQUARE', avgN === null ? '—' : `${avgN.toFixed(1)}s`],
-              ['DRILL', 'CHESS NOTATION'],
+              ['MY BEST', pbN === null ? '—' : `${Math.round(pbN)}`],
             ].map(([label, value]) => (
               <div
                 key={label}
