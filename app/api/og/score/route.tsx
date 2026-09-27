@@ -60,8 +60,8 @@ export async function GET(req: Request) {
       <div
         key={i}
         style={{
-          width: 52,
-          height: 52,
+          width: 44,
+          height: 44,
           background: light ? '#1e2422' : '#121615',
         }}
       />
@@ -116,7 +116,7 @@ export async function GET(req: Request) {
             {secsN !== null && secsN > 0 ? `SQUARES NAMED IN ${Math.round(secsN)} SECONDS` : 'SQUARES NAMED · CHESS NOTATION'}
           </div>
 
-          <div style={{ display: 'flex', gap: 20, marginTop: 36 }}>
+          <div style={{ display: 'flex', gap: 12, marginTop: 32 }}>
             {[
               ['ACCURACY', accN === null ? '—' : `${Math.round(accN)}%`],
               ['AVG / SQUARE', avgN === null ? '—' : `${avgN.toFixed(1)}s`],
@@ -128,14 +128,17 @@ export async function GET(req: Request) {
                   display: 'flex',
                   flexDirection: 'column',
                   background: PANEL,
-                  borderRadius: 16,
-                  padding: '18px 28px',
+                  borderRadius: 14,
+                  paddingTop: 14,
+                  paddingBottom: 14,
+                  paddingLeft: 20,
+                  paddingRight: 20,
                 }}
               >
-                <span style={{ fontSize: 22, color: MUTED, fontWeight: 700, letterSpacing: 2 }}>
+                <span style={{ fontSize: 20, color: MUTED, fontWeight: 700, letterSpacing: 2 }}>
                   {label}
                 </span>
-                <span style={{ fontSize: 44, fontWeight: 800 }}>{value}</span>
+                <span style={{ fontSize: 36, fontWeight: 800 }}>{value}</span>
               </div>
             ))}
           </div>
@@ -149,10 +152,10 @@ export async function GET(req: Request) {
           style={{
             display: 'flex',
             flexWrap: 'wrap',
-            width: 416,
+            width: 352,
             alignContent: 'center',
             opacity: 0.9,
-            marginLeft: 40,
+            marginLeft: 32,
           }}
         >
           {squares}
