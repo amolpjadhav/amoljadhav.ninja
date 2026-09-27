@@ -86,24 +86,24 @@ export async function GET(req: Request) {
 
         <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', flex: 1 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            <span style={{ color: GREEN, fontSize: 30, fontWeight: 800, letterSpacing: 4 }}>
-              SQUARE TRAINER
+            <span style={{ color: GREEN, fontSize: 26, fontWeight: 800, letterSpacing: 3 }}>
+              NOTATION TRAINER
             </span>
             {isBest ? (
               <span
                 style={{
                   background: GREEN,
                   color: '#06110a',
-                  fontSize: 26,
+                  fontSize: 22,
                   fontWeight: 900,
-                  paddingTop: 6,
-                  paddingBottom: 6,
-                  paddingLeft: 18,
-                  paddingRight: 18,
+                  paddingTop: 5,
+                  paddingBottom: 5,
+                  paddingLeft: 14,
+                  paddingRight: 14,
                   borderRadius: 999,
                 }}
               >
-                ★ NEW BEST
+                NEW BEST
               </span>
             ) : null}
           </div>
