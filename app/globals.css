@@ -295,6 +295,146 @@ body {
   padding: 0;
 }
 
+/* SquareTrainer motion — every animation is short (120–200ms) and ease-out.
+   Under prefers-reduced-motion the game falls back to color changes only. */
+@keyframes st-hit {
+  50% {
+    transform: scale(1.04);
+  }
+}
+@keyframes st-miss {
+  25% {
+    transform: translateX(-4px);
+  }
+  75% {
+    transform: translateX(4px);
+  }
+}
+@keyframes st-target-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+@keyframes st-timer-pulse {
+  50% {
+    transform: scale(1.07);
+  }
+}
+@keyframes st-score-tick {
+  from {
+    opacity: 0.4;
+    transform: translateY(6px);
+  }
+}
+.sq-hit {
+  animation: st-hit 160ms ease-out;
+}
+.board-shake {
+  animation: st-miss 180ms ease-out;
+}
+.target-in {
+  display: inline-block;
+  animation: st-target-in 180ms ease-out;
+}
+.timer-pulse {
+  animation: st-timer-pulse 1s ease-out infinite;
+}
+.score-tick {
+  display: inline-block;
+  animation: st-score-tick 200ms ease-out;
+}
+@keyframes st-burst {
+  from {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--dx)), var(--dy)) scale(0.4);
+  }
+}
+.confetti-bit {
+  animation: st-burst 500ms ease-out forwards;
+}
+
+/* Round-complete results: two columns matching the widget's landscape
+   shape — result and actions left, heatmap right. Under a 640px container
+   it stacks with the actions pinned to the bottom. */
+.st-results {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-rows: auto 1fr auto;
+  gap: 16px 40px;
+  padding: 32px;
+  min-height: 100%;
+}
+.st-results-head {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.st-summary {
+  grid-column: 1;
+  grid-row: 2;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 12px;
+  min-width: 0;
+}
+.st-heat {
+  grid-column: 2;
+  grid-row: 2 / span 2;
+  align-self: center;
+  min-width: 0;
+  width: min(100%, 360px);
+  margin-inline: auto;
+}
+.st-actions {
+  grid-column: 1;
+  grid-row: 3;
+  display: grid;
+  gap: 8px;
+  align-content: start;
+}
+@container widget (max-width: 640px) {
+  .st-results {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: none;
+  }
+  .st-results-head,
+  .st-summary,
+  .st-heat,
+  .st-actions {
+    grid-column: 1;
+    grid-row: auto;
+  }
+  .st-heat {
+    width: min(100%, 320px);
+  }
+  .st-actions {
+    position: sticky;
+    bottom: 0;
+    background: #141518;
+    padding: 12px 0 4px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sq-hit,
+  .board-shake,
+  .target-in,
+  .timer-pulse,
+  .score-tick,
+  .confetti-bit {
+    animation: none;
+  }
+}
+
 @media (max-width: 640px) {
   .article-content {
     font-size: 0.975rem;
