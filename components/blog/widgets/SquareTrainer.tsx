@@ -14,12 +14,7 @@ import type { ReactNode } from 'react';
 const FILES = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
 const LIGHT = '#eeeed2';
 const DARK = '#769656';
-// Faux-3D bevels: top light-catch plus a floor shadow, tuned per square
-// tone so the board reads as one carved object.
-const LIGHT_BEVEL =
-  'inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -3px 6px rgba(120,90,40,0.20)';
-const DARK_BEVEL =
-  'inset 0 1px 0 rgba(255,255,255,0.22), inset 0 -3px 6px rgba(0,0,0,0.30)';
+// Squares stay flat — depth lives in the card shadow, not bevels.
 const BLITZ_SECONDS = 30;
 // v3: bests are plain correct-counts (one point per correct answer) —
 // v2 keys held bonus-inflated point values from the scoring era.
@@ -190,14 +185,19 @@ function SwitchRow({
   on,
   onToggle,
   blue,
+  hint,
 }: {
   label: string;
   on: boolean;
   onToggle: () => void;
   blue?: boolean;
+  hint?: string;
 }) {
   return (
-    <div className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-[#24262b] px-4 py-3">
+    <div
+      title={hint}
+      className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-[#24262b] px-4 py-3"
+    >
       <span className="text-[15px] font-medium text-white/85">{label}</span>
       <button
         type="button"
@@ -248,6 +248,7 @@ export default function SquareTrainer() {
   const [bestStreak, setBestStreak] = useState(0);
   const [score, setScore] = useState(0);
   const [best, setBest] = useState(() => loadBest(BEST_BLITZ_KEY));
+  const [prevBest, setPrevBest] = useState(0);
   const [lives, setLives] = useState(3);
   const [correct, setCorrect] = useState(0);
   const [attempts, setAttempts] = useState(0);
@@ -402,6 +403,9 @@ export default function SquareTrainer() {
     });
     setPhase('over');
     setScore(finalScore);
+    // Best hasn't been updated for this round yet, so the closure value
+    // is the previous best — the pill shows the margin over it.
+    setPrevBest(best);
     setBest((prev) => {
       if (finalScore > prev) {
         try {
@@ -494,8 +498,10 @@ export default function SquareTrainer() {
       // otherwise the board sits dead until Restart is pressed.
       setPhase('playing');
       setBest(loadBest(BEST_SURVIVAL_KEY));
+      setPrevBest(loadBest(BEST_SURVIVAL_KEY));
     } else if (m === 'blitz') {
       setBest(loadBest(BEST_BLITZ_KEY));
+      setPrevBest(loadBest(BEST_BLITZ_KEY));
     }
   }
 
@@ -667,7 +673,7 @@ export default function SquareTrainer() {
         : 'No clock. Slice the board and drill.';
 
   return (
-    <div className="relative not-prose bg-[#1c1d20] border border-white/10 rounded-xl p-4 pt-2 sm:p-6 sm:pt-3 my-6 lg:-mx-24 xl:-mx-32 [-webkit-tap-highlight-color:transparent]">
+    <div className="relative not-prose font-sans bg-[#1c1d20] border border-white/10 rounded-xl px-4 pb-5 pt-2 sm:px-6 sm:pb-6 sm:pt-3 my-6 lg:-mx-24 xl:-mx-32 [-webkit-tap-highlight-color:transparent]">
       <div className="mb-2 flex flex-wrap items-center gap-x-3 gap-y-1 lg:hidden">
         <button
           type="button"
@@ -713,12 +719,14 @@ export default function SquareTrainer() {
           </div>
         ) : (
           <div
-            className={`font-mono text-3xl font-bold tabular-nums leading-none ${
+            className={`font-mono text-2xl font-bold tabular-nums leading-none ${
               timed && phase === 'playing' && timeLeft <= 5
-                ? 'text-red-400'
+                ? 'text-orange-500'
                 : timed && phase === 'playing' && timeLeft <= 10
                   ? 'text-amber-300'
-                  : 'text-[#0aee3c]'
+                  : timed && phase === 'idle'
+                    ? 'text-[#f3ecd9]'
+                    : 'text-[#0aee3c]'
             }`}
           >
             {timed ? clock : streak}
@@ -729,19 +737,19 @@ export default function SquareTrainer() {
             <dt className="text-[10px] uppercase tracking-widest text-white/40">
               {scored ? 'Score' : 'Solved'}
             </dt>
-            <dd className="font-mono text-lg font-bold tabular-nums text-[#0aee3c]">
+            <dd className="font-mono text-lg font-bold tabular-nums text-[#f3ecd9]">
               {scored ? score : correct}
             </dd>
           </div>
           {mode !== 'survival' && (
             <div>
               <dt className="text-[10px] uppercase tracking-widest text-white/40">Streak</dt>
-              <dd className="font-mono text-lg font-bold tabular-nums text-[#0aee3c]">{streak}</dd>
+              <dd className="font-mono text-lg font-bold tabular-nums text-[#f3ecd9]">{streak}</dd>
             </div>
           )}
           <div>
             <dt className="text-[10px] uppercase tracking-widest text-white/40">Accuracy</dt>
-            <dd className="font-mono text-lg font-bold tabular-nums text-[#0aee3c]">
+            <dd className="font-mono text-lg font-bold tabular-nums text-[#f3ecd9]">
               {accuracy === null ? '—' : `${accuracy}%`}
             </dd>
           </div>
@@ -773,9 +781,9 @@ export default function SquareTrainer() {
         </div>
       )}
 
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_270px]">
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_380px]">
         <div className="min-w-0">
-          <div className="mb-2 flex min-h-[28px] flex-nowrap items-baseline justify-between gap-x-3">
+          <div className="mb-1 flex min-h-[40px] flex-nowrap items-center justify-between gap-x-3">
             <p className="truncate text-sm text-white/70">
               {reverse ? (
                 <>
@@ -788,7 +796,7 @@ export default function SquareTrainer() {
                 </>
               ) : (
                 <>
-                  Tap <strong className="text-xl text-white">{target}</strong>
+                  Tap <strong className="text-4xl font-bold text-white">{target}</strong>
                   {streak >= 3 && (
                     <span className="ml-2 text-xs font-bold uppercase tracking-wide text-amber-300">
                       Combo ×{streak}
@@ -817,9 +825,7 @@ export default function SquareTrainer() {
             </p>
           )}
 
-      {/* Dark frame — depth from the floor shadow, not color. */}
-      <div className="relative mx-auto rounded-xl border border-white/10 bg-[#101114] p-1.5 sm:p-2 shadow-[0_24px_60px_-12px_rgba(0,0,0,0.75)] flex flex-col h-fit w-full">
-        <div className="m-auto grid w-full grid-cols-[26px_1fr_26px]">
+        <div className="grid w-full grid-cols-[26px_1fr_26px]">
           <div className="grid grid-rows-[repeat(8,1fr)]">
             {displayRanks.map((rank) => (
               <div key={rank} className="flex items-center justify-center">
@@ -830,14 +836,13 @@ export default function SquareTrainer() {
             ))}
           </div>
           <div
-            className="grid grid-cols-8 overflow-hidden rounded-md border-[3px] border-[#2a2015] shadow-[inset_0_3px_16px_rgba(0,0,0,0.5)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-white/40"
+            className="grid grid-cols-8 overflow-hidden rounded-lg border border-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white/40"
             tabIndex={0}
             onKeyDown={onBoardKey}
           >
             {displayRanks.map((rank, ri) =>
               displayFiles.map((file, di) => {
                 const sq = `${file}${rank}`;
-                const dark = squareColor(sq) === DARK;
                 const isFlash = !reverse && flash?.sq === sq;
                 const lit = reverse && sq === target;
                 const revealed = reveal && sq === target;
@@ -854,7 +859,6 @@ export default function SquareTrainer() {
                     } ${cursored ? 'outline outline-2 outline-dashed outline-offset-[-6px] outline-white/90' : ''}`}
                     style={{
                       background: isFlash ? (flash.ok ? '#0aee3c' : '#f87171') : squareColor(sq),
-                      boxShadow: dark ? DARK_BEVEL : LIGHT_BEVEL,
                     }}
                   />
                 );
@@ -876,13 +880,13 @@ export default function SquareTrainer() {
           </div>
           <div aria-hidden="true" />
         </div>
-
-      </div>
-
+          <p className="mt-1 text-[11px] leading-relaxed text-white/50">
+            Tip: click the board, then move with the arrow keys — Enter taps the square.
+          </p>
         </div>
-        <aside className="hidden min-w-0 flex-col gap-5 lg:flex">
+        <aside className="hidden min-w-0 flex-col gap-4 lg:flex">
           <section>
-            <h4 className="mb-2 text-xs font-bold uppercase tracking-widest text-white/40">
+            <h4 className="mb-2 text-xs font-bold uppercase tracking-widest text-white/60">
               Task
             </h4>
             <div className="grid grid-cols-2 rounded-xl bg-black/30 p-1">
@@ -899,7 +903,7 @@ export default function SquareTrainer() {
             </div>
           </section>
           <section>
-            <h4 className="mb-2 text-xs font-bold uppercase tracking-widest text-white/40">
+            <h4 className="mb-2 text-xs font-bold uppercase tracking-widest text-white/60">
               Mode
             </h4>
             <div className="grid grid-cols-3 rounded-xl bg-black/30 p-1">
@@ -909,10 +913,10 @@ export default function SquareTrainer() {
                 </SegBtn>
               ))}
             </div>
-            <p className="mt-2 min-h-[2.5rem] text-sm text-white/45">{modeBlurb}</p>
+            <p className="mt-0.5 truncate text-xs text-white/45">{modeBlurb}</p>
           </section>
           <section>
-            <h4 className="mb-2 text-xs font-bold uppercase tracking-widest text-white/40">
+            <h4 className="mb-2 text-xs font-bold uppercase tracking-widest text-white/60">
               Play as
             </h4>
             <div className="grid grid-cols-3 rounded-xl bg-black/30 p-1">
@@ -938,7 +942,7 @@ export default function SquareTrainer() {
           </section>
           {mode === 'practice' && (
             <section>
-              <h4 className="mb-2 text-xs font-bold uppercase tracking-widest text-white/40">
+              <h4 className="mb-2 text-xs font-bold uppercase tracking-widest text-white/60">
                 Drill
               </h4>
               {drillSet && drillSet.length > 0 && (
@@ -988,9 +992,10 @@ export default function SquareTrainer() {
           )}
           <section className="flex flex-col gap-2">
             <SwitchRow
-              label="Coordinates on board"
+              label="Coordinates"
               on={!hard}
               onToggle={() => setHard((h) => !h)}
+              hint="Show coordinate labels around the board"
             />
             <SwitchRow label="Sound" on={!muted} onToggle={() => setMuted((m) => !m)} blue />
           </section>
@@ -1016,9 +1021,6 @@ export default function SquareTrainer() {
             </svg>
             Restart round
           </button>
-          <p className="text-[11px] leading-relaxed text-white/30">
-            Tip: click the board, then move with the arrow keys — Enter taps the square.
-          </p>
         </aside>
       </div>
 
@@ -1158,10 +1160,10 @@ export default function SquareTrainer() {
 
       {over && (
         <div className="absolute inset-0 z-10 overflow-y-auto rounded-xl bg-black/90 backdrop-blur-[2px]">
-          <div className="mx-auto flex min-h-full w-full max-w-sm flex-col justify-center px-4 py-8">
-            <div className="w-full rounded-2xl border border-white/10 bg-[#141518]/95 p-5 shadow-[0_24px_70px_rgba(0,0,0,0.65)] sm:p-6">
+          <div className="mx-auto flex min-h-full w-full max-w-sm flex-col justify-center px-4 py-4">
+            <div className="w-full rounded-2xl border border-white/10 bg-[#141518]/95 p-4 shadow-[0_24px_70px_rgba(0,0,0,0.65)] sm:p-5">
             <div className="flex items-start justify-between gap-3">
-              <h3 className="font-serif text-2xl font-bold text-[#f3ecd9]">
+              <h3 className="text-xl font-bold text-[#f3ecd9]">
                 {timed ? 'Round complete' : 'Out of lives'}
               </h3>
               <button
@@ -1181,52 +1183,52 @@ export default function SquareTrainer() {
               </button>
             </div>
             <p className="mt-1 text-center text-xs font-bold uppercase tracking-widest text-white/40">
-              {modeLabel.toUpperCase()} · {timed ? '30S' : '3 LIVES'} · {sideLabel.toUpperCase()}
+              {modeLabel.toUpperCase()} · {timed ? '30 SEC' : '3 LIVES'} · {sideLabel.toUpperCase()}
             </p>
-            <p className="mt-1 text-center font-mono text-7xl font-bold tabular-nums text-[#0aee3c]">{score}</p>
-            {score >= best && score > 0 ? (
-              <p className="mt-3 text-center">
+            <p className="mt-1 text-center font-mono text-5xl font-bold tabular-nums text-[#f3ecd9]">{score}</p>
+            {score > prevBest && score > 0 ? (
+              <p className="mt-2 text-center">
                 <span className="inline-block rounded-full bg-amber-300 px-4 py-1 text-sm font-bold text-black">
-                  New best
+                  New best · +{score - prevBest}
                 </span>
               </p>
             ) : (
-              <p className="mt-3 text-center text-sm text-white/50">
+              <p className="mt-2 text-center text-sm text-white/50">
                 Best {best > 0 ? best : '—'}
               </p>
             )}
-            <div className="mt-4 grid grid-cols-3 gap-2">
-              <div className="rounded-xl bg-white/[0.05] px-3 py-2.5">
+            <div className="mt-3 grid grid-cols-3 gap-2 text-center">
+              <div className="rounded-xl bg-white/[0.05] px-3 py-2">
                 <p className="text-[10px] font-bold uppercase tracking-widest text-white/40">
                   Accuracy
                 </p>
-                <p className="mt-0.5 text-2xl font-bold tabular-nums text-white">
+                <p className="mt-0.5 text-xl font-bold tabular-nums text-white">
                   {accuracy === null ? '—' : `${accuracy}%`}
                 </p>
               </div>
-              <div className="rounded-xl bg-white/[0.05] px-3 py-2.5">
+              <div className="rounded-xl bg-white/[0.05] px-3 py-2">
                 <p className="text-[10px] font-bold uppercase tracking-widest text-white/40">
                   Per square
                 </p>
-                <p className="mt-0.5 text-2xl font-bold tabular-nums text-white">
+                <p className="mt-0.5 text-xl font-bold tabular-nums text-white">
                   {avgPer === null ? '—' : `${avgPer.toFixed(1)}s`}
                 </p>
               </div>
-              <div className="rounded-xl bg-white/[0.05] px-3 py-2.5">
+              <div className="rounded-xl bg-white/[0.05] px-3 py-2">
                 <p className="text-[10px] font-bold uppercase tracking-widest text-white/40">
                   Best streak
                 </p>
-                <p className="mt-0.5 text-2xl font-bold tabular-nums text-white">{bestStreak}</p>
+                <p className="mt-0.5 text-xl font-bold tabular-nums text-white">{bestStreak}</p>
               </div>
             </div>
-            <h4 className="mt-5 text-lg font-bold text-white">Where you slip</h4>
-            <p className="text-sm text-white/45">Misses over your last 10 rounds</p>
+            <h4 className="mt-3 text-base font-bold text-white">Where you slip</h4>
+            <p className="text-xs text-white/45">{missHist.length <= 1 ? 'Misses this round' : 'Misses over your last 10 rounds'}</p>
             {slipTop.length > 0 ? (
               <>
-                <div className="mt-2 rounded-xl bg-black/30 p-2.5">
-                  <div className="flex flex-col gap-[3px]">
+                <div className="mx-auto mt-2 w-full max-w-[240px] rounded-xl bg-black/30 p-2">
+                  <div className="flex flex-col gap-px">
                     {[8, 7, 6, 5, 4, 3, 2, 1].map((rank) => (
-                      <div key={rank} className="flex items-stretch gap-[3px]">
+                      <div key={rank} className="flex items-stretch gap-px">
                         <span className="flex w-[14px] shrink-0 items-center justify-center text-[10px] font-bold text-white/35">
                           {rank}
                         </span>
@@ -1252,7 +1254,7 @@ export default function SquareTrainer() {
                         })}
                       </div>
                     ))}
-                    <div className="flex gap-[3px]">
+                    <div className="flex gap-px">
                       <span className="w-[14px] shrink-0" aria-hidden="true" />
                       {FILES.map((file) => (
                         <span
@@ -1279,7 +1281,7 @@ export default function SquareTrainer() {
                 <button
                   type="button"
                   onClick={drillSlips}
-                  className="mt-4 w-full rounded-xl bg-[#f3ecd9] px-4 py-3 text-[15px] font-bold text-black transition-all duration-150 hover:brightness-105 active:scale-[0.97]"
+                  className="mt-3 w-full rounded-xl bg-[#f3ecd9] px-4 py-2.5 text-[15px] font-bold text-black transition-all duration-150 hover:brightness-105 active:scale-[0.97]"
                 >
                   Drill these {slipTop.length} square{slipTop.length === 1 ? '' : 's'}
                 </button>
@@ -1292,7 +1294,7 @@ export default function SquareTrainer() {
             <button
               type="button"
               onClick={startRun}
-              className="mt-2 w-full rounded-xl border border-white/20 px-4 py-3 text-[15px] font-bold text-white/85 transition-all duration-150 hover:bg-white/5 active:scale-[0.97]"
+              className="mt-2 w-full rounded-xl border border-white/20 px-4 py-2.5 text-[15px] font-bold text-white/85 transition-all duration-150 hover:bg-white/5 active:scale-[0.97]"
             >
               Play again
             </button>

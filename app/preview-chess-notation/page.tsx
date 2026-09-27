@@ -81,9 +81,9 @@ const QUIZ: QuizQuestion[] = [
   },
 ];
 
-const CONTENT = `<p>Every chess article on this site — the Italian Game, the Scotch Gambit, all of them — is written in a strange little code. <code>e4</code>. <code>Nf3</code>. <code>exd5</code>. <code>O-O</code>. It looks like alphabet soup until someone shows you the system, and then it clicks in about ten minutes. This is that ten minutes.</p>
-<p>The whole system rests on one skill: <strong>naming any square instantly.</strong> Quick primer: the letter (a–h) is the column, counted from White’s left; the number (1–8) is the row, counted from White’s side. So <code>e8</code> is column e, top row.</p>
-<p>Play one round now to get a baseline. Then read on, and play again at the end. Watch the score jump.</p>
+const CONTENT = `<p>Every chess article on this site is written in a strange little code: <code>e4</code>, <code>Nf3</code>, <code>exd5</code>, <code>O-O</code>. It looks like alphabet soup until someone shows you the system. This is that ten minutes.</p>
+<p>It all rests on one skill: <strong>naming any square instantly.</strong> The letter (a–h) is the column from White’s left; the number (1–8) is the row from White’s side. So <code>e8</code> is column e, top row.</p>
+<p>Play one round for a baseline. You’ll play again at the end.</p>
 <div data-widget="square-trainer" id="trainer"></div>
 
 <h3>Every square has an address</h3>

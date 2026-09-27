@@ -84,7 +84,12 @@ body {
   animation: rotateIn 2s ease forwards;
 }
 
-/* Medium-style reading typography for blog post bodies */
+/* Medium-style reading typography for blog post bodies.
+   Wrapped in @layer components so Tailwind utilities (utilities layer) win
+   over these rules: widgets portal into .article-content, and their authored
+   classes must beat article typography. Bare prose tags carry no utilities,
+   so they keep these styles. */
+@layer components {
 .article-content {
   font-family: var(--font-serif);
   font-size: 1.0625rem;
@@ -118,7 +123,7 @@ body {
 }
 
 .article-content p {
-  margin: 0 0 1.6em;
+  margin: 0 0 1em;
 }
 
 .article-content h1,
@@ -280,11 +285,22 @@ body {
   margin: 2.5em 0;
 }
 
+/* Widget subtree reset: widgets portal into .article-content, so their bare
+   tags would still collect article margins (e.g. every dialog <p> getting
+   margin-bottom: 1em). Same layer, higher specificity wins over the rules
+   above; widget utilities (utilities layer) still override this wherever
+   the widget sets them. */
+.article-content [data-widget] :is(h1, h2, h3, h4, p, ul, ol, li, blockquote) {
+  margin: 0;
+  padding: 0;
+}
+
 @media (max-width: 640px) {
   .article-content {
     font-size: 0.975rem;
   }
 }
+} /* end article typography layer */
 
 /* Widgets are cards inside the article card. On a phone the article's own 16px
    padding is the only reading margin worth keeping, so a widget breaks out of

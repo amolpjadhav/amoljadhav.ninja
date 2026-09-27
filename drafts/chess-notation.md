@@ -4,11 +4,11 @@ Category: Gaming
 
 ---
 
-Every chess article on this site — the Italian Game, the Scotch Gambit, all of them — is written in a strange little code. e4. Nf3. exd5. O-O. It looks like alphabet soup until someone shows you the system, and then it clicks in about ten minutes. This is that ten minutes.
+Every chess article on this site is written in a strange little code: `e4`, `Nf3`, `exd5`, `O-O`. It looks like alphabet soup until someone shows you the system. This is that ten minutes.
 
-The whole system rests on one skill: **naming any square instantly.** Quick primer: the letter (a–h) is the column, counted from White's left; the number (1–8) is the row, counted from White's side. So `e8` is column e, top row.
+It all rests on one skill: **naming any square instantly.** The letter (a–h) is the column from White’s left; the number (1–8) is the row from White’s side. So `e8` is column e, top row.
 
-Play one round now to get a baseline. Then read on, and play again at the end. Watch the score jump.
+Play one round for a baseline. You’ll play again at the end.
 
 <div data-widget="square-trainer" id="trainer"></div>
 
