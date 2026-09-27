@@ -114,10 +114,18 @@ const QUIZ = [
 ];
 
 function inline(text) {
-  // Code spans are extracted first so bold/quote/link transforms never
+  // Raw inline tags (e.g. the styled Play-another-round button anchor) are
+  // extracted before anything else so the & escape and the curly-quote
+  // transform never touch their attributes.
+  const tags = [];
+  // Code spans are extracted next so bold/quote/link transforms never
   // touch notation like `!?` or `5...Nxd5??`.
   const codes = [];
   const out = text
+    .replace(/<[A-Za-z/!][^<>]*>/g, (t) => {
+      tags.push(t);
+      return `~T${tags.length - 1}T~`;
+    })
     .replace(/&/g, '&amp;')
     .replace(/`([^`]+?)`/g, (_, c) => {
       codes.push(c);
@@ -130,7 +138,9 @@ function inline(text) {
     // note at the top of this file.
     .replace(/"([^"]*)"/g, '“$1”')
     .replace(/'/g, '’');
-  return out.replace(/~C([0-9]+)C~/g, (_, i) => `<code>${codes[Number(i)]}</code>`);
+  return out
+    .replace(/~C([0-9]+)C~/g, (_, i) => `<code>${codes[Number(i)]}</code>`)
+    .replace(/~T([0-9]+)T~/g, (_, i) => tags[Number(i)]);
 }
 
 function renderTable(lines) {
@@ -210,6 +220,12 @@ async function main() {
   // Notation must be code spans, never curly-quoted or entity-escaped.
   if (/<code>[^<]*[“”]|&(?!amp;|lt;|gt)/.test(CONTENT)) {
     console.error('Refusing to publish: a code span looks mangled.');
+    process.exit(1);
+  }
+  // The Play-another-round link must render as the styled button anchor,
+  // never a bare markdown link (article link styling makes it look broken).
+  if (!CONTENT.includes('<a href="#trainer" style="display:inline-block;')) {
+    console.error('Refusing to publish: the Play-another-round button is missing its styles.');
     process.exit(1);
   }
 

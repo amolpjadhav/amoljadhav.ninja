@@ -62,7 +62,7 @@ You don't need to memorize any of this, you need to *recognize* it. Next time an
 
 Remember your first score? Play another round and beat it.
 
-[Play another round](#trainer)
+<a href="#trainer" style="display:inline-block;background:#f3ecd9;color:#111;font-weight:700;padding:0.65em 1.5em;border-radius:0.75rem;text-decoration:none;">Play another round</a>
 
 Then put it to work: the Italian Game opens `1. e4 e5 2. Nf3 Nc6 3. Bc4`, and now you can read every move of it.
 
