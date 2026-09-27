@@ -120,7 +120,9 @@ const CONTENT = `<p>Every chess article on this site is written in a strange lit
 <p>You don’t need to memorize any of this, you need to <em>recognize</em> it. Next time an article says “the bishop eyes <code>f7</code>,” your eyes should jump to the square without counting.</p>
 <p>Remember your first score? Play another round and beat it.</p>
 <p><a href="#trainer" style="display:inline-block;background:#f3ecd9;color:#111;font-weight:700;padding:0.65em 1.5em;border-radius:0.75rem;text-decoration:none;">Play another round</a></p>
-<p>Then put it to work: the Italian Game opens <code>1. e4 e5 2. Nf3 Nc6 3. Bc4</code>, and now you can read every move of it.</p>`;
+<p>Then put it to work: the Italian Game opens <code>1. e4 e5 2. Nf3 Nc6 3. Bc4</code>, and now you can read every move of it.</p>
+<p>Now play it: the trainer below names a piece and two squares — drag it there, just as the notation reads.</p>
+<div data-widget="move-trainer" id="play-moves"></div>`;
 
 export default function PreviewChessNotation() {
   const { html: contentHtml, headings } = colorizeArticleSections(CONTENT);

@@ -673,7 +673,7 @@ export default function SquareTrainer() {
         : 'No clock. Slice the board and drill.';
 
   return (
-    <div className="relative not-prose font-sans bg-[#1c1d20] border border-white/10 rounded-xl px-4 pb-5 pt-2 sm:px-6 sm:pb-6 sm:pt-3 my-6 lg:-mx-24 xl:-mx-32 [-webkit-tap-highlight-color:transparent]">
+    <div className="relative not-prose font-sans bg-[#1c1d20] border border-white/10 rounded-xl px-4 pb-5 pt-2 sm:px-6 sm:pb-6 sm:pt-3 my-6 [-webkit-tap-highlight-color:transparent]">
       <div className="mb-2 flex flex-wrap items-center gap-x-3 gap-y-1 lg:hidden">
         <button
           type="button"
@@ -781,7 +781,7 @@ export default function SquareTrainer() {
         </div>
       )}
 
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_380px]">
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_270px]">
         <div className="min-w-0">
           <div className="mb-1 flex min-h-[40px] flex-nowrap items-center justify-between gap-x-3">
             <p className="truncate text-sm text-white/70">

@@ -66,4 +66,8 @@ Remember your first score? Play another round and beat it.
 
 Then put it to work: the Italian Game opens `1. e4 e5 2. Nf3 Nc6 3. Bc4`, and now you can read every move of it.
 
+Now play it: the trainer below names a piece and two squares — drag it there, just as the notation reads.
+
+<div data-widget="move-trainer" id="play-moves"></div>
+
 *Quiz (6 questions, self-contained) is stored directly in the published `blog_posts.quiz` column, not duplicated here.*
