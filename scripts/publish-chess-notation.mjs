@@ -1,4 +1,4 @@
-// Publishes "Chess Notation: How to Read e4 (and Every Square)" to the blog.
+// Publishes "How to Read Chess Notation in 10 Minutes" to the blog.
 //
 // The HTML below is generated from drafts/chess-notation.md, so the draft
 // stays the source of truth for the prose. Entities are deliberately absent:
@@ -34,12 +34,12 @@ const supabase = createClient(supabaseUrl, serviceKey, {
   auth: { autoRefreshToken: false, persistSession: false },
 });
 
-const TITLE = 'Chess Notation: How to Read e4 (and Every Square)';
+const TITLE = 'How to Read Chess Notation in 10 Minutes';
 const SLUG = 'chess-notation';
 const CATEGORY = 'Gaming';
 const READ_TIME = 4;
 const EXCERPT =
-  'e4. Nf3. exd5. O-O. Chess writing looks like alphabet soup until someone shows you the system — this is the ten minutes that makes every game annotation readable.';
+  'What e4, Nf3 and O-O mean, plus a trainer to make it stick.';
 
 // Mirrors the QUIZ array in app/preview-chess-notation/page.tsx. The draft
 // deliberately does not duplicate it, so keep the two in sync by hand.

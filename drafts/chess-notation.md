@@ -1,4 +1,4 @@
-# Chess Notation: How to Read e4 (and Every Square)
+# How to Read Chess Notation in 10 Minutes
 
 Category: Gaming
 
