@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 
 // Name-that-square, game edition. Three modes — Practice (calm, endless),
 // Blitz (30 seconds, points), Survival (3 lives, wrong taps cost one) — plus
@@ -171,7 +171,7 @@ function SegBtn({
       onClick={onClick}
       className={`rounded-lg px-2 py-1.5 text-[13px] font-bold transition-all duration-150 active:scale-[0.97] ${
         active
-          ? 'bg-[#f3ecd9] text-black shadow-[0_2px_10px_rgba(0,0,0,0.45)]'
+          ? 'bg-[#f3ecd9] text-black shadow-[0_2px_10px_rgba(0,0,0,0.45),0_0_12px_rgba(243,236,217,0.25)]'
           : 'text-white/55 hover:text-white'
       }`}
     >
@@ -262,6 +262,11 @@ export default function SquareTrainer() {
   const [drillSet, setDrillSet] = useState<string[] | null>(null);
   const [avgPer, setAvgPer] = useState<number | null>(null);
   const [missHist, setMissHist] = useState<MissRound[]>(() => loadMissHist());
+  const [shaking, setShaking] = useState(false);
+  const [shownScore, setShownScore] = useState(0);
+  const [burst, setBurst] = useState<{ dx: number; dy: number; c: string }[] | null>(null);
+  const shakeTimer = useRef<number | null>(null);
+  const burstTimer = useRef<number | null>(null);
   const timerRef = useRef<number | null>(null);
   const leftRef = useRef(BLITZ_SECONDS);
   const audioRef = useRef<AudioContext | null>(null);
@@ -386,6 +391,24 @@ export default function SquareTrainer() {
     dealRef.current = deal;
   });
 
+  // Round-over score counts up from zero; under reduced motion the dialog
+  // renders the final score directly, keeping setState out of the effect body.
+  const reduceMotion =
+    typeof window !== 'undefined' &&
+    window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches === true;
+  useEffect(() => {
+    if (!over || reduceMotion) return;
+    let raf = 0;
+    const t0 = performance.now();
+    const tick = (t: number) => {
+      const k = Math.min(1, (t - t0) / 600);
+      setShownScore(Math.round(score * k));
+      if (k < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [over, reduceMotion, score]);
+
   function endRun(finalScore: number, key: string) {
     // Guarded: endRun fires from inside state updaters, which StrictMode
     // may invoke twice — the round must only be recorded once.
@@ -406,6 +429,24 @@ export default function SquareTrainer() {
     // Best hasn't been updated for this round yet, so the closure value
     // is the previous best — the pill shows the margin over it.
     setPrevBest(best);
+    // New-best celebration: sixteen bits burst from the score and are gone
+    // in about half a second. Guarded to fire once with the round record.
+    if (finalScore > best && finalScore > 0 && !reduceMotion) {
+      const palette = ['#0aee3c', '#f3ecd9', '#fbbf24', '#4ade80'];
+      setBurst(
+        Array.from({ length: 16 }, () => {
+          const a = Math.random() * Math.PI * 2;
+          const d = 40 + Math.random() * 70;
+          return {
+            dx: Math.cos(a) * d,
+            dy: Math.sin(a) * d - 24,
+            c: palette[Math.floor(Math.random() * palette.length)],
+          };
+        }),
+      );
+      if (burstTimer.current !== null) window.clearTimeout(burstTimer.current);
+      burstTimer.current = window.setTimeout(() => setBurst(null), 650);
+    }
     setBest((prev) => {
       if (finalScore > prev) {
         try {
@@ -459,6 +500,7 @@ export default function SquareTrainer() {
     setInputError(null);
     setNameInput('');
     setCursor(null);
+    setShaking(false);
     if (mode === 'survival') {
       setLives(3);
       setPhase('playing');
@@ -489,6 +531,7 @@ export default function SquareTrainer() {
     setInputError(null);
     setNameInput('');
     setCursor(null);
+    setShaking(false);
     setTimeLeft(BLITZ_SECONDS);
     if (orientation === 'random') setFlipped(coinFlip());
     else setFlipped(orientation === 'black');
@@ -523,6 +566,9 @@ export default function SquareTrainer() {
 
   function registerMiss(picked: string) {
     beep(false);
+    if (shakeTimer.current !== null) window.clearTimeout(shakeTimer.current);
+    setShaking(true);
+    shakeTimer.current = window.setTimeout(() => setShaking(false), 200);
     setStreak(0);
     setLastMiss(picked);
     setInputError(null);
@@ -603,6 +649,29 @@ export default function SquareTrainer() {
     dealFrom(slipTop);
   }
 
+  const shareText =
+    accuracy === null
+      ? `${score} squares · Can you beat it?`
+      : timed
+        ? `${score} squares in 30s · ${accuracy}% · Can you beat it?`
+        : `${score} squares · ${accuracy}% · Can you beat it?`;
+
+  // Same X intent convention as ShareButtons: prefilled text plus a share
+  // link that carries the score, so the X post embeds a personalized
+  // score-card snapshot (never the preview URL).
+  const isNewBest = score > 0 && score > prevBest;
+  const cardParams = new URLSearchParams({
+    score: String(score),
+    total: String(attempts > 0 ? attempts : score),
+    ...(accuracy === null ? {} : { acc: String(accuracy) }),
+    ...(avgPer === null ? {} : { avg: avgPer.toFixed(1) }),
+    ...(isNewBest ? { best: '1' } : {}),
+  });
+  const shareUrl = `https://amoljadhav.ai/share/chess-notation?${cardParams.toString()}`;
+  const xHref = `https://twitter.com/intent/tweet?text=${encodeURIComponent(
+    shareText,
+  )}&url=${encodeURIComponent(shareUrl)}`;
+
   function dismiss() {
     stopClock();
     if (advanceRef.current !== null) window.clearTimeout(advanceRef.current);
@@ -627,6 +696,9 @@ export default function SquareTrainer() {
     setInputError(null);
     setNameInput('');
     setCursor(null);
+    setShaking(false);
+    if (burstTimer.current !== null) window.clearTimeout(burstTimer.current);
+    setBurst(null);
     deal();
   }
 
@@ -673,7 +745,8 @@ export default function SquareTrainer() {
         : 'No clock. Slice the board and drill.';
 
   return (
-    <div className="relative not-prose font-sans bg-[#1c1d20] border border-white/10 rounded-xl px-4 pb-5 pt-2 sm:px-6 sm:pb-6 sm:pt-3 my-6 [-webkit-tap-highlight-color:transparent]">
+    <div className="relative not-prose font-sans bg-[#1c1d20] border border-white/10 rounded-xl px-4 pb-5 pt-2 sm:px-6 sm:pb-6 sm:pt-3 my-6 shadow-[0_0_60px_rgba(10,238,60,0.07)] [-webkit-tap-highlight-color:transparent] [container:widget/inline-size]">
+      <div inert={over}>
       <div className="mb-2 flex flex-wrap items-center gap-x-3 gap-y-1 lg:hidden">
         <button
           type="button"
@@ -719,7 +792,7 @@ export default function SquareTrainer() {
           </div>
         ) : (
           <div
-            className={`font-mono text-2xl font-bold tabular-nums leading-none ${
+            className={`rounded-md bg-black/60 px-3 py-1.5 font-mono text-2xl font-bold tabular-nums leading-none shadow-[inset_0_2px_10px_rgba(0,0,0,0.85)] ${
               timed && phase === 'playing' && timeLeft <= 5
                 ? 'text-orange-500'
                 : timed && phase === 'playing' && timeLeft <= 10
@@ -727,7 +800,17 @@ export default function SquareTrainer() {
                   : timed && phase === 'idle'
                     ? 'text-[#f3ecd9]'
                     : 'text-[#0aee3c]'
-            }`}
+            } ${timed && phase === 'playing' && timeLeft <= 5 ? 'timer-pulse' : ''}`}
+            style={{
+              textShadow:
+                timed && phase === 'playing' && timeLeft <= 5
+                  ? '0 0 10px rgba(249,115,22,0.9)'
+                  : timed && phase === 'playing' && timeLeft <= 10
+                    ? '0 0 10px rgba(252,211,77,0.9)'
+                    : timed && phase === 'idle'
+                      ? 'none'
+                      : '0 0 10px rgba(10,238,60,0.9)',
+            }}
           >
             {timed ? clock : streak}
           </div>
@@ -737,14 +820,14 @@ export default function SquareTrainer() {
             <dt className="text-[10px] uppercase tracking-widest text-white/40">
               {scored ? 'Score' : 'Solved'}
             </dt>
-            <dd className="font-mono text-lg font-bold tabular-nums text-[#f3ecd9]">
+            <dd key={scored ? score : correct} className="score-tick font-mono text-lg font-bold tabular-nums text-[#f3ecd9]">
               {scored ? score : correct}
             </dd>
           </div>
           {mode !== 'survival' && (
             <div>
               <dt className="text-[10px] uppercase tracking-widest text-white/40">Streak</dt>
-              <dd className="font-mono text-lg font-bold tabular-nums text-[#f3ecd9]">{streak}</dd>
+              <dd className={`font-mono text-lg font-bold tabular-nums text-[#f3ecd9] ${streak === 5 || streak === 10 ? '[text-shadow:0_0_10px_rgba(10,238,60,0.8)]' : ''}`}>{streak}</dd>
             </div>
           )}
           <div>
@@ -796,7 +879,7 @@ export default function SquareTrainer() {
                 </>
               ) : (
                 <>
-                  Tap <strong className="text-4xl font-bold text-white">{target}</strong>
+                  Tap <strong key={target} className="target-in text-4xl font-bold text-white">{target}</strong>
                   {streak >= 3 && (
                     <span className="ml-2 text-xs font-bold uppercase tracking-wide text-amber-300">
                       Combo ×{streak}
@@ -825,7 +908,7 @@ export default function SquareTrainer() {
             </p>
           )}
 
-        <div className="grid w-full grid-cols-[26px_1fr_26px]">
+        <div className={`grid w-full grid-cols-[26px_1fr_26px] ${shaking ? 'board-shake' : ''}`}>
           <div className="grid grid-rows-[repeat(8,1fr)]">
             {displayRanks.map((rank) => (
               <div key={rank} className="flex items-center justify-center">
@@ -836,7 +919,7 @@ export default function SquareTrainer() {
             ))}
           </div>
           <div
-            className="grid grid-cols-8 overflow-hidden rounded-lg border border-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white/40"
+            className="grid grid-cols-8 overflow-hidden rounded-lg border border-white/10 shadow-[0_0_18px_rgba(10,238,60,0.35),0_0_60px_rgba(10,238,60,0.12)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-white/40"
             tabIndex={0}
             onKeyDown={onBoardKey}
           >
@@ -854,8 +937,8 @@ export default function SquareTrainer() {
                     tabIndex={-1}
                     onClick={() => guess(sq)}
                     aria-label={`square ${sq}`}
-                    className={`aspect-square w-full touch-manipulation cursor-pointer select-none transition-[filter,transform] duration-75 hover:brightness-[1.04] active:translate-y-px active:brightness-90 ${lit ? 'ring-4 ring-inset ring-amber-300' : ''} ${
-                      revealed ? 'ring-4 ring-inset ring-green-400' : ''
+                    className={`aspect-square w-full touch-manipulation cursor-pointer select-none transition-[filter,transform] duration-75 hover:brightness-[1.04] active:translate-y-px active:brightness-90 ${isFlash && flash.ok ? 'sq-hit' : ''} ${lit ? 'ring-4 ring-inset ring-amber-300' : ''} ${
+                      revealed ? 'ring-4 ring-inset ring-green-400 shadow-[0_0_12px_rgba(74,222,128,0.8)]' : ''
                     } ${cursored ? 'outline outline-2 outline-dashed outline-offset-[-6px] outline-white/90' : ''}`}
                     style={{
                       background: isFlash ? (flash.ok ? '#0aee3c' : '#f87171') : squareColor(sq),
@@ -1002,7 +1085,7 @@ export default function SquareTrainer() {
           <button
             type="button"
             onClick={startRun}
-            className="flex items-center justify-center gap-2 rounded-xl border border-white/20 px-4 py-3 text-[15px] font-bold text-white/85 transition-all duration-150 hover:bg-white/5 active:scale-[0.97]"
+            className="flex items-center justify-center gap-2 rounded-xl border border-white/20 px-4 py-3 text-[15px] font-bold text-white/85 transition-all duration-150 hover:bg-white/5 hover:shadow-[0_0_14px_rgba(10,238,60,0.35)] active:scale-[0.97]"
           >
             <svg
               width="16"
@@ -1152,17 +1235,17 @@ export default function SquareTrainer() {
         <button
           type="button"
           onClick={startRun}
-          className="w-full rounded-xl border border-white/20 px-4 py-3 text-[15px] font-bold text-white/85 transition-all duration-150 active:scale-[0.97]"
+          className="w-full rounded-xl border border-white/20 px-4 py-3 text-[15px] font-bold text-white/85 transition-all duration-150 hover:shadow-[0_0_14px_rgba(10,238,60,0.35)] active:scale-[0.97]"
         >
           Restart round
         </button>
       </div>
 
+      </div>
       {over && (
         <div className="absolute inset-0 z-10 overflow-y-auto rounded-xl bg-black/90 backdrop-blur-[2px]">
-          <div className="mx-auto flex min-h-full w-full max-w-sm flex-col justify-center px-4 py-4">
-            <div className="w-full rounded-2xl border border-white/10 bg-[#141518]/95 p-4 shadow-[0_24px_70px_rgba(0,0,0,0.65)] sm:p-5">
-            <div className="flex items-start justify-between gap-3">
+          <div className="st-results">
+            <div className="st-results-head">
               <h3 className="text-xl font-bold text-[#f3ecd9]">
                 {timed ? 'Round complete' : 'Out of lives'}
               </h3>
@@ -1182,122 +1265,171 @@ export default function SquareTrainer() {
                 </svg>
               </button>
             </div>
-            <p className="mt-1 text-center text-xs font-bold uppercase tracking-widest text-white/40">
-              {modeLabel.toUpperCase()} · {timed ? '30 SEC' : '3 LIVES'} · {sideLabel.toUpperCase()}
-            </p>
-            <p className="mt-1 text-center font-mono text-5xl font-bold tabular-nums text-[#f3ecd9]">{score}</p>
-            {score > prevBest && score > 0 ? (
-              <p className="mt-2 text-center">
-                <span className="inline-block rounded-full bg-amber-300 px-4 py-1 text-sm font-bold text-black">
-                  New best · +{score - prevBest}
-                </span>
+            <div className="st-summary">
+              <p className="text-center text-xs font-bold uppercase tracking-widest text-white/40">
+                {modeLabel.toUpperCase()} · {timed ? '30 SEC' : '3 LIVES'} · {sideLabel.toUpperCase()}
               </p>
-            ) : (
-              <p className="mt-2 text-center text-sm text-white/50">
-                Best {best > 0 ? best : '—'}
-              </p>
-            )}
-            <div className="mt-3 grid grid-cols-3 gap-2 text-center">
-              <div className="rounded-xl bg-white/[0.05] px-3 py-2">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-white/40">
-                  Accuracy
+              <p className="text-center font-mono text-7xl font-bold tabular-nums leading-none text-[#f3ecd9]">{reduceMotion ? score : shownScore}</p>
+              {score > prevBest && score > 0 ? (
+                <p className="text-center">
+                  <span className="inline-block rounded-full bg-amber-300 px-4 py-1 text-sm font-bold text-black">
+                    New best · +{score - prevBest}
+                  </span>
                 </p>
-                <p className="mt-0.5 text-xl font-bold tabular-nums text-white">
-                  {accuracy === null ? '—' : `${accuracy}%`}
+              ) : (
+                <p className="text-center text-sm text-white/50">
+                  Best {best > 0 ? best : '—'}
                 </p>
-              </div>
-              <div className="rounded-xl bg-white/[0.05] px-3 py-2">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-white/40">
-                  Per square
-                </p>
-                <p className="mt-0.5 text-xl font-bold tabular-nums text-white">
-                  {avgPer === null ? '—' : `${avgPer.toFixed(1)}s`}
-                </p>
-              </div>
-              <div className="rounded-xl bg-white/[0.05] px-3 py-2">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-white/40">
-                  Best streak
-                </p>
-                <p className="mt-0.5 text-xl font-bold tabular-nums text-white">{bestStreak}</p>
-              </div>
-            </div>
-            <h4 className="mt-3 text-base font-bold text-white">Where you slip</h4>
-            <p className="text-xs text-white/45">{missHist.length <= 1 ? 'Misses this round' : 'Misses over your last 10 rounds'}</p>
-            {slipTop.length > 0 ? (
-              <>
-                <div className="mx-auto mt-2 w-full max-w-[240px] rounded-xl bg-black/30 p-2">
-                  <div className="flex flex-col gap-px">
-                    {[8, 7, 6, 5, 4, 3, 2, 1].map((rank) => (
-                      <div key={rank} className="flex items-stretch gap-px">
-                        <span className="flex w-[14px] shrink-0 items-center justify-center text-[10px] font-bold text-white/35">
-                          {rank}
-                        </span>
-                        {FILES.map((file) => {
-                          const sq = `${file}${rank}`;
-                          const misses = slipAgg[sq] ?? 0;
-                          const b = heatBucket(misses);
-                          return (
-                            <span
-                              key={sq}
-                              title={misses > 0 ? `${sq} · ${misses} misses` : sq}
-                              className={`flex aspect-square flex-1 items-center justify-center rounded-[3px] text-[10px] font-bold ${
-                                b === 0
-                                  ? (FILES.indexOf(file) + rank) % 2 === 1
-                                    ? 'bg-white/[0.05]'
-                                    : 'bg-white/[0.02]'
-                                  : HEAT_CELL[b]
-                              }`}
-                            >
-                              {misses > 0 ? sq : ''}
-                            </span>
-                          );
-                        })}
-                      </div>
-                    ))}
-                    <div className="flex gap-px">
-                      <span className="w-[14px] shrink-0" aria-hidden="true" />
-                      {FILES.map((file) => (
-                        <span
-                          key={file}
-                          className="flex-1 text-center text-[10px] font-bold text-white/35"
-                        >
-                          {file}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-                <div className="mt-2 flex items-center justify-center gap-3 text-xs text-white/50">
-                  {[1, 2, 3, 4].map((b) => (
-                    <span key={b} className="flex items-center gap-1">
-                      <span
-                        className={`h-3 w-3 rounded ${HEAT_CELL[b].split(' ')[0]}`}
-                        aria-hidden="true"
-                      />
-                      {HEAT_LABEL[b - 1]}
-                    </span>
+              )}
+              {burst && (
+                <div
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-x-0 top-24 z-10 flex justify-center"
+                >
+                  {burst.map((b, i) => (
+                    <span
+                      key={i}
+                      className="confetti-bit absolute h-1.5 w-1.5 rounded-full"
+                      style={
+                        {
+                          background: b.c,
+                          '--dx': `${b.dx}px`,
+                          '--dy': `${b.dy}px`,
+                        } as CSSProperties
+                      }
+                    />
                   ))}
                 </div>
+              )}
+              <div className="grid grid-cols-3 gap-2 text-center">
+                <div className="rounded-xl bg-white/[0.05] px-3 py-2">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-white/40">
+                    Accuracy
+                  </p>
+                  <p className="mt-0.5 text-xl font-bold tabular-nums text-white">
+                    {accuracy === null ? '—' : `${accuracy}%`}
+                  </p>
+                </div>
+                <div className="rounded-xl bg-white/[0.05] px-3 py-2">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-white/40">
+                    Per square
+                  </p>
+                  <p className="mt-0.5 text-xl font-bold tabular-nums text-white">
+                    {avgPer === null ? '—' : `${avgPer.toFixed(1)}s`}
+                  </p>
+                </div>
+                <div className="rounded-xl bg-white/[0.05] px-3 py-2">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-white/40">
+                    Best streak
+                  </p>
+                  <p className="mt-0.5 text-xl font-bold tabular-nums text-white">{bestStreak}</p>
+                </div>
+              </div>
+            </div>
+            <div className="st-heat">
+              <h4 className="text-base font-bold text-white">Where you slip</h4>
+              <p className="text-xs text-white/45">{missHist.length <= 1 ? 'Misses this round' : 'Misses over your last 10 rounds'}</p>
+              {slipTop.length > 0 ? (
+                <>
+                  <div className="mx-auto mt-2 w-full max-w-[360px] rounded-xl bg-black/30 p-2">
+                    <div className="flex flex-col">
+                      {[8, 7, 6, 5, 4, 3, 2, 1].map((rank) => (
+                        <div key={rank} className="flex items-stretch">
+                          <span className="flex w-[14px] shrink-0 items-center justify-center text-[10px] font-bold text-white/35">
+                            {rank}
+                          </span>
+                          {FILES.map((file) => {
+                            const sq = `${file}${rank}`;
+                            const misses = slipAgg[sq] ?? 0;
+                            const b = heatBucket(misses);
+                            return (
+                              <span
+                                key={sq}
+                                title={misses > 0 ? `${sq} · ${misses} misses` : sq}
+                                className={`flex aspect-square flex-1 items-center justify-center text-[10px] font-bold ${
+                                  b === 0
+                                    ? (FILES.indexOf(file) + rank) % 2 === 1
+                                      ? 'bg-white/[0.05]'
+                                      : 'bg-white/[0.02]'
+                                    : HEAT_CELL[b]
+                                }`}
+                              >
+                                {misses > 0 ? sq : ''}
+                              </span>
+                            );
+                          })}
+                        </div>
+                      ))}
+                      <div className="flex">
+                        <span className="w-[14px] shrink-0" aria-hidden="true" />
+                        {FILES.map((file) => (
+                          <span
+                            key={file}
+                            className="flex-1 text-center text-[10px] font-bold text-white/35"
+                          >
+                            {file}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mt-1 flex items-center justify-center gap-3 text-xs text-white/50">
+                    {[1, 2, 3, 4].map((b) => (
+                      <span key={b} className="flex items-center gap-1">
+                        <span
+                          className={`h-3 w-3 rounded ${HEAT_CELL[b].split(' ')[0]}`}
+                          aria-hidden="true"
+                        />
+                        {HEAT_LABEL[b - 1]}
+                      </span>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <p className="mt-2 rounded-xl bg-white/[0.05] px-4 py-3 text-sm text-white/60">
+                  Clean round — no misses to drill.
+                </p>
+              )}
+            </div>
+            <div className="st-actions">
+              {slipTop.length > 0 && (
                 <button
                   type="button"
                   onClick={drillSlips}
-                  className="mt-3 w-full rounded-xl bg-[#f3ecd9] px-4 py-2.5 text-[15px] font-bold text-black transition-all duration-150 hover:brightness-105 active:scale-[0.97]"
+                  className="w-full rounded-xl bg-[#f3ecd9] px-4 py-2 text-sm font-bold text-black transition-all duration-150 hover:brightness-105 active:scale-[0.97]"
                 >
-                  Drill these {slipTop.length} square{slipTop.length === 1 ? '' : 's'}
+                  {slipTop.length === 1
+                    ? 'Drill your weakest square'
+                    : `Drill your ${slipTop.length} weakest squares`}
                 </button>
-              </>
-            ) : (
-              <p className="mt-2 rounded-xl bg-white/[0.05] px-4 py-3 text-sm text-white/60">
-                Clean round — no misses to drill.
-              </p>
-            )}
-            <button
-              type="button"
-              onClick={startRun}
-              className="mt-2 w-full rounded-xl border border-white/20 px-4 py-2.5 text-[15px] font-bold text-white/85 transition-all duration-150 hover:bg-white/5 active:scale-[0.97]"
-            >
-              Play again
-            </button>
+              )}
+              <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={startRun}
+                className="flex items-center justify-center rounded-xl border border-white/20 px-4 py-2 text-sm font-bold text-white/85 transition-all duration-150 hover:bg-white/5 hover:shadow-[0_0_14px_rgba(10,238,60,0.35)] active:scale-[0.97]"
+              >
+                Play again
+              </button>
+              <a
+                href={xHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Share your score on X"
+                className="flex items-center justify-center gap-2 rounded-xl border border-white/20 px-4 py-2 text-sm font-bold text-white/85 transition-all duration-150 hover:bg-white/5 hover:shadow-[0_0_14px_rgba(10,238,60,0.35)] active:scale-[0.97]"
+              >
+                <svg
+                  width="15"
+                  height="15"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  aria-hidden="true"
+                >
+                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                </svg>
+                Share
+              </a>
+            </div>
             </div>
           </div>
         </div>
