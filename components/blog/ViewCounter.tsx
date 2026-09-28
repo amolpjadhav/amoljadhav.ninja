@@ -3,21 +3,37 @@
 import { useEffect, useState } from 'react';
 import { BarChart2 } from 'lucide-react';
 import { formatCount } from '@/lib/utils';
+import {
+  dayString,
+  normalizeStored,
+  isCountedToday,
+  withCounted,
+} from '@/lib/view-dedup';
 
 const STORAGE_KEY = 'viewed_posts';
 
-function getViewedSlugs(): string[] {
+function readCountedDays(): ReturnType<typeof normalizeStored> {
   try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    return normalizeStored(
+      JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'),
+      dayString(-1),
+    );
   } catch {
-    return [];
+    return {};
   }
 }
 
-function addViewedSlug(slug: string) {
-  const slugs = getViewedSlugs();
-  if (!slugs.includes(slug)) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify([...slugs, slug]));
+function markCountedToday(slug: string): boolean {
+  try {
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify(withCounted(readCountedDays(), slug, dayString())),
+    );
+    return true;
+  } catch {
+    // Private mode etc: storage unwritable. Bail without counting so one
+    // reader can't mint a view on every single page load.
+    return false;
   }
 }
 
@@ -31,9 +47,9 @@ export default function ViewCounter({
   const [views, setViews] = useState(initialViews);
 
   useEffect(() => {
-    if (getViewedSlugs().includes(slug)) return;
+    if (isCountedToday(readCountedDays(), slug, dayString())) return;
 
-    addViewedSlug(slug);
+    if (!markCountedToday(slug)) return;
 
     fetch(`/api/posts/${slug}/view`, { method: 'POST' })
       .then((res) => (res.ok ? res.json() : null))
