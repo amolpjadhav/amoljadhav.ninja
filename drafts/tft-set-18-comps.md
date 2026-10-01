@@ -2,7 +2,7 @@
 
 Set 18, *Enchanted Wilds*, went live on **26 August 2026**. Here are all 45 comps — early board, final board, and item priority for each, updated for patch **18.3b** (tiers from the 30 September tier list).
 
-Search a champion you keep hitting and it'll show you every team that wants them. Everything else on this page is below the list.
+Search a champion you keep hitting and it'll show you every team that wants them. Everything else on this page is below the list. Companion piece: [TFT Set 18: Every Champion and the Items They Want](/blog/tft-set-18-items-cheat-sheet).
 
 ## The comps
 

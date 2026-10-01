@@ -96,7 +96,7 @@ const QUIZ = [
 
 const CONTENT = `
 <p>Set 18, <em>Enchanted Wilds</em>, went live on <strong>26 August 2026</strong>. Here are all 45 comps &mdash; early board, final board, and item priority for each, updated for patch <strong>18.3b</strong> (tiers from the 30 September tier list).</p>
-<p>Search a champion you keep hitting and it&rsquo;ll show you every team that wants them. Everything else on this page is below the list.</p>
+<p>Search a champion you keep hitting and it&rsquo;ll show you every team that wants them. Everything else on this page is below the list. Companion piece: <a href="/blog/tft-set-18-items-cheat-sheet">TFT Set 18: Every Champion and the Items They Want</a>.</p>
 
 <h3>The comps</h3>
 <div data-widget="tft-comps" data-eyebrow="Set 18 comp sheet" data-caption="Tap a comp to open it, then step through the list with the arrows at the bottom of each card. Boards are grouped into the rows you place: front line takes the hits, midline is melee, back line is damage. ★ is the carry — it gets the items."></div>

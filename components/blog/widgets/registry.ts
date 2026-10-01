@@ -60,6 +60,7 @@ import SkillInput from './SkillInput';
 import SquareTrainer from './SquareTrainer';
 import MoveTrainer from './MoveTrainer';
 import TftItemCombinator from './TftItemCombinator';
+import TftItemsSheet from './TftItemsSheet';
 
 // Article content (stored as HTML in Supabase) can embed a widget by
 // including a placeholder element with a matching data-widget value, e.g.:
@@ -128,4 +129,5 @@ export const WIDGET_REGISTRY: Record<string, ComponentType> = {
   'square-trainer': SquareTrainer,
   'move-trainer': MoveTrainer,
   'tft-item-combinator': TftItemCombinator,
+  'tft-items-sheet': TftItemsSheet,
 };
