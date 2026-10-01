@@ -53,12 +53,9 @@ export default async function StatsPage() {
 
       <main className="min-h-screen pt-24 pb-12 px-4">
         <div className="container mx-auto max-w-4xl">
-          <h1 className="text-4xl md:text-5xl font-bold text-white/95 mb-2 animate-fadeIn">
+          <h1 className="text-4xl md:text-5xl font-bold text-white/95 mb-10 animate-fadeIn">
             Site Stats
           </h1>
-          <p className="text-white/50 mb-10 animate-fadeIn">
-            A transparent, live look at how this blog is doing.
-          </p>
 
           {!stats ? (
             <div className="bg-[#1c1d20] border border-white/10 rounded-lg p-12 text-center animate-fadeInUp">

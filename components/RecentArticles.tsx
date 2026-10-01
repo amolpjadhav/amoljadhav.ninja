@@ -177,8 +177,12 @@ export default async function RecentArticles() {
                     </span>
                     {post.title}
                   </span>
-                  <span className="text-[#0aee3c]/40 text-xs whitespace-nowrap shrink-0">
-                    {formatDate(post.created_at)}
+                  <span className="flex items-center gap-2 text-[#0aee3c]/40 text-xs whitespace-nowrap shrink-0">
+                    <span className="flex items-center gap-1">
+                      <BarChart2 size={12} aria-hidden />
+                      {formatCount(post.views ?? 0)}
+                    </span>
+                    <span>{formatDate(post.created_at)}</span>
                   </span>
                 </div>
                 {post.excerpt && (
