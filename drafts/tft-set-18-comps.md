@@ -1,12 +1,12 @@
-# TFT Set 18 Comps: All 27 Teams for Enchanted Wilds
+# TFT Set 18 Comps: All 45 Teams for Enchanted Wilds
 
-Set 18, *Enchanted Wilds*, went live on **26 August 2026**. Here are all 27 comps — early board, final board, and item priority for each.
+Set 18, *Enchanted Wilds*, went live on **26 August 2026**. Here are all 45 comps — early board, final board, and item priority for each, updated for patch **18.3b** (tiers from the 30 September tier list).
 
 Search a champion you keep hitting and it'll show you every team that wants them. Everything else on this page is below the list.
 
 ## The comps
 
-<div data-widget="tft-comps" data-eyebrow="Set 18 comp sheet" data-caption="Tap a comp to open it. Boards are split into the rows you place them in: 🛡 front takes the hits, ⚔ mid is melee, 🏹 back is damage. ★ is the carry — it gets the items."></div>
+<div data-widget="tft-comps" data-eyebrow="Set 18 comp sheet" data-caption="Tap a comp to open it, then step through the list with the arrows at the bottom of each card. Boards are grouped into the rows you place: front line takes the hits, midline is melee, back line is damage. ★ is the carry — it gets the items."></div>
 
 ---
 
@@ -51,8 +51,8 @@ So *Elderwood Executioners* is stacking one of each. The class is also what puts
 
 **3. A bad board with items beats a good board without them.** Early on your job is to lose less health, not to have the correct team. Put components on whatever decent unit you have now; you get them back when you sell it.
 
-And treat the tiers loosely. Riot changes numbers roughly every two weeks, and one item nerf can drop a comp two tiers. Set 18 is days old, so these ratings are as fresh and as unstable as they ever get. The boards and item priorities stay useful much longer than the letter next to them.
+And treat the tiers loosely. Riot changes numbers roughly every two weeks, and one item nerf can drop a comp two tiers — patch 18.3 alone put reroll back on the menu after three patches of fast-8 dominance. The boards and item priorities stay useful much longer than the letter next to them.
 
 ---
 
-*Sources: [tftraits.com Set 18](https://tftraits.com/set18/), [Mobalytics Set 18 reveal](https://mobalytics.gg/tft/guides/set-18-reveal-enchanted-wilds), [TFT Academy comps tierlist](https://tftacademy.com/tierlist/comps)*
+*Sources: [tftraits.com Set 18](https://tftraits.com/set18/), [Mobalytics Set 18 reveal](https://mobalytics.gg/tft/guides/set-18-reveal-enchanted-wilds), [Mobalytics team comps](https://mobalytics.gg/tft/team-comps), [TFT Academy comps tierlist](https://tftacademy.com/tierlist/comps)*

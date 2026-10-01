@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { Eye, Heart, Mail, BookOpen } from 'lucide-react';
+import { Eye, Mail, BookOpen } from 'lucide-react';
 import Header from '@/components/layout/Header';
 import { supabase, supabaseAdmin } from '@/lib/supabase';
 import { formatCount, formatDate } from '@/lib/utils';
@@ -9,13 +9,13 @@ export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: 'Site Stats | Amol Jadhav',
-  description: 'A transparent, live look at this blog — total views, likes, subscribers, and more.',
+  description: 'A transparent, live look at this blog — total views, subscribers, and more.',
 };
 
 async function getStats() {
   const { data: posts, error } = await supabase
     .from('blog_posts')
-    .select('title, slug, views, likes, created_at')
+    .select('title, slug, views, created_at')
     .eq('published', true);
 
   if (error || !posts || posts.length === 0) {
@@ -27,10 +27,8 @@ async function getStats() {
     .select('*', { count: 'exact', head: true });
 
   const totalViews = posts.reduce((sum, p) => sum + (p.views || 0), 0);
-  const totalLikes = posts.reduce((sum, p) => sum + (p.likes || 0), 0);
 
   const mostViewed = posts.reduce((max, p) => ((p.views || 0) > (max.views || 0) ? p : max));
-  const mostLiked = posts.reduce((max, p) => ((p.likes || 0) > (max.likes || 0) ? p : max));
 
   const liveSince = posts.reduce(
     (earliest, p) => (new Date(p.created_at) < new Date(earliest) ? p.created_at : earliest),
@@ -39,11 +37,9 @@ async function getStats() {
 
   return {
     totalViews,
-    totalLikes,
     totalPosts: posts.length,
     subscriberCount: subscriberCount ?? 0,
     mostViewed,
-    mostLiked,
     liveSince,
   };
 }
@@ -70,18 +66,12 @@ export default async function StatsPage() {
             </div>
           ) : (
             <>
-              <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-4 mb-10 animate-fadeInUp">
+              <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4 mb-10 animate-fadeInUp">
                 <StatCard
                   label="Total views"
                   value={formatCount(stats.totalViews)}
                   color="#38bdf8"
                   icon={<Eye size={20} />}
-                />
-                <StatCard
-                  label="Total likes"
-                  value={formatCount(stats.totalLikes)}
-                  color="#f472b6"
-                  icon={<Heart size={20} />}
                 />
                 <StatCard
                   label="Subscribers"
@@ -97,7 +87,7 @@ export default async function StatsPage() {
                 />
               </div>
 
-              <div className="grid md:grid-cols-2 gap-4 mb-10">
+              <div className="mb-10">
                 <Link
                   href={`/blog/${stats.mostViewed.slug}`}
                   className="bg-[#1c1d20] border-y border-r border-white/10 border-l-[3px] border-l-[#0aee3c] rounded-lg p-6 hover:border-white/30 hover:border-l-[#0aee3c] transition-colors block animate-fadeInUp"
@@ -105,15 +95,6 @@ export default async function StatsPage() {
                   <p className="text-xs uppercase tracking-wide text-white/40 mb-2">Most-viewed article</p>
                   <p className="text-lg font-semibold text-[#0aee3c] mb-1">{stats.mostViewed.title}</p>
                   <p className="text-white/50 text-sm">{formatCount(stats.mostViewed.views || 0)} views</p>
-                </Link>
-
-                <Link
-                  href={`/blog/${stats.mostLiked.slug}`}
-                  className="bg-[#1c1d20] border-y border-r border-white/10 border-l-[3px] border-l-[#f472b6] rounded-lg p-6 hover:border-white/30 hover:border-l-[#f472b6] transition-colors block animate-fadeInUp"
-                >
-                  <p className="text-xs uppercase tracking-wide text-white/40 mb-2">Most-liked article</p>
-                  <p className="text-lg font-semibold text-[#f472b6] mb-1">{stats.mostLiked.title}</p>
-                  <p className="text-white/50 text-sm">{formatCount(stats.mostLiked.likes || 0)} likes</p>
                 </Link>
               </div>
 

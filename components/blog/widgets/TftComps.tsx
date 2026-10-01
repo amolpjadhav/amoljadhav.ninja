@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { Fragment, useMemo, useState, type ReactNode } from 'react';
 import {
   COMPS,
   itemIcon,
@@ -261,10 +261,58 @@ function TraitChips({ units }: { units: string[] }) {
 }
 
 
+const compId = (name: string) => `tft-comp-${name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
+
+// Prev/next inside an open card, so a reader can walk the whole list without
+// scrolling back up to find the next accordion. Moves within the currently
+// filtered list and brings the new card to the top of the viewport.
+function CompNav({
+  items,
+  index,
+  onGo,
+}: {
+  items: Comp[];
+  index: number;
+  onGo: (name: string) => void;
+}) {
+  const prev = items[index - 1];
+  const next = items[index + 1];
+  if (!prev && !next) return null;
+  const go = (c: Comp) => {
+    onGo(c.name);
+    requestAnimationFrame(() => {
+      const el = document.getElementById(compId(c.name));
+      if (!el) return;
+      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+    });
+  };
+  const btn =
+    'flex-1 min-w-0 rounded-lg border border-white/15 px-3 py-2 text-[13px] font-bold text-white/70 hover:bg-white/5 hover:text-white transition-colors disabled:opacity-25 disabled:pointer-events-none';
+  return (
+    <div className="flex gap-2 pt-1">
+      <button type="button" disabled={!prev} onClick={() => prev && go(prev)} className={btn}>
+        <span className="block truncate">&larr; {prev?.name}</span>
+      </button>
+      <button type="button" disabled={!next} onClick={() => next && go(next)} className={btn}>
+        <span className="block truncate">{next?.name} &rarr;</span>
+      </button>
+    </div>
+  );
+}
+
 export default function TftComps({ eyebrow, caption }: { eyebrow?: string; caption?: string }) {
   const [tier, setTier] = useState<Tier | 'All'>('All');
   const [q, setQ] = useState('');
   const [open, setOpen] = useState<string | null>(COMPS[0]?.name ?? null);
+
+  // A tier with no comps gets no filter button — right now that is S, and a
+  // button that always lands on "nothing matches" is a dead end.
+  const tierCounts = useMemo(() => {
+    const m = {} as Record<Tier, number>;
+    for (const c of COMPS) m[c.tier] = (m[c.tier] ?? 0) + 1;
+    return m;
+  }, []);
 
   const shown = useMemo(() => {
     const needle = q.trim().toLowerCase();
@@ -284,6 +332,42 @@ export default function TftComps({ eyebrow, caption }: { eyebrow?: string; capti
       return hay.includes(needle);
     });
   }, [tier, q]);
+
+  // Browsing 45 comps as one flat accordion is a scroll marathon, so the
+  // unfiltered list gets tier sections with counts. A filtered list stays
+  // flat — the filter already says what it is.
+  const sections = useMemo<{ key: string; title: ReactNode; items: Comp[] }[]>(() => {
+    if (tier !== 'All') return [{ key: 'all', title: null, items: shown }];
+    return (Object.keys(TIER) as Tier[])
+      .map((t) => {
+        const items = shown.filter((c) => c.tier === t);
+        return {
+          key: t,
+          title: (
+            <div id={`tft-tier-${t}`} className="scroll-mt-24 flex items-center gap-2.5 mt-3 mb-1">
+              <span
+                className="text-[15px] font-black w-8 h-8 rounded-lg flex items-center justify-center border"
+                style={{
+                  background: `linear-gradient(145deg, ${TIER[t].color}3a, ${TIER[t].color}12)`,
+                  color: TIER[t].color,
+                  borderColor: `${TIER[t].color}66`,
+                }}
+              >
+                {t}
+              </span>
+              <span className="text-[14px] font-bold" style={{ color: TIER[t].color }}>
+                {TIER[t].label}
+              </span>
+              <span className="text-[12px] text-white/40">
+                {items.length} comp{items.length === 1 ? '' : 's'}
+              </span>
+            </div>
+          ),
+          items,
+        };
+      })
+      .filter((s) => s.items.length > 0);
+  }, [tier, shown]);
 
   return (
     <div className="not-prose font-sans rounded-xl p-4 sm:p-6 my-6 border border-white/12 bg-[#17181b]">
@@ -320,7 +404,7 @@ export default function TftComps({ eyebrow, caption }: { eyebrow?: string; capti
       </div>
 
       <div className="flex flex-wrap items-center gap-2 mb-5">
-        {TIERS.map((t) => {
+        {TIERS.filter((t) => t === 'All' || (tierCounts[t as Tier] ?? 0) > 0).map((t) => {
           const active = tier === t;
           const col = t === 'All' ? '#ffffff' : TIER[t as Tier].color;
           return (
@@ -345,13 +429,17 @@ export default function TftComps({ eyebrow, caption }: { eyebrow?: string; capti
       </div>
 
       <div className="flex flex-col gap-2.5">
-        {shown.map((c) => {
+        {sections.map((sec) => (
+          <Fragment key={sec.key}>
+            {sec.title}
+            {sec.items.map((c, i) => {
           const isOpen = open === c.name;
           const t = TIER[c.tier];
           return (
             <div
               key={c.name}
-              className="rounded-xl overflow-hidden transition-all"
+              id={compId(c.name)}
+              className="rounded-xl overflow-hidden transition-all scroll-mt-24"
               style={{
                 border: `1px solid ${isOpen ? `${t.color}66` : 'rgba(255,255,255,0.10)'}`,
                 background: isOpen
@@ -457,11 +545,14 @@ export default function TftComps({ eyebrow, caption }: { eyebrow?: string; capti
                     </div>
                   )}
 
+                  <CompNav items={sec.items} index={i} onGo={setOpen} />
                 </div>
               )}
             </div>
           );
-        })}
+            })}
+          </Fragment>
+        ))}
 
         {shown.length === 0 && (
           <div className="text-[13px] text-white/40 py-8 text-center">
