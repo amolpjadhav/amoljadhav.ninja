@@ -59,6 +59,7 @@ import SkillMoveFinder from './SkillMoveFinder';
 import SkillInput from './SkillInput';
 import SquareTrainer from './SquareTrainer';
 import MoveTrainer from './MoveTrainer';
+import NewtonPlayground from './NewtonPlayground';
 import TftItemCombinator from './TftItemCombinator';
 import TftItemsSheet from './TftItemsSheet';
 
@@ -128,6 +129,7 @@ export const WIDGET_REGISTRY: Record<string, ComponentType> = {
   'skill-input': SkillInput,
   'square-trainer': SquareTrainer,
   'move-trainer': MoveTrainer,
+  'newton-playground': NewtonPlayground,
   'tft-item-combinator': TftItemCombinator,
   'tft-items-sheet': TftItemsSheet,
 };
