@@ -6,7 +6,7 @@ import { formatDate } from '@/lib/utils';
 import { colorizeArticleSections, categoryColor } from '@/lib/blog-content';
 import {
   displayCompanyName,
-  firstSentence,
+  pickLede,
   getStockData,
   normalizeTicker,
   quoteDayParam,
@@ -82,7 +82,7 @@ export async function generateMetadata({
     if (!data) return fallback;
     const name = displayCompanyName(data.companyName);
     const title = `${name} (${ticker}): Business, Financials & Filings`;
-    const oneLiner = data.description ? firstSentence(data.description.extract) : null;
+    const oneLiner = pickLede(data.description?.extract, data.filingInsights?.businessModel) || null;
     const description = oneLiner
       ? `${oneLiner} Revenue, margins, cash, and SEC filings on one page.`
       : `${name} (${ticker}) — what the company does, financials, and SEC filings on one page.`;

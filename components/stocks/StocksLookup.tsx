@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Link as LinkIcon, Check } from 'lucide-react';
 import type { FinancialSeries, PricePoint, StockResponse } from '@/lib/stocks';
-import { FILING_LABELS, cagr, edgarCompanyUrl, fiscalYearEndMonth, fiscalYearSpan, formatCompact, formatEps, formatInt, formatMoney, formatPct, latestValue, normalizeTicker, periodReturn, stockShareLinks, stockShareText, tableYears, yoyGrowth } from '@/lib/stocks';
+import { FILING_LABELS, cagr, cagrDetails, displayCompanyName, edgarCompanyUrl, fiscalYearEndMonth, fiscalYearSpan, formatCompact, formatEps, formatInt, formatLastTrade, formatMoney, formatPct, formatPrice, formatQuoteChange, isMarketOpen, latestValue, marginLine, normalizeTicker, peHistoryNote, periodReturn, pickLede, positionInRangeLabel, revenueLine, stockShareLinks, stockShareText, tableYears, yoyGrowth } from '@/lib/stocks';
 import { SECTION_ACCENTS, categoryColor } from '@/lib/blog-content';
 
 function XIcon() {
@@ -26,6 +26,8 @@ function LinkedInIcon() {
 const ACCENT = categoryColor('Investing');
 const RECENT_KEY = 'stocks-recent';
 const EXAMPLES = ['META', 'NVDA', 'AAPL', 'TSLA', 'AMZN'];
+const TREND_ARROW = { up: '↑', down: '↓', flat: '→' } as const;
+const TREND_COLOR = { up: 'text-green-400', down: 'text-orange-400', flat: 'text-white/40' } as const;
 
 function loadRecent(): string[] {
   try {
@@ -46,11 +48,12 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
   );
 }
 
-function StatRow({ label, value }: { label: string; value: React.ReactNode }) {
+function StatRow({ label, value, sub }: { label: string; value: React.ReactNode; sub?: React.ReactNode }) {
   return (
-    <div className="flex items-baseline justify-between gap-4 py-1.5 border-b border-white/5 last:border-0">
-      <span className="text-xs text-white/45 shrink-0">{label}</span>
-      <span className="text-sm text-white/90 text-right tabular-nums">{value}</span>
+    <div className="rounded-lg border border-white/10 bg-gradient-to-b from-white/[0.05] to-transparent px-3 py-2">
+      <div className="text-xs text-white/45">{label}</div>
+      <div className="text-sm font-semibold text-white/90 tabular-nums mt-0.5">{value}</div>
+      {sub !== undefined && <div className="text-xs text-white/50 mt-0.5">{sub}</div>}
     </div>
   );
 }
@@ -88,22 +91,24 @@ function ProfileSection({
 }: {
   n: number;
   title: string;
-  question: string;
+  question?: string;
   note: React.ReactNode;
   children: React.ReactNode;
 }) {
-  // Same card treatment as article sections: tinted panel, accent left
-  // border, accent heading — cycling the blog palette by section number.
+  // Same card treatment as article sections — tinted panel cycling the blog
+  // palette by section number, no accent left border — but a near-white
+  // heading: accent blue reads as a link.
   const accent = SECTION_ACCENTS[(n - 1) % SECTION_ACCENTS.length];
   return (
-    <section className="article-section" style={{ '--accent': accent } as React.CSSProperties}>
-      <h3 className="text-lg font-bold" style={{ color: accent }}>
-        {n} · {title}
+    <section className="article-section" style={{ '--accent': accent, borderLeft: 0, borderRadius: 10 } as React.CSSProperties}>
+      <h3 className="text-lg font-bold">
+        <span className="text-white/35">{n} · </span>
+        <span className="text-white/90">{title}</span>
       </h3>
-      <p className="text-sm text-white/55 mt-0.5 mb-3">{question}</p>
+      {question && <p className="text-sm text-white/55 mt-0.5 mb-3">{question}</p>}
       {children}
-      <p className="text-xs text-white/40 mt-3 leading-relaxed">
-        <strong className="text-white/60">How to read this:</strong> {note}
+      <p className="text-xs text-white/55 mt-3 leading-relaxed">
+        <strong className="text-white/75">How to read this:</strong> {note}
       </p>
     </section>
   );
@@ -139,7 +144,7 @@ function PriceChart({ history }: { history: PricePoint[] }) {
       <figcaption className="flex justify-between text-xs text-white/35 tabular-nums">
         <span>{history[0].date.slice(0, 4)}</span>
         <span>
-          {formatMoney(min)} – {formatMoney(max)}
+          {formatPrice(min)} – {formatPrice(max)}
         </span>
         <span>{history[history.length - 1].date.slice(0, 7)}</span>
       </figcaption>
@@ -400,10 +405,24 @@ export default function StocksLookup({ initialTicker }: { initialTicker: string 
     q?.price != null && data?.stats.week52High != null && data?.stats.week52Low != null
       ? ratioOrNull(q.price - data.stats.week52Low, data.stats.week52High - data.stats.week52Low)
       : null;
+  const week52 =
+    data?.stats.week52Low != null && data?.stats.week52High != null
+      ? { lo: data.stats.week52Low, hi: data.stats.week52High }
+      : null;
   const cap = data?.stats.marketCap;
   const capSize = cap == null ? null : cap >= 2e11 ? 'Mega-cap' : cap >= 1e10 ? 'Large-cap' : cap >= 2e9 ? 'Mid-cap' : cap >= 3e8 ? 'Small-cap' : 'Micro-cap';
-  const growthWord = revCagr == null ? null : revCagr > 0.15 ? 'growing fast' : revCagr > 0.05 ? 'growing' : revCagr > -0.05 ? 'roughly flat' : 'shrinking';
-  const oneLiner = data?.description ? (data.description.extract.match(/^[^.?!]+[.?!]/)?.[0] ?? data.description.extract) : null;
+  const oneLiner = data ? pickLede(data.description?.extract, data.filingInsights?.businessModel) || null : null;
+  const revLine = revenueLine(cagrDetails(revPts));
+  // Margin trend compares the current margin against the earliest fiscal year
+  // with both legs; skipped when that year IS the comparison (single-year
+  // history with no TTM), where it would read "flat vs itself".
+  const netByYear = new Map((seriesOf('netIncome')?.points ?? []).map((p) => [p.year, p.value]));
+  const basePt = revPts
+    .map((r) => ({ year: r.year, margin: ratioOrNull(netByYear.get(r.year) ?? null, r.value) }))
+    .find((x) => x.margin !== null) ?? null;
+  const latestRevYear = revPts.length > 0 ? revPts[revPts.length - 1].year : null;
+  const marginBase = basePt && !(netMarginTtm == null && basePt.year === latestRevYear) ? basePt : null;
+  const margin = marginLine(netMarginTtm ?? netMarginFy, marginBase?.margin ?? null, marginBase?.year ?? null);
   const form4Url = data?.profile ? `https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=${Number(data.profile.cik)}&type=4&owner=include` : null;
   const shareUrl =
     data && typeof window !== 'undefined' ? `${window.location.origin}${pathname}?ticker=${data.ticker}` : '';
@@ -419,7 +438,9 @@ export default function StocksLookup({ initialTicker }: { initialTicker: string 
   }
 
   return (
-    <div>
+    // Static text trips browser spellcheck on tickers (dotted underlines);
+    // nothing here is editable.
+    <div spellCheck={false}>
       <div className={idle ? 'min-h-[45vh] flex flex-col justify-center' : undefined}>
       <h2 className="text-xl font-bold mb-2" style={{ color: ACCENT }}>
         Stock lookup
@@ -492,72 +513,14 @@ export default function StocksLookup({ initialTicker }: { initialTicker: string 
             </div>
           )}
 
-          <div>
-            <p className="text-xs text-white/40">
-              {data.ticker} {data.exchange ? `· ${data.exchange}` : ''} {data.profile?.sicDescription ? `· ${data.profile.sicDescription}` : ''}
-            </p>
-            <h3 className="font-serif text-2xl font-bold text-white/95 mt-1">{data.companyName}</h3>
-          </div>
-
-          <div className="border border-white/10 rounded p-4 text-sm">
-            <p className="font-bold text-white/90 mb-2">The 30-second routine</p>
-            <div className="space-y-1.5 text-white/70 leading-relaxed">
-              <p>
-                <strong className="text-white/90">What they do:</strong> {oneLiner ?? '—'}
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p className="text-xs text-white/40">
+                {[data.ticker, data.exchange, data.stats.sector].filter((x): x is string => x !== null).join(' · ')}
               </p>
-              <p>
-                <strong className="text-white/90">Revenue:</strong>{' '}
-                {growthWord && revCagr !== null ? `${growthWord} (${formatPct(revCagr)} a year)` : '—'}
-              </p>
-              <p>
-                <strong className="text-white/90">Margin:</strong>{' '}
-                {netMarginTtm !== null ? `keeps ${formatPct(netMarginTtm, 0)} of each $1 (TTM)` : netMarginFy !== null ? `keeps ${formatPct(netMarginFy, 0)} of each $1` : '—'}
-              </p>
-              <p>
-                <strong className="text-white/90">Size:</strong>{' '}
-                {capSize && cap != null ? `${capSize} (${formatMoney(cap)})` : '—'}
-              </p>
+              <h3 className="font-serif text-2xl font-bold text-white/95 mt-1">{data.companyName}</h3>
             </div>
-          </div>
-
-          <PartHead n={1} title="Understand the business" lede="What it is and how it makes money — before any numbers." />
-
-          <ProfileSection
-            n={1}
-            title="Snapshot"
-            question={`Who is ${data.ticker}, at a glance?`}
-            note="Market cap — share price × shares outstanding — is the price of the whole company. Compare companies by market cap, never by share price: a $700 stock can be a smaller company than a $70 stock."
-          >
-            {q ? (
-              <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
-                <span className="text-3xl font-bold text-white/95 tabular-nums">
-                  {q.price !== null ? `$${q.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '—'}
-                </span>
-                {q.change !== null && (
-                  <span className={`text-lg tabular-nums ${up ? 'text-green-400' : 'text-red-400'}`}>
-                    {up ? '+' : ''}
-                    {q.change.toFixed(2)} ({formatPct(q.changePct)})
-                  </span>
-                )}
-                <span className="text-xs text-white/35 w-full">
-                  {q.marketStatus ? `${q.marketStatus} · ` : ''}last trade {q.lastTrade ?? '—'} · delayed quote
-                </span>
-              </div>
-            ) : (
-              <p className="text-sm text-white/40">Quote unavailable for this ticker.</p>
-            )}
-            {oneLiner && <p className="text-sm text-white/70 leading-relaxed mt-3">{oneLiner}</p>}
-            <div className="grid md:grid-cols-2 gap-x-8 mt-3">
-              <StatRow label="Market cap" value={data.stats.marketCap !== null ? `${formatMoney(data.stats.marketCap)}${data.stats.marketCapEstimated ? ' *' : ''}` : '—'} />
-              <StatRow label="Exchange" value={data.exchange ?? '—'} />
-              <StatRow label="Sector" value={data.stats.sector ?? '—'} />
-              <StatRow label="Industry" value={data.stats.industry ?? '—'} />
-            </div>
-            {data.stats.marketCapEstimated && (
-              <p className="text-xs text-white/30 mt-1">* estimated from share price × latest reported shares outstanding</p>
-            )}
-            <div className="flex items-center gap-2 mt-3">
-              <span className="text-xs text-white/40 mr-1">Share this lookup</span>
+            <div className="flex items-center gap-2 pt-1">
               <a
                 href={shareLinks.x}
                 target="_blank"
@@ -580,6 +543,119 @@ export default function StocksLookup({ initialTicker }: { initialTicker: string 
                 {copied ? <Check size={16} /> : <LinkIcon size={16} />}
               </button>
             </div>
+          </div>
+
+          <div className="border border-white/10 rounded p-4 text-sm">
+            <p className="font-bold text-white/90 mb-2">{displayCompanyName(data.companyName)} in 4 lines</p>
+            <div className="space-y-1.5 leading-relaxed">
+              <div className="grid grid-cols-[6.5rem_1fr] gap-x-3">
+                <span className="text-white/40 text-[13px] pt-[1px]">What they do</span>
+                <span className="font-semibold text-white/90">{oneLiner ?? '—'}</span>
+              </div>
+              <div className="grid grid-cols-[6.5rem_1fr] gap-x-3">
+                <span className="text-white/40 text-[13px] pt-[1px]">Revenue</span>
+                <span className="font-semibold text-white/90">
+                  {revLine ? (
+                    <>
+                      <span className={TREND_COLOR[revLine.trend]}>{TREND_ARROW[revLine.trend]}</span>{' '}
+                      <span className={TREND_COLOR[revLine.trend]}>{revLine.word}:</span> {revLine.detail}
+                    </>
+                  ) : '—'}
+                </span>
+              </div>
+              <div className="grid grid-cols-[6.5rem_1fr] gap-x-3">
+                <span className="text-white/40 text-[13px] pt-[1px]">Margin</span>
+                <span className="font-semibold text-white/90">
+                  {margin ? (
+                    <>
+                      {margin.trend && (
+                        <>
+                          <span className={TREND_COLOR[margin.trend]}>{TREND_ARROW[margin.trend]}</span>{' '}
+                        </>
+                      )}
+                      {margin.text}
+                    </>
+                  ) : '—'}
+                </span>
+              </div>
+              <div className="grid grid-cols-[6.5rem_1fr] gap-x-3">
+                <span className="text-white/40 text-[13px] pt-[1px]">Size</span>
+                <span className="font-semibold text-white/90">
+                  {capSize && cap != null ? `${capSize} (${formatMoney(cap)})` : '—'}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <PartHead n={1} title="Understand the business" lede="What it is and how it makes money — before any numbers." />
+
+          <ProfileSection
+            n={1}
+            title="Snapshot"
+            note="Market cap is the price of the whole company. P/E is how many years of current profit that price equals; compare it to the stock's own history."
+          >
+            <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 mt-1">
+              <span className="text-xl font-bold text-white/95">{data.companyName}</span>
+              <span className="text-sm text-white/45">
+                {[data.ticker, data.exchange, data.stats.sector].filter((x): x is string => x !== null).join(' · ')}
+              </span>
+            </div>
+            {oneLiner && <p className="text-sm text-white/70 leading-relaxed mt-2">{oneLiner}</p>}
+            {q ? (
+              <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 mt-3">
+                <span className="text-2xl font-semibold text-white/95 tabular-nums">
+                  {formatPrice(q.price)}
+                </span>
+                {(q.change !== null || q.changePct !== null) && (
+                  <span className={`text-base font-semibold tabular-nums ${up ? 'text-green-400' : 'text-red-400'}`}>
+                    {formatQuoteChange(q.change, q.changePct)}
+                  </span>
+                )}
+                <span className="text-xs text-white/35 inline-flex items-center gap-1.5">
+                  {q.marketStatus && (
+                    <span className={`inline-block w-1.5 h-1.5 rounded-full ${isMarketOpen(q.marketStatus) ? 'bg-green-400' : 'bg-white/25'}`} />
+                  )}
+                  {q.marketStatus ? `${q.marketStatus} · ` : ''}{formatLastTrade(q.lastTrade, q.marketStatus)} · delayed
+                </span>
+              </div>
+            ) : (
+              <p className="text-sm text-white/40 mt-3">Quote unavailable for this ticker.</p>
+            )}
+            <div className="grid md:grid-cols-3 gap-3 mt-3">
+              <StatRow
+                label="Market cap"
+                value={data.stats.marketCap !== null ? `${formatMoney(data.stats.marketCap)}${data.stats.marketCapEstimated ? ' *' : ''}` : '—'}
+                sub={capSize ?? undefined}
+              />
+              <StatRow
+                label="52-week range"
+                value={
+                  week52 === null ? '—' : pos52 === null ? (
+                    `${formatPrice(week52.lo)} – ${formatPrice(week52.hi)}`
+                  ) : (
+                    <span className="flex items-center gap-2">
+                      <span>{formatPrice(week52.lo)}</span>
+                      <span className="relative h-1 flex-1 min-w-6 rounded-full bg-white/10">
+                        <span
+                          className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-white/80"
+                          style={{ left: `${Math.min(100, Math.max(0, pos52 * 100))}%` }}
+                        />
+                      </span>
+                      <span>{formatPrice(week52.hi)}</span>
+                    </span>
+                  )
+                }
+                sub={positionInRangeLabel(pos52) ?? undefined}
+              />
+              <StatRow
+                label="P/E (TTM)"
+                value={pe !== null ? pe.toFixed(1) : 'n/a'}
+                sub={peHistoryNote(pe, peRange) ?? undefined}
+              />
+            </div>
+            {data.stats.marketCapEstimated && (
+              <p className="text-xs text-white/30 mt-1">* estimated from share price × latest reported shares outstanding</p>
+            )}
           </ProfileSection>
 
           {data.description && (
@@ -595,7 +671,7 @@ export default function StocksLookup({ initialTicker }: { initialTicker: string 
                   {data.description.source === 'sec' ? 'Read filings on EDGAR' : 'Read more on Wikipedia'}
                 </ExternalLink>
               </div>
-              <div className="grid md:grid-cols-2 gap-x-8 mt-3">
+              <div className="grid md:grid-cols-2 gap-3 mt-3">
                 {data.description.founded && <StatRow label="Founded" value={data.description.founded} />}
                 <StatRow label="Headquarters" value={data.description.headquarters ?? data.profile?.address ?? '—'} />
                 {data.description.ceo && <StatRow label="CEO" value={data.description.ceo} />}
@@ -710,7 +786,7 @@ export default function StocksLookup({ initialTicker }: { initialTicker: string 
               question={`Is ${data.ticker} getting bigger?`}
               note="Growing plus profitable is the combo to look for. Revenue growth with flat or falling EPS means the growth isn't reaching shareholders — check section 8 for dilution."
             >
-              <div className="grid md:grid-cols-2 gap-x-8">
+              <div className="grid md:grid-cols-2 gap-3">
                 <StatRow label="Revenue (TTM)" value={ttmVal('revenue') !== null ? formatMoney(ttmVal('revenue')) : '—'} />
                 <StatRow label="Revenue growth, last year" value={latestRevYoy !== null ? formatPct(latestRevYoy) : '—'} />
                 <StatRow label="Revenue growth, per year" value={revCagr !== null ? formatPct(revCagr) : '—'} />
@@ -726,7 +802,7 @@ export default function StocksLookup({ initialTicker }: { initialTicker: string 
               question={`Is ${data.ticker} a good business?`}
               note="Net margin — cents of profit kept per $1 of revenue — is the single fastest read on business quality. Compare it down the table: is each new dollar of revenue more profitable than the last, or less?"
             >
-              <div className="grid md:grid-cols-2 gap-x-8">
+              <div className="grid md:grid-cols-2 gap-3">
                 <StatRow label="Gross margin" value={grossMarginFy !== null ? formatPct(grossMarginFy) : '—'} />
                 <StatRow label="Operating margin" value={opMarginFy !== null ? formatPct(opMarginFy) : '—'} />
                 <StatRow label="Net margin (TTM)" value={netMarginTtm !== null ? formatPct(netMarginTtm) : '—'} />
@@ -742,7 +818,7 @@ export default function StocksLookup({ initialTicker }: { initialTicker: string 
               question={`Could ${data.ticker} survive a bad year?`}
               note="Profit can be accounting; cash is harder to fake. Cash is the buffer for buybacks, dividends, and downturns — compare debt against cash and a year's free cash flow, not against zero."
             >
-              <div className="grid md:grid-cols-2 gap-x-8">
+              <div className="grid md:grid-cols-2 gap-3">
                 <StatRow label="Cash" value={formatMoney(ttmVal('cash') ?? fyVal('cash'))} />
                 <StatRow label="Total debt" value={formatMoney(ttmVal('debt') ?? fyVal('debt'))} />
                 <StatRow label="Free cash flow (TTM)" value={ttmVal('fcf') !== null ? formatMoney(ttmVal('fcf')) : fyVal('fcf') !== null ? formatMoney(fyVal('fcf')) : '—'} />
@@ -758,7 +834,7 @@ export default function StocksLookup({ initialTicker }: { initialTicker: string 
               question={`What do ${data.ticker} owners get back?`}
               note="A falling share count means buybacks are concentrating your slice; a rising one means dilution. Pair the dividend with the payout ratio — over 100% for long means the dividend is borrowed, not earned."
             >
-              <div className="grid md:grid-cols-2 gap-x-8">
+              <div className="grid md:grid-cols-2 gap-3">
                 <StatRow label="Dividend yield" value={data.stats.dividendYield ?? '—'} />
                 <StatRow label="Payout ratio" value={payout !== null ? formatPct(payout, 0) : data.stats.dividendYield === 'None' ? 'n/a' : '—'} />
                 <StatRow
@@ -787,7 +863,7 @@ export default function StocksLookup({ initialTicker }: { initialTicker: string 
               question={`What is the market paying for ${data.ticker}?`}
               note="A multiple means nothing alone — compare it to the stock's own history in the table. Below its usual range can mean cheap or troubled; above it can mean loved or overpriced. The table tells you which is normal here."
             >
-              <div className="grid md:grid-cols-2 gap-x-8">
+              <div className="grid md:grid-cols-2 gap-3">
                 <StatRow label="P/E ratio (TTM)" value={pe !== null ? pe.toFixed(1) : 'n/a'} />
                 <StatRow label="P/E, 5-year range" value={peRange ? `${peRange[0].toFixed(1)} – ${peRange[1].toFixed(1)}` : '—'} />
                 <StatRow label="Price / sales (TTM)" value={ps !== null ? ps.toFixed(1) : 'n/a'} />
@@ -805,7 +881,7 @@ export default function StocksLookup({ initialTicker }: { initialTicker: string 
             {data.priceHistory && data.priceHistory.length >= 2 ? (
               <div className="space-y-3">
                 <PriceChart history={data.priceHistory} />
-                <div className="grid md:grid-cols-2 gap-x-8">
+                <div className="grid md:grid-cols-2 gap-3">
                   <StatRow label="1-year return" value={ret1 !== null ? formatPct(ret1) : '—'} />
                   <StatRow
                     label={histSpanYears >= 4.5 ? '5-year return' : `Return since ${histFirst?.slice(0, 4) ?? 'IPO'}`}
@@ -816,12 +892,9 @@ export default function StocksLookup({ initialTicker }: { initialTicker: string 
             ) : (
               <p className="text-sm text-white/40">Price history unavailable — showing the latest snapshot only.</p>
             )}
-            <div className="grid md:grid-cols-2 gap-x-8 mt-1">
-              <StatRow label="52-week range" value={data.stats.week52Low !== null ? `${formatMoney(data.stats.week52Low)} – ${formatMoney(data.stats.week52High)}` : '—'} />
-              <StatRow
-                label="Position in range"
-                value={pos52 !== null ? (pos52 >= 0.75 ? 'near the high' : pos52 >= 0.25 ? 'mid-range' : 'near the low') : '—'}
-              />
+            <div className="grid md:grid-cols-2 gap-3 mt-1">
+              <StatRow label="52-week range" value={week52 ? `${formatPrice(week52.lo)} – ${formatPrice(week52.hi)}` : '—'} />
+              <StatRow label="Position in range" value={positionInRangeLabel(pos52) ?? '—'} />
               <StatRow label="Volume" value={q?.volume ? formatInt(q.volume) : '—'} />
               <StatRow label="Avg volume" value={data.stats.avgVolume ? formatInt(data.stats.avgVolume) : '—'} />
             </div>
@@ -834,7 +907,7 @@ export default function StocksLookup({ initialTicker }: { initialTicker: string 
             note="Founders and executives with big stakes think like owners. On Form 4s, routine post-earnings diversification is normal — sudden cluster-selling is a question."
           >
             {data.description?.ceo && (
-              <div className="grid md:grid-cols-2 gap-x-8 mb-2">
+              <div className="grid md:grid-cols-2 gap-3 mb-2">
                 <StatRow label="CEO" value={data.description.ceo} />
               </div>
             )}

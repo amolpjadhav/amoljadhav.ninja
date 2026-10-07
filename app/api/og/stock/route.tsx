@@ -1,7 +1,7 @@
 import { ImageResponse } from 'next/og';
 import {
   displayCompanyName,
-  firstSentence,
+  pickLede,
   formatMoney,
   formatPct,
   formatQuoteChange,
@@ -197,7 +197,7 @@ export async function GET(req: Request) {
 
   const q = data.quote;
   const name = displayCompanyName(data.companyName);
-  const oneLiner = data.description ? firstSentence(data.description.extract, 200) : null;
+  const oneLiner = pickLede(data.description?.extract, data.filingInsights?.businessModel, 200) || null;
   const sectorLine = [data.stats.sector, data.stats.industry].filter(Boolean).join(' · ') || null;
   const day = q ? quoteDayLabel(q.lastTrade, q.marketStatus) : null;
   const move = q ? formatQuoteChange(q.change, q.changePct) : '—';

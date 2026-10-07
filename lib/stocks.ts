@@ -520,9 +520,11 @@ const TWENTY_F_ITEMS = [
 // Slice one item (e.g. "1A") out of filing text: from its heading to the next
 // heading of a later item. Three traps: the boundary guard keeps ITEM 1 from
 // matching ITEM 1A/1B/10–15; the table of contents up front lists every item,
-// so the body occurrence is the one followed by the largest gap (TOC entries
-// huddle; body sections sprawl; first wins ties); repeated page headers of
-// the same item never end a slice — only later items do.
+// so a candidate immediately followed by an earlier item (TOC "Item 1A" →
+// body "Item 1" — body order never runs backwards) never starts a slice;
+// repeated page headers of the same item share their end with the true
+// start, so measuring each candidate to the later item that would end its
+// slice lets the true start win.
 export function extractItemSection(text: string, items: string[], target: string): string | null {
   const occ: { index: number; item: string }[] = [];
   for (const it of items) {
@@ -534,17 +536,35 @@ export function extractItemSection(text: string, items: string[], target: string
   const order = new Map(items.map((it, i) => [it, i]));
   const rank = order.get(target) ?? -1;
   if (rank < 0) return null;
-  let start = -1;
-  let widest = -1;
-  for (let i = 0; i < occ.length; i++) {
-    if (occ[i].item !== target) continue;
-    const gap = (i + 1 < occ.length ? occ[i + 1].index : text.length) - occ[i].index;
-    if (gap > widest) {
-      widest = gap;
-      start = occ[i].index;
+  const higherAfter = (i: number): number => {
+    for (let j = i + 1; j < occ.length; j++) {
+      if ((order.get(occ[j].item) ?? -1) > rank) return occ[j].index;
     }
+    return -1;
+  };
+  const cands: number[] = [];
+  for (let i = 0; i < occ.length; i++) if (occ[i].item === target) cands.push(i);
+  if (cands.length === 0) return null;
+  const bounded = cands.filter((i) => higherAfter(i) >= 0);
+  let start: number;
+  if (bounded.length === 0) {
+    // No later item anywhere: positional fallback, last wins (TOC first).
+    start = occ[cands[cands.length - 1]].index;
+  } else {
+    let best = -1;
+    let widest = -1;
+    for (const i of bounded) {
+      const nxt = occ[i + 1];
+      if (nxt && (order.get(nxt.item) ?? -1) < rank) continue;
+      const gap = higherAfter(i) - occ[i].index;
+      if (gap > widest) {
+        widest = gap;
+        best = occ[i].index;
+      }
+    }
+    if (best < 0) return null;
+    start = best;
   }
-  if (start < 0) return null;
   let end = text.length;
   for (const o of occ) {
     if (o.index > start && (order.get(o.item) ?? -1) > rank) {
@@ -1098,13 +1118,59 @@ export function yoyGrowth(points: AnnualPoint[]): (number | null)[] {
 // over the calendar span between period ends. Null with fewer than two
 // points, a non-positive start, or no elapsed time.
 export function cagr(points: AnnualPoint[]): number | null {
+  return cagrDetails(points)?.rate ?? null;
+}
+
+export interface CagrDetails {
+  rate: number;
+  startYear: string;
+  endYear: string;
+}
+
+// Compound annual growth rate with its endpoints, for lines like "Growing:
+// +11.1% a year (2021–2025)". Same computation as cagr; null under the same
+// conditions (fewer than two points, non-positive start, no elapsed time).
+export function cagrDetails(points: AnnualPoint[]): CagrDetails | null {
   if (points.length < 2) return null;
   const sorted = [...points].sort((a, b) => (a.end < b.end ? -1 : 1));
   const first = sorted[0];
   const last = sorted[sorted.length - 1];
   const years = daysBetween(first.end, last.end) / 365.25;
   if (!(first.value > 0) || !(years > 0)) return null;
-  return Math.pow(last.value / first.value, 1 / years) - 1;
+  return {
+    rate: Math.pow(last.value / first.value, 1 / years) - 1,
+    startYear: first.year,
+    endYear: last.year,
+  };
+}
+
+export type TrendDir = 'up' | 'down' | 'flat';
+
+// Snapshot "Revenue" answer: "Growing: +11.1% a year (2021–2025)". ±1% is
+// flat; the trend drives the arrow and its color.
+export function revenueLine(details: CagrDetails | null): { word: string; detail: string; trend: TrendDir } | null {
+  if (!details) return null;
+  const trend: TrendDir = details.rate >= 0.01 ? 'up' : details.rate <= -0.01 ? 'down' : 'flat';
+  const word = trend === 'up' ? 'Growing' : trend === 'down' ? 'Shrinking' : 'Flat';
+  return { word, detail: `${formatPct(details.rate)} a year (${details.startYear}–${details.endYear})`, trend };
+}
+
+// Snapshot "Margin" answer: "Keeps 8¢ of every $1, up from 2¢ in 2022".
+// Compares the current (usually TTM) margin against an earlier fiscal year;
+// without a base it returns the bare clause and a null trend (no arrow).
+export function marginLine(
+  current: number | null | undefined,
+  base: number | null | undefined,
+  baseYear: string | null,
+): { text: string; trend: TrendDir | null } | null {
+  if (current === null || current === undefined || !Number.isFinite(current)) return null;
+  const cents = (m: number) => `${Math.round(Math.abs(m) * 100)}¢`;
+  const main = current < 0 ? `Loses ${cents(current)} of every $1` : `Keeps ${cents(current)} of every $1`;
+  if (base === null || base === undefined || !baseYear) return { text: main, trend: null };
+  const diff = current - base;
+  const trend: TrendDir = diff >= 0.005 ? 'up' : diff <= -0.005 ? 'down' : 'flat';
+  const word = trend === 'up' ? 'up from' : trend === 'down' ? 'down from' : 'flat vs';
+  return { text: `${main}, ${word} ${base < 0 ? 'losing ' : ''}${cents(base)} in ${baseYear}`, trend };
 }
 
 // ---------------------------------------------------------------------------
@@ -1124,6 +1190,14 @@ export function formatMoney(v: number | null | undefined): string {
   if (a >= 1e6) return `${sign}$${trimZeros((a / 1e6).toFixed(1))}M`;
   if (a >= 1e3) return `${sign}$${trimZeros((a / 1e3).toFixed(1))}K`;
   return `${sign}$${trimZeros(a.toFixed(2))}`;
+}
+
+// Share prices always carry two decimals ("$287.20", never "$287.2") —
+// formatMoney trims small values, so the quote, range, and chart rows use
+// this instead.
+export function formatPrice(n: number | null | undefined): string {
+  if (n === null || n === undefined || !Number.isFinite(n)) return '—';
+  return `$${n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 export function formatEps(v: number | null | undefined): string {
@@ -1170,6 +1244,18 @@ export function cleanCompanyNameForSearch(name: string): string {
     .trim();
 }
 
+// Display name prefers the Nasdaq feed ("Amazon.com, Inc.") over EDGAR's
+// filing name ("AMAZON COM INC") — filers self-report in ALL CAPS with no
+// punctuation, and the raw form leaks into headings and share text.
+export function pickCompanyName(
+  secName: string | null | undefined,
+  nasdaqName: string | null | undefined,
+  entryTitle: string | null | undefined,
+  ticker: string,
+): string {
+  return (nasdaqName ? cleanCompanyNameForSearch(nasdaqName) : null) || secName || entryTitle || ticker;
+}
+
 // Display name for headlines and cards: "Tesla, Inc." -> "Tesla". Strips
 // chained legal suffixes ("Taiwan Semiconductor Manufacturing Company
 // Limited" -> "Taiwan Semiconductor Manufacturing"). Search keeps the legal
@@ -1188,6 +1274,8 @@ export function displayCompanyName(name: string): string {
       /(\s*,?\s*(Inc|Corp|Corporation|Incorporated|Company|Holdings?|Group|Ltd|Limited|LLC|PL[CK]|Co|Trust|LPs?|LLP|NV|SA|AG|SE|SpA|AB))+\.?$/i,
       '',
     )
+    .replace(/\.(com|net|org|io|ai)$/i, '')
+    .replace(/\scom$/i, '') // dotless twin: SEC files "AMAZON COM INC"
     .trim();
   return stripped || (name || '').trim();
 }
@@ -1196,24 +1284,94 @@ export function displayCompanyName(name: string): string {
 // "Berkshire Hathaway Inc. ("Berkshire") is…" is one sentence.
 const SENTENCE_ABBREV = /^([A-Za-z]\.)*[A-Za-z]$|^(No|Mr|Mrs|Ms|Dr|St|Rd|Ave|Blvd|vs|Inc|Corp|Co|Ltd|Jr|Sr|Esq)$/i;
 
-// First sentence of a text, for one-liners. Skips abbreviation ends, falls
-// back to a trimmed prefix when no sentence end exists.
-export function firstSentence(text: string, max = 220): string {
-  const s = (text || '').trim();
+// All sentences of a text, split on non-abbreviation ends (trailing text
+// without an end counts as the last sentence).
+function splitSentences(s: string): string[] {
+  const out: string[] = [];
   const re = /[.?!]["'”’)\]]*\s+/g;
-  let end = -1;
+  let start = 0;
   let m: RegExpExecArray | null;
   while ((m = re.exec(s)) !== null) {
     const word = s.slice(0, m.index).split(/\s+/).pop() ?? '';
     if (SENTENCE_ABBREV.test(word)) continue;
-    end = m.index + m[0].trimEnd().length;
-    break;
+    out.push(s.slice(start, m.index + m[0].trimEnd().length));
+    start = m.index + m[0].length;
   }
-  const first = end < 0 ? s : s.slice(0, end);
-  if (first.length <= max) return first;
-  const cut = first.slice(0, max).trimEnd();
+  const tail = s.slice(start).trim();
+  if (tail) out.push(tail);
+  return out;
+}
+
+function capSentence(s: string, max: number): string {
+  if (s.length <= max) return s;
+  const cut = s.slice(0, max).trimEnd();
   const sp = cut.lastIndexOf(' ');
   return `${sp > max * 0.5 ? cut.slice(0, sp) : cut}…`;
+}
+
+// First sentence of a text, for one-liners. Falls back to a trimmed prefix
+// when no sentence end exists.
+export function firstSentence(text: string, max = 220): string {
+  const s = (text || '').trim();
+  const [first] = splitSentences(s);
+  return capSentence(first ?? s, max);
+}
+
+// Mission-language roots: "We seek to be Earth's most customer-centric
+// company" says nothing about what a company sells. The lede is the first
+// sentence WITHOUT them. "Principles" is whole-word only — "principal"
+// (products, offices) opens substantive sentences. "Focused" and "leverage"
+// catch intent-framing ("We are focused on bringing AI…", "We intend to
+// leverage our operations…") — the WHAT usually follows in plainer sentences.
+const MISSION_FLUFF =
+  /\b(mission|vision|striv\w*|seek\w*|aspir\w*|principles?|guid\w*|obsess\w*|passion\w*|excel\w*|centric|focus\w*|leverag\w*)\b/i;
+
+// Cross-references never lede ("See Item 7.", "Refer to Note 21.") — short
+// ones would otherwise win the fit rule below.
+const LEDE_CROSSREF = /^\s*(see|refer to)\b/i;
+
+function ledeWorthy(s: string): boolean {
+  return !MISSION_FLUFF.test(s) && !LEDE_CROSSREF.test(s);
+}
+
+// One-liner for the Snapshot box, the share card, and the share description:
+// the first substantive sentence of the business text, skipping mission
+// fluff. Falls back to the first sentence when everything matches (a fluff
+// lede still beats a blank box).
+export function ledeSentence(text: string, max = 220): string {
+  const s = (text || '').trim();
+  if (!s) return '';
+  const sents = splitSentences(s);
+  return capSentence(sents.find(ledeWorthy) ?? sents[0] ?? s, max);
+}
+
+// A sentence enumerating reportable segments ("organized into three
+// segments: North America, International, and AWS") names the business
+// lines — the best single-sentence lede when one fits. At most one adjective
+// between the count and "segments" ("two reportable segments").
+const SEGMENT_COUNT = /\b(one|two|three|four|five|six|\d+)\s+(\w+\s+)?segments?\b/i;
+
+// First substantive sentence that fits uncut, preferring a segment
+// enumeration; null when every candidate needs the cap (a capped lede reads
+// as a cutoff — the caller falls through to the next source instead).
+function cleanLede(text: string | null | undefined, max: number): string | null {
+  const s = (text || '').trim();
+  if (!s) return null;
+  const cands = splitSentences(s).filter((x) => ledeWorthy(x) && x.length <= max);
+  return cands.find((x) => SEGMENT_COUNT.test(x)) ?? cands[0] ?? null;
+}
+
+// Overview-first lede: the overview's first clean sentence wins (it says what
+// the company IS); the business-model text only fills in when the overview is
+// all fluff or overlong (TSLA's opens with two capped AI-framing sentences,
+// its model text with the crisp segment line). Final fallback caps the
+// overview like ledeSentence — a cut lede still beats a blank box.
+export function pickLede(
+  extract: string | null | undefined,
+  businessModel: string | null | undefined,
+  max = 220,
+): string {
+  return cleanLede(extract, max) ?? cleanLede(businessModel, max) ?? ledeSentence(extract || businessModel || '', max);
 }
 
 // Day move with units on both legs: "+$1.90 (+0.5%)". Either leg alone when
@@ -1229,6 +1387,40 @@ export function formatQuoteChange(
   }
   if (typeof changePct === 'number' && Number.isFinite(changePct)) bits.push(`(${formatPct(changePct)})`);
   return bits.length > 0 ? bits.join(' ') : '—';
+}
+
+// Position of today's price in its 52-week range as a plain-English label,
+// in fifths. Null/NaN stays blank.
+export function positionInRangeLabel(pos: number | null | undefined): string | null {
+  if (pos === null || pos === undefined || !Number.isFinite(pos)) return null;
+  if (pos >= 0.8) return 'near the high';
+  if (pos >= 0.6) return 'upper range';
+  if (pos >= 0.4) return 'mid-range';
+  if (pos >= 0.2) return 'lower range';
+  return 'near the low';
+}
+
+// P/E against its own 5-year range: "below its 5-yr range (32.2–52.4)".
+// Null without both legs — the tile shows the bare multiple instead.
+export function peHistoryNote(pe: number | null | undefined, range: [number, number] | null): string | null {
+  if (pe === null || pe === undefined || !Number.isFinite(pe) || !range) return null;
+  const [lo, hi] = range;
+  if (!Number.isFinite(lo) || !Number.isFinite(hi)) return null;
+  const pos = pe < lo ? 'below' : pe > hi ? 'above' : 'within';
+  return `${pos} its 5-yr range (${lo.toFixed(1)}–${hi.toFixed(1)})`;
+}
+
+export function isMarketOpen(marketStatus: string | null | undefined): boolean {
+  return /open/i.test(marketStatus ?? '');
+}
+
+// Status-line stamp: time only while the market is open ("12:07 PM ET" — the
+// date is implied), the full stamp when closed ("Oct 6, 2026"). Unparseable
+// stamps pass through untouched.
+export function formatLastTrade(lastTrade: string | null | undefined, marketStatus: string | null | undefined): string {
+  if (!lastTrade) return '—';
+  if (!isMarketOpen(marketStatus)) return lastTrade;
+  return lastTrade.replace(/^[A-Za-z]{3} \d{1,2}, \d{4} /, '');
 }
 
 // Card dateline from a Nasdaq quote: "Oct 6 close" when the market is closed,
@@ -1679,7 +1871,7 @@ const CASH_CONCEPTS = [
 
 const SERIES_DEFS: SeriesDef[] = [
   { key: 'revenue', label: 'Revenue', unit: 'USD', tries: [{ taxonomy: 'us-gaap', concepts: REVENUE_CONCEPTS }, { taxonomy: 'ifrs-full', concepts: ['Revenue'] }] },
-  { key: 'grossProfit', label: 'Gross profit', unit: 'USD', tries: [{ taxonomy: 'us-gaap', concepts: ['GrossProfit'] }] },
+  { key: 'grossProfit', label: 'Gross profit', unit: 'USD', tries: [{ taxonomy: 'us-gaap', concepts: ['GrossProfit'] }, { taxonomy: 'ifrs-full', concepts: ['GrossProfit'] }] },
   { key: 'operatingIncome', label: 'Operating income', unit: 'USD', tries: [{ taxonomy: 'us-gaap', concepts: ['OperatingIncomeLoss'] }] },
   { key: 'netIncome', label: 'Net income', unit: 'USD', tries: [{ taxonomy: 'us-gaap', concepts: ['NetIncomeLoss'] }, { taxonomy: 'ifrs-full', concepts: ['ProfitLoss'] }] },
   { key: 'eps', label: 'EPS (diluted)', unit: 'USD/shares', splitDir: 'per-share', tries: [{ taxonomy: 'us-gaap', concepts: ['EarningsPerShareDiluted'] }, { taxonomy: 'ifrs-full', concepts: ['DilutedEarningsLossPerShare'] }] },
@@ -1690,6 +1882,34 @@ const SERIES_DEFS: SeriesDef[] = [
   { key: 'assets', label: 'Total assets', unit: 'USD', tries: [{ taxonomy: 'us-gaap', concepts: ['Assets'] }, { taxonomy: 'ifrs-full', concepts: ['Assets'] }] },
   { key: 'equity', label: 'Total equity', unit: 'USD', tries: [{ taxonomy: 'us-gaap', concepts: ['StockholdersEquity', 'StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest'] }, { taxonomy: 'ifrs-full', concepts: ['Equity', 'EquityAttributableToOwnersOfParent'] }] },
 ];
+
+// Cost of revenue for gross-profit derivation ONLY — never a table row.
+// Restricted to total-cost concepts: CostOfGoodsAndServicesSold is partial
+// for some filers (AMZN's excludes fulfillment), so revenue minus that would
+// print a wrong gross profit. META/GOOGL tag the total as CostOfRevenue;
+// AMZN doesn't, which is exactly what keeps them out of the derivation.
+const COST_OF_REVENUE_TRIES = [
+  { taxonomy: 'us-gaap', concepts: ['CostOfRevenue'] },
+  { taxonomy: 'ifrs-full', concepts: ['CostOfSales'] },
+];
+
+// Gross profit = revenue − cost of revenue, matched by fiscal year-end, for
+// filers that present no gross subtotal. All-or-nothing per series: mixing
+// filed years with derived years would corrupt YoY comparisons, so callers
+// only invoke this when the filed series is entirely absent. Null unless at
+// least one year matches on both legs.
+export function deriveGrossProfit(
+  revenue: FinancialSeries | null | undefined,
+  cost: FinancialSeries | null | undefined,
+): AnnualPoint[] | null {
+  if (!revenue || !cost) return null;
+  const byEnd = new Map(cost.points.map((p) => [p.end, p.value]));
+  const pts = revenue.points.flatMap((r) => {
+    const c = byEnd.get(r.end);
+    return c === undefined ? [] : [{ year: r.year, end: r.end, value: r.value - c, filed: r.filed }];
+  });
+  return pts.length > 0 ? pts : null;
+}
 
 function pointsByYear(s: FinancialSeries | null): Map<string, AnnualPoint> {
   return new Map((s?.points ?? []).map((p) => [p.year, p]));
@@ -1846,7 +2066,12 @@ export function buildTtm(facts: SecCompanyFacts['facts'], ticker: string): TtmVa
     if (v !== null) ttm[key] = v;
   };
   flow('revenue', [{ taxonomy: 'us-gaap', concepts: REVENUE_CONCEPTS }, { taxonomy: 'ifrs-full', concepts: ['Revenue'] }], 'USD');
-  flow('grossProfit', [{ taxonomy: 'us-gaap', concepts: ['GrossProfit'] }], 'USD');
+  flow('grossProfit', [{ taxonomy: 'us-gaap', concepts: ['GrossProfit'] }, { taxonomy: 'ifrs-full', concepts: ['GrossProfit'] }], 'USD');
+  // No filed gross quarters (META, GOOGL): TTM revenue − TTM cost of revenue.
+  if (ttm.grossProfit === undefined && ttm.revenue !== undefined) {
+    const cost = ttmValue(facts, ticker, COST_OF_REVENUE_TRIES, 'USD');
+    if (cost !== null) ttm.grossProfit = ttm.revenue - cost;
+  }
   flow('operatingIncome', [{ taxonomy: 'us-gaap', concepts: ['OperatingIncomeLoss'] }], 'USD');
   flow('netIncome', [{ taxonomy: 'us-gaap', concepts: ['NetIncomeLoss'] }, { taxonomy: 'ifrs-full', concepts: ['ProfitLoss'] }], 'USD');
   flow('eps', [{ taxonomy: 'us-gaap', concepts: ['EarningsPerShareDiluted'] }, { taxonomy: 'ifrs-full', concepts: ['DilutedEarningsLossPerShare'] }], 'USD/shares', true);
@@ -1887,6 +2112,19 @@ export function buildFinancials(facts: SecCompanyFacts['facts'], ticker: string)
         found = extractAnnualSeries(facts, t.taxonomy, t.concepts, def.unit, def.key, def.label);
         if (found) break;
       }
+    }
+    if (!found && def.key === 'grossProfit') {
+      // No gross subtotal on the face statement (META, GOOGL): derive
+      // revenue − cost of revenue. The revenue def runs first, so it's
+      // already in `out` when this runs.
+      const revenue = out.find((s) => s.key === 'revenue');
+      let cost: FinancialSeries | null = null;
+      for (const t of COST_OF_REVENUE_TRIES) {
+        cost = extractAnnualSeries(facts, t.taxonomy, t.concepts, 'USD', 'costOfRevenue', 'Cost of revenue');
+        if (cost) break;
+      }
+      const points = deriveGrossProfit(revenue, cost);
+      if (points) found = { key: def.key, label: def.label, unit: def.unit, points };
     }
     if (!found) {
       missing.push(def.label);
@@ -1943,8 +2181,7 @@ export async function getStockData(rawTicker: string): Promise<StockResponse | n
   if (cikPadded && subResult.status === 'rejected') warnings.push('SEC company profile unreachable.');
   if (cikPadded && factsResult.status === 'rejected') warnings.push('SEC fundamentals unreachable.');
 
-  const companyName =
-    sub?.name || entry?.title || (q?.companyName ? cleanCompanyNameForSearch(q.companyName) : null) || ticker;
+  const companyName = pickCompanyName(sub?.name, q?.companyName, entry?.title, ticker);
 
   // Company overview, business, competition, and risks in the company's own
   // words, from the latest annual filing's full text. Best-effort: any failure
@@ -2049,7 +2286,9 @@ export async function getStockData(rawTicker: string): Promise<StockResponse | n
       week52High: week52.length === 2 ? parseNum(week52[0]) : null,
       week52Low: week52.length === 2 ? parseNum(week52[1]) : null,
       sector: s.Sector?.value && s.Sector.value !== 'N/A' ? s.Sector.value : null,
-      industry: s.Industry?.value && s.Industry.value !== 'N/A' ? s.Industry.value : (sub?.sicDescription ?? null),
+      // Nasdaq taxonomy only — no SEC SIC fallback, so every ticker is
+      // classified by the same source (the header and card read these too).
+      industry: s.Industry?.value && s.Industry.value !== 'N/A' ? s.Industry.value : null,
       dividendYield,
       avgVolume: parseNum(s.AverageVolume?.value),
       dpsTtm: dps,
