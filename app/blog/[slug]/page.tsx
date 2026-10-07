@@ -4,6 +4,13 @@ import Header from '@/components/layout/Header';
 import { supabase } from '@/lib/supabase';
 import { formatDate } from '@/lib/utils';
 import { colorizeArticleSections, categoryColor } from '@/lib/blog-content';
+import {
+  cleanCompanyNameForSearch,
+  extractQuote,
+  fetchNasdaq,
+  formatPct,
+  normalizeTicker,
+} from '@/lib/stocks';
 import ShareButtons from '@/components/blog/ShareButtons';
 import LikeButton from '@/components/blog/LikeButton';
 import ViewCounter from '@/components/blog/ViewCounter';
@@ -29,10 +36,15 @@ async function getBlogPost(slug: string) {
   return data;
 }
 
+const SITE_URL = 'https://amoljadhav.ai';
+const STOCK_LOOKUP_SLUG = 'look-up-stock-and-company-details';
+
 export async function generateMetadata({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ ticker?: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
   const post = await getBlogPost(slug);
@@ -41,7 +53,7 @@ export async function generateMetadata({
     return {};
   }
 
-  return {
+  const fallback: Metadata = {
     title: `${post.title} | Amol Jadhav`,
     description: post.excerpt,
     openGraph: {
@@ -55,6 +67,39 @@ export async function generateMetadata({
       description: post.excerpt,
     },
   };
+
+  // Shared lookups (?ticker=NVDA) get a live-price preview: price in the
+  // title/description and a rendered price card as the OG image.
+  if (slug !== STOCK_LOOKUP_SLUG) return fallback;
+  const ticker = normalizeTicker((await searchParams)?.ticker ?? '');
+  if (!ticker) return fallback;
+
+  try {
+    const { quote } = await fetchNasdaq(ticker);
+    const q = quote?.symbol?.toUpperCase() === ticker ? extractQuote(quote) : null;
+    if (!q || q.price === null) return fallback;
+    const name = quote?.companyName ? cleanCompanyNameForSearch(quote.companyName) : ticker;
+    const priceBit = `$${q.price.toFixed(2)}`;
+    const pctBit = q.changePct !== null ? ` (${formatPct(q.changePct)})` : '';
+    const title = `${ticker} ${priceBit}${pctBit} | ${post.title}`;
+    const description = `${name} at ${priceBit}${pctBit}${q.lastTrade ? `, as of ${q.lastTrade}` : ''}. What the company does, financials, and SEC filings — one page.`;
+    const images = [
+      {
+        url: `${SITE_URL}/api/og/stock?ticker=${ticker}`,
+        width: 1200,
+        height: 630,
+        alt: `${ticker} stock price`,
+      },
+    ];
+    return {
+      title: `${title} | Amol Jadhav`,
+      description,
+      openGraph: { title, description, type: 'article', images },
+      twitter: { card: 'summary_large_image', title, description, images: images.map((i) => i.url) },
+    };
+  } catch {
+    return fallback;
+  }
 }
 
 export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
