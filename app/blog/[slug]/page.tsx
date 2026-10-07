@@ -5,11 +5,11 @@ import { supabase } from '@/lib/supabase';
 import { formatDate } from '@/lib/utils';
 import { colorizeArticleSections, categoryColor } from '@/lib/blog-content';
 import {
-  cleanCompanyNameForSearch,
-  extractQuote,
-  fetchNasdaq,
-  formatPct,
+  displayCompanyName,
+  firstSentence,
+  getStockData,
   normalizeTicker,
+  quoteDayParam,
 } from '@/lib/stocks';
 import ShareButtons from '@/components/blog/ShareButtons';
 import LikeButton from '@/components/blog/LikeButton';
@@ -68,27 +68,31 @@ export async function generateMetadata({
     },
   };
 
-  // Shared lookups (?ticker=NVDA) get a live-price preview: price in the
-  // title/description and a rendered price card as the OG image.
+  // Shared lookups (?ticker=NVDA) get a company-profile preview: a timeless
+  // title (never a price — social caches hold cards for days), the one-liner
+  // as the description, and the profile-teaser card as the OG image. The
+  // image URL carries the quote date (?d=...) so each session gets a fresh
+  // card instead of last week's price.
   if (slug !== STOCK_LOOKUP_SLUG) return fallback;
   const ticker = normalizeTicker((await searchParams)?.ticker ?? '');
   if (!ticker) return fallback;
 
   try {
-    const { quote } = await fetchNasdaq(ticker);
-    const q = quote?.symbol?.toUpperCase() === ticker ? extractQuote(quote) : null;
-    if (!q || q.price === null) return fallback;
-    const name = quote?.companyName ? cleanCompanyNameForSearch(quote.companyName) : ticker;
-    const priceBit = `$${q.price.toFixed(2)}`;
-    const pctBit = q.changePct !== null ? ` (${formatPct(q.changePct)})` : '';
-    const title = `${ticker} ${priceBit}${pctBit} | ${post.title}`;
-    const description = `${name} at ${priceBit}${pctBit}${q.lastTrade ? `, as of ${q.lastTrade}` : ''}. What the company does, financials, and SEC filings — one page.`;
+    const data = await getStockData(ticker);
+    if (!data) return fallback;
+    const name = displayCompanyName(data.companyName);
+    const title = `${name} (${ticker}): Business, Financials & Filings`;
+    const oneLiner = data.description ? firstSentence(data.description.extract) : null;
+    const description = oneLiner
+      ? `${oneLiner} Revenue, margins, cash, and SEC filings on one page.`
+      : `${name} (${ticker}) — what the company does, financials, and SEC filings on one page.`;
+    const day = data.quote ? quoteDayParam(data.quote.lastTrade) : null;
     const images = [
       {
-        url: `${SITE_URL}/api/og/stock?ticker=${ticker}`,
+        url: `${SITE_URL}/api/og/stock?ticker=${ticker}${day ? `&d=${day}` : ''}`,
         width: 1200,
         height: 630,
-        alt: `${ticker} stock price`,
+        alt: `${name} (${ticker}) company profile`,
       },
     ];
     return {

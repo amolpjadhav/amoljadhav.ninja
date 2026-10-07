@@ -1170,6 +1170,130 @@ export function cleanCompanyNameForSearch(name: string): string {
     .trim();
 }
 
+// Display name for headlines and cards: "Tesla, Inc." -> "Tesla". Strips
+// chained legal suffixes ("Taiwan Semiconductor Manufacturing Company
+// Limited" -> "Taiwan Semiconductor Manufacturing"). Search keeps the legal
+// suffix (cleanCompanyNameForSearch); display drops it. Returns the input
+// when nothing would remain.
+export function displayCompanyName(name: string): string {
+  let n = (name || '').trim();
+  // Older and foreign filers file in ALL CAPS ("BERKSHIRE HATHAWAY INC").
+  // Title-case those (word starts only, so "McDonald's" keeps its shape);
+  // mixed-case names pass through untouched.
+  if (/[A-Z]/.test(n) && !/[a-z]/.test(n)) {
+    n = n.toLowerCase().replace(/(^|[\s\-–—(/&])(\w)/g, (_, p: string, c: string) => p + c.toUpperCase());
+  }
+  const stripped = n
+    .replace(
+      /(\s*,?\s*(Inc|Corp|Corporation|Incorporated|Company|Holdings?|Group|Ltd|Limited|LLC|PL[CK]|Co|Trust|LPs?|LLP|NV|SA|AG|SE|SpA|AB))+\.?$/i,
+      '',
+    )
+    .trim();
+  return stripped || (name || '').trim();
+}
+
+// Abbreviations that end with a period but never end a sentence —
+// "Berkshire Hathaway Inc. ("Berkshire") is…" is one sentence.
+const SENTENCE_ABBREV = /^([A-Za-z]\.)*[A-Za-z]$|^(No|Mr|Mrs|Ms|Dr|St|Rd|Ave|Blvd|vs|Inc|Corp|Co|Ltd|Jr|Sr|Esq)$/i;
+
+// First sentence of a text, for one-liners. Skips abbreviation ends, falls
+// back to a trimmed prefix when no sentence end exists.
+export function firstSentence(text: string, max = 220): string {
+  const s = (text || '').trim();
+  const re = /[.?!]["'”’)\]]*\s+/g;
+  let end = -1;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(s)) !== null) {
+    const word = s.slice(0, m.index).split(/\s+/).pop() ?? '';
+    if (SENTENCE_ABBREV.test(word)) continue;
+    end = m.index + m[0].trimEnd().length;
+    break;
+  }
+  const first = end < 0 ? s : s.slice(0, end);
+  if (first.length <= max) return first;
+  const cut = first.slice(0, max).trimEnd();
+  const sp = cut.lastIndexOf(' ');
+  return `${sp > max * 0.5 ? cut.slice(0, sp) : cut}…`;
+}
+
+// Day move with units on both legs: "+$1.90 (+0.5%)". Either leg alone when
+// the other is missing, "—" when both are.
+export function formatQuoteChange(
+  change: number | null | undefined,
+  changePct: number | null | undefined,
+): string {
+  const bits: string[] = [];
+  if (typeof change === 'number' && Number.isFinite(change)) {
+    const grouped = Math.abs(change).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    bits.push(`${change < 0 ? '-' : '+'}$${grouped}`);
+  }
+  if (typeof changePct === 'number' && Number.isFinite(changePct)) bits.push(`(${formatPct(changePct)})`);
+  return bits.length > 0 ? bits.join(' ') : '—';
+}
+
+// Card dateline from a Nasdaq quote: "Oct 6 close" when the market is closed,
+// "Oct 6" while live, null when the quote carries no parseable date. Parsed
+// manually (never Date) so server timezones can't shift the day. Keeps cached
+// cards honest about which session the price belongs to.
+export function quoteDayLabel(
+  lastTrade: string | null | undefined,
+  marketStatus: string | null | undefined,
+): string | null {
+  const day = quoteDayParts(lastTrade);
+  if (!day) return null;
+  return /closed/i.test(marketStatus ?? '') ? `${day.label} close` : day.label;
+}
+
+// Machine twin of quoteDayLabel: "Oct 6, 2026" -> "2026-10-06", for the dated
+// image URL (?d=...) that forces social caches to refresh each session.
+export function quoteDayParam(lastTrade: string | null | undefined): string | null {
+  const day = quoteDayParts(lastTrade);
+  return day ? day.param : null;
+}
+
+const SHORT_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+function quoteDayParts(lastTrade: string | null | undefined): { label: string; param: string } | null {
+  if (!lastTrade) return null;
+  const named = lastTrade.match(/([A-Za-z]+)\s+(\d{1,2})(?:,?\s+(\d{4}))?/);
+  if (named) {
+    const mi = SHORT_MONTHS.findIndex((m) => m.toLowerCase() === named[1].slice(0, 3).toLowerCase());
+    if (mi >= 0) {
+      const dd = String(Number(named[2])).padStart(2, '0');
+      // No year (intraday feeds sometimes omit it): dateline only, no param.
+      if (!named[3]) return { label: `${SHORT_MONTHS[mi]} ${Number(named[2])}`, param: '' };
+      return { label: `${SHORT_MONTHS[mi]} ${Number(named[2])}`, param: `${named[3]}-${String(mi + 1).padStart(2, '0')}-${dd}` };
+    }
+  }
+  const iso = lastTrade.match(/(\d{4})-(\d{2})-(\d{2})/);
+  if (iso) {
+    const mi = Number(iso[2]) - 1;
+    if (mi >= 0 && mi < 12) return { label: `${SHORT_MONTHS[mi]} ${Number(iso[3])}`, param: iso[0] };
+  }
+  return null;
+}
+
+// Revenue values -> SVG polyline points plus the end-dot position, scaled
+// into a width×height box for the card sparkline. Flat series draw a level
+// line; fewer than two points (or no finite values) returns null.
+export function sparklinePoints(
+  values: (number | null | undefined)[],
+  width: number,
+  height: number,
+): { points: string; endX: number; endY: number } | null {
+  const vals = values.filter((v): v is number => typeof v === 'number' && Number.isFinite(v));
+  if (vals.length < 2 || !(width > 0) || !(height > 0)) return null;
+  const min = Math.min(...vals);
+  const max = Math.max(...vals);
+  // Padding exceeds the dot radius and half the stroke, so neither clips at
+  // the viewport edge (a clipped dot renders square).
+  const pad = 8;
+  const x = (i: number) => pad + (i / (vals.length - 1)) * (width - pad * 2);
+  const y = (v: number) => height - pad - ((v - min) / (max - min || 1)) * (height - pad * 2);
+  const pts = vals.map((v, i) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`);
+  return { points: pts.join(' '), endX: x(vals.length - 1), endY: y(vals[vals.length - 1]) };
+}
+
 const NAME_STOPWORDS = new Set([
   'the', 'inc', 'corp', 'co', 'corporation', 'company', 'companies', 'incorporated',
   'holdings', 'holding', 'group', 'limited', 'ltd', 'llc', 'plc', 'nv', 'sa', 'ag',
@@ -1326,11 +1450,12 @@ export function extractQuote(q: NasdaqQuoteJson['data']): StockQuote | null {
   };
 }
 
-// Share-post text for a lookup, e.g. "NVDA $187.50 (+1.2%) — NVIDIA Corporation".
+// Share-post text for a lookup, e.g. "$NVDA $187.50 (+1.2%) — NVIDIA Corporation".
+// The ticker is cashtagged ($NVDA) so it linkifies on X.
 export function stockShareText(ticker: string, companyName: string, quote: StockQuote | null): string {
-  if (!quote || quote.price === null) return `${ticker} — ${companyName}`;
+  if (!quote || quote.price === null) return `$${ticker} — ${companyName}`;
   const pct = quote.changePct !== null ? ` (${formatPct(quote.changePct)})` : '';
-  return `${ticker} $${quote.price.toFixed(2)}${pct} — ${companyName}`;
+  return `$${ticker} $${quote.price.toFixed(2)}${pct} — ${companyName}`;
 }
 
 export function stockShareLinks(pageUrl: string, text: string): { x: string; linkedin: string } {
