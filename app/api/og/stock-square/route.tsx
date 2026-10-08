@@ -147,7 +147,7 @@ export async function GET(req: Request) {
         <span style={{ fontSize: 88, fontWeight: 800, color: moveColor, marginLeft: up || down ? 16 : 0 }}>
           {pct}
         </span>
-        <span style={{ fontSize: 54, color: moveColor, opacity: 0.55, marginLeft: 18 }}>today</span>
+        <span style={{ fontSize: 54, color: moveColor, opacity: 0.7, marginLeft: 18 }}>today</span>
       </div>
       {spark && (
         <svg width="900" height="140" style={{ marginTop: 36 }}>

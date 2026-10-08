@@ -1863,6 +1863,13 @@ export function pickCompanyName(
 // when nothing would remain.
 export function displayCompanyName(name: string): string {
   let n = (name || '').trim();
+  // Share-class tail first (Nasdaq appends it: "…Class A Ordinary Shares",
+  // "…Class C Capital Stock"). The designator is one letter and the tail
+  // must end in Stock/Shares, so "First Class Holdings" survives.
+  n = n
+    .replace(/\s+Class\s+[A-Z0-9](\s+[A-Za-z]+){0,3}\s+(Stock|Shares?)\s*$/i, '')
+    .replace(/\s+Class\s+[A-Z0-9]\s*$/i, '')
+    .trim();
   // Older and foreign filers file in ALL CAPS ("BERKSHIRE HATHAWAY INC").
   // Title-case those (word starts only, so "McDonald's" keeps its shape);
   // mixed-case names pass through untouched.
