@@ -1764,6 +1764,57 @@ export function formatInt(n: number | null | undefined): string {
   return Math.round(n).toLocaleString('en-US');
 }
 
+// Word-aware single-line truncation in width units for the OG stock card:
+// CJK glyphs run ~2x latin width, so they count double (a 20-F one-liner
+// can be half Chinese). "Taiwan Semiconductor Manuf…" never happens — it
+// cuts at the last space ("Taiwan Semiconductor…"); a cut ending mid-CJK
+// keeps the hard cut, since CJK has no word spaces to honor.
+export function truncateLine(s: string, max: number): string {
+  const w = (c: string) => (c.codePointAt(0)! > 0xff ? 2 : 1);
+  let total = 0;
+  for (const c of s) total += w(c);
+  if (total <= max) return s;
+  let used = 0;
+  let cut = '';
+  for (const c of s) {
+    const cw = w(c);
+    if (used + cw > max) break;
+    used += cw;
+    cut += c;
+  }
+  cut = cut.trimEnd();
+  if (!cut) return '…';
+  const last = [...cut].pop()!;
+  if (w(last) === 2) return `${cut}…`;
+  const sp = cut.lastIndexOf(' ');
+  return `${sp > 8 ? cut.slice(0, sp) : cut}…`;
+}
+
+// Company-name text and size that fit beside the ticker on one card line:
+// estimates both widths (~0.68em for the caps ticker, ~0.6em mixed-case
+// name), then shrinks the name (and, for pathological pairs, shortens it)
+// into what's left. Names are SEC/Nasdaq latin-alphabet; CJK width only
+// matters for one-liners. Verified against BRK.A + TSMC renders.
+export function fitName(
+  ticker: string,
+  name: string,
+  colWidth: number,
+  tickerPx: number,
+): { text: string; px: number } {
+  const avail = Math.max(colWidth - [...ticker].length * tickerPx * 0.68 - 20, 120);
+  const text = truncateLine(name, Math.max(10, Math.min(30, Math.floor(avail / 18))));
+  const px = Math.min(40, Math.max(24, Math.floor(avail / (Math.max([...text].length, 1) * 0.62))));
+  return { text, px };
+}
+
+// Price-hero size for the OG stock cards: maxPx for normal quotes, shrinking
+// so even BRK.A's "$712,345.00" stays inside targetWidth. Prices are never
+// truncated, only shrunk.
+export function fitPrice(priceStr: string, maxPx = 150, targetWidth = 900): number {
+  const len = Math.max([...priceStr].length, 1);
+  return Math.min(maxPx, Math.max(72, Math.floor(targetWidth / (len * 0.62))));
+}
+
 // Compact unitless scaling for share counts: 24100000000 -> "24.10B".
 export function formatCompact(v: number | null | undefined): string {
   if (v === null || v === undefined || !Number.isFinite(v)) return '—';
@@ -1994,6 +2045,19 @@ export function quoteDayLabel(
   const day = quoteDayParts(lastTrade);
   if (!day) return null;
   return /closed/i.test(marketStatus ?? '') ? `${day.label} close` : day.label;
+}
+
+// Dated footer for the square post card: "Oct 7, 2026 close" once the
+// session is final, bare "Oct 8, 2026" while live. Falls back to the
+// yearless label when the feed omits the year.
+export function quoteCardFooter(
+  lastTrade: string | null | undefined,
+  marketStatus: string | null | undefined,
+): string | null {
+  const day = quoteDayParts(lastTrade);
+  if (!day) return null;
+  const base = day.param ? (formatFilingDate(day.param) ?? day.label) : day.label;
+  return /closed/i.test(marketStatus ?? '') ? `${base} close` : base;
 }
 
 // Machine twin of quoteDayLabel: "Oct 6, 2026" -> "2026-10-06", for the dated

@@ -36,7 +36,9 @@ async function getBlogPost(slug: string) {
   return data;
 }
 
-const SITE_URL = 'https://amoljadhav.ai';
+// www directly: the apex 308-redirects here, and strict crawlers (and their
+// image fetches) can't be trusted to follow it for og:image.
+const SITE_URL = 'https://www.amoljadhav.ai';
 const STOCK_LOOKUP_SLUG = 'look-up-stock-and-company-details';
 
 export async function generateMetadata({

@@ -1,21 +1,19 @@
 import { ImageResponse } from 'next/og';
 import {
   displayCompanyName,
+  fitName,
+  fitPrice,
   pickLede,
-  formatMoney,
-  formatPct,
   formatQuoteChange,
   getStockData,
-  latestValue,
   normalizeTicker,
   quoteDayLabel,
-  sparklinePoints,
-  yoyGrowth,
+  truncateLine,
 } from '@/lib/stocks';
 
-// Profile-teaser card for a stock lookup: brand, ticker, what the company
-// does, four key numbers, a revenue sparkline, and the price as a dated,
-// secondary detail — honest even when X serves a cached copy days later.
+// Price-hero card for a stock lookup: brand, ticker, one line on what the
+// company does, the current price big, and the signed move as a dated
+// detail — honest even when X serves a cached copy days later.
 // GET /api/og/stock?ticker=NVDA&d=2026-10-06
 //
 // The `d` param is a cache-buster from the page metadata (one URL per trading
@@ -30,7 +28,6 @@ import {
 const W = 1200;
 const H = 630;
 const BG = '#0c0e10';
-const PANEL = '#14171a';
 const INK = '#f2f4f3';
 const BODY = '#c7ced3';
 const MUTED = '#9aa3a8';
@@ -90,80 +87,11 @@ function card(children: React.ReactNode, font: ArrayBuffer | null) {
   );
 }
 
-// Word-aware single-line truncation in width units: CJK glyphs run ~2x latin
-// width, so they count double (a 20-F one-liner can be half Chinese).
-// "Taiwan Semiconductor Manuf…" never happens — it cuts at the last space
-// ("Taiwan Semiconductor…"); a cut ending mid-CJK keeps the hard cut, since
-// CJK has no word spaces to honor.
-function truncateLine(s: string, max: number): string {
-  const w = (c: string) => (c.codePointAt(0)! > 0xff ? 2 : 1);
-  let total = 0;
-  for (const c of s) total += w(c);
-  if (total <= max) return s;
-  let used = 0;
-  let cut = '';
-  for (const c of s) {
-    const cw = w(c);
-    if (used + cw > max) break;
-    used += cw;
-    cut += c;
-  }
-  cut = cut.trimEnd();
-  if (!cut) return '…';
-  const last = [...cut].pop()!;
-  if (w(last) === 2) return `${cut}…`;
-  const sp = cut.lastIndexOf(' ');
-  return `${sp > 8 ? cut.slice(0, sp) : cut}…`;
-}
-
-// Company-name text and size that fit beside the ticker on one line:
-// estimates both widths (~0.68em for the caps ticker, ~0.6em mixed-case
-// name), then shrinks the name (and, for pathological pairs, shortens it)
-// into what's left. Names are SEC/Nasdaq latin-alphabet; CJK width only
-// matters for one-liners. Verified against BRK.A + TSMC renders.
-function fitName(
-  ticker: string,
-  name: string,
-  colWidth: number,
-  tickerPx: number,
-): { text: string; px: number } {
-  const avail = Math.max(colWidth - [...ticker].length * tickerPx * 0.68 - 20, 120);
-  const text = truncateLine(name, Math.max(10, Math.min(30, Math.floor(avail / 18))));
-  const px = Math.min(40, Math.max(24, Math.floor(avail / (Math.max([...text].length, 1) * 0.62))));
-  return { text, px };
-}
-
-function BrandRow({ right }: { right: string | null }) {
+function BrandRow() {
   return (
     <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
       <span style={{ fontSize: 26, fontWeight: 800 }}>amoljadhav.ai</span>
       <span style={{ fontSize: 26, color: MUTED }}> · Company profile</span>
-      {right && (
-        <span style={{ fontSize: 24, color: MUTED, marginLeft: 'auto' }}>{truncateLine(right, 52)}</span>
-      )}
-    </div>
-  );
-}
-
-function StatTile({ label, value, sub }: { label: string; value: string; sub?: React.ReactNode }) {
-  const missing = value === '—' || value === 'n/a';
-  return (
-    <div
-      style={{
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'column',
-        background: PANEL,
-        borderRadius: 16,
-        paddingTop: 18,
-        paddingBottom: 18,
-        paddingLeft: 22,
-        paddingRight: 22,
-      }}
-    >
-      <span style={{ fontSize: 20, color: MUTED, fontWeight: 700, letterSpacing: 3 }}>{label}</span>
-      <span style={{ fontSize: 48, fontWeight: 900, color: missing ? MUTED : INK, marginTop: 8 }}>{value}</span>
-      {sub ?? null}
     </div>
   );
 }
@@ -171,7 +99,7 @@ function StatTile({ label, value, sub }: { label: string; value: string; sub?: R
 function errorCard(kicker: string, title: string, sub: string, font: ArrayBuffer | null) {
   return card(
     <div style={{ display: 'flex', flexDirection: 'column' }}>
-      <BrandRow right={null} />
+      <BrandRow />
       <div style={{ display: 'flex', flexDirection: 'column', marginTop: 56 }}>
         <span style={{ fontSize: 28, fontWeight: 800, color: ACCENT, letterSpacing: 4 }}>{kicker}</span>
         <span style={{ fontSize: 76, fontWeight: 900, marginTop: 12 }}>{title}</span>
@@ -198,7 +126,6 @@ export async function GET(req: Request) {
   const q = data.quote;
   const name = displayCompanyName(data.companyName);
   const oneLiner = pickLede(data.description?.extract, data.filingInsights?.businessModel, 200) || null;
-  const sectorLine = [data.stats.sector, data.stats.industry].filter(Boolean).join(' · ') || null;
   const day = q ? quoteDayLabel(q.lastTrade, q.marketStatus) : null;
   const move = q ? formatQuoteChange(q.change, q.changePct) : '—';
   const up = (q?.change ?? 0) >= 0;
@@ -208,132 +135,34 @@ export async function GET(req: Request) {
       ? `$${q.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
       : null;
 
-  // No annual financials (ETFs, funds, fresh filers): price and the fund
-  // description carry the card instead of tiles.
-  if (!data.financials) {
-    const etfTickerPx = ticker.length > 5 ? 84 : 100;
-    const etfName = fitName(ticker, name, 1080, etfTickerPx);
-    return card(
-      // NOTE: no fragments anywhere in this file — this satori version lays
-      // a fragment's children out as a row regardless of the parent direction.
-      <div style={{ display: 'flex', flexDirection: 'column' }}>
-        <BrandRow right={sectorLine} />
-        <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-end', marginTop: 16 }}>
-          <span style={{ fontSize: etfTickerPx, fontWeight: 900, color: ACCENT, letterSpacing: 2 }}>
-            {ticker}
-          </span>
-          <span style={{ fontSize: etfName.px, fontWeight: 800, marginLeft: 22, paddingBottom: 12 }}>
-            {etfName.text}
-          </span>
-        </div>
-        {oneLiner && (
-          <div style={{ fontSize: 28, color: BODY, marginTop: 8 }}>{truncateLine(oneLiner, 68)}</div>
-        )}
-        <div style={{ display: 'flex', flexDirection: 'column', marginTop: 28 }}>
-          <span style={{ fontSize: priceStr && priceStr.length > 10 ? 80 : 100, fontWeight: 900, lineHeight: 1 }}>
-            {priceStr ?? 'Quote unavailable'}
-          </span>
-          <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginTop: 10 }}>
-            <span style={{ fontSize: 38, fontWeight: 800, color: moveColor }}>{move}</span>
-            {day && <span style={{ fontSize: 34, color: MUTED, marginLeft: 14 }}>· {day}</span>}
-            <span style={{ fontSize: 28, fontWeight: 700, color: ACCENT, marginLeft: 'auto' }}>Full profile →</span>
-          </div>
-        </div>
-      </div>,
-      font,
-    );
-  }
-
-  // Profile card: the business, four key numbers, the revenue trend — price
-  // secondary and dated.
-  const seriesOf = (key: string) => data.financials?.find((s) => s.key === key);
-  const revPts = seriesOf('revenue')?.points ?? [];
-  const revYoy = yoyGrowth(revPts);
-  const revGrowth = revYoy.length > 0 ? revYoy[revYoy.length - 1] : null;
-  const ttm = data.ttm;
-  const revTtm = ttm?.revenue ?? latestValue(seriesOf('revenue'));
-  const margin =
-    ttm?.revenue && ttm?.netIncome !== undefined
-      ? ttm.netIncome / Math.abs(ttm.revenue)
-      : (() => {
-          const r = latestValue(seriesOf('revenue'));
-          const n = latestValue(seriesOf('netIncome'));
-          return r && n !== null ? n / Math.abs(r) : null;
-        })();
-  const trailingEps = ttm?.eps ?? latestValue(seriesOf('eps'));
-  const pe = q?.price != null && trailingEps !== null && trailingEps > 0 ? q.price / trailingEps : null;
-  const spark = sparklinePoints(
-    revPts.map((p) => p.value),
-    310,
-    92,
-  );
+  // One layout for stocks and ETFs alike: the quote never depended on
+  // financials, so the old ETF fork is gone.
   const tickerPx = ticker.length > 5 ? 80 : 96;
-  // Left column is full width without a sparkline, minus the spark box with one.
-  const fitted = fitName(ticker, name, spark ? 746 : 1080, tickerPx);
+  const fitted = fitName(ticker, name, 1080, tickerPx);
+  const pricePx = fitPrice(priceStr ?? 'Quote unavailable');
 
   return card(
+    // NOTE: no fragments anywhere in this file — this satori version lays
+    // a fragment's children out as a row regardless of the parent direction.
     <div style={{ display: 'flex', flexDirection: 'column' }}>
-      <BrandRow right={sectorLine} />
-      <div style={{ display: 'flex', flexDirection: 'row', marginTop: 20 }}>
-        <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
-          <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-end' }}>
-            <span style={{ fontSize: tickerPx, fontWeight: 900, color: ACCENT, letterSpacing: 2 }}>
-              {ticker}
-            </span>
-            <span style={{ fontSize: fitted.px, fontWeight: 800, marginLeft: 20, paddingBottom: 10 }}>
-              {fitted.text}
-            </span>
-          </div>
-          {oneLiner && (
-            <div style={{ fontSize: 28, color: BODY, marginTop: 8 }}>{truncateLine(oneLiner, 50)}</div>
-          )}
-        </div>
-        {spark && (
-          <div style={{ display: 'flex', flexDirection: 'column', width: 310, marginLeft: 24 }}>
-            <svg width="310" height="92">
-              <polyline
-                points={spark.points}
-                fill="none"
-                stroke={ACCENT}
-                strokeWidth={3.5}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <circle cx={spark.endX} cy={spark.endY} r={6.5} fill={ACCENT} />
-            </svg>
-            <span style={{ fontSize: 20, color: MUTED, marginTop: 6, textAlign: 'right' }}>
-              Revenue, last 5 fiscal years
-            </span>
-          </div>
-        )}
-      </div>
-      <div style={{ display: 'flex', flexDirection: 'row', gap: 16, marginTop: 20 }}>
-        <StatTile label="MARKET CAP" value={data.stats.marketCap !== null ? formatMoney(data.stats.marketCap) : '—'} />
-        <StatTile
-          label="REVENUE TTM"
-          value={revTtm !== null ? formatMoney(revTtm) : '—'}
-          sub={
-            revGrowth !== null ? (
-              <span style={{ fontSize: 24, fontWeight: 800, color: revGrowth < 0 ? DOWN : UP, marginTop: 4 }}>
-                {formatPct(revGrowth)}
-              </span>
-            ) : undefined
-          }
-        />
-        <StatTile label="NET MARGIN" value={margin !== null ? formatPct(margin, 0) : '—'} />
-        <StatTile label="P/E" value={pe !== null ? pe.toFixed(1) : 'n/a'} />
-      </div>
+      <BrandRow />
       <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-end', marginTop: 20 }}>
-        <span style={{ fontSize: 40, fontWeight: 800 }}>{priceStr ?? 'Quote unavailable'}</span>
-        <span style={{ fontSize: 30, fontWeight: 800, color: moveColor, marginLeft: 14, paddingBottom: 3 }}>
-          {move}
+        <span style={{ fontSize: tickerPx, fontWeight: 900, color: ACCENT, letterSpacing: 2 }}>
+          {ticker}
         </span>
-        {day && (
-          <span style={{ fontSize: 28, color: MUTED, marginLeft: 12, paddingBottom: 3 }}>· {day}</span>
-        )}
-        <span style={{ fontSize: 26, fontWeight: 700, color: ACCENT, marginLeft: 'auto', paddingBottom: 4 }}>
-          Full profile →
+        <span style={{ fontSize: fitted.px, fontWeight: 800, marginLeft: 20, paddingBottom: 10 }}>
+          {fitted.text}
         </span>
+      </div>
+      {oneLiner && (
+        <div style={{ fontSize: 30, color: BODY, marginTop: 10 }}>{truncateLine(oneLiner, 55)}</div>
+      )}
+      <span style={{ fontSize: pricePx, fontWeight: 900, lineHeight: 1, marginTop: 22 }}>
+        {priceStr ?? 'Quote unavailable'}
+      </span>
+      <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginTop: 14 }}>
+        <span style={{ fontSize: 40, fontWeight: 800, color: moveColor }}>{move}</span>
+        {day && <span style={{ fontSize: 34, color: MUTED, marginLeft: 14 }}>· {day}</span>}
       </div>
     </div>,
     font,
