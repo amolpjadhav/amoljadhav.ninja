@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Link as LinkIcon, Check } from 'lucide-react';
 import type { FinancialSeries, PricePoint, SegmentSeries, StockResponse } from '@/lib/stocks';
-import { FILING_LABELS, cagr, cagrDetails, displayCompanyName, edgarCompanyUrl, fiscalYearEndMonth, fiscalYearSpan, formatCompact, formatEps, formatFilingDate, formatHeadquarters, formatInt, formatLastTrade, formatMoney, formatPct, formatPrice, formatQuoteChange, isMarketOpen, isOtherSegment, latestValue, marginLine, normalizeTicker, peHistoryNote, periodReturn, pickLede, positionInRangeLabel, revenueLine, stockShareLinks, stockShareText, tableYears, yoyGrowth } from '@/lib/stocks';
+import { FILING_LABELS, cagr, cagrDetails, displayCompanyName, edgarCompanyUrl, fiscalYearEndMonth, fiscalYearSpan, formatCompact, formatEps, formatFilingDate, formatHeadquarters, formatInt, formatLastTrade, formatMoney, formatPct, formatPrice, formatQuoteChange, isMarketOpen, isOtherSegment, latestValue, marginLine, normalizeTicker, peHistoryNote, periodReturn, pickLede, positionInRangeLabel, revenueLine, shareCacheBuster, stockShareLinks, stockShareText, tableYears, yoyGrowth } from '@/lib/stocks';
 import { SECTION_ACCENTS, categoryColor } from '@/lib/blog-content';
 
 function XIcon() {
@@ -445,6 +445,10 @@ export default function StocksLookup({ initialTicker }: { initialTicker: string 
   const [error, setError] = useState<string | null>(null);
   const [recent, setRecent] = useState<string[]>(() => (typeof window === 'undefined' ? [] : loadRecent()));
   const [copied, setCopied] = useState(false);
+  // Per-share cache buster (?v=...): X caches cards per page URL for days,
+  // so each lookup mints a fresh share URL. Set beside setData (never
+  // during render) so server and client HTML match.
+  const [shareToken, setShareToken] = useState('');
   const mounted = useRef(false);
 
   async function lookup(raw: string) {
@@ -462,6 +466,8 @@ export default function StocksLookup({ initialTicker }: { initialTicker: string 
       const json = await res.json();
       if (!res.ok) throw new Error(json?.error || 'Lookup failed.');
       setData(json as StockResponse);
+      // Fresh share URL per lookup: X caches cards per page URL for days.
+      setShareToken(shareCacheBuster());
       setRecent((prev) => {
         const next = [ticker, ...prev.filter((t) => t !== ticker)].slice(0, 5);
         try {
@@ -574,7 +580,9 @@ export default function StocksLookup({ initialTicker }: { initialTicker: string 
   const margin = marginLine(netMarginTtm ?? netMarginFy, marginBase?.margin ?? null, marginBase?.year ?? null);
   const form4Url = data?.profile ? `https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=${Number(data.profile.cik)}&type=4&owner=include` : null;
   const shareUrl =
-    data && typeof window !== 'undefined' ? `${window.location.origin}${pathname}?ticker=${data.ticker}` : '';
+    data && typeof window !== 'undefined'
+      ? `${window.location.origin}${pathname}?ticker=${data.ticker}${shareToken ? `&v=${shareToken}` : ''}`
+      : '';
   const shareText = data ? stockShareText(data.ticker, shortName, data.quote) : '';
   const shareLinks = stockShareLinks(shareUrl, shareText);
   const shareButtonClass =

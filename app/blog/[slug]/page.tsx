@@ -45,7 +45,7 @@ export async function generateMetadata({
   searchParams,
 }: {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ ticker?: string }>;
+  searchParams: Promise<{ ticker?: string; v?: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
   const post = await getBlogPost(slug);
@@ -57,6 +57,7 @@ export async function generateMetadata({
   const fallback: Metadata = {
     title: `${post.title} | Amol Jadhav`,
     description: post.excerpt,
+    alternates: { canonical: `${SITE_URL}/blog/${slug}` },
     openGraph: {
       title: post.title,
       description: post.excerpt,
@@ -72,12 +73,17 @@ export async function generateMetadata({
   // Shared lookups (?ticker=NVDA) get a company-profile preview: a timeless
   // title (never a price — social caches hold cards for days) and the card
   // image, which carries the quote date (?d=...) so each session gets a
-  // fresh card instead of last week's price. Tags come from the lean card
-  // loader (quote only): full getStockData takes 20s+ cold and crawlers
-  // give up before reading og:image.
+  // fresh card instead of last week's price. The share button mints a
+  // per-share token (?v=...) that passes through to the image, busting X's
+  // per-URL card cache on both layers at once; the canonical stays clean.
+  // Tags come from the lean card loader (quote only): full getStockData
+  // takes 20s+ cold and crawlers give up before reading og:image.
   if (slug !== STOCK_LOOKUP_SLUG) return fallback;
-  const ticker = normalizeTicker((await searchParams)?.ticker ?? '');
+  const query = await searchParams;
+  const ticker = normalizeTicker(query?.ticker ?? '');
   if (!ticker) return fallback;
+  const rawV = query?.v ?? '';
+  const v = /^[0-9a-z]{1,16}$/.test(rawV) ? rawV : null;
 
   try {
     const data = await getStockCardData(ticker);
@@ -88,7 +94,7 @@ export async function generateMetadata({
     const day = data.quote ? quoteDayParam(data.quote.lastTrade) : null;
     const images = [
       {
-        url: `${SITE_URL}/api/og/stock?ticker=${ticker}${day ? `&d=${day}` : ''}`,
+        url: `${SITE_URL}/api/og/stock?ticker=${ticker}${day ? `&d=${day}` : ''}${v ? `&v=${v}` : ''}`,
         width: 1200,
         height: 630,
         alt: `${name} (${ticker}) company profile`,
@@ -97,6 +103,7 @@ export async function generateMetadata({
     return {
       title: `${title} | Amol Jadhav`,
       description,
+      alternates: { canonical: `${SITE_URL}/blog/${slug}?ticker=${ticker}` },
       openGraph: { title, description, type: 'article', images },
       twitter: { card: 'summary_large_image', title, description, images: images.map((i) => i.url) },
     };

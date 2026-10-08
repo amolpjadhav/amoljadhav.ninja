@@ -3,7 +3,8 @@ import {
   displayCompanyName,
   fitPrice,
   formatPct,
-  getStockCardData,
+  loadCardFontCached,
+  loadStockCard,
   normalizeTicker,
   quoteCardFooter,
   sparklinePoints,
@@ -28,38 +29,6 @@ const MUTED = '#9aa3a8';
 const GOLD = '#e8a83e';
 const UP = '#4ade80';
 const DOWN = '#e07856';
-
-async function loadFont(): Promise<ArrayBuffer | null> {
-  try {
-    // Satori parses ttf/otf/woff only (no woff2), so ask Google Fonts with an
-    // ancient UA, which is served truetype. Anything failing falls back to
-    // system sans — the layout never depends on the webfont.
-    const css = await fetch('https://fonts.googleapis.com/css2?family=Inter:wght@900&display=swap', {
-      headers: { 'User-Agent': 'Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.1)' },
-      signal: AbortSignal.timeout(4000),
-    }).then((r) => {
-      if (!r.ok) throw new Error('font css');
-      return r.text();
-    });
-    const url = css.match(/https:\/\/[^)]+\.ttf/)?.[0];
-    if (!url) return null;
-    const buf = await fetch(url, { signal: AbortSignal.timeout(4000) }).then((r) => {
-      if (!r.ok) throw new Error('font file');
-      return r.arrayBuffer();
-    });
-    return buf;
-  } catch {
-    return null;
-  }
-}
-
-// One fetch per serverless instance — the font never changes, so warm
-// renders skip Google Fonts entirely.
-let fontPromise: Promise<ArrayBuffer | null> | null = null;
-function loadFontCached(): Promise<ArrayBuffer | null> {
-  if (!fontPromise) fontPromise = loadFont();
-  return fontPromise;
-}
 
 function card(children: React.ReactNode, font: ArrayBuffer | null, maxAge = 3600) {
   return new ImageResponse(
@@ -90,6 +59,16 @@ function card(children: React.ReactNode, font: ArrayBuffer | null, maxAge = 3600
   );
 }
 
+// Buffer the render so Server-Timing reports the honest data/render split
+// (curl time alone can't tell a slow upstream from a slow satori).
+async function timed(res: ImageResponse, dataMs: number): Promise<Response> {
+  const t0 = Date.now();
+  const buf = await res.arrayBuffer();
+  const headers = new Headers(res.headers);
+  headers.set('Server-Timing', `data;dur=${dataMs}, render;dur=${Date.now() - t0}`);
+  return new Response(buf, { status: res.status, headers });
+}
+
 function errorCard(kicker: string, title: string, sub: string, font: ArrayBuffer | null) {
   // Short cache: a Nasdaq blip must not pin "Quote unavailable" all day.
   return card(
@@ -109,17 +88,17 @@ function errorCard(kicker: string, title: string, sub: string, font: ArrayBuffer
 export async function GET(req: Request) {
   const ticker = normalizeTicker(new URL(req.url).searchParams.get('ticker') ?? '');
   if (!ticker) {
-    return errorCard('STOCK LOOKUP', 'Invalid ticker', 'Check the link and try again.', await loadFontCached());
+    return timed(
+      errorCard('STOCK LOOKUP', 'Invalid ticker', 'Check the link and try again.', await loadCardFontCached()),
+      0,
+    );
   }
 
   // Lean card data (quote + history) in parallel with the font: full
   // getStockData takes 20s+ cold and crawlers give up before the image.
-  const [data, font] = await Promise.all([
-    getStockCardData(ticker, { history: true }).catch(() => null),
-    loadFontCached(),
-  ]);
+  const { data, font, dataMs } = await loadStockCard(ticker, { history: true });
   if (!data) {
-    return errorCard(ticker, 'Quote unavailable', `No data found for "${ticker}".`, font);
+    return timed(errorCard(ticker, 'Quote unavailable', `No data found for "${ticker}".`, font), dataMs);
   }
 
   const q = data.quote;
@@ -139,9 +118,11 @@ export async function GET(req: Request) {
   const spark = sparklinePoints(hist, 900, 140);
   const foot = quoteCardFooter(q?.lastTrade, q?.marketStatus);
 
-  return card(
-    // NOTE: no fragments anywhere in this file — this satori version lays
-    // a fragment's children out as a row regardless of the parent direction.
+  // NOTE: no fragments anywhere in this file — this satori version lays
+  // a fragment's children out as a row regardless of the parent direction.
+  // Built outside try (lint forbids JSX in try); the render itself throws
+  // inside timed(), which the catch below converts to a fallback card.
+  const body = (
     <div style={{ display: 'flex', flexDirection: 'column' }}>
       <span style={{ fontSize: cashPx, fontWeight: 900, color: GOLD, letterSpacing: 2 }}>{`$${ticker}`}</span>
       <div style={{ fontSize: 44, color: MUTED, marginTop: 8 }}>{truncateLine(name, 32)}</div>
@@ -179,7 +160,11 @@ export async function GET(req: Request) {
         <span style={{ fontSize: 36, color: MUTED }}>{foot ?? 'Latest quote'}</span>
         <span style={{ fontSize: 40, fontWeight: 800, marginLeft: 'auto' }}>amoljadhav.ai</span>
       </div>
-    </div>,
-    font,
+    </div>
   );
+  try {
+    return await timed(card(body, font), dataMs);
+  } catch {
+    return timed(errorCard(ticker, 'Card unavailable', 'Try again in a moment.', font), dataMs);
+  }
 }

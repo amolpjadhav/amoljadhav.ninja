@@ -2283,6 +2283,13 @@ export function stockShareText(ticker: string, companyName: string, quote: Stock
   return `$${ticker} $${quote.price.toFixed(2)}${pct} — ${companyName}`;
 }
 
+// Per-share cache buster for social URLs: X caches cards per page URL for
+// days, so each share link carries a unique moment token (?v=...) and the
+// page passes it through to og:image. Short base36 timestamp.
+export function shareCacheBuster(now = Date.now()): string {
+  return Math.max(0, Math.floor(now)).toString(36);
+}
+
 export function stockShareLinks(pageUrl: string, text: string): { x: string; linkedin: string } {
   return {
     x: `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(pageUrl)}`,
@@ -2348,20 +2355,82 @@ async function fetchNasdaqInfoData(
 
 export async function getStockCardData(
   ticker: string,
-  opts?: { history?: boolean },
+  opts?: { history?: boolean; timeoutMs?: number },
 ): Promise<StockCardData | null> {
-  const signal = AbortSignal.timeout(CARD_TIMEOUT_MS);
-  const [info, history] = await Promise.all([
-    fetchNasdaqInfoData(ticker, signal).catch(() => null),
-    (opts?.history ? fetchNasdaqHistorical(ticker, signal) : Promise.resolve([])).catch(() => []),
+  const budget = opts?.timeoutMs ?? CARD_TIMEOUT_MS;
+  const signal = AbortSignal.timeout(budget);
+  const work = (async () => {
+    const [info, history] = await Promise.all([
+      fetchNasdaqInfoData(ticker, signal).catch(() => null),
+      (opts?.history ? fetchNasdaqHistorical(ticker, signal) : Promise.resolve([])).catch(() => []),
+    ]);
+    if (!info) return null;
+    return {
+      ticker,
+      companyName: info.companyName || ticker,
+      quote: extractQuote(info),
+      priceHistory: history,
+    };
+  })();
+  // Backstop race: some fetch wrappers swallow abort signals, so the promise
+  // race (not the signal) is what actually bounds the wait. Cleared whenever
+  // the work wins so no timer outlives the call.
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const fallback = new Promise<null>((resolve) => {
+    timer = setTimeout(() => resolve(null), budget + 1000);
+  });
+  try {
+    return await Promise.race([work, fallback]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
+
+// Inter Black for card headlines, fetched once per serverless instance
+// (shared by both card routes). Satori parses ttf/otf/woff only (no woff2),
+// so ask Google Fonts with an ancient UA, which is served truetype.
+// Anything failing falls back to system sans — layouts never depend on
+// the webfont.
+let cardFontPromise: Promise<ArrayBuffer | null> | null = null;
+export function loadCardFontCached(): Promise<ArrayBuffer | null> {
+  if (!cardFontPromise) {
+    cardFontPromise = (async () => {
+      try {
+        const css = await fetch('https://fonts.googleapis.com/css2?family=Inter:wght@900&display=swap', {
+          headers: { 'User-Agent': 'Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.1)' },
+          signal: AbortSignal.timeout(4000),
+        }).then((r) => {
+          if (!r.ok) throw new Error('font css');
+          return r.text();
+        });
+        const url = css.match(/https:\/\/[^)]+\.ttf/)?.[0];
+        if (!url) return null;
+        const buf = await fetch(url, { signal: AbortSignal.timeout(4000) }).then((r) => {
+          if (!r.ok) throw new Error('font file');
+          return r.arrayBuffer();
+        });
+        return buf;
+      } catch {
+        return null;
+      }
+    })();
+  }
+  return cardFontPromise;
+}
+
+// One call's worth of card inputs — quote data and font in parallel — with
+// the elapsed data wait for Server-Timing. Lives here (not the routes) so
+// the timing stays out of JSX-bearing functions.
+export async function loadStockCard(
+  ticker: string,
+  opts?: { history?: boolean },
+): Promise<{ data: StockCardData | null; font: ArrayBuffer | null; dataMs: number }> {
+  const t0 = Date.now();
+  const [data, font] = await Promise.all([
+    getStockCardData(ticker, opts).catch(() => null),
+    loadCardFontCached(),
   ]);
-  if (!info) return null;
-  return {
-    ticker,
-    companyName: info.companyName || ticker,
-    quote: extractQuote(info),
-    priceHistory: history,
-  };
+  return { data, font, dataMs: Date.now() - t0 };
 }
 
 interface WikiSearchJson {
