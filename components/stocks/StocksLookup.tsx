@@ -3,8 +3,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Link as LinkIcon, Check } from 'lucide-react';
-import type { FinancialSeries, PricePoint, StockResponse } from '@/lib/stocks';
-import { FILING_LABELS, cagr, cagrDetails, displayCompanyName, edgarCompanyUrl, fiscalYearEndMonth, fiscalYearSpan, formatCompact, formatEps, formatInt, formatLastTrade, formatMoney, formatPct, formatPrice, formatQuoteChange, isMarketOpen, latestValue, marginLine, normalizeTicker, peHistoryNote, periodReturn, pickLede, positionInRangeLabel, revenueLine, stockShareLinks, stockShareText, tableYears, yoyGrowth } from '@/lib/stocks';
+import type { FinancialSeries, PricePoint, SegmentSeries, StockResponse } from '@/lib/stocks';
+import { FILING_LABELS, cagr, cagrDetails, displayCompanyName, edgarCompanyUrl, fiscalYearEndMonth, fiscalYearSpan, formatCompact, formatEps, formatFilingDate, formatHeadquarters, formatInt, formatLastTrade, formatMoney, formatPct, formatPrice, formatQuoteChange, isMarketOpen, isOtherSegment, latestValue, marginLine, normalizeTicker, peHistoryNote, periodReturn, pickLede, positionInRangeLabel, revenueLine, stockShareLinks, stockShareText, tableYears, yoyGrowth } from '@/lib/stocks';
 import { SECTION_ACCENTS, categoryColor } from '@/lib/blog-content';
 
 function XIcon() {
@@ -49,12 +49,31 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
 }
 
 function StatRow({ label, value, sub }: { label: string; value: React.ReactNode; sub?: React.ReactNode }) {
+  // Key-metric tile: grouping via fill, never a border — borders mean
+  // clickable. Plain facts use FactGrid instead.
   return (
-    <div className="rounded-lg border border-white/10 bg-gradient-to-b from-white/[0.05] to-transparent px-3 py-2">
+    <div className="rounded-lg bg-white/[0.04] px-3 py-2">
       <div className="text-xs text-white/45">{label}</div>
       <div className="text-sm font-semibold text-white/90 tabular-nums mt-0.5">{value}</div>
       {sub !== undefined && <div className="text-xs text-white/50 mt-0.5">{sub}</div>}
     </div>
+  );
+}
+
+// Plain facts (Founded, CEO, …): no boxes — one hairline over a label/value
+// grid, two columns on mobile. Missing facts hide instead of showing dashes.
+function FactGrid({ facts }: { facts: { label: string; value: React.ReactNode }[] }) {
+  const shown = facts.filter((f) => f.value !== null && f.value !== undefined);
+  if (shown.length === 0) return null;
+  return (
+    <dl className="grid grid-cols-[repeat(auto-fit,minmax(140px,1fr))] gap-x-8 gap-y-4 pt-5 mt-5 border-t border-white/10">
+      {shown.map((f) => (
+        <div key={f.label}>
+          <dt className="text-[13px] text-white/40 tracking-wide">{f.label}</dt>
+          <dd className="mt-1 text-[17px] text-white/90">{f.value}</dd>
+        </div>
+      ))}
+    </dl>
   );
 }
 
@@ -95,22 +114,150 @@ function ProfileSection({
   note: React.ReactNode;
   children: React.ReactNode;
 }) {
-  // Same card treatment as article sections — tinted panel cycling the blog
-  // palette by section number, no accent left border — but a near-white
-  // heading: accent blue reads as a link.
+  // Small caps label over the question-as-heading; the accent tints the
+  // panel only (blue headings read as links).
   const accent = SECTION_ACCENTS[(n - 1) % SECTION_ACCENTS.length];
   return (
     <section className="article-section" style={{ '--accent': accent, borderLeft: 0, borderRadius: 10 } as React.CSSProperties}>
-      <h3 className="text-lg font-bold">
-        <span className="text-white/35">{n} · </span>
-        <span className="text-white/90">{title}</span>
-      </h3>
-      {question && <p className="text-sm text-white/55 mt-0.5 mb-3">{question}</p>}
+      <p className="text-xs font-semibold uppercase tracking-widest text-white/35">{n} · {title}</p>
+      {question && <h3 className="text-xl font-bold text-white/90 mt-1 mb-3">{question}</h3>}
       {children}
       <p className="text-xs text-white/55 mt-3 leading-relaxed">
         <strong className="text-white/75">How to read this:</strong> {note}
       </p>
     </section>
+  );
+}
+
+const SEGMENT_COLORS = [
+  'bg-sky-400',
+  'bg-emerald-400',
+  'bg-amber-300',
+  'bg-violet-400',
+  'bg-rose-400',
+  'bg-orange-300',
+];
+const SEGMENT_BUCKET = 'bg-white/25';
+
+function segmentPalette(members: string[]): string[] {
+  let n = 0;
+  return members.map((m) => (isOtherSegment(m) ? SEGMENT_BUCKET : SEGMENT_COLORS[(n++) % SEGMENT_COLORS.length]));
+}
+
+function segMoney(v: number | null | undefined): string {
+  if (v === null || v === undefined || !Number.isFinite(v)) return '—';
+  return `${v < 0 ? '-' : ''}$${formatCompact(Math.abs(v))}`;
+}
+
+function segShare(v: number | null | undefined, total: number | null): string {
+  if (v === null || v === undefined || !total) return '—';
+  const pct = (v / total) * 100;
+  if (pct < 0) return '—';
+  if (pct > 0 && pct < 0.5) return '<1%';
+  return `${Math.round(pct)}%`;
+}
+
+function ChartSubhead({ children }: { children: React.ReactNode }) {
+  return <h4 className="text-[13px] font-semibold text-white/70 mb-2">{children}</h4>;
+}
+
+function SegmentMixBar({ series, shortName }: { series: SegmentSeries; shortName: string }) {
+  const latest = series.years.length - 1;
+  const total = series.totals[latest] ?? series.values.reduce((a, col) => a + (col[latest] ?? 0), 0);
+  const colors = segmentPalette(series.members);
+  const shares = series.values.map((col) => {
+    const v = col[latest] ?? 0;
+    return total > 0 ? v / total : 0;
+  });
+  const top = shares.indexOf(Math.max(...shares));
+  return (
+    <div>
+      <div
+        className="flex h-3 rounded-full overflow-hidden bg-white/[0.06]"
+        role="img"
+        aria-label={`Revenue split FY${series.years[latest]}: ${series.members.map((m, i) => `${m} ${segShare(series.values[i][latest], total)}`).join(', ')}`}
+      >
+        {series.members.map((m, i) => {
+          const w = Math.max(0, shares[i] * 100);
+          return w > 0 ? <div key={m} className={`${colors[i]} h-full`} style={{ width: `${w}%` }} /> : null;
+        })}
+      </div>
+      <ul className="mt-2 space-y-1">
+        {series.members.map((m, i) => (
+          <li key={m} className="grid grid-cols-[minmax(0,1fr)_auto_4.5rem] items-baseline gap-x-3 text-sm">
+            <span className="flex items-center gap-2 min-w-0">
+              <span className={`inline-block w-2 h-2 rounded-sm shrink-0 ${colors[i]}`} />
+              <span className="text-white/85 truncate">{m}</span>
+            </span>
+            <span className="text-white/50 tabular-nums">{segShare(series.values[i][latest], total)}</span>
+            <span className="text-white/85 tabular-nums text-right">{segMoney(series.values[i][latest])}</span>
+          </li>
+        ))}
+      </ul>
+      {top >= 0 && shares[top] >= 0.7 && (
+        <p className="mt-2 text-sm text-white/75 leading-relaxed">
+          → {series.members[top]} is {Math.round(shares[top] * 100)}% of revenue, so {shortName}&rsquo;s
+          results mostly track that one business.
+        </p>
+      )}
+    </div>
+  );
+}
+
+function SegmentMixHistory({ series }: { series: SegmentSeries }) {
+  const colors = segmentPalette(series.members);
+  const order = series.years.map((_, i) => i).reverse();
+  return (
+    <ul className="space-y-1.5">
+      {order.map((yi) => {
+        const total = series.totals[yi] ?? series.values.reduce((a, col) => a + (col[yi] ?? 0), 0);
+        return (
+          <li key={series.years[yi]} className="grid grid-cols-[2.5rem_minmax(0,1fr)_4.5rem] items-center gap-x-3">
+            <span className="text-xs text-white/45 tabular-nums">{series.years[yi]}</span>
+            <div className="flex h-2.5 rounded-full overflow-hidden bg-white/[0.06]">
+              {series.members.map((m, i) => {
+                const v = series.values[i][yi] ?? 0;
+                const w = total > 0 ? Math.max(0, (v / total) * 100) : 0;
+                return w > 0 ? <div key={m} className={`${colors[i]} h-full`} style={{ width: `${w}%` }} /> : null;
+              })}
+            </div>
+            <span className="text-xs text-white/60 tabular-nums text-right">{segMoney(total)}</span>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+function SegmentProfitBars({ series }: { series: SegmentSeries }) {
+  const latest = series.years.length - 1;
+  const vals = series.members.map((_, i) => series.values[i][latest] ?? null);
+  const maxAbs = Math.max(0, ...vals.map((v) => Math.abs(v ?? 0)));
+  return (
+    <ul className="space-y-1.5">
+      {series.members.map((m, i) => {
+        const v = vals[i];
+        const half = v === null || maxAbs <= 0 ? 0 : (Math.abs(v) / maxAbs) * 50;
+        const left = v !== null && v < 0 ? 50 - half : 50;
+        const bar = v === null || v === 0 ? null : v > 0 ? 'bg-green-400' : 'bg-orange-400';
+        const text = v === null ? 'text-white/40' : v > 0 ? 'text-green-400' : v < 0 ? 'text-orange-400' : 'text-white/60';
+        return (
+          <li key={m} className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)_4.75rem] items-center gap-x-3">
+            <span className="text-[13px] text-white/85 truncate" title={m}>{m}</span>
+            <span className="relative block h-5 rounded bg-white/[0.06]">
+              <span className="absolute left-1/2 top-0 bottom-0 w-px bg-white/25" />
+              {bar && (
+                <span
+                  className={`absolute top-[3px] bottom-[3px] rounded-sm ${bar}`}
+                  style={{ left: `${left}%`, width: `${half}%` }}
+                />
+              )}
+            </span>
+            <span className={`text-[13px] tabular-nums text-right ${text}`}>{segMoney(v)}</span>
+          </li>
+        );
+      })}
+    </ul>
   );
 }
 
@@ -412,6 +559,8 @@ export default function StocksLookup({ initialTicker }: { initialTicker: string 
   const cap = data?.stats.marketCap;
   const capSize = cap == null ? null : cap >= 2e11 ? 'Mega-cap' : cap >= 1e10 ? 'Large-cap' : cap >= 2e9 ? 'Mid-cap' : cap >= 3e8 ? 'Small-cap' : 'Micro-cap';
   const oneLiner = data ? pickLede(data.description?.extract, data.filingInsights?.businessModel) || null : null;
+  const shortName = data ? displayCompanyName(data.companyName) : '';
+  const filingDateText = formatFilingDate(data?.filingInsights?.filingDate);
   const revLine = revenueLine(cagrDetails(revPts));
   // Margin trend compares the current margin against the earliest fiscal year
   // with both legs; skipped when that year IS the comparison (single-year
@@ -662,33 +811,65 @@ export default function StocksLookup({ initialTicker }: { initialTicker: string 
             <ProfileSection
               n={2}
               title="Company overview"
-              question={`What does ${data.ticker} do?`}
+              question={`What does ${shortName} do?`}
               note="If you can't say what they sell and who pays for it in one sentence after reading this, you don't understand the company yet — keep that sentence in mind while you read the numbers."
             >
               <p className="text-sm text-white/75 leading-relaxed whitespace-pre-line">{data.description.extract}</p>
-              <div className="mt-2">
-                <ExternalLink href={data.description.url}>
-                  {data.description.source === 'sec' ? 'Read filings on EDGAR' : 'Read more on Wikipedia'}
-                </ExternalLink>
-              </div>
-              <div className="grid md:grid-cols-2 gap-3 mt-3">
-                {data.description.founded && <StatRow label="Founded" value={data.description.founded} />}
-                <StatRow label="Headquarters" value={data.description.headquarters ?? data.profile?.address ?? '—'} />
-                {data.description.ceo && <StatRow label="CEO" value={data.description.ceo} />}
-                {data.profile?.employees !== null && data.profile?.employees !== undefined && (
-                  <StatRow label="Employees" value={formatInt(data.profile.employees)} />
+              {data.filingInsights && data.filingInsights.segments.length > 0 && (
+                <dl className="mt-3">
+                  <div className="grid grid-cols-[6.5rem_1fr] gap-x-3">
+                    <dt className="text-white/40 text-[13px] pt-[1px]">What they sell</dt>
+                    <dd className="text-sm text-white/85 leading-relaxed">{data.filingInsights.segments.join(' · ')}</dd>
+                  </div>
+                </dl>
+              )}
+              <div className="mt-2 flex flex-wrap items-baseline gap-x-2 gap-y-1 text-sm">
+                {data.filingInsights ? (
+                  <>
+                    <span className="text-white/40 text-[13px]">
+                      From the {data.filingInsights.form}{filingDateText ? ` filed ${filingDateText}` : ''}
+                    </span>
+                    <span className="text-white/25 text-[13px]">·</span>
+                    <ExternalLink href={data.description.url}>Read {bizItem}</ExternalLink>
+                    {data.profile && (
+                      <>
+                        <span className="text-white/25 text-[13px]">·</span>
+                        <ExternalLink href={edgarCompanyUrl(data.profile.cik)}>All filings</ExternalLink>
+                      </>
+                    )}
+                  </>
+                ) : (
+                  <ExternalLink href={data.description.url}>
+                    {data.description.source === 'sec' ? 'Read filings on EDGAR' : 'Read more on Wikipedia'}
+                  </ExternalLink>
                 )}
-                <StatRow label="Incorporated" value={data.profile?.stateOfIncorporation ?? '—'} />
-                <StatRow label="Fiscal year ends" value={fyeMonth ? `in ${fyeMonth}` : '—'} />
-                {data.profile && <StatRow label="CIK" value={data.profile.cik} />}
               </div>
+              <FactGrid
+                facts={[
+                  { label: 'Founded', value: data.description.founded },
+                  { label: 'CEO', value: data.description.ceo },
+                  {
+                    label: 'Employees',
+                    value:
+                      data.profile?.employees != null
+                        ? formatInt(data.profile.employees)
+                        : data.filingInsights?.employeeCount
+                          ? `${data.filingInsights.employeeCount.approximate ? '~' : ''}${formatInt(data.filingInsights.employeeCount.count)}`
+                          : null,
+                  },
+                  {
+                    label: 'Headquarters',
+                    value: formatHeadquarters(data.profile?.address) ?? data.description.headquarters,
+                  },
+                ]}
+              />
             </ProfileSection>
           )}
 
           <ProfileSection
             n={3}
             title="Business model"
-            question={`How does ${data.ticker} make money?`}
+            question={`How does ${shortName} make money?`}
             note="One segment above about 70% of revenue means the company's fortunes ride on that one market. Also check customer concentration — a line like “top two customers = 30% of revenue” is a risk, not a boast."
           >
             {data.filingInsights?.businessModel ? (
@@ -696,8 +877,7 @@ export default function StocksLookup({ initialTicker }: { initialTicker: string 
                 <p className="text-sm text-white/75 leading-relaxed">{data.filingInsights.businessModel}</p>
                 <p className="text-xs text-white/40 mt-2 leading-relaxed">
                   From the segment, product, and sales subsections of {bizItem} (Business) — what each part of the
-                  company sells, in its own words. Revenue by segment lives in the segment notes near the financial
-                  statements — the machine-readable feed doesn&apos;t carry it yet.
+                  company sells, in its own words.
                 </p>
               </>
             ) : data.filingInsights?.business ? (
@@ -705,30 +885,77 @@ export default function StocksLookup({ initialTicker }: { initialTicker: string 
                 <p className="text-sm text-white/75 leading-relaxed">{data.filingInsights.business}</p>
                 <p className="text-xs text-white/40 mt-2 leading-relaxed">
                   From {bizItem} (Business) of the latest {annualForm} — no separate segment or product subsection was
-                  found, so this is the filing&apos;s opening description. Revenue by segment lives in the segment notes
-                  near the financial statements — the machine-readable feed doesn&apos;t carry it yet.
+                  found, so this is the filing&apos;s opening description.
                 </p>
               </>
             ) : (
               <p className="text-sm text-white/70 leading-relaxed">
-                Segment revenue — how much each division and region brings in — isn&apos;t in the machine-readable XBRL
-                feed yet, so this section still needs the {annualForm} itself: {bizItem} (Business) for the model, and
-                the segment notes near the financial statements for the split.
+                The latest {annualForm} wasn&apos;t available for this lookup, so this section still needs the filing
+                itself: {bizItem} (Business) for the model, and the segment notes near the financial statements for
+                the split.
               </p>
             )}
-            <div className="mt-2">
-              {annualUrl ? (
-                <ExternalLink href={annualUrl}>Open the latest {annualForm} — {bizItem}, then the segment notes</ExternalLink>
-              ) : (
-                data.profile && <ExternalLink href={edgarCompanyUrl(data.profile.cik)}>Find the {annualForm} on EDGAR</ExternalLink>
-              )}
-            </div>
+            {data.filingInsights?.segmentRevenue && (
+              <div className="mt-4">
+                <ChartSubhead>
+                  Where the revenue comes from, FY
+                  {data.filingInsights.segmentRevenue.years[data.filingInsights.segmentRevenue.years.length - 1]}
+                </ChartSubhead>
+                <SegmentMixBar series={data.filingInsights.segmentRevenue} shortName={shortName} />
+              </div>
+            )}
+            {data.filingInsights?.segmentRevenue && data.filingInsights.segmentRevenue.years.length > 1 && (
+              <div className="mt-4">
+                <ChartSubhead>
+                  How the mix changed, {data.filingInsights.segmentRevenue.years[0]}–
+                  {data.filingInsights.segmentRevenue.years[data.filingInsights.segmentRevenue.years.length - 1]}
+                </ChartSubhead>
+                <SegmentMixHistory series={data.filingInsights.segmentRevenue} />
+              </div>
+            )}
+            {!data.filingInsights?.segmentRevenue && data.filingInsights && (
+              <p className="text-sm text-white/70 leading-relaxed mt-3">
+                {data.filingInsights.singleSegment
+                  ? `${shortName} reports one segment, so all revenue comes from one business.`
+                  : `Segment revenue: see the ${data.filingInsights.form} segment note.`}
+              </p>
+            )}
+            {data.filingInsights?.segmentOpIncome && (
+              <div className="mt-4">
+                <ChartSubhead>
+                  Where the profit comes from, FY
+                  {data.filingInsights.segmentOpIncome.years[data.filingInsights.segmentOpIncome.years.length - 1]}
+                </ChartSubhead>
+                <SegmentProfitBars series={data.filingInsights.segmentOpIncome} />
+              </div>
+            )}
+            {data.filingInsights?.customerConcentration && (
+              <p className="text-sm text-amber-200/90 leading-relaxed mt-3">
+                ⚠ {data.filingInsights.customerConcentration.who}: {data.filingInsights.customerConcentration.pct}% of
+                revenue.
+              </p>
+            )}
+            {data.filingInsights?.segmentRevenue || data.filingInsights?.segmentOpIncome ? (
+              <p className="text-xs text-white/40 mt-3 leading-relaxed">
+                From the {data.filingInsights.form}
+                {filingDateText ? ` filed ${filingDateText}` : ''} ·{' '}
+                <ExternalLink href={data.filingInsights.sourceUrl}>Segment note</ExternalLink>
+              </p>
+            ) : (
+              <div className="mt-2">
+                {annualUrl ? (
+                  <ExternalLink href={annualUrl}>Open the latest {annualForm} — {bizItem}, then the segment notes</ExternalLink>
+                ) : (
+                  data.profile && <ExternalLink href={edgarCompanyUrl(data.profile.cik)}>Find the {annualForm} on EDGAR</ExternalLink>
+                )}
+              </div>
+            )}
           </ProfileSection>
 
           <ProfileSection
             n={4}
             title="Competition and edge"
-            question={`Who is ${data.ticker} up against, and why does it win?`}
+            question={`Who is ${shortName} up against, and why does it win?`}
             note={`A company that can't name its edge in ${bizItem} usually doesn't have one. Look for switching costs, network effects, or a cost advantage — not adjectives.`}
           >
             {data.filingInsights?.competition ? (
@@ -783,7 +1010,7 @@ export default function StocksLookup({ initialTicker }: { initialTicker: string 
             <ProfileSection
               n={5}
               title="Growth"
-              question={`Is ${data.ticker} getting bigger?`}
+              question={`Is ${shortName} getting bigger?`}
               note="Growing plus profitable is the combo to look for. Revenue growth with flat or falling EPS means the growth isn't reaching shareholders — check section 8 for dilution."
             >
               <div className="grid md:grid-cols-2 gap-3">
@@ -799,7 +1026,7 @@ export default function StocksLookup({ initialTicker }: { initialTicker: string 
             <ProfileSection
               n={6}
               title="Profitability"
-              question={`Is ${data.ticker} a good business?`}
+              question={`Is ${shortName} a good business?`}
               note="Net margin — cents of profit kept per $1 of revenue — is the single fastest read on business quality. Compare it down the table: is each new dollar of revenue more profitable than the last, or less?"
             >
               <div className="grid md:grid-cols-2 gap-3">
@@ -815,7 +1042,7 @@ export default function StocksLookup({ initialTicker }: { initialTicker: string 
             <ProfileSection
               n={7}
               title="Financial health"
-              question={`Could ${data.ticker} survive a bad year?`}
+              question={`Could ${shortName} survive a bad year?`}
               note="Profit can be accounting; cash is harder to fake. Cash is the buffer for buybacks, dividends, and downturns — compare debt against cash and a year's free cash flow, not against zero."
             >
               <div className="grid md:grid-cols-2 gap-3">
@@ -831,7 +1058,7 @@ export default function StocksLookup({ initialTicker }: { initialTicker: string 
             <ProfileSection
               n={8}
               title="Shareholder returns"
-              question={`What do ${data.ticker} owners get back?`}
+              question={`What do ${shortName} owners get back?`}
               note="A falling share count means buybacks are concentrating your slice; a rising one means dilution. Pair the dividend with the payout ratio — over 100% for long means the dividend is borrowed, not earned."
             >
               <div className="grid md:grid-cols-2 gap-3">
@@ -860,7 +1087,7 @@ export default function StocksLookup({ initialTicker }: { initialTicker: string 
             <ProfileSection
               n={9}
               title="Valuation"
-              question={`What is the market paying for ${data.ticker}?`}
+              question={`What is the market paying for ${shortName}?`}
               note="A multiple means nothing alone — compare it to the stock's own history in the table. Below its usual range can mean cheap or troubled; above it can mean loved or overpriced. The table tells you which is normal here."
             >
               <div className="grid md:grid-cols-2 gap-3">
@@ -875,7 +1102,7 @@ export default function StocksLookup({ initialTicker }: { initialTicker: string 
           <ProfileSection
             n={10}
             title="Stock performance"
-            question={`How has ${data.ticker} done?`}
+            question={`How has ${shortName} done?`}
             note="Past returns predict nothing, but the 52-week position tells you whether you'd be buying after a run-up or a selloff. Volume spikes mark the days the market cared."
           >
             {data.priceHistory && data.priceHistory.length >= 2 ? (
@@ -903,7 +1130,7 @@ export default function StocksLookup({ initialTicker }: { initialTicker: string 
           <ProfileSection
             n={11}
             title="Management and ownership"
-            question={`Who runs ${data.ticker}, and who owns it?`}
+            question={`Who runs ${shortName}, and who owns it?`}
             note="Founders and executives with big stakes think like owners. On Form 4s, routine post-earnings diversification is normal — sudden cluster-selling is a question."
           >
             {data.description?.ceo && (
@@ -934,7 +1161,7 @@ export default function StocksLookup({ initialTicker }: { initialTicker: string 
           <ProfileSection
             n={12}
             title="Risks and recent events"
-            question={`What could go wrong at ${data.ticker}, and what just changed?`}
+            question={`What could go wrong at ${shortName}, and what just changed?`}
             note="Risk sections are written by lawyers — every company lists everything. The tell is order and specificity: the first risks, and the ones with numbers, are the real ones."
           >
             {data.filingInsights && data.filingInsights.risks.length > 0 ? (

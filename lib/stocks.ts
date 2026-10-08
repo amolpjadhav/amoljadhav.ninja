@@ -584,6 +584,17 @@ function stripBoldMarkers(s: string): string {
 // disclaimers, defined-term notes, and Item 1A's "carefully consider" intro.
 const BOILERPLATE = /forward-looking|forward looking|unless the context otherwise requires|as used in this (annual )?report|wish to caution readers|you should carefully consider|should be considered in addition to|sets forth the material risk factors/i;
 
+// ESG/legal disclaimer lines that open some Item 1s (AMD's voluntary-
+// disclosures paragraph) plus definitional openers ("References in this
+// Annual Report…", "As used herein…"). Kept separate from BOILERPLATE so
+// the lede can reuse it without touching the money-subsection filters.
+const FILING_DISCLAIMER =
+  /voluntary disclosures?|our website|materiality|securities laws?|incorporated by reference|references in this|as used herein/i;
+
+// A paragraph starting with a connective ("Additionally, we make…") is never
+// the first thing a company says about itself — it's a disclaimer tail.
+const CONNECTIVE_START = /^(Additionally|Furthermore|Moreover|In addition|As such|As a result|Accordingly)\b/i;
+
 // Summary-style sections mash headings, categories, and bullets into one
 // span ("Risk Factors Summary ... • Failure to meet ..."): keep the text
 // after the last bullet, and drop page-number/TOC prefixes.
@@ -622,13 +633,23 @@ function isSubheading(line: string): boolean {
   return t === t.toUpperCase() || t.split(/\s+/).length <= 5;
 }
 
+// Filing text hard-wraps around punctuation ("enrich life for all .", "( ex-quay )") —
+// collapse spaces before closing punctuation and after openers. Quotes
+// excluded: the space before an OPENING quote is correct.
+export function cleanSpacing(s: string): string {
+  return s.replace(/\s+([.,;:!?%)\]}])/g, '$1').replace(/([(\[{])\s+/g, '$1');
+}
+
 // Item 1's opening paragraphs: the company describing what it does. Drops the
-// heading line, boilerplate openers, and leading subheads ("Overview").
+// heading line, boilerplate openers, disclaimer/definitional lines, and
+// leading subheads ("Overview"). Null when nothing substantive survives.
 export function extractBusinessExcerpt(itemText: string, maxChars = 700): string | null {
   const lines = itemText.split('\n').slice(1);
-  const body = lines.filter((l) => !/^(ITEM\s+\d|PART\s+[IVX]+)/i.test(l) && !BOILERPLATE.test(l));
+  const body = lines.filter(
+    (l) => !/^(ITEM\s+\d|PART\s+[IVX]+)/i.test(l) && !BOILERPLATE.test(l) && !FILING_DISCLAIMER.test(l) && !CONNECTIVE_START.test(l.trim()),
+  );
   while (body.length > 0 && isSubheading(body[0])) body.shift();
-  const text = stripBoldMarkers(body.join(' ').replace(/\s+/g, ' ').trim());
+  const text = cleanSpacing(stripBoldMarkers(body.join(' ').replace(/\s+/g, ' ').trim()));
   if (text.replace(/\s/g, '').length < 100) return null;
   return completeSentences(truncateSentences(text, maxChars));
 }
@@ -648,7 +669,7 @@ export function extractCompetition(businessText: string, maxChars = 900): string
     if (out.length > 0 && isSubheading(l)) break;
     out.push(l);
   }
-  const text = stripBoldMarkers(out.join(' ').replace(/\s+/g, ' ').trim());
+  const text = cleanSpacing(stripBoldMarkers(out.join(' ').replace(/\s+/g, ' ').trim()));
   if (text.replace(/\s/g, '').length < 80) return null;
   return completeSentences(truncateSentences(text, maxChars));
 }
@@ -726,9 +747,479 @@ export function extractBusinessModel(businessText: string, maxChars = 1000): str
     }
     if (out.length > 0) parts.push(out.join(' '));
   }
-  const text = stripBoldMarkers(parts.join(' ').replace(/\s+/g, ' ').trim());
+  const text = cleanSpacing(stripBoldMarkers(parts.join(' ').replace(/\s+/g, ' ').trim()));
   if (text.replace(/\s/g, '').length < 100) return null;
   return completeSentences(truncateSentences(text, maxChars));
+}
+
+// Reportable segment names for the "What they sell" row, in filing order.
+// Shapes, first hit wins: inline colon lists ("three segments: North
+// America, International, and AWS"), "The X segment" lead-ins (NVDA's model
+// text), and bullet lists after a trailing colon (AMD). [] when nothing
+// parses — the row hides instead of guessing.
+export function extractSegmentNames(
+  businessModel: string | null | undefined,
+  itemText: string | null | undefined,
+): string[] {
+  for (const text of [businessModel, itemText]) {
+    if (!text) continue;
+    const inline = parseInlineSegmentList(text);
+    if (inline) return inline;
+    const theX = parseTheXSegment(text);
+    if (theX) return theX;
+  }
+  if (itemText) {
+    const trailing = parseTrailingSegmentBullets(itemText);
+    if (trailing) return trailing;
+  }
+  return [];
+}
+
+const SMALL_WORDS = new Set(['and', 'or', 'of', 'the', 'for', 'in', 'on', 'at', 'to', 'vs']);
+
+function cleanSegmentName(p: string): string | null {
+  let n = p
+    .trim()
+    .replace(/\.$/, '')
+    .replace(/\s+(and|or)$/i, '')
+    .replace(/^\s*(and|or)\s+/i, '')
+    .replace(/^\((?:[ivx]+|\d+|[a-z])\)\s*/i, '')
+    .replace(/^\d+[.)]\s*/, '')
+    .trim();
+  // All-lowercase fragments ("energy generation and storage") read as chips
+  // better title-cased; mixed-case names keep the filing's casing.
+  if (n === n.toLowerCase()) {
+    n = n
+      .split(/\s+/)
+      .map((w, i) => (i > 0 && SMALL_WORDS.has(w) ? w : w.charAt(0).toUpperCase() + w.slice(1)))
+      .join(' ');
+  }
+  if (n.length < 2 || n.length > 60 || /[.?!]/.test(n) || /\bsegments?\b/i.test(n)) return null;
+  return n;
+}
+
+function splitNameList(tail: string): string[] {
+  const markers = tail.match(/\((?:[ivx]+|\d+|[a-z])\)/gi) || [];
+  const parts =
+    markers.length >= 2
+      ? tail.split(/\s*(?=\((?:[ivx]+|\d+|[a-z])\))/i)
+      : /[,;]/.test(tail)
+        ? tail.split(/[,;]/)
+        : tail.split(/\s+and\s+/i);
+  const out: string[] = [];
+  for (const p of parts) {
+    const n = cleanSegmentName(p);
+    if (n && !out.some((x) => x.toLowerCase() === n.toLowerCase())) out.push(n);
+  }
+  return out;
+}
+
+function parseInlineSegmentList(text: string): string[] | null {
+  for (const s of splitSentences(text)) {
+    if (!SEGMENT_COUNT.test(s)) continue;
+    const tail = s.slice(s.lastIndexOf(':') + 1);
+    if (!tail || tail === s) continue;
+    if (/^\s*[•\-*]/.test(tail) || /^\s*\d{1,2}[.)]/.test(tail)) continue;
+    const names = splitNameList(tail);
+    if (names.length >= 1) return names.slice(0, 6);
+  }
+  return null;
+}
+
+function parseTheXSegment(text: string): string[] | null {
+  const out: string[] = [];
+  const push = (n: string) => {
+    const t = n.trim();
+    if (t.length >= 2 && t.length <= 60 && !out.some((x) => x.toLowerCase() === t.toLowerCase())) out.push(t);
+  };
+  for (const s of splitSentences(text)) {
+    const lead = s.match(/^\s*[Tt]he\s+([A-Z][^.\n]{1,60}?)\s+segment\b/);
+    if (lead) push(lead[1]);
+    for (const m of s.matchAll(/•\s*[Tt]he\s+([A-Z][^;.\n]{1,60}?)\s+segment\b/g)) push(m[1]);
+  }
+  return out.length >= 2 ? out.slice(0, 6) : null;
+}
+
+function parseTrailingSegmentBullets(itemText: string): string[] | null {
+  const lines = itemText.split('\n');
+  for (let i = 0; i < lines.length; i++) {
+    if (!/\bsegments?\b[^:\n]{0,24}:\s*$/i.test(lines[i])) continue;
+    const out: string[] = [];
+    for (const l of lines.slice(i + 1)) {
+      const t = l.trim();
+      if (!t) break;
+      const m = t.match(/^[•\-*]\s+(.+)$/) || t.match(/^\d{1,2}[.)]\s+(.+)$/);
+      if (!m) break;
+      const seg = m[1].match(/^(?:the\s+)?(.+?)\s+segment\b/i);
+      const biz = !seg && m[1].match(/^(.+? business unit)\b/i);
+      const name = (
+        seg ? seg[1] : biz ? biz[1].replace(/\s*\([^)]*\)/g, '').replace(/\s+business unit$/i, '') : m[1].split(':')[0].replace(/[;.,]+$/, '')
+      ).trim();
+      if (name.length < 2 || name.length > 60 || /[.?!]/.test(name)) break;
+      out.push(name);
+      if (out.length >= 6) break;
+    }
+    if (out.length >= 1) return out;
+  }
+  return null;
+}
+
+// Headcount from Item 1's Human Capital disclosure, three shapes in order:
+// "employed approximately 31,000 employees" (AMD), "had a global workforce
+// of 78,865 employees" (META), "employee headcount worldwide was 134,785"
+// (TSLA), and qualified "employed approximately 223,000 people" (MSFT).
+// First match per shape wins — filings state the latest year first. XBRL
+// EntityNumberOfEmployees stays primary; this fills filers that don't tag
+// it. The people-shape requires a qualifier so subset counts ("200 people
+// in our Austin office") can't win over the total.
+const EMPLOYEE_COUNT =
+  /\b(?:employed|had|have)\s+((?:approximately|about|around|nearly|almost|more than|over)\s+)?(?:a\s+)?(?:global\s+)?(?:total\s+)?(?:workforce\s+of\s+|headcount\s+of\s+)?([\d,]+)\s+(?:full-time\s+and\s+part-time\s+|full-time\s+|part-time\s+)?employees\b/i;
+const HEADCOUNT_WAS = /(?:employee\s+)?headcount\w*(?:\s+worldwide)?\s+(?:was|of)\s+(approximately\s+)?([\d,]+)/i;
+const PEOPLE_COUNT = /\bemployed\s+((?:approximately|about|around|nearly|almost|more than|over)\s+)([\d,]+)\s+people\b/i;
+
+export function extractEmployeeCount(text: string | null | undefined): { count: number; approximate: boolean } | null {
+  if (!text) return null;
+  const m = text.match(EMPLOYEE_COUNT) ?? text.match(HEADCOUNT_WAS) ?? text.match(PEOPLE_COUNT);
+  if (!m) return null;
+  const count = parseInt(m[2].replace(/,/g, ''), 10);
+  if (!Number.isFinite(count) || count <= 0) return null;
+  return { count, approximate: m[1] !== undefined };
+}
+
+// ---- Segment financials (Business model charts) ----
+
+export interface SegmentSeries {
+  concept: string;
+  years: number[];
+  members: string[];
+  values: (number | null)[][];
+  totals: (number | null)[];
+}
+
+const REVENUE_SEGMENT_CONCEPTS = [
+  'RevenueFromContractWithCustomerExcludingAssessedTax',
+  'SalesRevenueNet',
+  'Revenues',
+  'RevenueFromContractWithCustomerIncludingAssessedTax',
+];
+const OPINCOME_SEGMENT_CONCEPTS = ['OperatingIncomeLoss'];
+
+function localName(qname: string): string {
+  return qname.includes(':') ? qname.slice(qname.indexOf(':') + 1) : qname;
+}
+
+const MEMBER_FIXUPS: Record<string, string> = { datacenter: 'Data Center', iot: 'IoT' };
+
+function humanizeSegmentMember(raw: string, acronyms?: Map<string, string>): string {
+  let s = localName(raw);
+  for (const suffix of ['Member', 'Segments', 'Segment', 'BusinessUnits', 'BusinessUnit']) {
+    if (s !== suffix && s.endsWith(suffix)) s = s.slice(0, -suffix.length);
+  }
+  const expanded = acronyms?.get(s);
+  if (expanded) s = expanded.replace(/\s+business unit$/i, '');
+  const fix = MEMBER_FIXUPS[s.toLowerCase()];
+  if (fix) return fix;
+  return s
+    .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+    .replace(/([A-Z]+)([A-Z][a-z])/g, '$1 $2')
+    .split(/\s+/)
+    .map((w, i) => {
+      if (/^[A-Z0-9&]+$/.test(w)) return w;
+      const lower = w.toLowerCase();
+      return i > 0 && SMALL_WORDS.has(lower) ? lower : lower.charAt(0).toUpperCase() + lower.slice(1);
+    })
+    .join(' ');
+}
+
+export function isOtherSegment(name: string): boolean {
+  return /^(all other|other|corporate|unallocated|eliminations)\b/i.test((name || '').trim());
+}
+
+// Revenue and operating income by reportable segment, parsed from the
+// filing's own inline XBRL (StatementBusinessSegmentsAxis contexts). Two
+// filer styles: bare single-dimension contexts (MSFT, META) and
+// consolidation-typed ones (NVDA, MU, AMD pair the axis with
+// ConsolidationItemsAxis=OperatingSegmentsMember) — both accepted, and
+// when both tag the same member+year the explicitly typed fact wins.
+// Periods are gated to full years (350–380 days) so quarterly contexts
+// can't collide with annual ones. The revenue concept is picked by coverage
+// and validated against the consolidated total — a >15% mismatch means
+// mixed concepts, so the series is dropped instead of charted wrong. Years
+// come from the one filing parsed (usually three); older filings are
+// deliberately not merged in, because segment redefinitions (AMD folded
+// Client+Gaming in 2025) would mix two taxonomies in one chart.
+export function extractSegmentFinancials(
+  html: string | null | undefined,
+  businessText?: string | null,
+): {
+  revenue: SegmentSeries | null;
+  opIncome: SegmentSeries | null;
+} {
+  const none = { revenue: null, opIncome: null };
+  if (!html || !html.includes('StatementBusinessSegmentsAxis')) return none;
+  const usdUnits = new Set<string>();
+  let sawUnits = false;
+  for (const m of html.matchAll(/<xbrli:unit\b[^>]*\bid="([^"]+)"[^>]*>([\s\S]*?)<\/xbrli:unit>/g)) {
+    sawUnits = true;
+    if (/<xbrli:measure>iso4217:USD<\/xbrli:measure>/.test(m[2])) usdUnits.add(m[1]);
+  }
+  const segCtx = new Map<string, { member: string; year: number; typed: boolean }>();
+  const consolCtx = new Map<string, number>();
+  for (const m of html.matchAll(/<xbrli:context\b[^>]*\bid="([^"]+)"[^>]*>([\s\S]*?)<\/xbrli:context>/g)) {
+    const body = m[2];
+    const start = /<xbrli:startDate>([^<]+)<\/xbrli:startDate>/.exec(body)?.[1] ?? '';
+    const end = /<xbrli:endDate>([^<]+)<\/xbrli:endDate>/.exec(body)?.[1] ?? '';
+    const days = durationDays(start, end);
+    if (days === null || days < 350 || days > 380) continue;
+    const year = Number(end.slice(0, 4));
+    if (!Number.isInteger(year) || year < 1900 || year > 2100) continue;
+    const dims = [...body.matchAll(/dimension="([^"]+)"[^>]*>([^<]+)</g)];
+    if (dims.length === 0) {
+      consolCtx.set(m[1], year);
+      continue;
+    }
+    const segDim = dims.find((d) => localName(d[1]) === 'StatementBusinessSegmentsAxis');
+    if (!segDim) {
+      if (dims.length === 1 && localName(dims[0][1]) === 'ConsolidationItemsAxis') {
+        const memLocal = localName(dims[0][2].trim());
+        if (/consolidated/i.test(memLocal)) consolCtx.set(m[1], year);
+        else segCtx.set(m[1], { member: `__corp__:${dims[0][2].trim()}`, year, typed: true });
+      }
+      continue;
+    }
+    const rest = dims.filter((d) => d !== segDim);
+    const typed =
+      rest.length === 1 &&
+      localName(rest[0][1]) === 'ConsolidationItemsAxis' &&
+      localName(rest[0][2].trim()) === 'OperatingSegmentsMember';
+    if (rest.length > 0 && !typed) continue;
+    segCtx.set(m[1], { member: segDim[2].trim(), year, typed });
+  }
+  if (segCtx.size === 0) return none;
+  const acronyms = extractAcronymDefs(businessText);
+  const segFacts = new Map<string, number>();
+  const consolFacts = new Map<string, number>();
+  const ingest = (typedOnly: boolean) => {
+    for (const m of html.matchAll(/<ix:nonFraction\b([^>]*)>([\s\S]*?)<\/ix:nonFraction>/g)) {
+      const attrs = m[1];
+      const ctx = /contextRef="([^"]+)"/.exec(attrs)?.[1];
+      if (!ctx) continue;
+      const seg = segCtx.get(ctx);
+      const consolYear = consolCtx.get(ctx);
+      if (!seg && consolYear === undefined) continue;
+      if (seg && seg.typed !== typedOnly) continue;
+      const nameAttr = /name="([^"]+)"/.exec(attrs)?.[1];
+      if (!nameAttr) continue;
+      const concept = localName(nameAttr);
+      const unit = /unitRef="([^"]+)"/.exec(attrs)?.[1] ?? '';
+      if (sawUnits && !usdUnits.has(unit)) continue;
+      const scale = Number(/scale="([^"]+)"/.exec(attrs)?.[1] ?? 0);
+      if (!Number.isFinite(scale)) continue;
+      const negSign = /sign="-"/.test(attrs);
+      let raw = m[2].replace(/,/g, '').trim();
+      if (raw === '' && !/fixed-zero/.test(attrs)) continue;
+      let paren = false;
+      if (/^\(.*\)$/.test(raw)) {
+        paren = true;
+        raw = raw.slice(1, -1);
+      }
+      let v = Number(raw);
+      if (!Number.isFinite(v)) {
+        if (!/fixed-zero/.test(attrs)) continue;
+        v = 0;
+      }
+      v = (negSign || paren ? -Math.abs(v) : v) * Math.pow(10, scale);
+      if (!Number.isFinite(v)) continue;
+      if (seg) {
+        const k = `${concept}|${seg.member}|${seg.year}`;
+        // Unsigned reconciling magnitudes (AMD's +4,007 next to its signed
+        // twin) are presentation, not addends — the signed copy carries it.
+        if (k.includes('MaterialReconcilingItemsMember') && v > 0) continue;
+        if (!segFacts.has(k)) segFacts.set(k, v);
+      } else if (!typedOnly) {
+        const k = `${concept}|${consolYear}`;
+        if (!consolFacts.has(k)) consolFacts.set(k, v);
+      }
+    }
+  };
+  ingest(true);
+  ingest(false);
+  return {
+    revenue: buildSegmentSeries(segFacts, consolFacts, REVENUE_SEGMENT_CONCEPTS, acronyms),
+    opIncome: buildSegmentSeries(segFacts, consolFacts, OPINCOME_SEGMENT_CONCEPTS, acronyms),
+  };
+}
+
+function durationDays(start: string, end: string): number | null {
+  const p = (s: string) => {
+    const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(s);
+    return m ? Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3])) : NaN;
+  };
+  const a = p(start);
+  const b = p(end);
+  if (!Number.isFinite(a) || !Number.isFinite(b) || b <= a) return null;
+  return Math.round((b - a) / 86400000);
+}
+
+// Filings define their own acronyms ("Cloud Memory Business Unit ("CMBU")")
+// while tagging facts with the bare acronym ("mu:CMBUMember") — map them so
+// chart labels read as words.
+function extractAcronymDefs(text: string | null | undefined): Map<string, string> {
+  const out = new Map<string, string>();
+  if (!text) return out;
+  for (const m of text.matchAll(/\b([A-Z][A-Za-z& ]+?)\s+\(["“”]([A-Z]{2,6})["“”]\)/g)) {
+    if (!out.has(m[2])) out.set(m[2], m[1].trim());
+  }
+  return out;
+}
+
+// Consolidation-typed buckets without a segment dimension (AMD tags the
+// operating-income reconciliation as MaterialReconcilingItemsMember, plus a
+// signed copy on bare OperatingSegmentsMember).
+const CORP_BUCKET_NAMES: Record<string, string> = {
+  materialreconcilingitemsmember: 'Corporate and Other',
+  operatingsegmentsmember: 'Corporate and Other',
+  corporatenonsegmentmember: 'Corporate',
+  consolidationeliminationsmember: 'Eliminations',
+};
+
+function bucketDisplayName(raw: string): string {
+  return CORP_BUCKET_NAMES[localName(raw).toLowerCase()] ?? humanizeSegmentMember(raw);
+}
+
+function buildSegmentSeries(
+  segFacts: Map<string, number>,
+  consolFacts: Map<string, number>,
+  concepts: string[],
+  acronyms: Map<string, string>,
+): SegmentSeries | null {
+  let best: string | null = null;
+  let bestN = 0;
+  for (const c of concepts) {
+    let n = 0;
+    for (const k of segFacts.keys()) if (k.startsWith(c + '|')) n++;
+    if (n > bestN) {
+      bestN = n;
+      best = c;
+    }
+  }
+  if (!best || bestN === 0) return null;
+  const years = [...new Set([...segFacts.keys()].filter((k) => k.startsWith(best + '|')).map((k) => Number(k.split('|')[2])))]
+    .filter((y) => Number.isInteger(y))
+    .sort((a, b) => a - b)
+    .slice(-5);
+  if (years.length === 0) return null;
+  const disp = new Map<string, string>();
+  const latestVal = new Map<string, number | null>();
+  const latest = years[years.length - 1];
+  for (const k of segFacts.keys()) {
+    if (!k.startsWith(best + '|')) continue;
+    const raw = k.split('|')[1];
+    if (disp.has(raw)) continue;
+    const d = raw.startsWith('__corp__:') ? bucketDisplayName(raw.slice('__corp__:'.length)) : humanizeSegmentMember(raw, acronyms);
+    if ([...disp.values()].some((x) => x.toLowerCase() === d.toLowerCase())) continue;
+    disp.set(raw, d);
+    latestVal.set(raw, segFacts.get(`${best}|${raw}|${latest}`) ?? null);
+  }
+  // All-zero rows (MU's zero Corporate revenue) are chart noise; real ramps
+  // keep at least one nonzero year.
+  const alive = [...disp.keys()].filter((r) =>
+    years.some((y) => {
+      const v = segFacts.get(`${best}|${r}|${y}`);
+      return v !== null && v !== undefined && v !== 0;
+    }),
+  );
+  const build = (raws: string[]) => {
+    if (raws.length < 2) return null;
+    raws.sort((a, b) => {
+      const oa = isOtherSegment(disp.get(a)!) ? 1 : 0;
+      const ob = isOtherSegment(disp.get(b)!) ? 1 : 0;
+      if (oa !== ob) return oa - ob;
+      return (latestVal.get(b) ?? -Infinity) - (latestVal.get(a) ?? -Infinity);
+    });
+    const total = consolFacts.get(`${best}|${latest}`) ?? null;
+    const sum = raws.reduce((a, r) => a + (segFacts.get(`${best}|${r}|${latest}`) ?? 0), 0);
+    if (total !== null && Math.abs(total) > 0 && Math.abs(sum - total) / Math.abs(total) > 0.15) return null;
+    return {
+      concept: best,
+      years,
+      members: raws.map((r) => disp.get(r)!),
+      values: raws.map((r) => years.map((y) => segFacts.get(`${best}|${r}|${y}`) ?? null)),
+      totals: years.map((y) => consolFacts.get(`${best}|${y}`) ?? null),
+    };
+  };
+  return build(alive) ?? build(alive.filter((r) => !r.startsWith('__corp__:')));
+}
+
+// "We operate in one reportable segment" — but not "combined X into one
+// reportable segment" (a merger, like AMD's Client+Gaming fold).
+export function isSingleSegmentText(text: string | null | undefined): boolean {
+  if (!text) return false;
+  return (
+    /\b(one|single)\b[^.\n]{0,40}?\b(reportable |operating )?segments?\b/i.test(text) &&
+    !/\binto (one|a single)\b[^.\n]{0,40}?\bsegments?\b/i.test(text)
+  );
+}
+
+// Customer concentration ("Apple Inc. accounted for 12% of total revenue",
+// NVDA's "sales to one direct customer represented 22% of total revenue").
+// The sentence usually lives in MD&A or the notes, not Item 1, so callers
+// pass all three and the first hit (latest year comes first) wins. Both
+// patterns require an of-revenue tail, so receivables splits ("15% of
+// accounts receivable") and geographic splits ("headquartered outside…")
+// never match. Explicit non-findings ("no single customer…") match
+// nothing, so a returned value always means a real concentration.
+const CONC_TAIL = 'of\\s+(?:(?:total|net|consolidated|our)\\s+)*(?:revenue|sales)';
+const CONC_NUMWORD: Record<string, string> = {
+  one: 'One customer',
+  another: 'One customer',
+  two: 'Two customers',
+  three: 'Three customers',
+  four: 'Four customers',
+  five: 'Five customers',
+  six: 'Six customers',
+};
+export function extractCustomerConcentration(text: string | null | undefined): { who: string; pct: number } | null {
+  if (!text) return null;
+  const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
+  const named = new RegExp(
+    `([A-Z][\\w&.,'’\\- ]{1,60}?)\\s+(?:accounted for|represented|comprised)\\s+(?:approximately\\s+)?(\\d+(?:\\.\\d+)?)\\s*%[^.]{0,20}?${CONC_TAIL}`,
+    'i',
+  );
+  const anon = new RegExp(
+    `\\b((?:top\\s+)?(?:one|two|three|four|five|six|\\d+|another)(?:\\s+[a-z]+)?\\s+customers?|largest customer)\\b[^.]{0,50}?\\b(?:accounted for|represented|comprised)\\b[^.]{0,20}?(\\d+(?:\\.\\d+)?)\\s*%[^.]{0,20}?${CONC_TAIL}`,
+    'i',
+  );
+  for (const s of splitSentences(text)) {
+    if (/headquarter|outside\s+(of|the)/i.test(s)) continue;
+    const m = s.match(named);
+    if (m) {
+      const whoRaw = m[1].trim().replace(/[,;]+$/, '');
+      const who = /^(one customer|a single customer)$/i.test(whoRaw)
+        ? 'One customer'
+        : /^[A-Z][\w&.'’\-]*(?:\s+[A-Z][\w&.'’\-]*)*$/.test(whoRaw)
+          ? whoRaw
+          : null;
+      const pct = Number(m[2]);
+      if (who && pct > 0 && pct <= 100) return { who, pct };
+    }
+    const m2 = s.match(anon);
+    if (m2) {
+      const pct = Number(m2[2]);
+      if (pct > 0 && pct <= 100) {
+        const words = m2[1].split(/\s+/);
+        const first = words[0].toLowerCase();
+        const who =
+          first === 'largest'
+            ? 'Largest customer'
+            : first === 'top'
+              ? words.map(cap).join(' ')
+              : CONC_NUMWORD[first] ?? (/^\d+$/.test(first) ? `${first} customers` : null);
+        if (who) return { who, pct };
+      }
+    }
+  }
+  return null;
 }
 
 // Item 1A's risk titles: usually bold lead-ins, deduped, capped. Falls back
@@ -768,6 +1259,21 @@ export interface FilingInsights {
   // subsections. Null when Item 1 has no money subsection — the UI falls back
   // to the business excerpt.
   businessModel: string | null;
+  // Reportable segment names for the "What they sell" row ([] when the
+  // enumeration doesn't parse — the row hides).
+  segments: string[];
+  // Headcount from Item 1's Human Capital disclosure. XBRL stays primary;
+  // this fills filers that don't tag EntityNumberOfEmployees.
+  employeeCount: { count: number; approximate: boolean } | null;
+  // Filing date of the annual report (SEC ISO date) for "From the … filed …".
+  filingDate: string | null;
+  // Revenue and operating income by segment, from the filing's inline XBRL.
+  segmentRevenue: SegmentSeries | null;
+  segmentOpIncome: SegmentSeries | null;
+  // Disclosed customer concentration ("X accounted for Y% of revenue").
+  customerConcentration: { who: string; pct: number } | null;
+  // True when Item 1 says the company reports a single segment.
+  singleSegment: boolean;
   competition: string | null;
   risks: string[];
   form: string;
@@ -780,12 +1286,16 @@ export interface FilingInsights {
 export function findAnnualFiling(
   recent: FilingsRecent | null | undefined,
   cikPadded: string,
-): { form: string; url: string } | null {
+): { form: string; url: string; filingDate: string | null } | null {
   const n = Math.min(recent?.form?.length ?? 0, recent?.accessionNumber?.length ?? 0, recent?.primaryDocument?.length ?? 0);
   for (let i = 0; i < n; i++) {
     const form = recent!.form![i];
     if (form !== '10-K' && form !== '20-F' && form !== '40-F') continue;
-    return { form, url: edgarFilingUrl(cikPadded, recent!.accessionNumber![i], recent!.primaryDocument![i]) };
+    return {
+      form,
+      url: edgarFilingUrl(cikPadded, recent!.accessionNumber![i], recent!.primaryDocument![i]),
+      filingDate: recent!.filingDate?.[i] ?? null,
+    };
   }
   return null;
 }
@@ -793,7 +1303,12 @@ export function findAnnualFiling(
 // One annual filing document -> the four excerpts the profile needs. 10-K
 // uses Items 1/1A; 20-F uses Item 4 (company info) and Item 3 from its Risk
 // Factors subheading. Null when neither item parses (40-F included).
-export function buildFilingInsights(html: string, form: string, sourceUrl: string): FilingInsights | null {
+export function buildFilingInsights(
+  html: string,
+  form: string,
+  sourceUrl: string,
+  filingDate?: string | null,
+): FilingInsights | null {
   const text = htmlToText(html);
   const tenK = form === '10-K' || form === '10-K/A';
   const items = tenK ? TEN_K_ITEMS : TWENTY_F_ITEMS;
@@ -805,13 +1320,27 @@ export function buildFilingInsights(html: string, form: string, sourceUrl: strin
     const at = lines.findIndex((l) => /risk factors/i.test(l) && l.length < 80);
     if (at >= 0) risks = lines.slice(at).join('\n');
   }
+  const businessModel = business ? extractBusinessModel(business) : null;
+  const seg = extractSegmentFinancials(html, business);
+  // Concentration disclosures live in MD&A or the notes more often than in
+  // Item 1 (NVDA's "one direct customer… 22%" sits in Item 7).
+  const mda = extractItemSection(text, items, tenK ? '7' : '5');
+  const notes = extractItemSection(text, items, '8');
+  const concText = [business, mda, notes].filter(Boolean).join('\n');
   return {
     business: business ? extractBusinessExcerpt(business) : null,
-    businessModel: business ? extractBusinessModel(business) : null,
+    businessModel,
+    segments: extractSegmentNames(businessModel, business),
+    employeeCount: business ? extractEmployeeCount(business) : null,
+    segmentRevenue: seg.revenue,
+    segmentOpIncome: seg.opIncome,
+    customerConcentration: extractCustomerConcentration(concText),
+    singleSegment: isSingleSegmentText(business),
     competition: business ? extractCompetition(business) : null,
     risks: risks ? extractRiskHeadings(risks) : [],
     form,
     sourceUrl,
+    filingDate: filingDate ?? null,
   };
 }
 
@@ -819,14 +1348,14 @@ export function buildFilingInsights(html: string, form: string, sourceUrl: strin
 // the Item 1/4 business excerpt, in the company's own words. Falls back to the
 // SEC submissions description (still SEC, not Wikipedia) for filers without a
 // readable business item — ETFs and funds, which file no 10-K. Null when
-// neither exists; founded/HQ/CEO stay null (the filing has no reliable tags
-// for them — HQ falls back to the SEC address in the UI).
+// neither exists. Founded/HQ/CEO ride along from Wikidata when available.
 export function buildOverviewDescription(
   business: string | null | undefined,
   sourceUrl: string | null | undefined,
   companyName: string,
   secDescription: string | null | undefined,
   cikPadded: string | null,
+  facts?: WikidataCompany | null,
 ): StockDescription | null {
   if (business && sourceUrl) {
     return {
@@ -834,9 +1363,9 @@ export function buildOverviewDescription(
       url: sourceUrl,
       title: companyName,
       source: 'sec',
-      founded: null,
-      headquarters: null,
-      ceo: null,
+      founded: facts?.founded ?? null,
+      headquarters: facts?.headquarters ?? null,
+      ceo: facts?.ceo ?? null,
     };
   }
   if (secDescription && cikPadded) {
@@ -845,9 +1374,9 @@ export function buildOverviewDescription(
       url: edgarCompanyUrl(cikPadded),
       title: companyName,
       source: 'sec',
-      founded: null,
-      headquarters: null,
-      ceo: null,
+      founded: facts?.founded ?? null,
+      headquarters: facts?.headquarters ?? null,
+      ceo: facts?.ceo ?? null,
     };
   }
   return null;
@@ -1200,6 +1729,26 @@ export function formatPrice(n: number | null | undefined): string {
   return `$${n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
+// "2485 AUGUSTINE DRIVE, SANTA CLARA, CA, 95054" -> "Santa Clara, CA". City
+// plus region only — the street and ZIP never help a reader. Title-cases
+// SEC ALL-CAPS; unparseable input passes through title-cased rather than
+// raw. Null in, null out (the UI falls back to the Wikidata city).
+export function formatHeadquarters(address: string | null | undefined): string | null {
+  if (!address) return null;
+  const parts = address.split(',').map((p) => p.trim()).filter(Boolean);
+  if (parts.length === 0) return null;
+  const title = (s: string) => s.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
+  const region = (s: string) => (s.length === 2 ? s.toUpperCase() : title(s));
+  if (parts.length >= 4) return `${title(parts[parts.length - 3])}, ${region(parts[parts.length - 2])}`;
+  if (parts.length === 3) {
+    return /\d/.test(parts[2])
+      ? `${title(parts[0])}, ${region(parts[1])}`
+      : `${title(parts[1])}, ${region(parts[2])}`;
+  }
+  if (parts.length === 2) return `${title(parts[0])}, ${region(parts[1])}`;
+  return title(parts[0]);
+}
+
 export function formatEps(v: number | null | undefined): string {
   if (v === null || v === undefined || !Number.isFinite(v)) return '—';
   return `${v < 0 ? '-' : ''}$${Math.abs(v).toFixed(2)}`;
@@ -1331,7 +1880,7 @@ const MISSION_FLUFF =
 const LEDE_CROSSREF = /^\s*(see|refer to)\b/i;
 
 function ledeWorthy(s: string): boolean {
-  return !MISSION_FLUFF.test(s) && !LEDE_CROSSREF.test(s);
+  return !MISSION_FLUFF.test(s) && !LEDE_CROSSREF.test(s) && !FILING_DISCLAIMER.test(s) && !CONNECTIVE_START.test(s.trim());
 }
 
 // One-liner for the Snapshot box, the share card, and the share description:
@@ -1421,6 +1970,17 @@ export function formatLastTrade(lastTrade: string | null | undefined, marketStat
   if (!lastTrade) return '—';
   if (!isMarketOpen(marketStatus)) return lastTrade;
   return lastTrade.replace(/^[A-Za-z]{3} \d{1,2}, \d{4} /, '');
+}
+
+// SEC ISO filing date -> "Nov 20, 2025" for the "From the … filed …" line.
+// Parsed manually (never Date) so server timezones can't shift the day.
+export function formatFilingDate(iso: string | null | undefined): string | null {
+  const m = (iso || '').match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (!m) return null;
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const mo = Number(m[2]);
+  if (mo < 1 || mo > 12) return null;
+  return `${months[mo - 1]} ${Number(m[3])}, ${m[1]}`;
 }
 
 // Card dateline from a Nasdaq quote: "Oct 6 close" when the market is closed,
@@ -2161,7 +2721,12 @@ export async function getStockData(rawTicker: string): Promise<StockResponse | n
   const variants = tickerVariants(ticker);
   const warnings: string[] = [];
 
-  const [mapResult, nasdaqResult] = await Promise.allSettled([fetchSecTickerMap(), fetchNasdaq(variants[0])]);
+  const [mapResult, nasdaqResult, wikiResult] = await Promise.allSettled([
+    fetchSecTickerMap(),
+    fetchNasdaq(variants[0]),
+    fetchWikidataCompany(variants),
+  ]);
+  const wiki = wikiResult.status === 'fulfilled' ? wikiResult.value : null;
   const map = mapResult.status === 'fulfilled' ? mapResult.value : null;
   if (mapResult.status === 'rejected') warnings.push('SEC ticker directory unreachable — trying quote only.');
   const entry = map ? variants.map((v) => map.get(v)).find(Boolean) : undefined;
@@ -2191,7 +2756,12 @@ export async function getStockData(rawTicker: string): Promise<StockResponse | n
   const annualFiling = sub && cikPadded ? findAnnualFiling(sub.filings?.recent, cikPadded) : null;
   if (annualFiling) {
     try {
-      filingInsights = buildFilingInsights(await fetchFilingText(annualFiling.url), annualFiling.form, annualFiling.url);
+      filingInsights = buildFilingInsights(
+        await fetchFilingText(annualFiling.url),
+        annualFiling.form,
+        annualFiling.url,
+        annualFiling.filingDate,
+      );
     } catch {
       /* stubs stay */
     }
@@ -2206,6 +2776,7 @@ export async function getStockData(rawTicker: string): Promise<StockResponse | n
     companyName,
     sub?.description,
     cikPadded,
+    wiki,
   );
   if (!description) warnings.push('No matching company overview found — check the filings below for the business description.');
 
