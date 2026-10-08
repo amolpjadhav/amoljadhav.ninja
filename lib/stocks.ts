@@ -2322,6 +2322,7 @@ export interface StockCardData {
   companyName: string;
   quote: StockQuote | null;
   priceHistory: PricePoint[];
+  marketCap: number | null;
 }
 
 // Lean quote-only loader for social cards and crawler metadata: Nasdaq /info
@@ -2353,16 +2354,40 @@ async function fetchNasdaqInfoData(
   return null;
 }
 
+async function fetchNasdaqSummaryData(
+  ticker: string,
+  signal: AbortSignal,
+): Promise<NasdaqSummaryJson['data'] | null> {
+  const init: RequestInit = {
+    headers: { 'User-Agent': NASDAQ_UA, Accept: 'application/json' },
+    signal,
+  };
+  for (const cls of ['stocks', 'etf']) {
+    try {
+      const json = (await fetchJson(
+        `https://api.nasdaq.com/api/quote/${ticker}/summary?assetclass=${cls}`,
+        init,
+        300,
+      )) as NasdaqSummaryJson;
+      if (json?.data?.summaryData?.MarketCap?.value) return json.data;
+    } catch {
+      /* try the next asset class */
+    }
+  }
+  return null;
+}
+
 export async function getStockCardData(
   ticker: string,
-  opts?: { history?: boolean; timeoutMs?: number },
+  opts?: { history?: boolean; stats?: boolean; timeoutMs?: number },
 ): Promise<StockCardData | null> {
   const budget = opts?.timeoutMs ?? CARD_TIMEOUT_MS;
   const signal = AbortSignal.timeout(budget);
   const work = (async () => {
-    const [info, history] = await Promise.all([
+    const [info, history, summary] = await Promise.all([
       fetchNasdaqInfoData(ticker, signal).catch(() => null),
       (opts?.history ? fetchNasdaqHistorical(ticker, signal) : Promise.resolve([])).catch(() => []),
+      (opts?.stats ? fetchNasdaqSummaryData(ticker, signal) : Promise.resolve(null)).catch(() => null),
     ]);
     if (!info) return null;
     return {
@@ -2370,6 +2395,7 @@ export async function getStockCardData(
       companyName: info.companyName || ticker,
       quote: extractQuote(info),
       priceHistory: history,
+      marketCap: parseNum(summary?.summaryData?.MarketCap?.value),
     };
   })();
   // Backstop race: some fetch wrappers swallow abort signals, so the promise
@@ -2423,7 +2449,7 @@ export function loadCardFontCached(): Promise<ArrayBuffer | null> {
 // the timing stays out of JSX-bearing functions.
 export async function loadStockCard(
   ticker: string,
-  opts?: { history?: boolean },
+  opts?: { history?: boolean; stats?: boolean },
 ): Promise<{ data: StockCardData | null; font: ArrayBuffer | null; dataMs: number }> {
   const t0 = Date.now();
   const [data, font] = await Promise.all([

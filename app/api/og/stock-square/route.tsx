@@ -2,6 +2,7 @@ import { ImageResponse } from 'next/og';
 import {
   displayCompanyName,
   fitPrice,
+  formatMoney,
   formatPct,
   loadCardFontCached,
   loadStockCard,
@@ -15,6 +16,9 @@ import {
 // company name, the current price giant, one big "% today" move with a
 // trend line, and a dated footer. Built for download-and-attach posts —
 // link unfurls stay on the 1200x630 card.
+// Tight poster rhythm: 76px frame, display type at lineHeight 1, footer
+// lands ~70px off the bottom — keep the stack near 1010px so the square
+// reads full rather than letterboxed.
 // GET /api/og/stock-square?ticker=BULL
 //
 // Node runtime (not edge): the card reads the same getStockData profile as
@@ -42,9 +46,9 @@ function card(children: React.ReactNode, font: ArrayBuffer | null, maxAge = 3600
           background: BG,
           color: INK,
           fontFamily: font ? 'Inter, sans-serif' : 'sans-serif',
-          paddingLeft: 90,
-          paddingRight: 90,
-          paddingTop: 96,
+          paddingLeft: 76,
+          paddingRight: 76,
+          paddingTop: 76,
         }}
       >
         {children}
@@ -96,7 +100,7 @@ export async function GET(req: Request) {
 
   // Lean card data (quote + history) in parallel with the font: full
   // getStockData takes 20s+ cold and crawlers give up before the image.
-  const { data, font, dataMs } = await loadStockCard(ticker, { history: true });
+  const { data, font, dataMs } = await loadStockCard(ticker, { history: true, stats: true });
   if (!data) {
     return timed(errorCard(ticker, 'Quote unavailable', `No data found for "${ticker}".`, font), dataMs);
   }
@@ -107,15 +111,16 @@ export async function GET(req: Request) {
     q?.price !== null && q?.price !== undefined
       ? `$${q.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
       : null;
-  const pricePx = fitPrice(priceStr ?? 'Quote unavailable', 230, 860);
+  const pricePx = fitPrice(priceStr ?? 'Quote unavailable', 248, 928);
   const chg = q?.change ?? null;
   const up = chg !== null && chg > 0;
   const down = chg !== null && chg < 0;
   const moveColor = up ? UP : down ? DOWN : MUTED;
   const pct = formatPct(q?.changePct);
-  const cashPx = ticker.length > 5 ? 120 : 150;
+  const mcap = data.marketCap !== null ? formatMoney(data.marketCap) : null;
+  const cashPx = ticker.length > 5 ? 134 : 168;
   const hist = (data.priceHistory ?? []).map((p) => p.close).slice(-30);
-  const spark = sparklinePoints(hist, 900, 140);
+  const spark = sparklinePoints(hist, 928, 170);
   const foot = quoteCardFooter(q?.lastTrade, q?.marketStatus);
 
   // NOTE: no fragments anywhere in this file — this satori version lays
@@ -124,39 +129,42 @@ export async function GET(req: Request) {
   // inside timed(), which the catch below converts to a fallback card.
   const body = (
     <div style={{ display: 'flex', flexDirection: 'column' }}>
-      <span style={{ fontSize: cashPx, fontWeight: 900, color: GOLD, letterSpacing: 2 }}>{`$${ticker}`}</span>
-      <div style={{ fontSize: 44, color: MUTED, marginTop: 8 }}>{truncateLine(name, 32)}</div>
-      <span style={{ fontSize: pricePx, fontWeight: 900, lineHeight: 1, marginTop: 56 }}>
+      <span style={{ fontSize: cashPx, fontWeight: 900, color: GOLD, letterSpacing: 2, lineHeight: 1 }}>{`$${ticker}`}</span>
+      <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginTop: 10 }}>
+        <span style={{ fontSize: 46, color: MUTED }}>{truncateLine(name, mcap ? 24 : 32)}</span>
+        {mcap && <span style={{ fontSize: 38, color: MUTED, marginLeft: 'auto' }}>MCAP {mcap}</span>}
+      </div>
+      <span style={{ fontSize: pricePx, fontWeight: 900, lineHeight: 1, marginTop: 48 }}>
         {priceStr ?? 'Quote unavailable'}
       </span>
-      <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginTop: 24 }}>
+      <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginTop: 20 }}>
         {(up || down) && (
-          <svg width="40" height="36">
+          <svg width="46" height="40">
             {up ? (
-              <polygon points="0,36 40,36 20,0" fill={moveColor} />
+              <polygon points="0,40 46,40 23,0" fill={moveColor} />
             ) : (
-              <polygon points="0,0 40,0 20,36" fill={moveColor} />
+              <polygon points="0,0 46,0 23,40" fill={moveColor} />
             )}
           </svg>
         )}
-        <span style={{ fontSize: 88, fontWeight: 800, color: moveColor, marginLeft: up || down ? 16 : 0 }}>
+        <span style={{ fontSize: 96, fontWeight: 800, color: moveColor, marginLeft: up || down ? 16 : 0, lineHeight: 1 }}>
           {pct}
         </span>
-        <span style={{ fontSize: 54, color: moveColor, opacity: 0.7, marginLeft: 18 }}>today</span>
+        <span style={{ fontSize: 58, color: moveColor, opacity: 0.7, marginLeft: 18 }}>today</span>
       </div>
       {spark && (
-        <svg width="900" height="140" style={{ marginTop: 36 }}>
+        <svg width="928" height="170" style={{ marginTop: 36 }}>
           <polyline
             points={spark.points}
             fill="none"
             stroke={moveColor}
-            strokeWidth={6}
+            strokeWidth={8}
             strokeLinecap="round"
             strokeLinejoin="round"
           />
         </svg>
       )}
-      <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginTop: 36 }}>
+      <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginTop: 40 }}>
         <span style={{ fontSize: 36, color: MUTED }}>{foot ?? 'Latest quote'}</span>
         <span style={{ fontSize: 40, fontWeight: 800, marginLeft: 'auto' }}>amoljadhav.ai</span>
       </div>
