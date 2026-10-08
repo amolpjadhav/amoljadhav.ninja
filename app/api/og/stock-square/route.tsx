@@ -3,7 +3,7 @@ import {
   displayCompanyName,
   fitPrice,
   formatPct,
-  getStockData,
+  getStockCardData,
   normalizeTicker,
   quoteCardFooter,
   sparklinePoints,
@@ -36,13 +36,14 @@ async function loadFont(): Promise<ArrayBuffer | null> {
     // system sans — the layout never depends on the webfont.
     const css = await fetch('https://fonts.googleapis.com/css2?family=Inter:wght@900&display=swap', {
       headers: { 'User-Agent': 'Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.1)' },
+      signal: AbortSignal.timeout(4000),
     }).then((r) => {
       if (!r.ok) throw new Error('font css');
       return r.text();
     });
     const url = css.match(/https:\/\/[^)]+\.ttf/)?.[0];
     if (!url) return null;
-    const buf = await fetch(url).then((r) => {
+    const buf = await fetch(url, { signal: AbortSignal.timeout(4000) }).then((r) => {
       if (!r.ok) throw new Error('font file');
       return r.arrayBuffer();
     });
@@ -52,7 +53,15 @@ async function loadFont(): Promise<ArrayBuffer | null> {
   }
 }
 
-function card(children: React.ReactNode, font: ArrayBuffer | null) {
+// One fetch per serverless instance — the font never changes, so warm
+// renders skip Google Fonts entirely.
+let fontPromise: Promise<ArrayBuffer | null> | null = null;
+function loadFontCached(): Promise<ArrayBuffer | null> {
+  if (!fontPromise) fontPromise = loadFont();
+  return fontPromise;
+}
+
+function card(children: React.ReactNode, font: ArrayBuffer | null, maxAge = 3600) {
   return new ImageResponse(
     (
       <div
@@ -76,12 +85,13 @@ function card(children: React.ReactNode, font: ArrayBuffer | null) {
       width: W,
       height: H,
       fonts: font ? [{ name: 'Inter', data: font, weight: 900, style: 'normal' }] : undefined,
-      headers: { 'Cache-Control': 'public, max-age=3600' },
+      headers: { 'Cache-Control': `public, max-age=${maxAge}` },
     },
   );
 }
 
 function errorCard(kicker: string, title: string, sub: string, font: ArrayBuffer | null) {
+  // Short cache: a Nasdaq blip must not pin "Quote unavailable" all day.
   return card(
     <div style={{ display: 'flex', flexDirection: 'column' }}>
       <span style={{ fontSize: 40, fontWeight: 800 }}>amoljadhav.ai</span>
@@ -92,18 +102,22 @@ function errorCard(kicker: string, title: string, sub: string, font: ArrayBuffer
       </div>
     </div>,
     font,
+    60,
   );
 }
 
 export async function GET(req: Request) {
   const ticker = normalizeTicker(new URL(req.url).searchParams.get('ticker') ?? '');
-  const font = await loadFont();
-
   if (!ticker) {
-    return errorCard('STOCK LOOKUP', 'Invalid ticker', 'Check the link and try again.', font);
+    return errorCard('STOCK LOOKUP', 'Invalid ticker', 'Check the link and try again.', await loadFontCached());
   }
 
-  const data = await getStockData(ticker).catch(() => null);
+  // Lean card data (quote + history) in parallel with the font: full
+  // getStockData takes 20s+ cold and crawlers give up before the image.
+  const [data, font] = await Promise.all([
+    getStockCardData(ticker, { history: true }).catch(() => null),
+    loadFontCached(),
+  ]);
   if (!data) {
     return errorCard(ticker, 'Quote unavailable', `No data found for "${ticker}".`, font);
   }

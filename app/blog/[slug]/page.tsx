@@ -6,8 +6,7 @@ import { formatDate } from '@/lib/utils';
 import { colorizeArticleSections, categoryColor } from '@/lib/blog-content';
 import {
   displayCompanyName,
-  pickLede,
-  getStockData,
+  getStockCardData,
   normalizeTicker,
   quoteDayParam,
 } from '@/lib/stocks';
@@ -71,23 +70,21 @@ export async function generateMetadata({
   };
 
   // Shared lookups (?ticker=NVDA) get a company-profile preview: a timeless
-  // title (never a price — social caches hold cards for days), the one-liner
-  // as the description, and the profile-teaser card as the OG image. The
-  // image URL carries the quote date (?d=...) so each session gets a fresh
-  // card instead of last week's price.
+  // title (never a price — social caches hold cards for days) and the card
+  // image, which carries the quote date (?d=...) so each session gets a
+  // fresh card instead of last week's price. Tags come from the lean card
+  // loader (quote only): full getStockData takes 20s+ cold and crawlers
+  // give up before reading og:image.
   if (slug !== STOCK_LOOKUP_SLUG) return fallback;
   const ticker = normalizeTicker((await searchParams)?.ticker ?? '');
   if (!ticker) return fallback;
 
   try {
-    const data = await getStockData(ticker);
+    const data = await getStockCardData(ticker);
     if (!data) return fallback;
     const name = displayCompanyName(data.companyName);
     const title = `${name} (${ticker}): Business, Financials & Filings`;
-    const oneLiner = pickLede(data.description?.extract, data.filingInsights?.businessModel) || null;
-    const description = oneLiner
-      ? `${oneLiner} Revenue, margins, cash, and SEC filings on one page.`
-      : `${name} (${ticker}) — what the company does, financials, and SEC filings on one page.`;
+    const description = `${name} (${ticker}) — what the company does, financials, and SEC filings on one page.`;
     const day = data.quote ? quoteDayParam(data.quote.lastTrade) : null;
     const images = [
       {

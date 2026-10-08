@@ -575,7 +575,7 @@ export default function StocksLookup({ initialTicker }: { initialTicker: string 
   const form4Url = data?.profile ? `https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=${Number(data.profile.cik)}&type=4&owner=include` : null;
   const shareUrl =
     data && typeof window !== 'undefined' ? `${window.location.origin}${pathname}?ticker=${data.ticker}` : '';
-  const shareText = data ? stockShareText(data.ticker, data.companyName, data.quote) : '';
+  const shareText = data ? stockShareText(data.ticker, shortName, data.quote) : '';
   const shareLinks = stockShareLinks(shareUrl, shareText);
   const shareButtonClass =
     'flex items-center justify-center w-8 h-8 rounded-full border border-white/15 text-white/60 hover:border-white/30 hover:text-white transition-colors';

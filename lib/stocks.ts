@@ -1864,11 +1864,13 @@ export function pickCompanyName(
 export function displayCompanyName(name: string): string {
   let n = (name || '').trim();
   // Share-class tail first (Nasdaq appends it: "…Class A Ordinary Shares",
-  // "…Class C Capital Stock"). The designator is one letter and the tail
-  // must end in Stock/Shares, so "First Class Holdings" survives.
+  // "…Class C Capital Stock", or bare "…Common Stock" as in "PepsiCo, Inc.
+  // Common Stock"). The Class designator is one letter and the tail must
+  // end in Stock/Shares, so "First Class Holdings" survives.
   n = n
     .replace(/\s+Class\s+[A-Z0-9](\s+[A-Za-z]+){0,3}\s+(Stock|Shares?)\s*$/i, '')
     .replace(/\s+Class\s+[A-Z0-9]\s*$/i, '')
+    .replace(/\s+(Common\s+Stock|Ordinary\s+Shares?|Capital\s+Stock)\s*$/i, '')
     .trim();
   // Older and foreign filers file in ALL CAPS ("BERKSHIRE HATHAWAY INC").
   // Title-case those (word starts only, so "McDonald's" keeps its shape);
@@ -1878,7 +1880,7 @@ export function displayCompanyName(name: string): string {
   }
   const stripped = n
     .replace(
-      /(\s*,?\s*(Inc|Corp|Corporation|Incorporated|Company|Holdings?|Group|Ltd|Limited|LLC|PL[CK]|Co|Trust|LPs?|LLP|NV|SA|AG|SE|SpA|AB))+\.?$/i,
+      /((?:\s+|\s*,\s*)(Inc|Corp|Corporation|Incorporated|Company|Holdings?|Group|Ltd|Limited|LLC|PL[CK]|Co|Trust|LPs?|LLP|NV|SA|AG|SE|SpA|AB))+\.?$/i,
       '',
     )
     .replace(/\.(com|net|org|io|ai)$/i, '')
@@ -2308,6 +2310,60 @@ export async function fetchNasdaq(ticker: string): Promise<{ quote: NasdaqQuoteJ
   return { quote: quoteJson?.data, summary: summaryJson?.data };
 }
 
+export interface StockCardData {
+  ticker: string;
+  companyName: string;
+  quote: StockQuote | null;
+  priceHistory: PricePoint[];
+}
+
+// Lean quote-only loader for social cards and crawler metadata: Nasdaq /info
+// (+ /historical for the square trend) under one shared timeout, no SEC or
+// Wikidata. Full getStockData takes 20s+ cold and crawlers give up — this
+// stays inside ~8s and degrades to null/[] instead of hanging.
+const CARD_TIMEOUT_MS = 8000;
+
+async function fetchNasdaqInfoData(
+  ticker: string,
+  signal: AbortSignal,
+): Promise<NasdaqQuoteJson['data'] | null> {
+  const init: RequestInit = {
+    headers: { 'User-Agent': NASDAQ_UA, Accept: 'application/json' },
+    signal,
+  };
+  for (const cls of ['stocks', 'etf']) {
+    try {
+      const json = (await fetchJson(
+        `https://api.nasdaq.com/api/quote/${ticker}/info?assetclass=${cls}`,
+        init,
+        120,
+      )) as NasdaqQuoteJson;
+      if (nasdaqUsable(json?.data)) return json.data;
+    } catch {
+      /* try the next asset class */
+    }
+  }
+  return null;
+}
+
+export async function getStockCardData(
+  ticker: string,
+  opts?: { history?: boolean },
+): Promise<StockCardData | null> {
+  const signal = AbortSignal.timeout(CARD_TIMEOUT_MS);
+  const [info, history] = await Promise.all([
+    fetchNasdaqInfoData(ticker, signal).catch(() => null),
+    (opts?.history ? fetchNasdaqHistorical(ticker, signal) : Promise.resolve([])).catch(() => []),
+  ]);
+  if (!info) return null;
+  return {
+    ticker,
+    companyName: info.companyName || ticker,
+    quote: extractQuote(info),
+    priceHistory: history,
+  };
+}
+
 interface WikiSearchJson {
   query?: { search?: { title?: string }[] };
 }
@@ -2431,9 +2487,10 @@ interface NasdaqHistoricalJson {
 // paginates at 15 rows by default, so limit=9999 pulls the whole range in a
 // single response, cached a week (history never changes). fromdate looks far
 // enough back to cover five fiscal years for January year-ends.
-export async function fetchNasdaqHistorical(ticker: string): Promise<PricePoint[]> {
+export async function fetchNasdaqHistorical(ticker: string, signal?: AbortSignal): Promise<PricePoint[]> {
   const from = new Date(Date.now() - 7 * 365 * 86400000).toISOString().slice(0, 10);
-  const init = { headers: { 'User-Agent': NASDAQ_UA, Accept: 'application/json' } };
+  const init: RequestInit = { headers: { 'User-Agent': NASDAQ_UA, Accept: 'application/json' } };
+  if (signal) init.signal = signal;
   for (const cls of ['stocks', 'etf']) {
     try {
       const json = (await fetchJson(
