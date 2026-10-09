@@ -2165,7 +2165,7 @@ async function fetchJson(url: string, init: RequestInit, revalidateSeconds: numb
   return res.json();
 }
 
-interface TickerMapEntry {
+export interface TickerMapEntry {
   cik: number;
   title: string;
 }
@@ -2181,6 +2181,73 @@ export async function fetchSecTickerMap(): Promise<Map<string, TickerMapEntry>> 
     if (row?.ticker && row?.cik_str) map.set(row.ticker.toUpperCase(), { cik: row.cik_str, title: row.title });
   }
   return map;
+}
+
+export interface TickerCandidate {
+  ticker: string;
+  title: string;
+}
+
+// Pure: match a company-name (or mistyped ticker) query against the SEC
+// ticker map. Rank: ticker-exact, title-exact, ticker-prefix, title-prefix,
+// title-contains. Short queries skip the fuzzy buckets so "T" does not match
+// half the market. Capped at 5.
+export function searchTickers(query: string, map: Map<string, TickerMapEntry>): TickerCandidate[] {
+  const norm = (s: string) =>
+    s
+      .toLowerCase()
+      .replace(/[^a-z0-9 ]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+  const q = norm(query);
+  if (!q) return [];
+  const qt = q.replace(/ /g, '').toUpperCase();
+  const out: TickerCandidate[] = [];
+  const seen = new Set<string>();
+  const push = (ticker: string, title: string) => {
+    if (seen.has(ticker)) return;
+    seen.add(ticker);
+    out.push({ ticker, title });
+  };
+  const exact = map.get(qt);
+  if (exact) push(qt, exact.title);
+  const exactTitle: TickerCandidate[] = [];
+  const startTicker: TickerCandidate[] = [];
+  const startTitle: TickerCandidate[] = [];
+  const contains: TickerCandidate[] = [];
+  for (const [t, e] of map) {
+    if (seen.has(t)) continue;
+    const title = norm(e.title ?? '');
+    if (!title) continue;
+    if (title === q) exactTitle.push({ ticker: t, title: e.title });
+    else if (qt.length >= 2 && t.startsWith(qt)) startTicker.push({ ticker: t, title: e.title });
+    else if (q.length >= 2 && title.startsWith(q)) startTitle.push({ ticker: t, title: e.title });
+    else if (q.length >= 3 && title.includes(q)) contains.push({ ticker: t, title: e.title });
+  }
+  for (const c of [...exactTitle, ...startTicker, ...startTitle, ...contains]) {
+    if (out.length >= 5) break;
+    push(c.ticker, c.title);
+  }
+  return out;
+}
+
+// Resolve a lookup query to one ticker: valid tickers win immediately, a
+// lone name match auto-resolves, several matches come back as suggestions
+// for a "did you mean" error. Null when the map itself is unreachable.
+export async function resolveTicker(
+  query: string,
+): Promise<{ ticker: string } | { suggestions: TickerCandidate[] } | null> {
+  const map = await fetchSecTickerMap().catch(() => null);
+  if (!map) return null;
+  const qt = query
+    .toUpperCase()
+    .replace(/[^A-Z]/g, '')
+    .trim();
+  if (qt && map.has(qt)) return { ticker: qt };
+  const hits = searchTickers(query, map);
+  if (hits.length === 1) return { ticker: hits[0].ticker };
+  if (hits.length > 1) return { suggestions: hits };
+  return null;
 }
 
 interface SecSubmissions {
@@ -2334,12 +2401,13 @@ const CARD_TIMEOUT_MS = 8000;
 async function fetchNasdaqInfoData(
   ticker: string,
   signal: AbortSignal,
+  assetClasses: string[] = ['stocks', 'etf'],
 ): Promise<NasdaqQuoteJson['data'] | null> {
   const init: RequestInit = {
     headers: { 'User-Agent': NASDAQ_UA, Accept: 'application/json' },
     signal,
   };
-  for (const cls of ['stocks', 'etf']) {
+  for (const cls of assetClasses) {
     try {
       const json = (await fetchJson(
         `https://api.nasdaq.com/api/quote/${ticker}/info?assetclass=${cls}`,
@@ -2379,14 +2447,16 @@ async function fetchNasdaqSummaryData(
 
 export async function getStockCardData(
   ticker: string,
-  opts?: { history?: boolean; stats?: boolean; timeoutMs?: number },
+  opts?: { history?: boolean; stats?: boolean; timeoutMs?: number; assetClasses?: string[] },
 ): Promise<StockCardData | null> {
   const budget = opts?.timeoutMs ?? CARD_TIMEOUT_MS;
   const signal = AbortSignal.timeout(budget);
   const work = (async () => {
     const [info, history, summary] = await Promise.all([
-      fetchNasdaqInfoData(ticker, signal).catch(() => null),
-      (opts?.history ? fetchNasdaqHistorical(ticker, signal) : Promise.resolve([])).catch(() => []),
+      fetchNasdaqInfoData(ticker, signal, opts?.assetClasses).catch(() => null),
+      (opts?.history ? fetchNasdaqHistorical(ticker, signal, opts?.assetClasses) : Promise.resolve([])).catch(
+        () => [],
+      ),
       (opts?.stats ? fetchNasdaqSummaryData(ticker, signal) : Promise.resolve(null)).catch(() => null),
     ]);
     if (!info) return null;
@@ -2410,6 +2480,269 @@ export async function getStockCardData(
   } finally {
     if (timer) clearTimeout(timer);
   }
+}
+
+// ---------------------------------------------------------------------------
+// Market overview: the index strip plus Trending / Gainers / Losers / Mag 7
+// tiles on the lookup page. One getMarketOverview() call fans out in two
+// phases — strip charts + 40 watchlist quotes + bitcoin, then intraday
+// charts for the ranked rows only — served through /api/markets with a
+// 5-minute cache so cold loads are rare. Every section degrades to empty —
+// never throws — and the UI hides empty sections.
+// ---------------------------------------------------------------------------
+
+export interface MarketQuote {
+  symbol: string;
+  label: string;
+  via: string | null;
+  name: string | null;
+  price: number | null;
+  change: number | null;
+  changePct: number | null;
+  volume: number | null;
+  spark: number[];
+  prevClose: number | null;
+}
+
+export interface MarketOverview {
+  strip: MarketQuote[];
+  gainers: MarketQuote[];
+  losers: MarketQuote[];
+  trending: MarketQuote[];
+  mag7: MarketQuote[];
+  asOf: string;
+}
+
+interface StripDef {
+  label: string;
+  symbol: string;
+  via: string | null;
+  assetClasses: string[];
+}
+
+// NDX is a real index quote; the rest are the most liquid ETF trackers,
+// labeled through `via` so the strip never misrepresents a proxy as the
+// index itself. No VIX / 10-yr / futures: nothing keyless quotes them.
+const MARKET_STRIP_DEFS: StripDef[] = [
+  { label: 'S&P 500', symbol: 'SPY', via: 'SPY', assetClasses: ['etf'] },
+  { label: 'Nasdaq 100', symbol: 'NDX', via: null, assetClasses: ['index'] },
+  { label: 'Dow', symbol: 'DIA', via: 'DIA', assetClasses: ['etf'] },
+  { label: 'Russell 2000', symbol: 'IWM', via: 'IWM', assetClasses: ['etf'] },
+  { label: 'Gold', symbol: 'GLD', via: 'GLD', assetClasses: ['etf'] },
+  { label: 'Crude Oil', symbol: 'USO', via: 'USO', assetClasses: ['etf'] },
+];
+
+const MAG7 = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'NVDA', 'META', 'TSLA'];
+
+// Movers rank within this fixed watchlist of large, liquid names: Nasdaq's
+// screener exposes no sort API, and paging 3,000+ rows per load is not
+// viable. The UI labels the sections "across 40 large stocks" so the scope
+// is honest.
+const MARKET_WATCHLIST = [
+  ...MAG7,
+  'AVGO',
+  'LLY',
+  'JPM',
+  'XOM',
+  'WMT',
+  'MA',
+  'V',
+  'ORCL',
+  'NFLX',
+  'CRM',
+  'AMD',
+  'ADBE',
+  'COST',
+  'UNH',
+  'JNJ',
+  'BAC',
+  'KO',
+  'PEP',
+  'DIS',
+  'QCOM',
+  'INTC',
+  'NKE',
+  'MRK',
+  'ABBV',
+  'GS',
+  'HD',
+  'TXN',
+  'AMGN',
+  'COIN',
+  'PLTR',
+  'UBER',
+  'SHOP',
+  'ABNB',
+];
+
+function toMarketQuote(
+  label: string,
+  via: string | null,
+  card: StockCardData | null,
+  sparkLen = 0,
+): MarketQuote | null {
+  if (!card || !card.quote || card.quote.price === null) return null;
+  const q = card.quote;
+  return {
+    symbol: card.ticker,
+    label,
+    via,
+    name: displayCompanyName(card.companyName),
+    price: q.price,
+    change: q.change,
+    changePct: q.changePct,
+    volume: q.volume,
+    spark: sparkLen > 0 ? card.priceHistory.slice(-sparkLen).map((p) => p.close) : [],
+    prevClose: null,
+  };
+}
+
+// Strip rows come from the intraday /chart call alone: quote, today's
+// series, and previous close in one payload, no /info round trip.
+function chartToMarketQuote(
+  label: string,
+  via: string | null,
+  symbol: string,
+  chart: IntradayChart | null,
+): MarketQuote | null {
+  if (!chart || !chart.quote || chart.quote.price === null) return null;
+  const q = chart.quote;
+  return {
+    symbol,
+    label,
+    via,
+    name: chart.company ? displayCompanyName(chart.company) : null,
+    price: q.price,
+    change: q.change,
+    changePct: q.changePct,
+    volume: q.volume,
+    spark: thinPoints(chart.points),
+    prevClose: chart.prevClose,
+  };
+}
+
+// Pure: top 5 gainers / losers by day change, top 5 trending by dollar
+// volume. Rows missing the ranked field are skipped, never crash the sort.
+export function selectMovers(quotes: MarketQuote[]): {
+  gainers: MarketQuote[];
+  losers: MarketQuote[];
+  trending: MarketQuote[];
+} {
+  const scored = quotes.filter((q) => q.changePct !== null);
+  const gainers = [...scored].sort((a, b) => b.changePct! - a.changePct!).slice(0, 5);
+  const losers = [...scored].sort((a, b) => a.changePct! - b.changePct!).slice(0, 5);
+  const trending = quotes
+    .filter((q) => q.price !== null && q.volume !== null)
+    .sort((a, b) => b.price! * b.volume! - a.price! * a.volume!)
+    .slice(0, 5);
+  return { gainers, losers, trending };
+}
+
+export interface BitcoinMove {
+  price: number;
+  change: number | null;
+  changePct: number | null;
+  spark: number[];
+}
+
+// Pure: 24h move from Coinbase price points (newest-first {price, time}
+// seconds), plus a ≤30-point sparkline oldest→newest. Falls back to the
+// oldest point when nothing is older than 24h.
+export function extractBitcoinMove(
+  spot: number | null,
+  points: { price: number; time: number }[],
+  nowSec = Date.now() / 1000,
+): BitcoinMove | null {
+  const pts = points
+    .filter((p) => Number.isFinite(p.price) && Number.isFinite(p.time))
+    .sort((a, b) => b.time - a.time);
+  const price = spot ?? pts[0]?.price ?? null;
+  if (price === null || pts.length === 0) return null;
+  const ref = pts.find((p) => p.time <= nowSec - 86400) ?? pts[pts.length - 1];
+  const change = price - ref.price;
+  const step = Math.max(1, Math.ceil(pts.length / 30));
+  return {
+    price,
+    change,
+    changePct: ref.price !== 0 ? change / ref.price : null,
+    spark: pts
+      .filter((_, i) => i % step === 0)
+      .map((p) => p.price)
+      .reverse(),
+  };
+}
+
+async function fetchBitcoin(timeoutMs: number): Promise<MarketQuote | null> {
+  const signal = AbortSignal.timeout(timeoutMs);
+  try {
+    const [spotJson, histJson] = (await Promise.all([
+      fetchJson('https://api.coinbase.com/v2/prices/BTC-USD/spot', { signal }, 120),
+      fetchJson('https://api.coinbase.com/v2/prices/BTC-USD/historic?period=week', { signal }, 300),
+    ])) as [{ data?: { amount?: string } }, { data?: { prices?: { price?: string; time?: string }[] } }];
+    const move = extractBitcoinMove(
+      parseNum(spotJson?.data?.amount),
+      (histJson?.data?.prices ?? []).map((p) => ({ price: Number(p.price), time: Number(p.time) })),
+    );
+    if (!move) return null;
+    return {
+      symbol: 'BTC',
+      label: 'Bitcoin',
+      via: 'Coinbase',
+      name: 'Bitcoin',
+      price: move.price,
+      change: move.change,
+      changePct: move.changePct,
+      volume: null,
+      spark: move.spark,
+      prevClose: null,
+    };
+  } catch {
+    return null;
+  }
+}
+
+export async function getMarketOverview(opts?: { timeoutMs?: number }): Promise<MarketOverview> {
+  const budget = opts?.timeoutMs ?? 8000;
+  const quick = Math.min(budget, 6000);
+  const signal = AbortSignal.timeout(budget);
+  const [stripCharts, watchCards, btc] = await Promise.all([
+    Promise.all(
+      MARKET_STRIP_DEFS.map((d) => fetchNasdaqChart(d.symbol, signal, d.assetClasses).catch(() => null)),
+    ),
+    Promise.all(MARKET_WATCHLIST.map((t) => getStockCardData(t, { timeoutMs: quick }).catch(() => null))),
+    fetchBitcoin(quick).catch(() => null),
+  ]);
+  const strip: MarketQuote[] = [];
+  MARKET_STRIP_DEFS.forEach((d, i) => {
+    const q = chartToMarketQuote(d.label, d.via, d.symbol, stripCharts[i]);
+    if (q) strip.push(q);
+  });
+  if (btc) strip.push(btc);
+  const watch = watchCards
+    .map((c) => (c ? toMarketQuote(c.ticker, null, c) : null))
+    .filter((q): q is MarketQuote => q !== null);
+  const { gainers, losers, trending } = selectMovers(watch);
+  const bySymbol = new Map(watch.map((q) => [q.symbol, q]));
+  const mag7 = MAG7.map((s) => bySymbol.get(s)).filter((q): q is MarketQuote => q !== undefined);
+  // Second phase: intraday sparks only for the ranked rows, not the whole
+  // 40-stock watchlist. Rows whose chart fails keep an empty spark.
+  const ranked = [...new Set([...gainers, ...losers, ...trending, ...mag7].map((q) => q.symbol))];
+  const rankedCharts = await Promise.all(
+    ranked.map((s) => fetchNasdaqChart(s, AbortSignal.timeout(quick)).catch(() => null)),
+  );
+  const withSpark = (q: MarketQuote): MarketQuote => {
+    const chart = rankedCharts[ranked.indexOf(q.symbol)];
+    if (!chart) return q;
+    return { ...q, spark: thinPoints(chart.points), prevClose: chart.prevClose };
+  };
+  return {
+    strip,
+    gainers: gainers.map(withSpark),
+    losers: losers.map(withSpark),
+    trending: trending.map(withSpark),
+    mag7: mag7.map(withSpark),
+    asOf: new Date().toISOString(),
+  };
 }
 
 // Inter Black for card headlines, fetched once per serverless instance
@@ -2582,11 +2915,15 @@ interface NasdaqHistoricalJson {
 // paginates at 15 rows by default, so limit=9999 pulls the whole range in a
 // single response, cached a week (history never changes). fromdate looks far
 // enough back to cover five fiscal years for January year-ends.
-export async function fetchNasdaqHistorical(ticker: string, signal?: AbortSignal): Promise<PricePoint[]> {
+export async function fetchNasdaqHistorical(
+  ticker: string,
+  signal?: AbortSignal,
+  assetClasses: string[] = ['stocks', 'etf'],
+): Promise<PricePoint[]> {
   const from = new Date(Date.now() - 7 * 365 * 86400000).toISOString().slice(0, 10);
   const init: RequestInit = { headers: { 'User-Agent': NASDAQ_UA, Accept: 'application/json' } };
   if (signal) init.signal = signal;
-  for (const cls of ['stocks', 'etf']) {
+  for (const cls of assetClasses) {
     try {
       const json = (await fetchJson(
         `https://api.nasdaq.com/api/quote/${ticker}/historical?assetclass=${cls}&fromdate=${from}&limit=9999`,
@@ -2607,6 +2944,95 @@ export async function fetchNasdaqHistorical(ticker: string, signal?: AbortSignal
     }
   }
   return [];
+}
+
+export interface IntradayPoint {
+  t: number;
+  v: number;
+}
+
+export interface IntradayChart {
+  points: IntradayPoint[];
+  prevClose: number | null;
+  company: string | null;
+  quote: StockQuote | null;
+}
+
+interface NasdaqChartJson {
+  data?: {
+    symbol?: string;
+    company?: string;
+    previousClose?: string;
+    lastSalePrice?: string;
+    netChange?: string;
+    percentageChange?: string;
+    volume?: string | null;
+    timeAsOf?: string;
+    chart?: { x?: number; y?: number; z?: { dateTime?: string; value?: string } }[];
+  };
+}
+
+// Pure: parse an intraday /chart payload — today's time series plus the
+// previous close the UI draws as a dashed reference line. Prefers the
+// numeric y; falls back to parsing z.value ("30,972.85").
+export function extractChart(d: NasdaqChartJson['data']): IntradayChart | null {
+  const points: IntradayPoint[] = [];
+  for (const r of d?.chart ?? []) {
+    const t = typeof r.x === 'number' && Number.isFinite(r.x) ? r.x : null;
+    const v = typeof r.y === 'number' && Number.isFinite(r.y) ? r.y : parseNum(r.z?.value);
+    if (t === null || v === null) continue;
+    points.push({ t, v });
+  }
+  if (points.length === 0) return null;
+  points.sort((a, b) => a.t - b.t);
+  const pct = parseNum(d?.percentageChange);
+  return {
+    points,
+    prevClose: parseNum(d?.previousClose),
+    company: d?.company ?? null,
+    quote: {
+      price: parseNum(d?.lastSalePrice),
+      change: parseNum(d?.netChange),
+      changePct: pct !== null ? pct / 100 : null,
+      volume: parseNum(d?.volume),
+      lastTrade: d?.timeAsOf ?? null,
+      marketStatus: null,
+    },
+  };
+}
+
+export async function fetchNasdaqChart(
+  ticker: string,
+  signal?: AbortSignal,
+  assetClasses: string[] = ['stocks', 'etf'],
+): Promise<IntradayChart | null> {
+  const init: RequestInit = { headers: { 'User-Agent': NASDAQ_UA, Accept: 'application/json' } };
+  if (signal) init.signal = signal;
+  for (const cls of assetClasses) {
+    try {
+      const json = (await fetchJson(
+        `https://api.nasdaq.com/api/quote/${ticker}/chart?assetclass=${cls}`,
+        init,
+        120,
+      )) as NasdaqChartJson;
+      const chart = extractChart(json?.data);
+      if (chart) return chart;
+    } catch {
+      /* try the next asset class */
+    }
+  }
+  return null;
+}
+
+// Thin an intraday series for API payloads (about max points), always
+// keeping the last point (today's price anchors the spark's right edge).
+export function thinPoints(points: IntradayPoint[], max = 60): number[] {
+  if (points.length <= max) return points.map((p) => p.v);
+  const step = Math.ceil(points.length / max);
+  const out = points.filter((_, i) => i % step === 0).map((p) => p.v);
+  const last = points[points.length - 1].v;
+  if (out[out.length - 1] !== last) out.push(last);
+  return out;
 }
 
 function truncateSentences(text: string, max: number): string {

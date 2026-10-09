@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --test lib/view-dedup.test.mjs components/blog/widgets/tftItemsSheetData.test.mjs lib/newton.test.mjs lib/trampoline.test.mjs lib/bowling.test.mjs lib/mash.test.mjs lib/stocks.test.mjs",
+    "test": "node --test lib/blog-content.test.mjs lib/view-dedup.test.mjs components/blog/widgets/tftItemsSheetData.test.mjs lib/treasure-hunt.test.mjs lib/newton.test.mjs lib/trampoline.test.mjs lib/bowling.test.mjs lib/mash.test.mjs lib/stocks.test.mjs",
     "migrate:medium": "node scripts/migrate-medium.mjs"
   },
   "dependencies": {

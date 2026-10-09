@@ -172,3 +172,19 @@ export function categoryColor(category?: string | null): string {
   if (!category) return DEFAULT_CATEGORY_COLOR;
   return CATEGORY_COLORS[category] ?? DEFAULT_CATEGORY_COLOR;
 }
+
+// Splits the homepage list into pinned utilities vs everything else.
+// Pinned slugs keep their PINNED order (not date order); unknown slugs are
+// ignored. `rest` excludes every pinned post so a pin never renders twice,
+// falling back to the full list when that would leave Latest empty (i.e.
+// every published post is pinned).
+export function splitPinnedPosts<T extends { slug: string }>(
+  posts: T[],
+  pinnedSlugs: string[],
+): { pinned: T[]; rest: T[] } {
+  const bySlug = new Map(posts.map((p) => [p.slug, p]));
+  const pinned = pinnedSlugs.map((s) => bySlug.get(s)).filter((p): p is T => p !== undefined);
+  const pinnedSet = new Set(pinnedSlugs);
+  const unpinned = posts.filter((p) => !pinnedSet.has(p.slug));
+  return { pinned, rest: unpinned.length > 0 ? unpinned : posts };
+}

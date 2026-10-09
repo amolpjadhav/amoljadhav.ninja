@@ -25,7 +25,8 @@ export default function Home() {
       </Link>
 
       <main className="min-h-screen pt-6 pb-8 px-4">
-        <div className="container mx-auto max-w-2xl">
+        {/* Desktop runs 20% wider than max-w-2xl (42rem -> 50.4rem); mobile unchanged. */}
+        <div className="container mx-auto max-w-2xl md:max-w-[50.4rem]">
           {/* Main Terminal Container */}
           <section className="relative bg-black/70 border-2 border-[#0aee3c] rounded-lg p-5 md:p-6 mb-4 mt-4 shadow-[0_0_35px_rgba(10,238,60,0.12)] animate-fadeIn">
             {/* Ambient glow accents (clipped to the card's rounded corners) */}

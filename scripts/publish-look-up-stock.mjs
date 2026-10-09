@@ -1,4 +1,4 @@
-// Publishes "Look Up Stock and Company Details" to the blog.
+// Publishes "Stock Lookup" to the blog.
 //
 // The HTML below is generated from drafts/look-up-stock-and-company-details.md,
 // so the draft stays the source of truth for the prose. Entities are
@@ -35,75 +35,15 @@ const supabase = createClient(supabaseUrl, serviceKey, {
   auth: { autoRefreshToken: false, persistSession: false },
 });
 
-const TITLE = 'Look Up Stock and Company Details';
+const TITLE = 'Stock Lookup';
 const SLUG = 'look-up-stock-and-company-details';
 const CATEGORY = 'Investing';
 const READ_TIME = 5;
 const EXCERPT =
   'One page per company: type any US stock ticker to see what the business does, the quote, five years of financials, and SEC filings — plus how to read each part in 30 seconds.';
 
-const QUIZ = [
-  {
-    question: 'What should you read first when you look up a company?',
-    options: [
-      'The stock price — the market is always right',
-      'What the business does, in one sentence you can say back',
-      'The 52-week low, to time your entry',
-      'The list of filings, oldest first',
-    ],
-    correctIndex: 1,
-    explanation:
-      'If you cannot say what the business sells and who pays for it, the numbers have no meaning yet. Business first, price second.',
-  },
-  {
-    question: 'Revenue is growing but net margin is shrinking. What does that mean?',
-    options: [
-      'The business is healthier than ever',
-      'Each new dollar of revenue is less profitable than the last',
-      'The company must be committing fraud',
-      'The share count is falling',
-    ],
-    correctIndex: 1,
-    explanation:
-      'Growth is only half the story. A shrinking margin means the company keeps fewer cents per dollar — growth is getting more expensive.',
-  },
-  {
-    question: 'A $700 stock and a $70 stock — which company is bigger?',
-    options: [
-      'The $700 stock, obviously',
-      'The $70 stock — cheaper means more shares',
-      'Whichever has the bigger market cap; share price alone says nothing about size',
-      'They must be the same size',
-    ],
-    correctIndex: 2,
-    explanation:
-      'Market cap is share price times shares outstanding — the price of the whole company. A $700 stock can be a far smaller company than a $70 one.',
-  },
-  {
-    question: 'Where does the company describe its own business in its own words?',
-    options: [
-      'In its TV commercials',
-      'In the 10-K annual report, Item 1 (Business)',
-      'In analyst price targets',
-      'In the Wikipedia talk page',
-    ],
-    correctIndex: 1,
-    explanation:
-      'The 10-K is the big annual filing, and Item 1 is the company telling regulators — under oath, effectively — what it does.',
-  },
-  {
-    question: 'Why does an ETF show no financials table on the lookup page?',
-    options: [
-      'The data feed is broken for ETFs',
-      'ETFs are not listed on exchanges',
-      'A fund has no revenue or profit of its own to report',
-      'ETFs are banned from SEC filings',
-    ],
-    correctIndex: 2,
-    explanation:
-      'A fund just holds other assets, so revenue, margin, and EPS do not apply. The quote and overview still work.',
-  },
-];
+// No quiz on this article: it is a lookup tool, not a read, so the pre-read
+// quiz box does not belong. (The page renders it only when quiz is set.)
 
 // The draft carries the author's prose verbatim — section titles are plain
 // lines, not markdown headings — so they are recognised by exact match and
@@ -155,7 +95,7 @@ const CONTENT = renderDraft();
 async function main() {
   const dryRun = process.argv[2] === '--dry-run';
   const widgets = [...CONTENT.matchAll(/data-widget="([^"]+)"/g)].map((m) => m[1]);
-  console.log(`  ${CONTENT.length} chars of HTML, ${QUIZ.length} quiz questions`);
+  console.log(`  ${CONTENT.length} chars of HTML, no quiz`);
   console.log(`  widgets: ${widgets.join(', ') || '(none)'}`);
 
   if (!CONTENT) {
@@ -181,7 +121,7 @@ async function main() {
     published: true,
     category: CATEGORY,
     read_time: READ_TIME,
-    quiz: QUIZ,
+    quiz: null,
   };
 
   const { data, error } = await supabase

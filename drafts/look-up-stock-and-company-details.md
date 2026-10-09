@@ -1,4 +1,4 @@
-# Look Up Stock and Company Details
+# Stock Lookup
 
 Category: Investing
 

@@ -2,10 +2,11 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { Link as LinkIcon, Check } from 'lucide-react';
+import { Link as LinkIcon, Check, Search } from 'lucide-react';
 import type { FinancialSeries, PricePoint, SegmentSeries, StockResponse } from '@/lib/stocks';
 import { FILING_LABELS, cagr, cagrDetails, displayCompanyName, edgarCompanyUrl, fiscalYearEndMonth, fiscalYearSpan, formatCompact, formatEps, formatFilingDate, formatHeadquarters, formatInt, formatLastTrade, formatMoney, formatPct, formatPrice, formatQuoteChange, isMarketOpen, isOtherSegment, latestValue, marginLine, normalizeTicker, peHistoryNote, periodReturn, pickLede, positionInRangeLabel, revenueLine, shareCacheBuster, stockShareLinks, stockShareText, tableYears, yoyGrowth } from '@/lib/stocks';
 import { SECTION_ACCENTS, categoryColor } from '@/lib/blog-content';
+import { MarketStrip, MoverTiles, useMarketOverview } from './MarketOverview';
 
 function XIcon() {
   return (
@@ -450,11 +451,30 @@ export default function StocksLookup({ initialTicker }: { initialTicker: string 
   // during render) so server and client HTML match.
   const [shareToken, setShareToken] = useState('');
   const mounted = useRef(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  async function lookup(raw: string) {
-    const ticker = normalizeTicker(raw);
-    if (!ticker) {
-      setError('Enter a valid ticker — 1-10 letters, e.g. META.');
+  // Company-name resolution against the SEC ticker map. Returns the parsed
+  // /api/ticker-search payload ({ ticker } | { suggestions } | error) or
+  // null when the endpoint itself is unreachable.
+  async function resolveQuery(
+    raw: string,
+  ): Promise<{ ticker?: string; suggestions?: { ticker: string; title: string }[] } | null> {
+    try {
+      const res = await fetch(`/api/ticker-search?q=${encodeURIComponent(raw)}`);
+      return await res.json();
+    } catch {
+      return null;
+    }
+  }
+
+  function suggestionError(raw: string, suggestions: { ticker: string }[]): string {
+    return `No data for "${raw.trim()}". Did you mean ${suggestions.map((s) => s.ticker).join(', ')}?`;
+  }
+
+  async function lookup(raw: string, retried = false): Promise<void> {
+    const trimmed = raw.trim();
+    if (!trimmed) {
+      setError('Enter a company name or ticker — e.g. Costco or COST.');
       return;
     }
     setLoading(true);
@@ -462,14 +482,34 @@ export default function StocksLookup({ initialTicker }: { initialTicker: string 
     setData(null);
     setCopied(false);
     try {
-      const res = await fetch(`/api/stocks/${encodeURIComponent(ticker)}`);
+      const ticker = normalizeTicker(trimmed);
+      // Names (spaces, lowercase, >10 chars) resolve through the SEC map
+      // instead of hitting /api/stocks with a garbage symbol.
+      const looksLikeName = !ticker || /\s/.test(trimmed) || trimmed.length > 10 || /[a-z]/.test(trimmed);
+      let symbol = ticker;
+      if (looksLikeName && !retried) {
+        const r = await resolveQuery(trimmed);
+        if (r?.ticker && r.ticker !== ticker) symbol = r.ticker;
+        else if (r?.suggestions?.length) throw new Error(suggestionError(trimmed, r.suggestions));
+        else if (!ticker) throw new Error('Enter a company name or ticker — e.g. Costco or COST.');
+      }
+      const res = await fetch(`/api/stocks/${encodeURIComponent(symbol)}`);
       const json = await res.json();
-      if (!res.ok) throw new Error(json?.error || 'Lookup failed.');
+      if (!res.ok) {
+        // Ticker-shaped but unknown ("COSTCO"): one resolution retry before
+        // surfacing the error. The ticker guard below stops retry loops.
+        if (!retried) {
+          const r = await resolveQuery(trimmed);
+          if (r?.ticker && r.ticker !== symbol) return lookup(r.ticker, true);
+          if (r?.suggestions?.length) throw new Error(suggestionError(trimmed, r.suggestions));
+        }
+        throw new Error(json?.error || 'Lookup failed.');
+      }
       setData(json as StockResponse);
       // Fresh share URL per lookup: X caches cards per page URL for days.
       setShareToken(shareCacheBuster());
       setRecent((prev) => {
-        const next = [ticker, ...prev.filter((t) => t !== ticker)].slice(0, 5);
+        const next = [symbol, ...prev.filter((t) => t !== symbol)].slice(0, 5);
         try {
           localStorage.setItem(RECENT_KEY, JSON.stringify(next));
         } catch {
@@ -477,7 +517,7 @@ export default function StocksLookup({ initialTicker }: { initialTicker: string 
         }
         return next;
       });
-      router.replace(`${pathname}?ticker=${ticker}`, { scroll: false });
+      router.replace(`${pathname}?ticker=${symbol}`, { scroll: false });
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Lookup failed.');
     } finally {
@@ -501,10 +541,42 @@ export default function StocksLookup({ initialTicker }: { initialTicker: string 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    // "/" focuses the lookup input from anywhere (unless already typing).
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== '/' || e.metaKey || e.ctrlKey || e.altKey) return;
+      const el = document.activeElement;
+      if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || (el as HTMLElement).isContentEditable)) {
+        return;
+      }
+      e.preventDefault();
+      inputRef.current?.focus();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
+  // Mobile uses the mock's short placeholder; placeholder text can't swap
+  // via CSS, so track the sm breakpoint. Copy-only: no layout shift.
+  const [isNarrow, setIsNarrow] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 639px)');
+    const update = () => setIsNarrow(mq.matches);
+    update();
+    mq.addEventListener('change', update);
+    return () => mq.removeEventListener('change', update);
+  }, []);
+
   const q = data?.quote;
   const up = (q?.change ?? 0) >= 0;
   // Nothing looked up yet: the search block centers like a search homepage.
   const idle = !data && !loading && !error;
+  // Market strip + entry tiles: one /api/markets fetch shared by both.
+  const { data: markets, loaded: marketsLoaded } = useMarketOverview();
+  const selectTile = (t: string) => {
+    setInput(t);
+    lookup(t);
+  };
   const finYears = data?.financials ? tableYears(data.financials) : [];
   const years = data?.ttm ? [...finYears, 'TTM'] : finYears;
   // P/E anchors to trailing-twelve-month EPS (current picture), falling back
@@ -598,61 +670,145 @@ export default function StocksLookup({ initialTicker }: { initialTicker: string 
     // Static text trips browser spellcheck on tickers (dotted underlines);
     // nothing here is editable.
     <div spellCheck={false}>
-      <div className={idle ? 'min-h-[45vh] flex flex-col justify-center' : undefined}>
-      <h2 className="text-xl font-bold mb-2" style={{ color: ACCENT }}>
-        Stock lookup
-      </h2>
-      <p className="text-white/60 text-sm mb-4">
-        A full company profile in four parts: the business, the numbers, the price, and the risks. Type a ticker to start.
-      </p>
+      {idle ? (
+        <>
+          <p className="text-[11px] font-bold uppercase tracking-widest text-white/40 mb-3">
+            Investing · Free tool
+          </p>
+          <h1 className="font-serif text-4xl sm:text-5xl font-bold text-white/95 mb-3">Look up any company</h1>
+          <p className="text-white/55 text-base leading-relaxed mb-6 max-w-xl">
+            <span className="hidden sm:inline">
+              The business behind the ticker: what it does, how it makes money, the numbers, and the risks.
+              All from its own SEC filings.
+            </span>
+            <span className="sm:hidden">The business behind the ticker, from its own SEC filings.</span>
+          </p>
 
-      <form
-        className="flex flex-col sm:flex-row gap-2 mb-3"
-        onSubmit={(e) => {
-          e.preventDefault();
-          lookup(input);
-        }}
-      >
-        <label htmlFor="ticker" className="sr-only">
-          Stock ticker
-        </label>
-        <input
-          id="ticker"
-          value={input}
-          onChange={(e) => setInput(e.target.value.toUpperCase())}
-          placeholder="TICKER  e.g. META"
-          autoCapitalize="characters"
-          autoCorrect="off"
-          spellCheck={false}
-          className="flex-1 min-w-0 bg-black/40 border border-white/15 rounded px-3 py-2 text-sm text-white/90 placeholder:text-white/30 focus:outline-none focus:border-white/40 transition-colors uppercase"
-        />
-        <button
-          type="submit"
-          disabled={loading}
-          className="text-sm font-bold px-4 py-2 rounded transition-transform hover:scale-105 disabled:opacity-50 disabled:hover:scale-100 shrink-0"
-          style={{ background: ACCENT, color: '#0a0a0a' }}
-        >
-          {loading ? 'Looking up...' : 'Lookup'}
-        </button>
-      </form>
-
-      <div className="flex flex-wrap gap-2 mb-2 text-xs">
-        {(recent.length > 0 ? recent : EXAMPLES).map((t) => (
-          <button
-            key={t}
-            type="button"
-            onClick={() => {
-              setInput(t);
-              lookup(t);
+          <form
+            className="flex gap-2 mb-4"
+            onSubmit={(e) => {
+              e.preventDefault();
+              lookup(input);
             }}
-            className="text-white/50 border border-white/15 px-2.5 py-1 rounded-full hover:text-white hover:border-white/30 transition-colors"
           >
-            {t}
-          </button>
-        ))}
-        <span className="text-white/30 self-center ml-1">{recent.length > 0 ? 'recent' : 'try one'}</span>
-      </div>
-      </div>
+            <label htmlFor="ticker" className="sr-only">
+              Company name or stock ticker
+            </label>
+            <div className="relative flex-1 min-w-0">
+              <Search size={18} aria-hidden className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/30 pointer-events-none" />
+              <input
+                id="ticker"
+                ref={inputRef}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder={isNarrow ? 'Company or ticker' : 'Search a company or ticker, like Costco or COST'}
+                autoCorrect="off"
+                spellCheck={false}
+                enterKeyHint="search"
+                className="w-full bg-black/40 border border-white/15 rounded-xl pl-11 pr-4 sm:pr-12 py-3.5 text-[15px] text-white/90 placeholder:text-white/30 focus:outline-none focus:border-white/40 transition-colors"
+              />
+              <kbd
+                aria-hidden
+                title="Press / to focus search"
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-white/30 border border-white/15 rounded-md px-1.5 py-0.5 pointer-events-none hidden sm:block"
+              >
+                /
+              </kbd>
+            </div>
+            {/* Mobile submits via the keyboard's search action (per mock). */}
+            <button
+              type="submit"
+              disabled={loading}
+              className="hidden sm:block text-[15px] font-bold px-6 rounded-xl transition-transform hover:scale-105 disabled:opacity-50 disabled:hover:scale-100 shrink-0"
+              style={{ background: ACCENT, color: '#0a0a0a' }}
+            >
+              {loading ? 'Looking up...' : 'Look up'}
+            </button>
+          </form>
+
+          <div className="flex flex-wrap items-center gap-2 mb-2">
+            <span className="text-white/40 text-xs mr-1">{recent.length > 0 ? 'Recent' : 'Try'}</span>
+            {(recent.length > 0 ? recent : EXAMPLES).map((t) => (
+              <button
+                key={t}
+                type="button"
+                onClick={() => {
+                  setInput(t);
+                  lookup(t);
+                }}
+                className="bg-white/10 hover:bg-white/15 text-white/85 text-xs font-bold px-3 py-1.5 rounded-full transition-colors"
+              >
+                {t}
+              </button>
+            ))}
+          </div>
+
+          <div className="mt-10">
+            <MarketStrip data={markets} loaded={marketsLoaded} />
+          </div>
+          <MoverTiles data={markets} loaded={marketsLoaded} onSelect={selectTile} />
+        </>
+      ) : (
+        <>
+          <MarketStrip data={markets} loaded={marketsLoaded} />
+          <div>
+          <h2 className="text-xl font-bold mb-2" style={{ color: ACCENT }}>
+            Stock lookup
+          </h2>
+          <p className="text-white/60 text-sm mb-4">
+            A full company profile in four parts: the business, the numbers, the price, and the risks. Type a ticker to start.
+          </p>
+
+          <form
+            className="flex flex-col sm:flex-row gap-2 mb-3"
+            onSubmit={(e) => {
+              e.preventDefault();
+              lookup(input);
+            }}
+          >
+            <label htmlFor="ticker" className="sr-only">
+              Stock ticker
+            </label>
+            <input
+              id="ticker"
+              ref={inputRef}
+              value={input}
+              onChange={(e) => setInput(e.target.value.toUpperCase())}
+              placeholder="TICKER  e.g. META"
+              autoCapitalize="characters"
+              autoCorrect="off"
+              spellCheck={false}
+              className="flex-1 min-w-0 bg-black/40 border border-white/15 rounded px-3 py-2 text-sm text-white/90 placeholder:text-white/30 focus:outline-none focus:border-white/40 transition-colors uppercase"
+            />
+            <button
+              type="submit"
+              disabled={loading}
+              className="text-sm font-bold px-4 py-2 rounded transition-transform hover:scale-105 disabled:opacity-50 disabled:hover:scale-100 shrink-0"
+              style={{ background: ACCENT, color: '#0a0a0a' }}
+            >
+              {loading ? 'Looking up...' : 'Lookup'}
+            </button>
+          </form>
+
+          <div className="flex flex-wrap gap-2 mb-2 text-xs">
+            {(recent.length > 0 ? recent : EXAMPLES).map((t) => (
+              <button
+                key={t}
+                type="button"
+                onClick={() => {
+                  setInput(t);
+                  lookup(t);
+                }}
+                className="text-white/50 border border-white/15 px-2.5 py-1 rounded-full hover:text-white hover:border-white/30 transition-colors"
+              >
+                {t}
+              </button>
+            ))}
+            <span className="text-white/30 self-center ml-1">{recent.length > 0 ? 'recent' : 'try one'}</span>
+          </div>
+          </div>
+        </>
+      )}
 
       {loading && <p className="text-sm text-white/50 mt-6 animate-pulse">Fetching quote and SEC filings…</p>}
 

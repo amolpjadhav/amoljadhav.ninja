@@ -1,8 +1,14 @@
 import Link from 'next/link';
-import { BarChart2 } from 'lucide-react';
+import { BarChart2, Pin } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { formatDate, formatCount } from '@/lib/utils';
-import { categoryColor } from '@/lib/blog-content';
+import { categoryColor, splitPinnedPosts } from '@/lib/blog-content';
+
+// Pinned utilities: live above Latest so readers spot tools (not reads)
+// the moment they land. Slugs here are excluded from the Latest / Most
+// Read / Recent pools below so they never render twice. Unknown or
+// unpublished slugs are silently skipped.
+const PINNED_SLUGS = ['look-up-stock-and-company-details'];
 
 export default async function RecentArticles() {
   // A generous limit rather than a second "top by views" query — this blog
@@ -36,7 +42,8 @@ export default async function RecentArticles() {
     new Set((categoryRows || []).map((p) => p.category).filter(Boolean))
   ).sort();
 
-  const [latest, ...pool] = posts;
+  const { pinned, rest } = splitPinnedPosts(posts, PINNED_SLUGS);
+  const [latest, ...pool] = rest;
   const heroAccent = categoryColor(latest.category);
 
   const mostRead = [...pool].sort((a, b) => (b.views ?? 0) - (a.views ?? 0)).slice(0, 3);
@@ -66,6 +73,46 @@ export default async function RecentArticles() {
               </Link>
             );
           })}
+        </div>
+      )}
+
+      {pinned.length > 0 && (
+        <div className="mb-4">
+          <span
+            className="inline-block text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded mb-1"
+            style={{ color: '#0aee3c', background: '#0aee3c22' }}
+          >
+            Pinned
+          </span>
+          {pinned.map((post) => (
+              <Link
+                key={post.slug}
+                href={`/blog/${post.slug}`}
+                className="group block py-1.5 px-1.5 -mx-1.5 rounded border-b border-b-[#0aee3c]/10 hover:bg-[#0aee3c]/5 transition-colors animate-fadeInUp"
+                style={{
+                  opacity: 0,
+                  animationFillMode: 'forwards',
+                }}
+              >
+                <div className="flex items-baseline justify-between gap-3 text-sm pl-1.5">
+                  <span className="text-[#0aee3c] group-hover:text-white transition-colors">
+                    {/* Right-aligned: the icon's right edge sits exactly mr-2 off
+                        the title, the same gap the row numbers get. */}
+                    <span className="inline-block w-6 text-right text-[#0aee3c]/50 group-hover:text-[#0aee3c] mr-2 transition-colors">
+                      <Pin size={12} aria-hidden className="inline-block align-middle" />
+                    </span>
+                    {post.title}
+                  </span>
+                  <span className="flex items-center gap-1 text-[#0aee3c]/40 text-xs whitespace-nowrap shrink-0">
+                    <BarChart2 size={12} aria-hidden />
+                    {formatCount(post.views ?? 0)}
+                  </span>
+                </div>
+                {post.excerpt && (
+                  <p className="text-white/35 text-xs mt-0.5 ml-9 line-clamp-1">{post.excerpt}</p>
+                )}
+              </Link>
+            ))}
         </div>
       )}
 
