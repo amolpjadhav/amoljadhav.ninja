@@ -151,7 +151,7 @@ export default function FamilyTree({
                   fontSize: 26,
                 }}
               >
-                {p.node.icon || '☕'}
+                {'icon' in p.node ? p.node.icon : '☕'}
               </div>
               <p className="text-xs font-bold text-center mt-2 leading-tight" style={{ color: p.node.color || '#0aee3c' }}>
                 {p.node.label}
