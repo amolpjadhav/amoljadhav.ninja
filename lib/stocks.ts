@@ -2484,11 +2484,10 @@ export async function getStockCardData(
 
 // ---------------------------------------------------------------------------
 // Market overview: the index strip plus Trending / Gainers / Losers / Mag 7
-// tiles on the lookup page. One getMarketOverview() call fans out in two
-// phases — strip charts + 40 watchlist quotes + bitcoin, then intraday
-// charts for the ranked rows only — served through /api/markets with a
-// 5-minute cache so cold loads are rare. Every section degrades to empty —
-// never throws — and the UI hides empty sections.
+// on the lookup page, served through /api/markets/strip and
+// /api/markets/movers (5-minute cache) so the 7-symbol strip paints while
+// the 40-stock movers fan-out still runs. Every section degrades to empty —
+// never throws — and the UI skeletons, then hides empty sections.
 // ---------------------------------------------------------------------------
 
 export interface MarketQuote {
@@ -2701,15 +2700,20 @@ async function fetchBitcoin(timeoutMs: number): Promise<MarketQuote | null> {
   }
 }
 
-export async function getMarketOverview(opts?: { timeoutMs?: number }): Promise<MarketOverview> {
+// Split for staged page loads: the 7-symbol strip paints in ~1-2s while
+// the 40-stock movers fan-out runs behind it. Each half degrades to empty
+// on its own; the UI skeletons until its half arrives.
+export async function getMarketStrip(opts?: { timeoutMs?: number }): Promise<{
+  strip: MarketQuote[];
+  asOf: string;
+}> {
   const budget = opts?.timeoutMs ?? 8000;
   const quick = Math.min(budget, 6000);
   const signal = AbortSignal.timeout(budget);
-  const [stripCharts, watchCards, btc] = await Promise.all([
+  const [stripCharts, btc] = await Promise.all([
     Promise.all(
       MARKET_STRIP_DEFS.map((d) => fetchNasdaqChart(d.symbol, signal, d.assetClasses).catch(() => null)),
     ),
-    Promise.all(MARKET_WATCHLIST.map((t) => getStockCardData(t, { timeoutMs: quick }).catch(() => null))),
     fetchBitcoin(quick).catch(() => null),
   ]);
   const strip: MarketQuote[] = [];
@@ -2718,6 +2722,21 @@ export async function getMarketOverview(opts?: { timeoutMs?: number }): Promise<
     if (q) strip.push(q);
   });
   if (btc) strip.push(btc);
+  return { strip, asOf: new Date().toISOString() };
+}
+
+export async function getMarketMovers(opts?: { timeoutMs?: number }): Promise<{
+  gainers: MarketQuote[];
+  losers: MarketQuote[];
+  trending: MarketQuote[];
+  mag7: MarketQuote[];
+  asOf: string;
+}> {
+  const budget = opts?.timeoutMs ?? 8000;
+  const quick = Math.min(budget, 6000);
+  const watchCards = await Promise.all(
+    MARKET_WATCHLIST.map((t) => getStockCardData(t, { timeoutMs: quick }).catch(() => null)),
+  );
   const watch = watchCards
     .map((c) => (c ? toMarketQuote(c.ticker, null, c) : null))
     .filter((q): q is MarketQuote => q !== null);
@@ -2736,13 +2755,17 @@ export async function getMarketOverview(opts?: { timeoutMs?: number }): Promise<
     return { ...q, spark: thinPoints(chart.points), prevClose: chart.prevClose };
   };
   return {
-    strip,
     gainers: gainers.map(withSpark),
     losers: losers.map(withSpark),
     trending: trending.map(withSpark),
     mag7: mag7.map(withSpark),
     asOf: new Date().toISOString(),
   };
+}
+
+export async function getMarketOverview(opts?: { timeoutMs?: number }): Promise<MarketOverview> {
+  const [strip, movers] = await Promise.all([getMarketStrip(opts), getMarketMovers(opts)]);
+  return { strip: strip.strip, ...movers, asOf: strip.asOf };
 }
 
 // Inter Black for card headlines, fetched once per serverless instance

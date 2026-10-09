@@ -6,7 +6,7 @@ import { Link as LinkIcon, Check, Search } from 'lucide-react';
 import type { FinancialSeries, PricePoint, SegmentSeries, StockResponse } from '@/lib/stocks';
 import { FILING_LABELS, cagr, cagrDetails, displayCompanyName, edgarCompanyUrl, fiscalYearEndMonth, fiscalYearSpan, formatCompact, formatEps, formatFilingDate, formatHeadquarters, formatInt, formatLastTrade, formatMoney, formatPct, formatPrice, formatQuoteChange, isMarketOpen, isOtherSegment, latestValue, marginLine, normalizeTicker, peHistoryNote, periodReturn, pickLede, positionInRangeLabel, revenueLine, shareCacheBuster, stockShareLinks, stockShareText, tableYears, yoyGrowth } from '@/lib/stocks';
 import { SECTION_ACCENTS, categoryColor } from '@/lib/blog-content';
-import { MarketStrip, MoverTiles, useMarketOverview } from './MarketOverview';
+import { MarketStrip, MoverTiles, useMarketMovers, useMarketStrip } from './MarketOverview';
 
 function XIcon() {
   return (
@@ -571,8 +571,9 @@ export default function StocksLookup({ initialTicker }: { initialTicker: string 
   const up = (q?.change ?? 0) >= 0;
   // Nothing looked up yet: the search block centers like a search homepage.
   const idle = !data && !loading && !error;
-  // Market strip + entry tiles: one /api/markets fetch shared by both.
-  const { data: markets, loaded: marketsLoaded } = useMarketOverview();
+  // Split fetches: the strip paints while the movers fan-out still runs.
+  const { data: strip, loaded: stripLoaded } = useMarketStrip();
+  const { data: movers, loaded: moversLoaded } = useMarketMovers();
   const selectTile = (t: string) => {
     setInput(t);
     lookup(t);
@@ -744,13 +745,13 @@ export default function StocksLookup({ initialTicker }: { initialTicker: string 
           </div>
 
           <div className="mt-10">
-            <MarketStrip data={markets} loaded={marketsLoaded} />
+            <MarketStrip data={strip} loaded={stripLoaded} />
           </div>
-          <MoverTiles data={markets} loaded={marketsLoaded} onSelect={selectTile} />
+          <MoverTiles data={movers} loaded={moversLoaded} onSelect={selectTile} />
         </>
       ) : (
         <>
-          <MarketStrip data={markets} loaded={marketsLoaded} />
+          <MarketStrip data={strip} loaded={stripLoaded} />
           <div>
           <h2 className="text-xl font-bold mb-2" style={{ color: ACCENT }}>
             Stock lookup

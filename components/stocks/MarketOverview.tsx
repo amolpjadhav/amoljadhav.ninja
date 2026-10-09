@@ -1,24 +1,36 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import type { MarketOverview as MarketOverviewData, MarketQuote } from '@/lib/stocks';
+import type { MarketQuote } from '@/lib/stocks';
 import { formatPct, formatPrice } from '@/lib/stocks';
 
 const UP = '#4ade80';
 const DOWN = '#e07856';
 
-// One fetch per page load: the parent calls this once and hands the result
-// to both MarketStrip and MoverTiles below.
-export function useMarketOverview(): { data: MarketOverviewData | null; loaded: boolean } {
-  const [data, setData] = useState<MarketOverviewData | null>(null);
+export interface StripData {
+  strip: MarketQuote[];
+  asOf: string;
+}
+
+export interface MoversData {
+  gainers: MarketQuote[];
+  losers: MarketQuote[];
+  trending: MarketQuote[];
+  mag7: MarketQuote[];
+}
+
+// Split fetches so the 7-symbol strip paints while the 40-stock movers
+// fan-out still runs; each half skeletons independently below.
+function useMarkets<T>(url: string, valid: (j: unknown) => j is T): { data: T | null; loaded: boolean } {
+  const [data, setData] = useState<T | null>(null);
   const [loaded, setLoaded] = useState(false);
   useEffect(() => {
     let live = true;
-    fetch('/api/markets')
+    fetch(url)
       .then((r) => (r.ok ? r.json() : null))
       .then((j) => {
         if (!live) return;
-        setData(j && Array.isArray(j.strip) ? j : null);
+        setData(valid(j) ? j : null);
         setLoaded(true);
       })
       .catch(() => {
@@ -27,8 +39,21 @@ export function useMarketOverview(): { data: MarketOverviewData | null; loaded: 
     return () => {
       live = false;
     };
-  }, []);
+  }, [url, valid]);
   return { data, loaded };
+}
+
+const isStripData = (j: unknown): j is StripData => !!j && Array.isArray((j as StripData).strip);
+
+const isMoversData = (j: unknown): j is MoversData =>
+  !!j && Array.isArray((j as MoversData).gainers) && Array.isArray((j as MoversData).mag7);
+
+export function useMarketStrip(): { data: StripData | null; loaded: boolean } {
+  return useMarkets('/api/markets/strip', isStripData);
+}
+
+export function useMarketMovers(): { data: MoversData | null; loaded: boolean } {
+  return useMarkets('/api/markets/movers', isMoversData);
 }
 
 function moveColor(changePct: number | null, change: number | null): string {
@@ -90,19 +115,43 @@ function SparkWithRef({
   );
 }
 
-export function MarketStrip({ data, loaded }: { data: MarketOverviewData | null; loaded: boolean }) {
-  if (!loaded) return <div className="min-h-[172px]" aria-hidden />;
-  if (!data || data.strip.length === 0) return null;
-  const day = new Date(data.asOf).toLocaleDateString([], { month: 'short', day: 'numeric' });
+function StripSkeleton() {
+  return (
+    <div
+      className="flex overflow-hidden divide-x divide-white/10 bg-white/[0.03] rounded-xl animate-pulse"
+      aria-hidden
+      aria-label="Loading markets"
+    >
+      {[0, 1, 2, 3].map((i) => (
+        <div key={i} className="shrink-0 w-[164px] p-3.5">
+          <div className="h-3.5 w-20 bg-white/10 rounded" />
+          <div className="h-[34px] w-[136px] bg-white/[0.07] rounded mt-2" />
+          <div className="h-3 w-24 bg-white/10 rounded mt-2" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export function MarketStrip({ data, loaded }: { data: StripData | null; loaded: boolean }) {
+  if (loaded && (!data || data.strip.length === 0)) return null;
+  const day = data ? new Date(data.asOf).toLocaleDateString([], { month: 'short', day: 'numeric' }) : null;
   return (
     <div className="mb-8">
       <div className="flex items-baseline justify-between gap-3 mb-2">
         <h2 className="text-[11px] font-bold uppercase tracking-widest text-white/40">Markets today</h2>
-        <p className="text-[11px] text-white/30 truncate">
-          <span className="sm:hidden">Delayed · {day}</span>
-          <span className="hidden sm:inline">Delayed 15 min · {day} · dashed = prev close</span>
-        </p>
+        {day ? (
+          <p className="text-[11px] text-white/30 truncate">
+            <span className="sm:hidden">Delayed · {day}</span>
+            <span className="hidden sm:inline">Delayed 15 min · {day} · dashed = prev close</span>
+          </p>
+        ) : (
+          <div className="h-3 w-40 bg-white/10 rounded animate-pulse" aria-hidden />
+        )}
       </div>
+      {!loaded || !data ? (
+        <StripSkeleton />
+      ) : (
       <div className="flex overflow-x-auto divide-x divide-white/10 bg-white/[0.03] rounded-xl">
         {data.strip.map((q) => {
           const color = moveColor(q.changePct, q.change);
@@ -128,6 +177,7 @@ export function MarketStrip({ data, loaded }: { data: MarketOverviewData | null;
           );
         })}
       </div>
+      )}
     </div>
   );
 }
@@ -146,26 +196,58 @@ type TabKey = (typeof TABS)[number]['key'];
 // sm:contents so both layouts share one grid definition.
 const ROW_GRID = 'grid grid-cols-[minmax(0,1fr)_auto] sm:grid-cols-[minmax(0,1.4fr)_130px_auto_92px] gap-x-4 items-center';
 
+function TabsSkeleton() {
+  return (
+    <div
+      className="flex gap-1 bg-white/5 rounded-full p-1 w-fit max-w-full animate-pulse"
+      aria-hidden
+      aria-label="Loading movers"
+    >
+      {[64, 56, 48, 44].map((w, i) => (
+        <div key={i} className="h-7 rounded-full bg-white/10" style={{ width: w }} />
+      ))}
+    </div>
+  );
+}
+
+function RowsSkeleton() {
+  return (
+    <div aria-hidden>
+      {[0, 1, 2, 3, 4].map((i) => (
+        <div key={i} className="flex items-center justify-between gap-4 py-3 border-b border-white/5 animate-pulse">
+          <div className="flex items-center gap-3">
+            <div className="h-4 w-12 bg-white/10 rounded" />
+            <div className="h-4 w-32 bg-white/[0.07] rounded hidden sm:block" />
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="h-4 w-16 bg-white/10 rounded" />
+            <div className="h-6 w-16 bg-white/10 rounded-md" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export function MoverTiles({
   data,
   loaded,
   onSelect,
 }: {
-  data: MarketOverviewData | null;
+  data: MoversData | null;
   loaded: boolean;
   onSelect: (ticker: string) => void;
 }) {
   const [tab, setTab] = useState<TabKey>('trending');
-  if (!loaded || !data) return null;
   const rows: Record<TabKey, MarketQuote[]> = {
-    trending: data.trending,
-    gainers: data.gainers,
-    losers: data.losers,
-    mag7: data.mag7,
+    trending: data?.trending ?? [],
+    gainers: data?.gainers ?? [],
+    losers: data?.losers ?? [],
+    mag7: data?.mag7 ?? [],
   };
   const available = TABS.filter((t) => rows[t.key].length > 0);
-  if (available.length === 0) return null;
-  const active = available.some((t) => t.key === tab) ? tab : available[0].key;
+  if (loaded && available.length === 0) return null;
+  const active = available.some((t) => t.key === tab) ? tab : (available[0]?.key ?? 'trending');
   return (
     <div className="mt-10">
       {/* Breakpoint-driven, never flex-wrap: content-based wrapping made
@@ -174,6 +256,7 @@ export function MoverTiles({
         <h2 className="font-serif text-3xl font-bold text-white/95">Today&apos;s movers</h2>
         {/* nowrap + shrink-0: "Mag 7" is the only label with a space and
             used to wrap under squeeze, resizing the whole bar per tab. */}
+        {loaded ? (
         <div
           className="flex gap-1 bg-white/5 rounded-full p-1 max-w-full overflow-x-auto"
           role="tablist"
@@ -194,7 +277,12 @@ export function MoverTiles({
             </button>
           ))}
         </div>
+        ) : (
+          <TabsSkeleton />
+        )}
       </div>
+      {loaded ? (
+      <>
       <div className={`hidden ${ROW_GRID} text-[11px] font-bold uppercase tracking-widest text-white/35 pt-3 pb-2 border-b border-white/10 sm:grid`}>
         <span>Company</span>
         <span className="hidden sm:block">Today</span>
@@ -233,6 +321,10 @@ export function MoverTiles({
           );
         })}
       </div>
+      </>
+      ) : (
+        <RowsSkeleton />
+      )}
     </div>
   );
 }
