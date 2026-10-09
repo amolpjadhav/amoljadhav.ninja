@@ -52,7 +52,7 @@ function card(children: React.ReactNode, font: ArrayBuffer | null, maxAge = 3600
           fontFamily: font ? 'Inter, sans-serif' : 'sans-serif',
           paddingLeft: 60,
           paddingRight: 60,
-          paddingTop: 44,
+          paddingTop: 64,
         }}
       >
         {children}
@@ -142,8 +142,7 @@ export async function GET(req: Request) {
   // inside timed(), which the catch below converts to a fallback card.
   const body = (
     <div style={{ display: 'flex', flexDirection: 'column' }}>
-      <BrandRow />
-      <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-end', marginTop: 20 }}>
+      <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-end' }}>
         <span style={{ fontSize: cashPx, fontWeight: 900, color: GOLD, letterSpacing: 2, lineHeight: 1 }}>
           {`$${ticker}`}
         </span>
