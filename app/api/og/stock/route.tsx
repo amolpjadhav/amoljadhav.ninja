@@ -147,7 +147,7 @@ export async function GET(req: Request) {
           {`$${ticker}`}
         </span>
         {mcap && (
-          <span style={{ fontSize: 34, color: MUTED, marginLeft: 'auto', paddingBottom: 10 }}>MCAP {mcap}</span>
+          <span style={{ fontSize: 34, color: MUTED, marginLeft: 'auto', paddingBottom: 10 }}>Market cap {mcap}</span>
         )}
       </div>
       <span style={{ fontSize: 38, color: MUTED, marginTop: 6, lineHeight: 1 }}>{truncateLine(name, 52)}</span>

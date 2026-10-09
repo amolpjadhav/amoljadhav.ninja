@@ -132,7 +132,7 @@ export async function GET(req: Request) {
       <span style={{ fontSize: cashPx, fontWeight: 900, color: GOLD, letterSpacing: 2, lineHeight: 1 }}>{`$${ticker}`}</span>
       <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginTop: 10 }}>
         <span style={{ fontSize: 46, color: MUTED }}>{truncateLine(name, mcap ? 24 : 32)}</span>
-        {mcap && <span style={{ fontSize: 38, color: MUTED, marginLeft: 'auto' }}>MCAP {mcap}</span>}
+        {mcap && <span style={{ fontSize: 38, color: MUTED, marginLeft: 'auto' }}>Market cap {mcap}</span>}
       </div>
       <span style={{ fontSize: pricePx, fontWeight: 900, lineHeight: 1, marginTop: 48 }}>
         {priceStr ?? 'Quote unavailable'}
