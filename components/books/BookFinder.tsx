@@ -111,7 +111,7 @@ export function Cover({ book, size }: { book: BookCard; size: 'S' | 'M' | 'L' })
       alt={`Cover of ${book.title}`}
       loading="lazy"
       onError={() => setDead(true)}
-      className="w-full aspect-[2/3] rounded-md border border-white/10 object-cover bg-white/5"
+      className="widget-img w-full aspect-[2/3] rounded-md border border-white/10 object-cover bg-white/5"
     />
   );
 }
