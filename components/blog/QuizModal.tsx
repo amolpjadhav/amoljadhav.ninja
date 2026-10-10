@@ -58,7 +58,7 @@ export default function QuizModal({
       >
         <div className="flex items-center gap-2 text-sm text-white/80">
           <Brain size={16} style={{ color: accent }} />
-          <span>Think you already know this? Test yourself before reading.</span>
+          <span>Think you&rsquo;ve got it? Take the quiz.</span>
         </div>
         <div className="flex items-center gap-3 shrink-0">
           <button

@@ -61,6 +61,7 @@ import SquareTrainer from './SquareTrainer';
 import MoveTrainer from './MoveTrainer';
 import NewtonPlayground from './NewtonPlayground';
 import StocksLookupWidget from './StocksLookupWidget';
+import BirthdayClassroom from './BirthdayClassroom';
 import TftItemCombinator from './TftItemCombinator';
 import TftItemsSheet from './TftItemsSheet';
 
@@ -132,6 +133,7 @@ export const WIDGET_REGISTRY: Record<string, ComponentType> = {
   'move-trainer': MoveTrainer,
   'newton-playground': NewtonPlayground,
   'stocks-lookup': StocksLookupWidget,
+  'birthday-classroom': BirthdayClassroom,
   'tft-item-combinator': TftItemCombinator,
   'tft-items-sheet': TftItemsSheet,
 };

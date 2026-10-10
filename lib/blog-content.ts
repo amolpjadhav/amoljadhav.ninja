@@ -122,6 +122,31 @@ function decodeTextEntities(html: string): string {
     .join('');
 }
 
+// Heading titles are rendered by React as plain text (not HTML), so they need
+// the opposite treatment from the article body: every entity fully decoded,
+// including &amp;/&lt;/&gt;, which React re-escapes on render. Without this
+// the jump menu shows raw "&rsquo;" text.
+function decodeHeadingEntities(text: string): string {
+  return text
+    .replace(/&([a-zA-Z][a-zA-Z0-9]*);/g, (full, name) => {
+      if (name === 'amp') return '&';
+      if (name === 'lt') return '<';
+      if (name === 'gt') return '>';
+      if (name === 'nbsp') return ' ';
+      return TEXT_ENTITIES[name] ?? full;
+    })
+    .replace(/&#(x[0-9a-fA-F]+|\d+);/g, (full, code) => {
+      const point =
+        code[0] === 'x' || code[0] === 'X' ? parseInt(code.slice(1), 16) : parseInt(code, 10);
+      if (!Number.isFinite(point)) return full;
+      try {
+        return String.fromCodePoint(point);
+      } catch {
+        return full;
+      }
+    });
+}
+
 export function colorizeArticleSections(html: string): { html: string; headings: ArticleHeading[] } {
   const chunks = html.split(/(?=<h[1-3][ >])/i).filter((chunk) => chunk.trim().length > 0);
   const usedIds = new Set<string>();
@@ -141,7 +166,9 @@ export function colorizeArticleSections(html: string): { html: string; headings:
           id = `${slugifyHeading(shortTitle)}-${suffix++}`;
         }
         usedIds.add(id);
-        headings.push({ id, title: shortTitle });
+        // The id stays derived from the raw text so existing # deep links
+        // never shift; only the displayed title is decoded.
+        headings.push({ id, title: decodeHeadingEntities(shortTitle) });
 
         return `<h${level}${attrs} id="${id}">${inner}</h${level}>`;
       }
