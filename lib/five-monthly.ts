@@ -1,6 +1,8 @@
 // Official "Five for [Month]" spins: one fixed list per month, chosen once and
 // stored here. Each entry references curated pool books by id (lib/book-pool)
 // plus the editorial layer no API has: why it's here, and my verdict.
+// Selection policy: rank slot candidates with scripts/suggest-five.mjs
+// (quality + finish rate + popularity) — the algorithm ranks, the human picks.
 export interface MonthVerdict {
   score: number; // 0-10
   note: string;
@@ -32,12 +34,12 @@ export const MONTHS: MonthSpin[] = [
     ajProgress: {},
     picks: [
       {
-        bookId: 'charlottes-web',
-        why: 'The Kids draw, and the month’s quick win: under 200 pages, perfect in every sentence.',
+        bookId: 'the-giver',
+        why: 'The Kids draw, and the month’s quick win: the rare dystopia everyone finishes.',
       },
       {
-        bookId: 'hound-of-baskervilles',
-        why: 'The Mystery draw: the one Sherlock to read if you read one.',
+        bookId: 'spy-who-came-in',
+        why: 'The Mystery draw: the Cold War spy novel all others answer to.',
       },
       {
         bookId: 'frankenstein',
@@ -48,8 +50,8 @@ export const MONTHS: MonthSpin[] = [
         why: 'The Fantasy draw and the month’s stretch: 662 pages that earn every one. (Series unfinished — you’ve been warned.)',
       },
       {
-        bookId: 'shoe-dog',
-        why: 'The Business draw: the best founder story ever written, full of near-bankruptcies.',
+        bookId: 'everything-store',
+        why: 'The Business draw: Bezos and the making of Amazon — relentless, and readers tear through it.',
       },
     ],
   },

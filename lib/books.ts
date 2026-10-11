@@ -257,21 +257,97 @@ export function formatReadingCount(n: number): string {
   return `${parseFloat((n / 1000).toFixed(1))}k`;
 }
 
-export async function fetchReadingCounts(keys: string[]): Promise<Map<string, number>> {
+async function fetchShelvesJson(keys: string[]): Promise<Map<string, unknown>> {
   const valid = [...new Set(keys)].filter((k) => /^\/works\/OL\d+W$/.test(k));
-  const out = new Map<string, number>();
+  const out = new Map<string, unknown>();
   // 12 per batch to stay polite to OL; callers cap their own totals.
   for (let i = 0; i < valid.length; i += 12) {
     const batch = valid.slice(i, i + 12);
-    const fetched = await Promise.all(
-      batch.map((k) => fetchJson(`${OL}${k}/bookshelves.json`, 8000).then(readingNowFromShelves).catch(() => null)),
-    );
+    const fetched = await Promise.all(batch.map((k) => fetchJson(`${OL}${k}/bookshelves.json`, 8000).catch(() => null)));
     batch.forEach((k, j) => {
-      const n = fetched[j];
-      if (n !== null) out.set(k, n);
+      if (fetched[j] !== null) out.set(k, fetched[j]);
     });
   }
   return out;
+}
+
+export async function fetchReadingCounts(keys: string[]): Promise<Map<string, number>> {
+  const out = new Map<string, number>();
+  for (const [k, json] of await fetchShelvesJson(keys)) {
+    const n = readingNowFromShelves(json);
+    if (n !== null) out.set(k, n);
+  }
+  return out;
+}
+
+export interface ReadingLog {
+  want: number;
+  reading: number;
+  read: number;
+}
+
+// Full reading-log counts for selection scoring. Verified shape:
+// { counts: { want_to_read, currently_reading, already_read, ... } }.
+export function readingLogFromShelves(json: unknown): ReadingLog | null {
+  if (!json || typeof json !== 'object') return null;
+  const root = json as Record<string, unknown>;
+  const inner = root.counts;
+  const c = (inner && typeof inner === 'object' ? inner : root) as Record<string, unknown>;
+  const num = (...keys: string[]): number | null => {
+    for (const k of keys) {
+      const v = c[k];
+      if (typeof v === 'number' && Number.isFinite(v) && v >= 0) return Math.floor(v);
+    }
+    return null;
+  };
+  const reading = num('currently_reading', 'currently-reading', 'currentlyReading');
+  const read = num('already_read', 'already-read', 'alreadyRead');
+  if (reading === null || read === null) return null;
+  return { want: num('want_to_read', 'want-to-read', 'wantToRead') ?? 0, reading, read };
+}
+
+export async function fetchReadingLogCounts(keys: string[]): Promise<Map<string, ReadingLog>> {
+  const out = new Map<string, ReadingLog>();
+  for (const [k, json] of await fetchShelvesJson(keys)) {
+    const log = readingLogFromShelves(json);
+    if (log !== null) out.set(k, log);
+  }
+  return out;
+}
+
+// --- Monthly-five selection scoring ---
+// score = 0.6 * quality + 0.25 * finish + 0.15 * popularity (starting weights;
+// tune after seeing a month). Quality is normalized to 0-1 so the weights
+// mean what they say. The stretch slot is exempt from finish rate.
+
+export const SCORE_WEIGHTS = { quality: 0.6, finish: 0.25, popularity: 0.15 };
+
+// Do people get through it? Null when nobody logged either way.
+export function finishRate(log: ReadingLog): number | null {
+  const total = log.read + log.reading;
+  if (total === 0) return null;
+  return log.read / total;
+}
+
+// Popularity nudge: log10(readers+1) on a fixed 0..1 scale (1.0 = 100k
+// readers). Fixed scale keeps scores comparable month to month.
+export function popularityScore(readers: number): number {
+  if (!Number.isFinite(readers) || readers <= 0) return 0;
+  return Math.min(Math.log10(readers + 1) / 5, 1);
+}
+
+export function selectionScore(input: {
+  weighted: number; // IMDb-style weighted rating, 0-5 scale (caller substitutes the pool mean when unrated)
+  finish: number | null;
+  readers: number; // read + currently reading
+  exemptFinish?: boolean; // slow-burn slot: length is the point
+}): number {
+  const quality = input.weighted / 5;
+  // Unknown finish stays neutral — obscurity already costs the popularity term.
+  const done = input.finish ?? 0.5;
+  const pop = popularityScore(input.readers);
+  const w = SCORE_WEIGHTS;
+  return input.exemptFinish ? w.quality * quality + w.popularity * pop : w.quality * quality + w.finish * done + w.popularity * pop;
 }
 
 // True when enrichment totally failed: no ratings and no counts on any
