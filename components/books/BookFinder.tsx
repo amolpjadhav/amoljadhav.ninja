@@ -673,9 +673,9 @@ function GenreView(props: {
       {topNow.length > 0 && (
         <div className="mb-6">
           <h3 className="text-sm font-bold text-white/85 mb-1">Most read right now</h3>
-          <ol className="divide-y divide-white/10">
+          <ol className="divide-y divide-white/10" style={{ listStyle: 'none', margin: 0, padding: 0 }}>
             {topNow.map((b, i) => (
-              <li key={b.key}>
+              <li key={b.key} style={{ marginBottom: 0 }}>
                 <button
                   type="button"
                   onClick={() => props.openBook(b.key)}
