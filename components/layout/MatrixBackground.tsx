@@ -12,11 +12,17 @@ export default function MatrixBackground() {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
     const columns = Math.floor(canvas.width / 20);
-    const drops: number[] = Array(columns).fill(1);
+    // A reduced-motion reader gets one static frame: pre-scatter the drops
+    // so the single draw paints a full field instead of one top row.
+    const drops: number[] = Array.from({ length: columns }, () =>
+      reduceMotion ? Math.floor(Math.random() * (canvas.height / 20)) : 1,
+    );
 
     const matrix = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789@#$%^&*()*&^%+-/~{[|`]}';
     const matrixChars = matrix.split('');
@@ -41,14 +47,20 @@ export default function MatrixBackground() {
       }
     }
 
-    const interval = setInterval(draw, 35);
-
     const handleResize = () => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
+      if (reduceMotion) draw();
     };
 
     window.addEventListener('resize', handleResize);
+
+    if (reduceMotion) {
+      draw();
+      return () => window.removeEventListener('resize', handleResize);
+    }
+
+    const interval = setInterval(draw, 35);
 
     return () => {
       clearInterval(interval);
@@ -60,7 +72,7 @@ export default function MatrixBackground() {
     <canvas
       ref={canvasRef}
       className="fixed top-0 left-0 w-full h-full -z-10 pointer-events-none"
-      style={{ opacity: 0.6 }}
+      style={{ opacity: 0.2 }}
     />
   );
 }

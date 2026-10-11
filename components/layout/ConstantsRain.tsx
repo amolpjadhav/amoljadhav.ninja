@@ -26,12 +26,15 @@ export default function ConstantsRain() {
     let width = 0;
     let height = 0;
     let drops: number[] = [];
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     function resize() {
       width = canvas!.width = parent!.clientWidth;
       height = canvas!.height = parent!.clientHeight;
       const columns = Math.max(1, Math.floor(width / COL_GAP));
-      drops = Array.from({ length: columns }, () => Math.random() * -height);
+      drops = Array.from({ length: columns }, () =>
+        reduceMotion ? Math.random() * height : Math.random() * -height,
+      );
     }
     resize();
 
@@ -64,12 +67,22 @@ export default function ConstantsRain() {
       }
     }
 
+    const onResize = () => {
+      resize();
+      if (reduceMotion) draw();
+    };
+    window.addEventListener('resize', onResize);
+
+    if (reduceMotion) {
+      draw();
+      return () => window.removeEventListener('resize', onResize);
+    }
+
     const interval = setInterval(draw, 90);
-    window.addEventListener('resize', resize);
 
     return () => {
       clearInterval(interval);
-      window.removeEventListener('resize', resize);
+      window.removeEventListener('resize', onResize);
     };
   }, []);
 

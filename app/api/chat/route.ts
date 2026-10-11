@@ -4,7 +4,6 @@ import { NextRequest, NextResponse } from 'next/server';
 const amolKnowledge = {
   name: 'Amol Jadhav',
   title: 'Sr. Engineering Program Manager | Bar Raiser | Amazon',
-  linkedin: 'https://www.linkedin.com/in/amojadha',
   twitter: 'https://twitter.com/amoljadhav00',
   medium: 'https://medium.com/@amoljadhav_48655',
   skills: ['Engineering Management', 'Program Delivery', 'Technical Leadership', 'Bar Raiser', 'Agile', 'AWS'],
@@ -37,7 +36,7 @@ function generateResponse(message: string): string {
 
   // Contact
   if (lowerMessage.includes('contact') || lowerMessage.includes('reach') || lowerMessage.includes('connect')) {
-    return `You can connect with Amol on:\n- LinkedIn: ${amolKnowledge.linkedin}\n- Twitter/X: ${amolKnowledge.twitter}\n- Medium Blog: ${amolKnowledge.medium}`;
+    return `You can connect with Amol on:\n- Twitter/X: ${amolKnowledge.twitter}\n- Medium Blog: ${amolKnowledge.medium}`;
   }
 
   // Articles/Blog
@@ -51,8 +50,8 @@ function generateResponse(message: string): string {
   }
 
   // Social media
-  if (lowerMessage.includes('linkedin') || lowerMessage.includes('twitter') || lowerMessage.includes('social')) {
-    return `You can find Amol on:\n- LinkedIn: ${amolKnowledge.linkedin}\n- Twitter/X: ${amolKnowledge.twitter}\n- Medium: ${amolKnowledge.medium}`;
+  if (lowerMessage.includes('twitter') || lowerMessage.includes('social')) {
+    return `You can find Amol on:\n- Twitter/X: ${amolKnowledge.twitter}\n- Medium: ${amolKnowledge.medium}`;
   }
 
   // Game
