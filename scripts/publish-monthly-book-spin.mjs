@@ -40,7 +40,7 @@ const SLUG = 'monthly-book-spin';
 const CATEGORY = 'Curiosity';
 const READ_TIME = 5;
 const EXCERPT =
-  'Five books a month, picked by genre draw and read in public — spin your own five, browse bestsellers and genre shelves, and track your list.';
+  'Five books a month, picked by genre draw and read in public — browse bestsellers and genre shelves, and track your list.';
 
 // No quiz on this article: it is a lookup tool, not a read, so the pre-read
 // quiz box does not belong. (The page renders it only when quiz is set.)

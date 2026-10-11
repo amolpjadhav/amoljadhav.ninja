@@ -843,7 +843,7 @@ function BookView(props: {
 }
 
 function BookGrid(props: {
-  books: BookCard[];
+  books: (BookCard & { readingNow?: number })[];
   openBook: (key: string) => void;
   saved: (key: string) => boolean;
   toggleSaved: (b: BookCard) => void;
@@ -865,6 +865,11 @@ function BookGrid(props: {
               <div className="mt-1">
                 <Stars value={b.rating} />
               </div>
+              {b.readingNow != null && b.readingNow > 0 && (
+                <p className="text-white/45 text-[11px] mt-0.5">
+                  {formatReadingCount(b.readingNow)} reading now
+                </p>
+              )}
             </button>
             <button
               type="button"

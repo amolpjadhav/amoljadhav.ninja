@@ -210,12 +210,14 @@ async function enrichRatings(books: BookCard[]): Promise<BookCard[]> {
 
 export type TrendingPeriod = 'now' | 'daily' | 'weekly' | 'monthly';
 
-export async function trendingBooks(period: TrendingPeriod = 'daily', limit = 12): Promise<BookCard[]> {
+export async function trendingBooks(period: TrendingPeriod = 'daily', limit = 12): Promise<MostReadBook[]> {
   const data = (await fetchJson(
-    `${OL}/trending/${period}.json?limit=${Math.min(limit, 24)}`,
+    `${OL}/trending/${period}.json?limit=${Math.min(limit + 6, 24)}`,
   )) as { works?: Record<string, unknown>[] };
   const books = (data.works ?? []).map(normalizeOlDoc).filter((b): b is BookCard => b !== null);
-  return enrichRatings(books);
+  const rated = await enrichRatings(books);
+  const counts = await fetchReadingCounts(rated.map((b) => b.key));
+  return attachReading(rated, counts).slice(0, Math.max(limit, 1));
 }
 
 export async function genreBooks(subject: string, limit = 24): Promise<BookCard[]> {
@@ -256,17 +258,29 @@ export function formatReadingCount(n: number): string {
 }
 
 export async function fetchReadingCounts(keys: string[]): Promise<Map<string, number>> {
-  const valid = [...new Set(keys)].filter((k) => /^\/works\/OL\d+W$/.test(k)).slice(0, 12);
+  const valid = [...new Set(keys)].filter((k) => /^\/works\/OL\d+W$/.test(k));
   const out = new Map<string, number>();
-  if (valid.length === 0) return out;
-  const fetched = await Promise.all(
-    valid.map((k) => fetchJson(`${OL}${k}/bookshelves.json`, 8000).then(readingNowFromShelves).catch(() => null)),
-  );
-  valid.forEach((k, i) => {
-    const n = fetched[i];
-    if (n !== null) out.set(k, n);
-  });
+  // 12 per batch to stay polite to OL; callers cap their own totals.
+  for (let i = 0; i < valid.length; i += 12) {
+    const batch = valid.slice(i, i + 12);
+    const fetched = await Promise.all(
+      batch.map((k) => fetchJson(`${OL}${k}/bookshelves.json`, 8000).then(readingNowFromShelves).catch(() => null)),
+    );
+    batch.forEach((k, j) => {
+      const n = fetched[j];
+      if (n !== null) out.set(k, n);
+    });
+  }
   return out;
+}
+
+// Pure attach step (tested offline): every book gets readingNow (0 when
+// unknown); ranked desc only when at least one count landed, so a counts
+// outage keeps the feed's original order instead of emptying it.
+export function attachReading(books: BookCard[], counts: Map<string, number>): MostReadBook[] {
+  const attached = books.map((b) => ({ ...b, readingNow: counts.get(b.key) ?? 0 }));
+  if (counts.size > 0) attached.sort((a, b) => b.readingNow - a.readingNow);
+  return attached;
 }
 
 // Pure rank step (tested offline): attach counts, drop uncounted, sort desc.

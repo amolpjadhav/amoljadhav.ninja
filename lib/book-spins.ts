@@ -1,6 +1,6 @@
-// Seeded spin engine for "Five a month": genre bag, ladder slots, and picks.
-// Pure functions (tested in lib/book-spins.test.mjs) shared by the official
-// monthly spin and visitors' "spin your own".
+// Pool types, ladder slots, and curation rule for the Monthly Book Spin.
+// The seeded spin helpers below are currently unused by the UI (visitor
+// spins were removed); they stay as tested pure functions for reuse.
 export type Difficulty = 'quick' | 'medium' | 'classic' | 'stretch';
 
 export interface PoolBook {
