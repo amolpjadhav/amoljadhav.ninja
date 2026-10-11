@@ -10,6 +10,7 @@ import {
   normalizeTicker,
   quoteDayParam,
 } from '@/lib/stocks';
+import { getCoinCard, normalizeCoinId } from '@/lib/crypto';
 import ShareButtons from '@/components/blog/ShareButtons';
 import LikeButton from '@/components/blog/LikeButton';
 import ViewCounter from '@/components/blog/ViewCounter';
@@ -45,7 +46,7 @@ export async function generateMetadata({
   searchParams,
 }: {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ ticker?: string; v?: string }>;
+  searchParams: Promise<{ ticker?: string; coin?: string; v?: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
   const post = await getBlogPost(slug);
@@ -81,9 +82,40 @@ export async function generateMetadata({
   if (slug !== STOCK_LOOKUP_SLUG) return fallback;
   const query = await searchParams;
   const ticker = normalizeTicker(query?.ticker ?? '');
-  if (!ticker) return fallback;
+  const coin = normalizeCoinId(query?.coin ?? '');
+  if (!ticker && !coin) return fallback;
   const rawV = query?.v ?? '';
   const v = /^[0-9a-z]{1,16}$/.test(rawV) ? rawV : null;
+
+  // Shared coin lookups (?coin=bitcoin) get the crypto card: same timeless
+  // title rule, dated image (?d= today — crypto has no sessions), and the
+  // same per-share token passthrough. Ticker wins when both are present.
+  if (coin && !ticker) {
+    try {
+      const card = await getCoinCard(coin);
+      if (!card) return fallback;
+      const coinTitle = `${card.name} (${card.symbol}): Price, Tokenomics & Market Data`;
+      const coinDescription = `${card.name} (${card.symbol}) — live price, supply, tokenomics, and trend on one page.`;
+      const today = new Date().toISOString().slice(0, 10);
+      const coinImages = [
+        {
+          url: `${SITE_URL}/api/og/crypto?coin=${coin}&d=${today}${v ? `&v=${v}` : ''}`,
+          width: 1200,
+          height: 630,
+          alt: `${card.name} (${card.symbol}) coin profile`,
+        },
+      ];
+      return {
+        title: `${coinTitle} | Amol Jadhav`,
+        description: coinDescription,
+        alternates: { canonical: `${SITE_URL}/blog/${slug}?coin=${coin}` },
+        openGraph: { title: coinTitle, description: coinDescription, type: 'article', images: coinImages },
+        twitter: { card: 'summary_large_image', title: coinTitle, description: coinDescription, images: coinImages.map((i) => i.url) },
+      };
+    } catch {
+      return fallback;
+    }
+  }
 
   try {
     const data = await getStockCardData(ticker);
