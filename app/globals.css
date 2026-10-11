@@ -84,6 +84,26 @@ body {
   animation: rotateIn 2s ease forwards;
 }
 
+/* Terminal cursor: 530ms on/off (the standard terminal rate). Static under
+   reduced motion. */
+@keyframes blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+.animate-blink {
+  animation: blink 1.06s step-end infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-blink {
+    animation: none;
+  }
+}
+
 /* Medium-style reading typography for blog post bodies.
    Wrapped in @layer components so Tailwind utilities (utilities layer) win
    over these rules: widgets portal into .article-content, and their authored

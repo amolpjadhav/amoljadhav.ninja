@@ -11,7 +11,7 @@ export default function TickerLookup() {
 
   return (
     <form
-      className="mt-3 flex gap-2"
+      className="flex gap-2"
       onSubmit={(e) => {
         e.preventDefault();
         const t = value.trim();

@@ -4,35 +4,44 @@ import { currentMonth } from '@/lib/five-monthly';
 import { genreBySlug } from '@/lib/books';
 import { coverUrl } from '@/lib/books';
 import { poolById } from '@/lib/book-pool';
-import { formatPerHour, trendingPodcasts } from '@/lib/podcasts';
-import { formatPct, getMarketStrip } from '@/lib/stocks';
-import { memoizeTtl, stripHasMoves, toStripItems, toTopEpisode } from '@/lib/homepage';
+import { formatPerHour } from '@/lib/podcasts';
+import { formatPct } from '@/lib/stocks';
+import { stripHasMoves } from '@/lib/homepage';
 import { PINNED_SLUGS } from '@/components/RecentArticles';
 import TickerLookup from './TickerLookup';
+import { getEpisode, getStrip } from './heroData';
 
-// Live snippets for the pinned-tool cards. The page revalidates every 60s;
-// the caches below keep the YouTube fan-out hourly and the index strip to
-// every 5 minutes regardless of traffic.
-const getStrip = memoizeTtl(5 * 60 * 1000, async () => {
-  const { strip } = await getMarketStrip({ timeoutMs: 6000 });
-  return toStripItems(strip);
-});
-
-const getEpisode = memoizeTtl(60 * 60 * 1000, async () => {
-  const { trending } = await trendingPodcasts(process.env.YOUTUBE_API_KEY);
-  return toTopEpisode(trending[0]);
-});
-
-function ToolCard({ slug, title, children }: { slug: string; title: string; children: React.ReactNode }) {
+function ToolCard({
+  slug,
+  title,
+  children,
+  footer,
+}: {
+  slug: string;
+  title: string;
+  children: React.ReactNode;
+  footer?: string;
+}) {
   return (
     <Link
       href={`/blog/${slug}`}
-      className="group block bg-black border border-[#0aee3c]/20 rounded-lg p-4 transition-all hover:border-[#0aee3c]/50 hover:shadow-[0_0_16px_rgba(10,238,60,0.25)]"
+      className="group flex flex-col bg-black border border-[#0aee3c]/20 rounded-lg p-4 transition-all hover:border-[#0aee3c]/50 hover:shadow-[0_0_16px_rgba(10,238,60,0.25)]"
     >
       <h3 className="text-white/85 group-hover:text-white transition-colors font-medium text-base mb-2">{title}</h3>
       {children}
+      {footer && (
+        <span className="mt-auto block pt-3 font-mono text-xs text-[#0aee3c]/70 group-hover:text-[#0aee3c] transition-colors">
+          {footer} <span aria-hidden>→</span>
+        </span>
+      )}
     </Link>
   );
+}
+
+function cardFooter(slug: string): string | undefined {
+  if (slug === 'monthly-book-spin') return 'Browse books';
+  if (slug === 'trending-podcasts') return 'See all';
+  return undefined;
 }
 
 function Fallback({ excerpt }: { excerpt: string | null }) {
@@ -73,7 +82,7 @@ async function StockCard({ slug, title, excerpt }: { slug: string; title: string
   // A form can't live inside the card link, so this card is a plain shell
   // with a linked title instead of a whole-card link.
   return (
-    <div className="group block bg-black border border-[#0aee3c]/20 rounded-lg p-4 transition-all hover:border-[#0aee3c]/50 hover:shadow-[0_0_16px_rgba(10,238,60,0.25)]">
+    <div className="group flex flex-col bg-black border border-[#0aee3c]/20 rounded-lg p-4 transition-all hover:border-[#0aee3c]/50 hover:shadow-[0_0_16px_rgba(10,238,60,0.25)]">
       <Link href={`/blog/${slug}`}>
         <h3 className="text-white/85 group-hover:text-white transition-colors font-medium text-base mb-2">
           {title}
@@ -101,7 +110,9 @@ async function StockCard({ slug, title, excerpt }: { slug: string; title: string
       ) : (
         <Fallback excerpt={excerpt} />
       )}
-      <TickerLookup />
+      <div className="mt-auto pt-3">
+        <TickerLookup />
+      </div>
     </div>
   );
 }
@@ -120,7 +131,7 @@ export default async function ToolsRow() {
   const covers = month.picks
     .map((p) => {
       const book = poolById(p.bookId);
-      const url = book ? coverUrl(book.coverId, 'S') : null;
+      const url = book ? coverUrl(book.coverId, 'M') : null;
       return book && url ? { id: book.id, title: book.title, url } : null;
     })
     .filter((c) => c !== null);
@@ -136,7 +147,7 @@ export default async function ToolsRow() {
           post.slug === 'look-up-stock-and-company-details' ? (
             <StockCard key={post.slug} slug={post.slug} title={post.title} excerpt={post.excerpt} />
           ) : (
-            <ToolCard key={post.slug} slug={post.slug} title={post.title}>
+            <ToolCard key={post.slug} slug={post.slug} title={post.title} footer={cardFooter(post.slug)}>
               {post.slug === 'monthly-book-spin' && (
                 <div>
                   <p className="text-white/40 text-xs mb-2">{month.label} picks:</p>
