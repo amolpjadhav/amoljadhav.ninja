@@ -274,6 +274,13 @@ export async function fetchReadingCounts(keys: string[]): Promise<Map<string, nu
   return out;
 }
 
+// True when enrichment totally failed: no ratings and no counts on any
+// book. Routes use this to cache degraded responses briefly, so a poisoned
+// CDN entry self-heals in a minute instead of lingering for hours.
+export function isBareFeed(books: (BookCard & { readingNow?: number })[]): boolean {
+  return books.length > 0 && books.every((b) => b.rating === undefined && (b.readingNow ?? 0) === 0);
+}
+
 // Pure attach step (tested offline): every book gets readingNow (0 when
 // unknown); ranked desc only when at least one count landed, so a counts
 // outage keeps the feed's original order instead of emptying it.

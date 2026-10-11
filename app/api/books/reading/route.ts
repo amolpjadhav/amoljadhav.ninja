@@ -12,9 +12,10 @@ export async function GET(req: Request) {
     .slice(0, 12);
   try {
     const counts = await fetchReadingCounts(keys);
+    const ttl = keys.length > 0 && counts.size === 0 ? 60 : 43200;
     return NextResponse.json(
       { counts: Object.fromEntries(counts) },
-      { headers: { 'Cache-Control': 'public, s-maxage=43200, stale-while-revalidate=43200' } },
+      { headers: { 'Cache-Control': `public, s-maxage=${ttl}, stale-while-revalidate=${ttl}` } },
     );
   } catch (error) {
     console.error('Books reading API error:', error);

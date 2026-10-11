@@ -10,9 +10,10 @@ export async function GET(req: Request) {
   if (!genreBySlug(genre)) return NextResponse.json({ error: 'unknown genre' }, { status: 400 });
   try {
     const books = await mostReadBooks(genre, 5);
+    const ttl = books.length === 0 ? 60 : 43200;
     return NextResponse.json(
       { genre, books },
-      { headers: { 'Cache-Control': 'public, s-maxage=43200, stale-while-revalidate=43200' } },
+      { headers: { 'Cache-Control': `public, s-maxage=${ttl}, stale-while-revalidate=${ttl}` } },
     );
   } catch (error) {
     console.error('Books most-read API error:', error);

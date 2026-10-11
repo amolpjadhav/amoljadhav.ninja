@@ -345,7 +345,9 @@ function HomeView(props: {
   setEntryStatus: (key: string, status: EntryStatus) => void;
   togglePoolSave: (b: PoolBook) => void;
 }) {
-  const { data: trending, loaded: trendingLoaded } = useJson<{ books: BookCard[] }>('/api/books/trending?limit=12');
+  const { data: trending, loaded: trendingLoaded } = useJson<{ books: BookCard[] }>(
+    '/api/books/trending?period=daily&limit=12',
+  );
   const { data: best, loaded: bestLoaded } = useJson<{ publishedDate: string; lists: NytList[]; unavailable?: boolean }>(
     props.tab === 'bestsellers' ? '/api/books/bestsellers' : null,
   );

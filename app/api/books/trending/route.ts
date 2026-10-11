@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { trendingBooks, type TrendingPeriod } from '@/lib/books';
+import { isBareFeed, trendingBooks, type TrendingPeriod } from '@/lib/books';
 
 const PERIODS: TrendingPeriod[] = ['now', 'daily', 'weekly', 'monthly'];
 
@@ -12,9 +12,11 @@ export async function GET(req: Request) {
   const limit = Math.min(Math.max(Number(searchParams.get('limit')) || 12, 1), 24);
   try {
     const books = await trendingBooks(period, limit);
+    // Degraded (bare) responses revalidate in a minute; full ones in 30.
+    const ttl = isBareFeed(books) ? 60 : 1800;
     return NextResponse.json(
       { books, period },
-      { headers: { 'Cache-Control': 'public, s-maxage=1800, stale-while-revalidate=1800' } },
+      { headers: { 'Cache-Control': `public, s-maxage=${ttl}, stale-while-revalidate=${ttl}` } },
     );
   } catch (error) {
     console.error('Books trending API error:', error);
