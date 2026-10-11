@@ -288,22 +288,11 @@ function PeopleView({
                     key={p.id}
                     type="button"
                     onClick={() => onSelect(p.id)}
-                    className={`flex items-center gap-2.5 rounded-lg border border-white/10 bg-white/[0.03] p-2 text-left transition-colors hover:bg-white/[0.06] ${FOCUS}`}
+                    className={`rounded-lg border border-white/10 bg-white/[0.03] p-2 text-left transition-colors hover:bg-white/[0.06] ${FOCUS}`}
                   >
-                    {p.stats.latest?.thumb ? (
-                      // eslint-disable-next-line @next/next/no-img-element -- external YouTube avatars; widget-img opts out of the article image hide
-                      <img
-                        src={p.stats.latest.thumb}
-                        alt=""
-                        loading="lazy"
-                        className="widget-img h-10 w-10 rounded-full object-cover shrink-0"
-                      />
-                    ) : (
-                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/10 font-sans text-sm font-bold text-white/60">
-                        {p.name.charAt(0)}
-                      </span>
-                    )}
-                    <span className="min-w-0">
+                    {/* No avatar: the show's thumbnail next to a guest's name
+                        reads as their portrait, which is wrong. */}
+                    <span className="block min-w-0">
                       <span className="block truncate font-sans text-sm font-semibold text-white/85">{p.name}</span>
                       <span className="block truncate font-mono text-[11px] text-white/40">
                         new · {p.stats.latest?.show}

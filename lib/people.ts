@@ -150,7 +150,7 @@ export function episodeMentions<T extends { title: string; description?: string 
 export interface PersonStats {
   appearances: number;
   shows: number;
-  latest: { show: string; thumb?: string; at: string } | null;
+  latest: { show: string; at: string } | null;
 }
 
 // Directory aggregation: all-time appearances, distinct shows, and the
@@ -161,7 +161,6 @@ export function personStats<
     description?: string | null;
     channelId: string;
     channel: string;
-    channelThumb?: string;
     publishedAt: string;
   },
 >(episodes: T[], person: Person): PersonStats {
@@ -169,7 +168,7 @@ export function personStats<
   let latest: PersonStats['latest'] = null;
   for (const ep of matched) {
     if (!latest || ep.publishedAt > latest.at) {
-      latest = { show: ep.channel, thumb: ep.channelThumb, at: ep.publishedAt };
+      latest = { show: ep.channel, at: ep.publishedAt };
     }
   }
   return {
