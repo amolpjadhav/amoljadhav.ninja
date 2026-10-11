@@ -8,7 +8,7 @@ import { categoryColor, splitPinnedPosts } from '@/lib/blog-content';
 // the moment they land. Slugs here are excluded from the Latest / Most
 // Read / Recent pools below so they never render twice. Unknown or
 // unpublished slugs are silently skipped.
-const PINNED_SLUGS = ['look-up-stock-and-company-details', 'monthly-book-spin'];
+const PINNED_SLUGS = ['look-up-stock-and-company-details', 'monthly-book-spin', 'trending-podcasts'];
 
 export default async function RecentArticles() {
   // A generous limit rather than a second "top by views" query — this blog

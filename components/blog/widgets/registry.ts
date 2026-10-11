@@ -63,6 +63,7 @@ import NewtonPlayground from './NewtonPlayground';
 import StocksLookupWidget from './StocksLookupWidget';
 import BirthdayClassroom from './BirthdayClassroom';
 import BookFinderWidget from './BookFinderWidget';
+import PodcastTrendingWidget from './PodcastTrendingWidget';
 import TftItemCombinator from './TftItemCombinator';
 import TftItemsSheet from './TftItemsSheet';
 
@@ -136,6 +137,7 @@ export const WIDGET_REGISTRY: Record<string, ComponentType> = {
   'stocks-lookup': StocksLookupWidget,
   'birthday-classroom': BirthdayClassroom,
   'book-finder': BookFinderWidget,
+  'podcast-trending': PodcastTrendingWidget,
   'tft-item-combinator': TftItemCombinator,
   'tft-items-sheet': TftItemsSheet,
 };
