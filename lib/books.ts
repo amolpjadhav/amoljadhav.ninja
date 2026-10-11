@@ -229,6 +229,68 @@ export async function genreBooks(subject: string, limit = 24): Promise<BookCard[
   return enrichRatings(sorted);
 }
 
+// --- Currently-reading counts (Open Library reading logs) ---
+
+export interface MostReadBook extends BookCard {
+  readingNow: number;
+}
+
+// bookshelves.json reports per-shelf log counts; parse defensively since
+// the shape has varied ({ counts: {...} } vs flat at the root).
+export function readingNowFromShelves(json: unknown): number | null {
+  if (!json || typeof json !== 'object') return null;
+  const root = json as Record<string, unknown>;
+  const inner = root.counts;
+  const counts = (inner && typeof inner === 'object' ? inner : root) as Record<string, unknown>;
+  for (const key of ['currently_reading', 'currently-reading', 'currentlyReading']) {
+    const v = counts[key];
+    if (typeof v === 'number' && Number.isFinite(v) && v >= 0) return Math.floor(v);
+  }
+  return null;
+}
+
+export function formatReadingCount(n: number): string {
+  if (!Number.isFinite(n) || n < 0) return '0';
+  if (n < 1000) return String(Math.floor(n));
+  return `${parseFloat((n / 1000).toFixed(1))}k`;
+}
+
+export async function fetchReadingCounts(keys: string[]): Promise<Map<string, number>> {
+  const valid = [...new Set(keys)].filter((k) => /^\/works\/OL\d+W$/.test(k)).slice(0, 12);
+  const out = new Map<string, number>();
+  if (valid.length === 0) return out;
+  const fetched = await Promise.all(
+    valid.map((k) => fetchJson(`${OL}${k}/bookshelves.json`, 8000).then(readingNowFromShelves).catch(() => null)),
+  );
+  valid.forEach((k, i) => {
+    const n = fetched[i];
+    if (n !== null) out.set(k, n);
+  });
+  return out;
+}
+
+// Pure rank step (tested offline): attach counts, drop uncounted, sort desc.
+export function rankByReading(books: BookCard[], counts: Map<string, number>, limit = 5): MostReadBook[] {
+  return books
+    .filter((b) => counts.has(b.key))
+    .map((b) => ({ ...b, readingNow: counts.get(b.key) as number }))
+    .sort((a, b) => b.readingNow - a.readingNow)
+    .slice(0, Math.max(limit, 1));
+}
+
+// Top currently-read books on a genre shelf: 12 subject candidates ranked
+// by live reading-log counts. No ratings fan-out — the strip shows counts.
+export async function mostReadBooks(subject: string, limit = 5): Promise<MostReadBook[]> {
+  if (!genreBySlug(subject)) throw new Error(`unknown genre: ${subject}`);
+  const data = (await fetchJson(`${OL}/subjects/${subject}.json?limit=12`)) as {
+    works?: Record<string, unknown>[];
+  };
+  const books = (data.works ?? []).map(normalizeOlDoc).filter((b): b is BookCard => b !== null);
+  if (books.length === 0) return [];
+  const counts = await fetchReadingCounts(books.map((b) => b.key));
+  return rankByReading(books, counts, limit);
+}
+
 export async function bookDetails(workKey: string): Promise<BookDetails | null> {
   if (!/^\/works\/OL\d+W$/.test(workKey)) return null;
   const [work, ratings] = await Promise.all([

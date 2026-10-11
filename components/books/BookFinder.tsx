@@ -4,7 +4,7 @@ import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Bookmark, BookmarkCheck, Search } from 'lucide-react';
 import type { BookCard, BookDetails, NytBestseller, NytList } from '@/lib/books';
-import { GENRES, coverUrl } from '@/lib/books';
+import { GENRES, coverUrl, formatReadingCount, type MostReadBook } from '@/lib/books';
 import FiveMonth from './FiveMonth';
 import type { PoolBook } from '@/lib/book-spins';
 
@@ -22,7 +22,7 @@ interface SavedEntry {
 }
 type Sort = 'popular' | 'rated' | 'new';
 
-function useJson<T>(url: string | null): { data: T | null; loaded: boolean } {
+export function useJson<T>(url: string | null): { data: T | null; loaded: boolean } {
   const [data, setData] = useState<T | null>(null);
   const [loaded, setLoaded] = useState(false);
   useEffect(() => {
@@ -267,13 +267,6 @@ export function BookFinderInner() {
 
   const saved = useCallback((key: string) => myList.some((x) => x.book.key === key), [myList]);
 
-  const saveAll = useCallback((books: BookCard[]) => {
-    setMyList((list) => {
-      const have = new Set(list.map((x) => x.book.key));
-      return [...list, ...books.filter((b) => !have.has(b.key)).map((book) => ({ book, status: 'todo' as const }))];
-    });
-  }, []);
-
   const togglePoolSave = useCallback(
     (b: PoolBook) => {
       toggleSaved(poolToCard(b));
@@ -304,8 +297,6 @@ export function BookFinderInner() {
           openBook={openBook}
           openBestseller={openBestseller}
           goGenre={(slug) => go({ name: 'genre', slug })}
-          initialSpin={params.get('spin')}
-          onSaveAll={saveAll}
           setEntryStatus={setEntryStatus}
           togglePoolSave={togglePoolSave}
         />
@@ -351,8 +342,6 @@ function HomeView(props: {
   openBook: (key: string) => void;
   openBestseller: (b: NytBestseller) => void;
   goGenre: (slug: string) => void;
-  initialSpin: string | null;
-  onSaveAll: (books: BookCard[]) => void;
   setEntryStatus: (key: string, status: EntryStatus) => void;
   togglePoolSave: (b: PoolBook) => void;
 }) {
@@ -370,9 +359,7 @@ function HomeView(props: {
       </p>
 
       <FiveMonth
-        initialSpin={props.initialSpin}
         onOpen={props.openBook}
-        onSaveAll={props.onSaveAll}
         saved={props.saved}
         onToggleSave={props.togglePoolSave}
       />
@@ -662,6 +649,8 @@ function GenreView(props: {
   toggleSaved: (b: BookCard) => void;
 }) {
   const { data, loaded } = useJson<{ books: BookCard[] }>(`/api/books/genre/${props.slug}?limit=24`);
+  const { data: mostRead } = useJson<{ books: MostReadBook[] }>(`/api/books/most-read?genre=${props.slug}`);
+  const topNow = mostRead?.books ?? [];
   const genre = GENRES.find((g) => g.slug === props.slug);
   const books = (() => {
     const list = [...(data?.books ?? [])];
@@ -679,6 +668,33 @@ function GenreView(props: {
         {genre?.label ?? props.slug}
       </h2>
       <p className="text-white/50 text-sm mb-4">{genre?.blurb}</p>
+      {topNow.length > 0 && (
+        <div className="mb-6">
+          <h3 className="text-sm font-bold text-white/85 mb-1">Most read right now</h3>
+          <ol className="divide-y divide-white/10">
+            {topNow.map((b, i) => (
+              <li key={b.key}>
+                <button
+                  type="button"
+                  onClick={() => props.openBook(b.key)}
+                  className="w-full flex items-baseline gap-2 py-2 text-left group"
+                >
+                  <span className="text-white/30 text-xs font-bold w-4 shrink-0">{i + 1}</span>
+                  <span className="min-w-0 flex-1 truncate text-sm text-white/80 group-hover:text-white">
+                    <span className="font-semibold">{b.title}</span>
+                    {b.authors.length > 0 && (
+                      <span className="text-white/45 font-normal"> — {b.authors.slice(0, 2).join(', ')}</span>
+                    )}
+                  </span>
+                  <span className="text-xs text-white/45 shrink-0 tabular-nums">
+                    {formatReadingCount(b.readingNow)} reading now
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ol>
+        </div>
+      )}
       <div className="flex gap-2 mb-4">
         {(
           [

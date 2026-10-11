@@ -1,28 +1,17 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { BOOK_POOL, poolById } from '@/lib/book-pool';
+import { poolById } from '@/lib/book-pool';
 import { currentMonth, pastMonths, usedGenres, type MonthSpin } from '@/lib/five-monthly';
-import { GENRES } from '@/lib/books';
+import { GENRES, formatReadingCount } from '@/lib/books';
 import {
-  assignLadder,
   badgeFor,
-  drawGenres,
-  mulberry32,
-  hashSeed,
-  randomSeed,
-  spinFive,
-  spinFromSeed,
-  swapPick,
   type PoolBook,
-  type SpinPick,
 } from '@/lib/book-spins';
 import type { BookCard } from '@/lib/books';
-import { Cover } from './BookFinder';
+import { Cover, useJson } from './BookFinder';
 
 const ACCENT = '#f59e0b';
 const ALL_GENRES = GENRES.map((g) => g.slug);
-const BAG_KEY = 'five-bag';
 
 type Status = 'todo' | 'reading' | 'read';
 
@@ -48,20 +37,6 @@ function libraryUrl(b: PoolBook): string {
 
 function buyUrl(b: PoolBook): string {
   return `https://www.amazon.com/s?k=${encodeURIComponent(`${b.title} ${b.author}`)}+book`;
-}
-
-function loadBag(): { month: string; used: string[] } {
-  const month = new Date().toISOString().slice(0, 7);
-  if (typeof window === 'undefined') return { month, used: [] };
-  try {
-    const raw = window.localStorage.getItem(BAG_KEY);
-    if (!raw) return { month, used: [] };
-    const parsed = JSON.parse(raw) as { month: string; used: string[] };
-    if (parsed.month !== month) return { month, used: [] };
-    return { month, used: Array.isArray(parsed.used) ? parsed.used : [] };
-  } catch {
-    return { month, used: [] };
-  }
 }
 
 const STATUS_LABEL: Record<Status, string> = { todo: '○ Not yet', reading: 'Reading', read: '✓ Read' };
@@ -103,11 +78,13 @@ function PickCard({
   verdict,
   tracker,
   actions,
+  readingNow,
   onOpen,
 }: {
   book: PoolBook;
   kicker: string;
   why?: string;
+  readingNow?: number | null;
   verdict?: { score: number; note: string };
   tracker?: React.ReactNode;
   actions?: React.ReactNode;
@@ -130,6 +107,9 @@ function PickCard({
           <div className="mt-1">
             <Stars value={book.rating} />
           </div>
+          {readingNow != null && readingNow > 0 && (
+            <p className="text-white/45 text-xs mt-1">{formatReadingCount(readingNow)} reading now</p>
+          )}
           <p className="text-white/80 text-sm mt-2 leading-relaxed">{book.hook}</p>
           {why && (
             <>
@@ -202,6 +182,9 @@ function OfficialMonth({
   const read = picks.filter((p) => ajStatus(p.book.id) === 'read').length;
   const reading = picks.filter((p) => ajStatus(p.book.id) === 'reading').length;
   const ranked = month.picks.filter((p) => p.verdict).length === month.picks.length;
+  const { data: readingNow } = useJson<{ counts: Record<string, number> }>(
+    `/api/books/reading?keys=${picks.map((p) => p.book.workKey).join(',')}`,
+  );
 
   return (
     <>
@@ -220,7 +203,7 @@ function OfficialMonth({
       </div>
 
       <div className="flex items-baseline justify-between mb-4">
-        <h3 className="text-lg font-bold text-white/90">Five for {month.label}</h3>
+        <h3 className="text-lg font-bold text-white/90">Five across genres</h3>
         <p className="text-white/40 text-xs">
           AJ: {read} of {picks.length} read{reading > 0 && ` · ${reading} reading`} · Verdicts {month.verdictDate}
         </p>
@@ -235,6 +218,7 @@ function OfficialMonth({
               book={book}
               kicker={`${i + 1}. ${genreLabel(genre)} · ${badgeFor(book.difficulty)}`}
               why={pick.why}
+              readingNow={readingNow?.counts[book.workKey]}
               verdict={pick.verdict}
               tracker={<AjBadge status={ajStatus(book.id)} />}
               actions={
@@ -284,147 +268,6 @@ function OfficialMonth({
   );
 }
 
-function SpinOwn({
-  initialSeed,
-  onOpen,
-  onSaveAll,
-  saved,
-  onToggleSave,
-}: {
-  initialSeed: string | null;
-  onOpen: (workKey: string) => void;
-  onSaveAll: (books: BookCard[]) => void;
-  saved: (key: string) => boolean;
-  onToggleSave: (b: PoolBook) => void;
-}) {
-  const [bag, setBag] = useState(loadBag);
-  const [spin, setSpin] = useState<{ seed: string; picks: SpinPick[] } | null>(() => {
-    if (!initialSeed) return null;
-    return { seed: initialSeed, ...spinFromSeed(BOOK_POOL, ALL_GENRES, initialSeed) };
-  });
-  const [copied, setCopied] = useState(false);
-
-  useEffect(() => {
-    try {
-      window.localStorage.setItem(BAG_KEY, JSON.stringify(bag));
-    } catch {}
-  }, [bag]);
-
-  const doSpin = () => {
-    const seed = randomSeed();
-    const rng = mulberry32(hashSeed(seed + Date.now().toString(36)));
-    const { drawn, usedAfter } = drawGenres(ALL_GENRES, bag.used, 5, rng);
-    setBag({ month: bag.month, used: usedAfter });
-    const slotted = assignLadder(drawn, rng);
-    setSpin({ seed, picks: spinFive(BOOK_POOL, slotted, rng) });
-    setCopied(false);
-    const url = `${window.location.pathname}?spin=${seed}`;
-    window.history.replaceState(null, '', url);
-  };
-
-  const doSwap = (index: number) => {
-    setSpin((s) => (s ? { ...s, picks: swapPick(BOOK_POOL, s.picks, index, Math.random) } : s));
-  };
-
-  const copyLink = async () => {
-    if (!spin) return;
-    try {
-      await navigator.clipboard.writeText(`${window.location.origin}${window.location.pathname}?spin=${spin.seed}`);
-      setCopied(true);
-    } catch {
-      setCopied(false);
-    }
-  };
-
-  useEffect(() => {
-    if (initialSeed) document.getElementById('spin-your-own')?.scrollIntoView({ behavior: 'smooth' });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  return (
-    <div className="mb-8" id="spin-your-own" style={{ scrollMarginTop: 96 }}>
-      <h3 className="text-lg font-bold text-white/90 mb-1">Spin your own five</h3>
-      <p className="text-white/50 text-sm mb-4">
-        Same rules as the official spin — fresh genres from your own bag, one quick read, two medium, one
-        classic, one stretch. Your bag resets each month.
-      </p>
-      {!spin ? (
-        <button
-          type="button"
-          onClick={doSpin}
-          className="text-[15px] font-bold px-6 py-3 rounded-xl transition-transform hover:scale-105"
-          style={{ background: ACCENT, color: '#0a0a0a' }}
-        >
-          Spin my five →
-        </button>
-      ) : (
-        <>
-          <div className="flex flex-wrap gap-2 mb-4">
-            <button
-              type="button"
-              onClick={doSpin}
-              className="text-sm font-bold px-4 py-2 rounded-full transition-transform hover:scale-105"
-              style={{ background: ACCENT, color: '#0a0a0a' }}
-            >
-              Spin again
-            </button>
-            <button
-              type="button"
-              onClick={() => onSaveAll(spin.picks.map((p) => toCard(p.book)))}
-              className="text-sm font-bold px-4 py-2 rounded-full bg-white/[0.08] text-white/75 hover:text-white transition-colors"
-            >
-              Save all to my list
-            </button>
-            <button
-              type="button"
-              onClick={copyLink}
-              className="text-sm font-bold px-4 py-2 rounded-full bg-white/[0.08] text-white/75 hover:text-white transition-colors"
-            >
-              {copied ? 'Link copied ✓' : 'Copy share link'}
-            </button>
-          </div>
-          <div className="space-y-4">
-            {spin.picks.map((p, i) => {
-              const isSaved = saved(p.book.workKey);
-              return (
-                <PickCard
-                  key={`${spin.seed}-${p.book.id}`}
-                  book={p.book}
-                  kicker={`${i + 1}. ${genreLabel(p.genre)} · ${badgeFor(p.slot)}`}
-                  actions={
-                    <>
-                      <button
-                        type="button"
-                        onClick={() => doSwap(i)}
-                        className="text-[11px] font-bold px-2.5 py-1.5 rounded-full bg-white/[0.08] text-white/60 hover:text-white transition-colors"
-                      >
-                        Swap this one
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => onToggleSave(p.book)}
-                        className="text-[11px] font-bold px-2.5 py-1.5 rounded-full transition-colors"
-                        style={
-                          isSaved
-                            ? { background: ACCENT, color: '#0a0a0a' }
-                            : { background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.65)' }
-                        }
-                      >
-                        {isSaved ? '✓ Saved' : '+ Save'}
-                      </button>
-                    </>
-                  }
-                  onOpen={onOpen}
-                />
-              );
-            })}
-          </div>
-        </>
-      )}
-    </div>
-  );
-}
-
 function Archive({ onOpen }: { onOpen: (workKey: string) => void }) {
   const months = pastMonths();
   return (
@@ -471,16 +314,10 @@ function Archive({ onOpen }: { onOpen: (workKey: string) => void }) {
 }
 
 export default function FiveMonth({
-  initialSpin,
-  onOpen,
-  onSaveAll,
-  saved,
+  onOpen,  saved,
   onToggleSave,
 }: {
-  initialSpin: string | null;
-  onOpen: (workKey: string) => void;
-  onSaveAll: (books: BookCard[]) => void;
-  saved: (key: string) => boolean;
+  onOpen: (workKey: string) => void;  saved: (key: string) => boolean;
   onToggleSave: (b: PoolBook) => void;
 }) {
   const month = currentMonth();
@@ -490,8 +327,7 @@ export default function FiveMonth({
   return (
     <>
       <p className="text-white/55 text-sm leading-relaxed mb-6 max-w-xl">
-        One official five every month — my list, tracked in public, ranked at month&rsquo;s end. Plus your
-        own spin whenever you want one. This month&rsquo;s genres are fixed;{' '}
+        One official five every month — my list, tracked in public, ranked at month&rsquo;s end. This month&rsquo;s genres are fixed;{' '}
         {remaining.length > 0 ? (
           <>
             <span className="text-white/75 font-semibold">{remaining.length} stay in the bag</span> for next
@@ -502,7 +338,6 @@ export default function FiveMonth({
         )}
       </p>
       <OfficialMonth month={month} onOpen={onOpen} saved={saved} onToggleSave={onToggleSave} />
-      <SpinOwn initialSeed={initialSpin} onOpen={onOpen} onSaveAll={onSaveAll} saved={saved} onToggleSave={onToggleSave} />
       <Archive onOpen={onOpen} />
     </>
   );
