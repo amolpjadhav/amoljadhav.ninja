@@ -3,24 +3,27 @@
 // TTLs bound upstream cost: the page revalidates every 60s, but the YouTube
 // fan-out stays hourly and the index strip every 5 minutes.
 import { supabase } from '@/lib/supabase';
-import { trendingPodcasts } from '@/lib/podcasts';
+import { mostWatched, trendingNow } from '@/lib/podcasts';
 import { getMarketStrip } from '@/lib/stocks';
 import { currentMonth, MONTHS } from '@/lib/five-monthly';
 import { BOOK_POOL, poolById } from '@/lib/book-pool';
 import type { Difficulty } from '@/lib/book-spins';
 import { memoizeTtl, toStripItems, toTopEpisode } from '@/lib/homepage';
+import { getPool } from '@/lib/podcast-pool';
 
 export const getStrip = memoizeTtl(5 * 60 * 1000, async () => {
   const { strip } = await getMarketStrip({ timeoutMs: 6000 });
   return toStripItems(strip);
 });
 
-// One memoized YouTube fan-out shared by the Tools card (top episode) and
-// the terminal (top episode, monthly #1, counts) — a second loader would
-// double the quota burn.
-const getLists = memoizeTtl(60 * 60 * 1000, () =>
-  trendingPodcasts(process.env.YOUTUBE_API_KEY).catch(() => null),
-);
+// One memoized YouTube fan-out shared by the Tools card, the terminal, and
+// both podcast API routes — every surface ranks the same hourly pool.
+const getLists = async () => {
+  const pool = await getPool().catch(() => null);
+  if (!pool) return null;
+  const now = Date.now();
+  return { trending: trendingNow(pool, now), mostWatched: mostWatched(pool, now) };
+};
 
 export const getEpisode = async () => toTopEpisode((await getLists())?.trending[0]);
 

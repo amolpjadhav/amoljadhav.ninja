@@ -163,7 +163,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
           spent on nothing. Below sm the gutter, the side borders and the
           rounded corners all go, leaving a single 16px reading margin. */}
       <main className="min-h-screen pt-24 pb-16 px-0 sm:px-4">
-        <article className="container mx-auto max-w-3xl bg-[#1c1d20] border-y sm:border border-white/10 sm:rounded-lg p-4 sm:p-6 md:p-10">
+        <article className="container mx-auto max-w-3xl lg:w-[80vw] lg:max-w-5xl bg-[#1c1d20] border-y sm:border border-white/10 sm:rounded-lg p-4 sm:p-6 md:p-10">
           <div className="mb-10 animate-fadeIn">
             {post.category && (
               <span

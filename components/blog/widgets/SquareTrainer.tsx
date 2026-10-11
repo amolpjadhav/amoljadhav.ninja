@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
+import { createShuffleBag, drawFromBag, peekFromBag } from '@/lib/shuffle-bag';
 
 // Name-that-square, game edition. Three modes — Practice (calm, endless),
 // Blitz (30 seconds, points), Survival (3 lives, wrong taps cost one) — plus
@@ -15,7 +16,10 @@ const FILES = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
 const LIGHT = '#eeeed2';
 const DARK = '#769656';
 // Squares stay flat — depth lives in the card shadow, not bevels.
-const BLITZ_SECONDS = 30;
+const DEFAULT_BLITZ_SECS = 30;
+const BLITZ_OPTIONS = [15, 30, 60] as const;
+type BlitzSecs = (typeof BLITZ_OPTIONS)[number];
+const BLITZ_SECS_KEY = 'square-trainer-blitz-secs-v1';
 // v3: bests are plain correct-counts (one point per correct answer) —
 // v2 keys held bonus-inflated point values from the scoring era.
 const BEST_BLITZ_KEY = 'square-trainer-best-blitz-v3';
@@ -108,6 +112,10 @@ function allSquares(files: string[], ranks: number[]): string[] {
   return out;
 }
 
+// Idle deal pool — same order pool() builds for Blitz, so the first tap
+// continues this cycle instead of re-keying the bag.
+const FULL_POOL = allSquares(FILES, [1, 2, 3, 4, 5, 6, 7, 8]);
+
 // Three distractors: one neighbour (one step away) plus two from the pool —
 // near-misses teach more than far ones.
 function makeChoices(target: string, pool: string[]): string[] {
@@ -153,15 +161,33 @@ function loadBest(key: string): number {
   }
 }
 
+function loadBlitzSecs(): BlitzSecs {
+  try {
+    const v = Number(window.localStorage.getItem(BLITZ_SECS_KEY));
+    return v === 15 || v === 60 ? v : 30;
+  } catch {
+    // server render or private mode — 30s default
+    return 30;
+  }
+}
+
+function blitzBestKey(secs: number): string {
+  // 30s keeps the original key so existing bests survive; other lengths
+  // get their own bests since scores across lengths aren't comparable.
+  return secs === 30 ? BEST_BLITZ_KEY : `${BEST_BLITZ_KEY}-${secs}`;
+}
+
 function SegBtn({
   active,
   onClick,
   title,
+  disabled,
   children,
 }: {
   active: boolean;
   onClick: () => void;
   title?: string;
+  disabled?: boolean;
   children: ReactNode;
 }) {
   return (
@@ -169,7 +195,10 @@ function SegBtn({
       type="button"
       title={title}
       onClick={onClick}
+      disabled={disabled}
       className={`rounded-lg px-2 py-1.5 text-[13px] font-bold transition-all duration-150 active:scale-[0.97] ${
+        disabled ? 'cursor-not-allowed opacity-40' : ''
+      } ${
         active
           ? 'bg-[#f3ecd9] text-black shadow-[0_2px_10px_rgba(0,0,0,0.45),0_0_12px_rgba(243,236,217,0.25)]'
           : 'text-white/55 hover:text-white'
@@ -233,13 +262,27 @@ const SIDE_OPTIONS: [Orientation, string][] = [
 
 export default function SquareTrainer() {
   const [mode, setMode] = useState<Mode>('blitz');
+  const [blitzSecs, setBlitzSecs] = useState<BlitzSecs>(() => loadBlitzSecs());
   const [phase, setPhase] = useState<Phase>('idle');
   const [reverse, setReverse] = useState(false);
   const [orientation, setOrientation] = useState<Orientation>('white');
   const [flipped, setFlipped] = useState(false);
   const [filesSel, setFilesSel] = useState<'all' | 'abcd' | 'efgh'>('all');
   const [ranksSel, setRanksSel] = useState<'all' | '14' | '58'>('all');
-  const [target, setTarget] = useState(() => pickFrom(allSquares(FILES, [1, 2, 3, 4, 5, 6, 7, 8])));
+  // One lazy initializer deals the idle target and its lookahead from a
+  // single fresh bag, so the queue is visible (and truthful) before the
+  // first tap. Separate inits can't share one bag without touching a ref
+  // during render, which the lint forbids.
+  const [opening] = useState(() => {
+    const bag = createShuffleBag();
+    const t = drawFromBag(bag, FULL_POOL);
+    return { bag, target: t, upcoming: peekFromBag(bag, FULL_POOL, t, 3) };
+  });
+  const bagRef = useRef(opening.bag);
+  const [target, setTarget] = useState(opening.target);
+  // Tetris-style lookahead: the next few targets, dealt with the current
+  // one; shown in Blitz find-mode only.
+  const [upcoming, setUpcoming] = useState<string[]>(opening.upcoming);
   const [choices, setChoices] = useState<string[]>(() => []);
   const [flash, setFlash] = useState<{ sq: string; ok: boolean } | null>(null);
   const [choiceFlash, setChoiceFlash] = useState<{ name: string; ok: boolean } | null>(null);
@@ -257,7 +300,7 @@ export default function SquareTrainer() {
   const [nameInput, setNameInput] = useState('');
   const [hard, setHard] = useState(true);
   const [muted, setMuted] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(BLITZ_SECONDS);
+  const [timeLeft, setTimeLeft] = useState<number>(blitzSecs);
   const [cursor, setCursor] = useState<{ di: number; ri: number } | null>(null);
   const [drillSet, setDrillSet] = useState<string[] | null>(null);
   const [avgPer, setAvgPer] = useState<number | null>(null);
@@ -268,7 +311,7 @@ export default function SquareTrainer() {
   const shakeTimer = useRef<number | null>(null);
   const burstTimer = useRef<number | null>(null);
   const timerRef = useRef<number | null>(null);
-  const leftRef = useRef(BLITZ_SECONDS);
+  const leftRef = useRef(DEFAULT_BLITZ_SECS);
   const audioRef = useRef<AudioContext | null>(null);
   const advanceRef = useRef<number | null>(null);
   const correctRef = useRef(0);
@@ -331,9 +374,14 @@ export default function SquareTrainer() {
 
   function dealFrom(p: string[]) {
     // Computed outside updaters so StrictMode double-invocation can never
-    // desync the target from its choices or the flip.
-    const t = pickFrom(p, p.includes(target) ? target : undefined);
+    // desync the target from its choices or the flip. Shuffle bag: every
+    // square appears once per cycle, so coverage is uniform and prompts
+    // can't cluster on one region of the board.
+    const t = drawFromBag(bagRef.current, p, target);
     setTarget(t);
+    // Preview what the bag will deal next — capped below pool size so a
+    // tiny drill never shows its own answer twice.
+    setUpcoming(peekFromBag(bagRef.current, p, t, Math.min(3, p.length - 1)));
     setChoices(makeChoices(t, p));
     setReveal(false);
     if (orientation === 'random') setFlipped(coinFlip());
@@ -461,18 +509,18 @@ export default function SquareTrainer() {
   }
 
   function beginClock() {
-    leftRef.current = BLITZ_SECONDS;
+    leftRef.current = blitzSecs;
     roundStartRef.current = now();
     endedRef.current = false;
     elapsedRef.current = 0;
-    setTimeLeft(BLITZ_SECONDS);
+    setTimeLeft(blitzSecs);
     setPhase('playing');
     timerRef.current = window.setInterval(() => {
       leftRef.current = Math.max(0, Math.round((leftRef.current - 0.2) * 10) / 10);
       setTimeLeft(leftRef.current);
       if (leftRef.current <= 0) {
         setScore((s) => {
-          endRun(s, BEST_BLITZ_KEY);
+          endRun(s, blitzBestKey(blitzSecs));
           return s;
         });
       }
@@ -532,7 +580,7 @@ export default function SquareTrainer() {
     setNameInput('');
     setCursor(null);
     setShaking(false);
-    setTimeLeft(BLITZ_SECONDS);
+    setTimeLeft(blitzSecs);
     if (orientation === 'random') setFlipped(coinFlip());
     else setFlipped(orientation === 'black');
     if (m === 'survival') {
@@ -543,9 +591,25 @@ export default function SquareTrainer() {
       setBest(loadBest(BEST_SURVIVAL_KEY));
       setPrevBest(loadBest(BEST_SURVIVAL_KEY));
     } else if (m === 'blitz') {
-      setBest(loadBest(BEST_BLITZ_KEY));
-      setPrevBest(loadBest(BEST_BLITZ_KEY));
+      const blitzBest = loadBest(blitzBestKey(blitzSecs));
+      setBest(blitzBest);
+      setPrevBest(blitzBest);
     }
+  }
+
+  function setTimerSecs(secs: BlitzSecs) {
+    // Length changes apply to the next round — the buttons are disabled
+    // while the clock runs, so a round's length never shifts mid-game.
+    setBlitzSecs(secs);
+    try {
+      window.localStorage.setItem(BLITZ_SECS_KEY, String(secs));
+    } catch {
+      // private mode — selection just doesn't persist
+    }
+    if (phase !== 'playing') setTimeLeft(secs);
+    const keyBest = loadBest(blitzBestKey(secs));
+    setBest(keyBest);
+    setPrevBest(keyBest);
   }
 
   function registerHit() {
@@ -574,6 +638,9 @@ export default function SquareTrainer() {
     setInputError(null);
     setReveal(true);
     tallyRef.current = { ...tallyRef.current, [target]: (tallyRef.current[target] ?? 0) + 1 };
+    // Timed round: a miss moves on after the reveal flash — no retrying
+    // one square while the clock runs. Survival and practice stay put.
+    if (timed) queueAdvance();
     if (mode === 'survival') {
       setLives((l) => {
         const left = l - 1;
@@ -597,7 +664,7 @@ export default function SquareTrainer() {
       elapsedRef.current = Math.max(0.5, (now() - roundStartRef.current) / 1000);
     }
     const active = mode === 'practice' || phase === 'playing' || (timed && phase === 'idle');
-    if (!active || flash?.ok || over) return;
+    if (!active || flash?.ok || (timed && flash !== null) || over) return;
     setAttempts((a) => a + 1);
     if (sq === target) {
       beep(true);
@@ -615,7 +682,7 @@ export default function SquareTrainer() {
       elapsedRef.current = Math.max(0.5, (now() - roundStartRef.current) / 1000);
     }
     const active = mode === 'practice' || phase === 'playing' || (timed && phase === 'idle');
-    if (!active || choiceFlash?.ok || over) return;
+    if (!active || choiceFlash?.ok || (timed && choiceFlash !== null) || over) return;
     setAttempts((a) => a + 1);
     if (name === target) {
       beep(true);
@@ -653,7 +720,7 @@ export default function SquareTrainer() {
     accuracy === null
       ? `${score} squares · Can you beat it?`
       : timed
-        ? `${score} squares in 30s · ${accuracy}% · Can you beat it?`
+        ? `${score} squares in ${blitzSecs}s · ${accuracy}% · Can you beat it?`
         : `${score} squares · ${accuracy}% · Can you beat it?`;
 
   // Same X intent convention as ShareButtons: prefilled text plus a share
@@ -666,7 +733,7 @@ export default function SquareTrainer() {
     ...(accuracy === null ? {} : { acc: String(accuracy) }),
     ...(avgPer === null ? {} : { avg: avgPer.toFixed(1) }),
     ...(best > 0 ? { pb: String(best) } : {}),
-    ...(timed ? { secs: String(BLITZ_SECONDS) } : {}),
+    ...(timed ? { secs: String(blitzSecs) } : {}),
     ...(isNewBest ? { best: '1' } : {}),
   });
   const shareUrl = `https://amoljadhav.ai/share/chess-notation?${cardParams.toString()}`;
@@ -685,7 +752,7 @@ export default function SquareTrainer() {
     // Survival has no first-tap clock start, so idle would be a dead board —
     // drop straight into a fresh round instead.
     setPhase(mode === 'survival' ? 'playing' : 'idle');
-    setTimeLeft(BLITZ_SECONDS);
+    setTimeLeft(blitzSecs);
     setLives(3);
     setFlash(null);
     setChoiceFlash(null);
@@ -741,13 +808,13 @@ export default function SquareTrainer() {
   const clock = `${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')}`;
   const modeBlurb =
     mode === 'blitz'
-      ? '30 seconds. Score as many as you can.'
+      ? `${blitzSecs} seconds. Score as many as you can.`
       : mode === 'survival'
         ? 'Three lives. Each miss costs one.'
         : 'No clock. Slice the board and drill.';
 
   return (
-    <div className="relative not-prose font-sans bg-[#1c1d20] border border-white/10 rounded-xl px-4 pb-5 pt-2 sm:px-6 sm:pb-6 sm:pt-3 my-6 shadow-[0_0_60px_rgba(10,238,60,0.07)] [-webkit-tap-highlight-color:transparent] [container:widget/inline-size]">
+    <div className="relative not-prose font-sans bg-[#1c1d20] border-y sm:border border-white/10 rounded-none sm:rounded-xl -mx-4 sm:mx-0 lg:-mx-8 px-4 pb-5 pt-2 sm:px-6 sm:pb-6 sm:pt-3 my-6 shadow-[0_0_60px_rgba(10,238,60,0.07)] [-webkit-tap-highlight-color:transparent] [container:widget/inline-size]">
       <div inert={over}>
       <div className="mb-2 flex flex-wrap items-center gap-x-3 gap-y-1 lg:hidden">
         <button
@@ -860,7 +927,7 @@ export default function SquareTrainer() {
                   : 'bg-[#f3ecd9]'
             }`}
             style={{
-              width: `${timed ? (timeLeft / BLITZ_SECONDS) * 100 : (lives / 3) * 100}%`,
+              width: `${timed ? (timeLeft / blitzSecs) * 100 : (lives / 3) * 100}%`,
             }}
           />
         </div>
@@ -882,6 +949,14 @@ export default function SquareTrainer() {
               ) : (
                 <>
                   Tap <strong key={target} className="target-in text-4xl font-bold text-white">{target}</strong>
+                  {timed && upcoming.length > 0 && (
+                    <span
+                      className="ml-2 whitespace-nowrap font-mono text-sm text-white/35"
+                      aria-label={`Up next: ${upcoming.join(', ')}`}
+                    >
+                      → {upcoming.join(' · ')}
+                    </span>
+                  )}
                   {streak >= 3 && (
                     <span className="ml-2 text-xs font-bold uppercase tracking-wide text-amber-300">
                       Combo ×{streak}
@@ -897,7 +972,8 @@ export default function SquareTrainer() {
                 <span className="text-amber-300">{inputError}</span>
               ) : lastMiss ? (
                 <span>
-                  That’s <strong className="text-white/80">{lastMiss}</strong> — try again.
+                  That’s <strong className="text-white/80">{lastMiss}</strong>
+                  {timed ? '.' : ' — try again.'}
                 </span>
               ) : (
                 <span>&nbsp;</span>
@@ -910,7 +986,7 @@ export default function SquareTrainer() {
             </p>
           )}
 
-        <div className={`grid w-full grid-cols-[26px_1fr_26px] ${shaking ? 'board-shake' : ''}`}>
+        <div className={`grid w-full grid-cols-[16px_1fr_16px] sm:grid-cols-[26px_1fr_26px] ${shaking ? 'board-shake' : ''}`}>
           <div className="grid grid-rows-[repeat(8,1fr)]">
             {displayRanks.map((rank) => (
               <div key={rank} className="flex items-center justify-center">
@@ -965,7 +1041,7 @@ export default function SquareTrainer() {
           </div>
           <div aria-hidden="true" />
         </div>
-          <p className="mt-1 text-[11px] leading-relaxed text-white/50">
+          <p className="mt-1 hidden text-[11px] leading-relaxed text-white/50 sm:block">
             Tip: click the board, then move with the arrow keys — Enter taps the square.
           </p>
         </div>
@@ -1000,6 +1076,30 @@ export default function SquareTrainer() {
             </div>
             <p className="mt-0.5 truncate text-xs text-white/45">{modeBlurb}</p>
           </section>
+          {mode === 'blitz' && (
+            <section>
+              <h4 className="mb-2 text-xs font-bold uppercase tracking-widest text-white/60">
+                Round
+              </h4>
+              <div className="grid grid-cols-3 rounded-xl bg-black/30 p-1">
+                {BLITZ_OPTIONS.map((secs) => (
+                  <SegBtn
+                    key={secs}
+                    active={blitzSecs === secs}
+                    disabled={phase === 'playing'}
+                    onClick={() => setTimerSecs(secs)}
+                    title={
+                      phase === 'playing'
+                        ? 'Finish the round to change length'
+                        : `${secs} second rounds`
+                    }
+                  >
+                    {secs}s
+                  </SegBtn>
+                ))}
+              </div>
+            </section>
+          )}
           <section>
             <h4 className="mb-2 text-xs font-bold uppercase tracking-widest text-white/60">
               Play as
@@ -1166,6 +1266,20 @@ export default function SquareTrainer() {
             </SegBtn>
           ))}
         </div>
+        {mode === 'blitz' && (
+          <div className="grid grid-cols-3 rounded-xl bg-black/30 p-1" role="group" aria-label="Round length">
+            {BLITZ_OPTIONS.map((secs) => (
+              <SegBtn
+                key={secs}
+                active={blitzSecs === secs}
+                disabled={phase === 'playing'}
+                onClick={() => setTimerSecs(secs)}
+              >
+                {secs}s
+              </SegBtn>
+            ))}
+          </div>
+        )}
         <div className="grid grid-cols-2 rounded-xl bg-black/30 p-1">
           <SegBtn active={!reverse} onClick={() => setReverse(false)}>
             Find square
@@ -1269,7 +1383,7 @@ export default function SquareTrainer() {
             </div>
             <div className="st-summary">
               <p className="text-center text-xs font-bold uppercase tracking-widest text-white/40">
-                {modeLabel.toUpperCase()} · {timed ? '30 SEC' : '3 LIVES'} · {sideLabel.toUpperCase()}
+                {modeLabel.toUpperCase()} · {timed ? `${blitzSecs} SEC` : '3 LIVES'} · {sideLabel.toUpperCase()}
               </p>
               <p className="text-center font-mono text-7xl font-bold tabular-nums leading-none text-[#f3ecd9]">{reduceMotion ? score : shownScore}</p>
               {score > prevBest && score > 0 ? (

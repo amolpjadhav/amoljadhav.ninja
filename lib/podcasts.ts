@@ -24,6 +24,7 @@ export interface PodcastEpisode {
   durationSec?: number;
   thumbnail?: string;
   url: string;
+  description?: string; // first 2KB, server-side only: person matching reads it, routes strip it before responding
 }
 
 export interface RankedEpisode extends PodcastEpisode {
@@ -41,14 +42,14 @@ export const CHANNELS: PodcastChannel[] = [
   { id: 'UC2D2CMWXMOVWx7giW1n3LIg', label: 'Huberman Lab', genre: 'Health' },
   { id: 'UC-W8Qu2Zb407kjVhW-5U-SA', label: 'SmartLess', genre: 'Comedy' },
   { id: 'UC5AQEUAwCh1sGDvkQtkDWUQ', label: 'Theo Von', genre: 'Comedy' },
-  { id: 'UCvYrhzKs1c8LajTP687ifEA', label: 'Flagrant', genre: 'Comedy' },
-  { id: 'UCnWa1Oy0Nt7vdURwKZTn3VA', label: 'Tim Dillon', genre: 'Comedy' },
+  { id: 'UC5PstSsGrRwj2o6asQpC4Rg', label: 'Flagrant', genre: 'Comedy' },
+  { id: 'UC4woSp8ITBoYDmjkukhEhxg', label: 'Tim Dillon', genre: 'Comedy' },
   { id: 'UCGq-a57w-aPwyi3pW7XLiHw', label: 'Diary of a CEO', genre: 'Business' },
   { id: 'UCIaH-gZIVC432YRjNVvnyCA', label: 'Modern Wisdom', genre: 'Interview' },
   { id: 'UCyaN6mg5u8Cjy2ZI4ikWaug', label: 'My First Million', genre: 'Business' },
   { id: 'UCESLZhusAkFfsNsApnjF_Cg', label: 'All-In Podcast', genre: 'Tech' },
   { id: 'UCkoujZQZatbqy4KGcgjpVxQ', label: 'Shawn Ryan Show', genre: 'News' },
-  { id: 'UCan4UfqMIanvIIrJ7ZsZLTw', label: 'Armchair Expert', genre: 'Interview' },
+  { id: 'UClKP53RewJWK5s5WtLSg7Dg', label: 'Armchair Expert', genre: 'Interview' },
   { id: 'UCyGi3eCuxko37WB6uUr7LjA', label: 'Call Her Daddy', genre: 'Interview' },
   { id: 'UCnYMOamNKLGVlJgRUbamveA', label: 'Tom Bilyeu', genre: 'Business' },
   { id: 'UCDRIjKy6eZOvKtOELtTdeUA', label: 'Breaking Points', genre: 'News' },
@@ -73,12 +74,12 @@ export const CHANNELS: PodcastChannel[] = [
   { id: 'UCLtREJY21xRfCuEKvdki1Kw', label: 'H3 Podcast', genre: 'Comedy' },
   { id: 'UCSJMy8XBtaSZGuV5xpCHWQw', label: 'Last Podcast On The Left', genre: 'Crime' },
   { id: 'UCBHGZpDF2fsqPIPi0pNyuTg', label: 'Pivot', genre: 'Tech' },
-  { id: 'UCYPXM-I2IAeUnv8g-16vbWg', label: 'StoryWorthy', genre: 'Comedy' },
   { id: 'UCi7GJNg51C3jgmYTUwqoUXA', label: 'Team Coco', genre: 'Comedy' },
+  { id: 'UCy2FPslt0LLPsIV0iukvHpQ', label: 'Founders Podcast', genre: 'Business' },
 ];
 
 const YT = 'https://www.googleapis.com/youtube/v3';
-const PER_CHANNEL = 5; // latest uploads fetched per channel before filtering
+const PER_CHANNEL = 50; // latest uploads fetched per channel before filtering (person search needs depth; listing costs the same 1 unit per channel either way)
 const MIN_SECONDS = 20 * 60; // clips/shorts don't count as episodes
 
 // A channel's uploads playlist id is its id with the UC prefix swapped to UU.
@@ -120,6 +121,8 @@ export function normalizeVideo(item: Record<string, unknown>, channelLabel: Map<
     durationSec: parseDuration(details.duration) ?? undefined,
     thumbnail: thumbs.medium?.url ?? thumbs.default?.url,
     url: `https://www.youtube.com/watch?v=${item.id}`,
+    description:
+      typeof snippet.description === 'string' && snippet.description ? snippet.description.slice(0, 2000) : undefined,
   };
 }
 
@@ -244,67 +247,169 @@ async function ytJson(path: string, key: string): Promise<Record<string, unknown
   return (await res.json()) as Record<string, unknown>;
 }
 
+export interface ChannelMeta {
+  labels: Map<string, string>;
+  genres: Map<string, string>;
+  thumbs: Map<string, string | undefined>;
+  uploads: Map<string, string>;
+}
+
+export async function channelMeta(apiKey: string): Promise<ChannelMeta> {
+  const { thumbs, uploads } = await fetchChannelMeta(
+    CHANNELS.map((c) => c.id),
+    apiKey,
+  );
+  return {
+    labels: new Map(CHANNELS.map((c) => [c.id, c.label])),
+    genres: new Map(CHANNELS.map((c) => [c.id, c.genre])),
+    thumbs,
+    uploads,
+  };
+}
+
+// One uploads page: 50 video ids, newest first. 1 quota unit.
+async function fetchUploadsPage(
+  apiKey: string,
+  playlistId: string,
+  pageToken?: string,
+): Promise<{ ids: string[]; nextPageToken?: string }> {
+  const data = await ytJson(
+    `/playlistItems?part=snippet&playlistId=${playlistId}&maxResults=${PER_CHANNEL}${pageToken ? `&pageToken=${pageToken}` : ''}`,
+    apiKey,
+  );
+  const items = (data.items ?? []) as Record<string, unknown>[];
+  const ids = items
+    .map((it) => ((it.snippet ?? {}) as Record<string, unknown>).resourceId as Record<string, unknown> | undefined)
+    .filter((r): r is Record<string, unknown> => r?.videoId !== undefined)
+    .map((r) => String(r.videoId));
+  const next = data.nextPageToken;
+  return { ids, nextPageToken: typeof next === 'string' && next ? next : undefined };
+}
+
+// Upload listing for one channel, newest first: page 1 for the hourly
+// refresh, deeper for the one-time history backfill. 1 unit per page.
+// Prefers the resolved uploads playlist (the UC→UU derivation 404s for
+// some channels); derivation stays the fallback.
+export async function fetchChannelUploads(
+  apiKey: string,
+  channelId: string,
+  maxPages = 1,
+  uploadsId?: string,
+): Promise<string[]> {
+  const playlist = uploadsId ?? uploadsPlaylistId(channelId);
+  const ids: string[] = [];
+  let token: string | undefined;
+  for (let p = 0; p < maxPages; p++) {
+    const page = await fetchUploadsPage(apiKey, playlist, token);
+    ids.push(...page.ids);
+    if (!page.nextPageToken || page.ids.length === 0) break;
+    token = page.nextPageToken;
+  }
+  return [...new Set(ids)];
+}
+
+// Batched video details → normalized long-form episodes. 1 unit per 50 ids.
+export async function fetchVideoDetails(apiKey: string, ids: string[], meta: ChannelMeta): Promise<ScoredInput[]> {
+  const episodes: ScoredInput[] = [];
+  for (let i = 0; i < ids.length; i += 50) {
+    const data = await ytJson(
+      `/videos?part=snippet,statistics,contentDetails&id=${ids.slice(i, i + 50).join(',')}`,
+      apiKey,
+    );
+    for (const item of (data.items ?? []) as Record<string, unknown>[]) {
+      const ep = normalizeVideo(item, meta.labels);
+      if (ep && (ep.durationSec ?? 0) >= MIN_SECONDS) {
+        episodes.push({
+          ...ep,
+          genre: meta.genres.get(ep.channelId) ?? 'Interview',
+          channelThumb: meta.thumbs.get(ep.channelId),
+        });
+      }
+    }
+  }
+  return episodes;
+}
+
+// Fresh view counts only (person pages re-rank live): 1 unit per 50 ids.
+export async function fetchViewCounts(apiKey: string, ids: string[]): Promise<Map<string, number>> {
+  const counts = new Map<string, number>();
+  for (let i = 0; i < ids.length; i += 50) {
+    const data = await ytJson(`/videos?part=statistics&id=${ids.slice(i, i + 50).join(',')}`, apiKey);
+    for (const item of (data.items ?? []) as Record<string, unknown>[]) {
+      const id = item.id;
+      const views = Number(((item.statistics ?? {}) as Record<string, unknown>).viewCount);
+      if (typeof id === 'string' && Number.isFinite(views)) counts.set(id, views);
+    }
+  }
+  return counts;
+}
+
+// Ids published within the window: the hourly refresh re-fetches views for
+// these (trending windows only ever read recent episodes), while older rows
+// keep stored counts until a person page refreshes them live.
+export function selectRecentIds(
+  episodes: { videoId: string; publishedAt: string }[],
+  nowMs: number,
+  days = 35,
+): string[] {
+  const cutoff = nowMs - days * 86400000;
+  return episodes.filter((ep) => Date.parse(ep.publishedAt) >= cutoff).map((ep) => ep.videoId);
+}
+
+// Full long-form pool across all channels: the raw material every podcast
+// surface ranks from (trending lists, person search, homepage). Server
+// routes share one hourly fetch via lib/podcast-pool so the fan-out runs
+// once no matter how many endpoints read it.
+export async function fetchEpisodePool(apiKey: string | undefined): Promise<ScoredInput[]> {
+  if (!apiKey) throw new Error('missing YouTube API key');
+  const meta = await channelMeta(apiKey);
+  const perChannel = await Promise.all(
+    CHANNELS.map(async (c) => {
+      try {
+        return await fetchChannelUploads(apiKey, c.id, 1, meta.uploads.get(c.id));
+      } catch {
+        return [] as string[];
+      }
+    }),
+  );
+  const ids = [...new Set(perChannel.flat())];
+  if (ids.length === 0) return [];
+  return fetchVideoDetails(apiKey, ids, meta);
+}
+
 // Latest long-form episodes across all channels, split into the two lists:
 // Trending now (7-day velocity) and Most watched (30-day volume).
 export async function trendingPodcasts(
   apiKey: string | undefined,
 ): Promise<{ trending: RankedEpisode[]; mostWatched: RankedEpisode[] }> {
-  if (!apiKey) throw new Error('missing YouTube API key');
-  const labels = new Map(CHANNELS.map((c) => [c.id, c.label]));
-  const genres = new Map(CHANNELS.map((c) => [c.id, c.genre]));
-  const [perChannel, thumbs] = await Promise.all([
-    Promise.all(
-      CHANNELS.map(async (c) => {
-        try {
-          const data = await ytJson(
-            `/playlistItems?part=snippet&playlistId=${uploadsPlaylistId(c.id)}&maxResults=${PER_CHANNEL}`,
-            apiKey,
-          );
-          const items = (data.items ?? []) as Record<string, unknown>[];
-          return items
-            .map((it) => ((it.snippet ?? {}) as Record<string, unknown>).resourceId as Record<string, unknown> | undefined)
-            .filter((r): r is Record<string, unknown> => r?.videoId !== undefined)
-            .map((r) => String(r.videoId));
-        } catch {
-          return [] as string[];
-        }
-      }),
-    ),
-    fetchChannelThumbs(
-      CHANNELS.map((c) => c.id),
-      apiKey,
-    ),
-  ]);
-  const ids = [...new Set(perChannel.flat())];
-  if (ids.length === 0) return { trending: [], mostWatched: [] };
-  const episodes: ScoredInput[] = [];
-  for (let i = 0; i < ids.length; i += 50) {
-    const data = await ytJson(`/videos?part=snippet,statistics,contentDetails&id=${ids.slice(i, i + 50).join(',')}`, apiKey);
-    for (const item of (data.items ?? []) as Record<string, unknown>[]) {
-      const ep = normalizeVideo(item, labels);
-      if (ep && (ep.durationSec ?? 0) >= MIN_SECONDS) {
-        episodes.push({ ...ep, genre: genres.get(ep.channelId) ?? 'Interview', channelThumb: thumbs.get(ep.channelId) });
-      }
-    }
-  }
+  const episodes = await fetchEpisodePool(apiKey);
   const now = Date.now();
   return { trending: trendingNow(episodes, now), mostWatched: mostWatched(episodes, now) };
 }
 
 // One batched call for every channel avatar; rows render without on failure.
-async function fetchChannelThumbs(ids: string[], apiKey: string): Promise<Map<string, string>> {
-  const out = new Map<string, string>();
+async function fetchChannelMeta(
+  ids: string[],
+  apiKey: string,
+): Promise<{ thumbs: Map<string, string>; uploads: Map<string, string> }> {
+  const thumbs = new Map<string, string>();
+  const uploads = new Map<string, string>();
   try {
-    const data = await ytJson(`/channels?part=snippet&id=${ids.join(',')}`, apiKey);
+    const data = await ytJson(`/channels?part=snippet,contentDetails&id=${ids.join(',')}`, apiKey);
     for (const item of (data.items ?? []) as Record<string, unknown>[]) {
-      const thumbs = ((item.snippet ?? {}) as Record<string, unknown>).thumbnails as
+      if (typeof item.id !== 'string') continue;
+      const thumbsObj = ((item.snippet ?? {}) as Record<string, unknown>).thumbnails as
         | Record<string, { url?: string }>
         | undefined;
-      const url = thumbs?.default?.url ?? thumbs?.medium?.url;
-      if (typeof item.id === 'string' && url) out.set(item.id, url);
+      const url = thumbsObj?.default?.url ?? thumbsObj?.medium?.url;
+      if (url) thumbs.set(item.id, url);
+      const related = ((item.contentDetails ?? {}) as Record<string, unknown>).relatedPlaylists as
+        | Record<string, unknown>
+        | undefined;
+      if (typeof related?.uploads === 'string' && related.uploads) uploads.set(item.id, related.uploads);
     }
   } catch {
     // decoration only — never fail the feed for avatars
   }
-  return out;
+  return { thumbs, uploads };
 }
