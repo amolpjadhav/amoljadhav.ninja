@@ -330,12 +330,6 @@ body {
     transform: translateX(4px);
   }
 }
-@keyframes st-target-in {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-}
 @keyframes st-timer-pulse {
   50% {
     transform: scale(1.07);
@@ -353,9 +347,8 @@ body {
 .board-shake {
   animation: st-miss 180ms ease-out;
 }
-.target-in {
-  display: inline-block;
-  animation: st-target-in 180ms ease-out;
+.target-shake {
+  animation: st-miss 200ms ease-out;
 }
 .timer-pulse {
   animation: st-timer-pulse 1s ease-out infinite;
@@ -447,7 +440,7 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .sq-hit,
   .board-shake,
-  .target-in,
+  .target-shake,
   .timer-pulse,
   .score-tick,
   .confetti-bit {
@@ -461,6 +454,77 @@ body {
   }
 }
 } /* end article typography layer */
+
+/* Sequence tape (coordinate trainer). Unlayered so slot widths, the strip
+   offset, and the narrow hide rule beat Tailwind utilities.
+   - Current slot center sits at 33%: margin = 33% − 2.5 slots.
+   - Slide renders one extra exiting slot, glides left exactly one slot,
+     then React drops the exit tile at the end position: keyframe distance
+     must match .tape-slot width.
+   - Narrow containers get 48px slots and 3 upcoming tiles. */
+.tape-window {
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 15%, #000 85%, transparent);
+  mask-image: linear-gradient(to right, transparent, #000 15%, #000 85%, transparent);
+}
+.tape-strip {
+  margin-left: calc(33% - 130px);
+}
+.tape-slot {
+  width: 52px;
+}
+.tape-bar {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: #0aee3c;
+  box-shadow: 0 0 10px rgba(10, 238, 60, 0.8);
+  pointer-events: none;
+}
+.tape-bar-l {
+  left: calc(33% - 28px);
+}
+.tape-bar-r {
+  left: calc(33% + 26px);
+}
+@keyframes st-tape-slide {
+  to {
+    transform: translateX(-52px);
+  }
+}
+@keyframes st-tape-slide-narrow {
+  to {
+    transform: translateX(-48px);
+  }
+}
+.tape-slide {
+  animation: st-tape-slide 120ms ease-out;
+}
+@container widget (max-width: 360px) {
+  .tape-strip {
+    margin-left: calc(33% - 120px);
+  }
+  .tape-slot {
+    width: 48px;
+  }
+  .tape-next-4 {
+    display: none;
+  }
+  .tape-bar-l {
+    left: calc(33% - 26px);
+  }
+  .tape-bar-r {
+    left: calc(33% + 24px);
+  }
+  .tape-slide {
+    animation-name: st-tape-slide-narrow;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tape-slide {
+    animation: none;
+  }
+}
 
 /* Widgets are cards inside the article card. On a phone the article's own 16px
    padding is the only reading margin worth keeping, so a widget breaks out of

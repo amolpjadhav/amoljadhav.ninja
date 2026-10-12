@@ -2,7 +2,9 @@
 
 import { useEffect, useRef, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
-import { createShuffleBag, drawFromBag, peekFromBag } from '@/lib/shuffle-bag';
+import { createShuffleBag, drawAvoiding, drawFromBag } from '@/lib/shuffle-bag';
+import { TAPE_PAST, buildView, missedSquares, slideView } from '@/lib/tape';
+import type { TapeMark, TapeView } from '@/lib/tape';
 
 // Name-that-square, game edition. Three modes — Practice (calm, endless),
 // Blitz (30 seconds, points), Survival (3 lives, wrong taps cost one) — plus
@@ -27,6 +29,12 @@ const BEST_SURVIVAL_KEY = 'square-trainer-best-survival-v3';
 const MISS_HIST_KEY = 'square-trainer-miss-history-v2';
 const MAX_HIST_ROUNDS = 10;
 const MAX_DRILL_SQUARES = 8;
+// Tape: the deal queue holds current + 4 upcoming; the strip slides one
+// slot per answer. Slot widths live in globals.css (.tape-slot, 52px
+// desktop / 48px narrow) — the slide keyframes must match them.
+const QUEUE_LEN = 5;
+const NEXT_WIDE = 4;
+const MAX_PAST = 500;
 
 type MissRound = Record<string, number>;
 
@@ -152,6 +160,10 @@ function squareColor(sq: string) {
   return (f + r) % 2 === 1 ? DARK : LIGHT;
 }
 
+function isEdgeSquare(sq: string): boolean {
+  return sq[0] === 'a' || sq[0] === 'h' || sq[1] === '1' || sq[1] === '8';
+}
+
 function loadBest(key: string): number {
   try {
     return Number(window.localStorage.getItem(key)) || 0;
@@ -249,6 +261,62 @@ function SwitchRow({
   );
 }
 
+function TapeSlot({ children, cls }: { children: ReactNode; cls?: string }) {
+  return (
+    <div className={`tape-slot flex shrink-0 items-center justify-center${cls ? ` ${cls}` : ''}`}>
+      {children}
+    </div>
+  );
+}
+
+// Empty past slot at round start: a dashed ghost where ✓/✗ tiles land.
+function GhostSlot() {
+  return (
+    <div
+      aria-hidden="true"
+      className="h-8 w-full rounded-md border border-dashed border-white opacity-10"
+    />
+  );
+}
+
+
+function PastTile({ mark }: { mark: TapeMark }) {
+  return (
+    <div
+      className={`flex h-8 w-full items-center justify-center gap-0.5 rounded-md font-mono text-sm opacity-60 ${
+        mark.ok ? 'text-white/80' : 'text-red-400'
+      }`}
+    >
+      <span aria-hidden="true" className={`text-[10px] ${mark.ok ? 'text-green-400' : ''}`}>
+        {mark.ok ? '✓' : '✗'}
+      </span>
+      <span className={mark.ok ? '' : 'line-through'}>{mark.sq}</span>
+    </div>
+  );
+}
+
+function CurrentTile({ sq, miss }: { sq: string; miss: boolean }) {
+  return (
+    <div
+      className={`flex h-14 w-full items-center justify-center rounded-lg border-2 font-mono text-[28px] font-bold ${
+        miss
+          ? 'target-shake border-red-400 bg-red-400/10 text-red-300 shadow-[0_0_14px_rgba(248,113,113,0.45)]'
+          : 'border-[#0aee3c] bg-[#0aee3c]/10 text-white shadow-[0_0_14px_rgba(10,238,60,0.45)]'
+      }`}
+    >
+      {sq}
+    </div>
+  );
+}
+
+function NextTile({ sq }: { sq: string }) {
+  return (
+    <div className="flex h-10 w-full items-center justify-center rounded-md border border-white/10 bg-white/[0.05] font-mono text-lg text-white/90">
+      {sq}
+    </div>
+  );
+}
+
 const MODE_OPTIONS: [Mode, string][] = [
   ['blitz', 'Blitz'],
   ['survival', 'Survival'],
@@ -269,20 +337,32 @@ export default function SquareTrainer() {
   const [flipped, setFlipped] = useState(false);
   const [filesSel, setFilesSel] = useState<'all' | 'abcd' | 'efgh'>('all');
   const [ranksSel, setRanksSel] = useState<'all' | '14' | '58'>('all');
-  // One lazy initializer deals the idle target and its lookahead from a
-  // single fresh bag, so the queue is visible (and truthful) before the
-  // first tap. Separate inits can't share one bag without touching a ref
+  // One lazy initializer deals the idle queue from a fresh bag, so the
+  // tape is truthful before the first tap and the round continues the
+  // same cycle. Separate inits can't share one bag without touching a ref
   // during render, which the lint forbids.
   const [opening] = useState(() => {
     const bag = createShuffleBag();
-    const t = drawFromBag(bag, FULL_POOL);
-    return { bag, target: t, upcoming: peekFromBag(bag, FULL_POOL, t, 3) };
+    const queue: string[] = [];
+    let prev: string | undefined;
+    for (let i = 0; i < QUEUE_LEN; i++) {
+      const s = drawFromBag(bag, FULL_POOL, prev);
+      queue.push(s);
+      prev = s;
+    }
+    return { bag, queue };
   });
   const bagRef = useRef(opening.bag);
-  const [target, setTarget] = useState(opening.target);
-  // Tetris-style lookahead: the next few targets, dealt with the current
-  // one; shown in Blitz find-mode only.
-  const [upcoming, setUpcoming] = useState<string[]>(opening.upcoming);
+  // Deal queue: [current, ...next]. The tape previews it, so advances
+  // shift it instead of drawing fresh — the previewed future always lands.
+  const queueRef = useRef(opening.queue);
+  const queuePoolRef = useRef<string | null>(FULL_POOL.join(','));
+  const missedRef = useRef(false);
+  const slideIdRef = useRef(0);
+  const [target, setTarget] = useState(opening.queue[0] ?? 'e4');
+  const [view, setView] = useState<TapeView>(() => buildView(opening.queue, NEXT_WIDE));
+  const [past, setPast] = useState<TapeMark[]>([]);
+  const [slide, setSlide] = useState<{ exit: TapeMark | null; id: number } | null>(null);
   const [choices, setChoices] = useState<string[]>(() => []);
   const [flash, setFlash] = useState<{ sq: string; ok: boolean } | null>(null);
   const [choiceFlash, setChoiceFlash] = useState<{ name: string; ok: boolean } | null>(null);
@@ -313,7 +393,7 @@ export default function SquareTrainer() {
   const timerRef = useRef<number | null>(null);
   const leftRef = useRef(DEFAULT_BLITZ_SECS);
   const audioRef = useRef<AudioContext | null>(null);
-  const advanceRef = useRef<number | null>(null);
+  const advanceTimer = useRef<number | null>(null);
   const correctRef = useRef(0);
   const tallyRef = useRef<MissRound>({});
   const roundStartRef = useRef(0);
@@ -330,6 +410,13 @@ export default function SquareTrainer() {
   const over = phase === 'over';
   const slipAgg = aggregateMisses(missHist);
   const slipTop = missTallyEntries(slipAgg).slice(0, MAX_DRILL_SQUARES);
+  const past2 = view.past.slice(-TAPE_PAST);
+  // Left of current, oldest first; ghosts hold empty slots at round start.
+  const leftSlots: (TapeMark | null)[] = [
+    past2[past2.length - TAPE_PAST] ?? null,
+    past2[past2.length - 1] ?? null,
+  ];
+  const missed = missedSquares(past);
   const sideLabel =
     orientation === 'random'
       ? flipped
@@ -343,9 +430,11 @@ export default function SquareTrainer() {
   useEffect(() => {
     return () => {
       if (timerRef.current !== null) window.clearInterval(timerRef.current);
-      if (advanceRef.current !== null) window.clearTimeout(advanceRef.current);
+      if (advanceTimer.current !== null) window.clearTimeout(advanceTimer.current);
     };
   }, []);
+
+
 
   function pool(): string[] {
     if (mode === 'practice' && drillSet && drillSet.length > 0) return drillSet;
@@ -372,19 +461,84 @@ export default function SquareTrainer() {
     dealFrom(pool());
   }
 
-  function dealFrom(p: string[]) {
+  function fillQueue(p: string[], except: string | undefined): string[] {
+    const q: string[] = [];
+    let prev = except;
+    for (let i = 0; i < QUEUE_LEN; i++) {
+      const s = drawSpread(p, q, prev);
+      q.push(s);
+      prev = s;
+    }
+    return q;
+  }
+
+  // Runs of 3+ same-region squares (all edge / all center) feel rigged
+  // even when the bag is fair — edges are 44% of the board, so long runs
+  // happen by chance. The third in a run draws from the other region;
+  // reinsertion keeps coverage exactly-once-per-cycle.
+  function drawSpread(p: string[], q: string[], prev: string | undefined): string {
+    const [a, b] = q.slice(-2);
+    if (a !== undefined && b !== undefined && isEdgeSquare(a) === isEdgeSquare(b)) {
+      const edgeRun = isEdgeSquare(a);
+      return drawAvoiding(bagRef.current, p, prev, (s) => isEdgeSquare(s) === edgeRun);
+    }
+    return drawFromBag(bagRef.current, p, prev);
+  }
+
+  function applyQueue(p: string[], q: string[]) {
     // Computed outside updaters so StrictMode double-invocation can never
-    // desync the target from its choices or the flip. Shuffle bag: every
-    // square appears once per cycle, so coverage is uniform and prompts
-    // can't cluster on one region of the board.
-    const t = drawFromBag(bagRef.current, p, target);
+    // desync the target from its choices, the tape, or the flip.
+    const t = q[0] ?? target;
     setTarget(t);
-    // Preview what the bag will deal next — capped below pool size so a
-    // tiny drill never shows its own answer twice.
-    setUpcoming(peekFromBag(bagRef.current, p, t, Math.min(3, p.length - 1)));
+    setView(buildView(q, NEXT_WIDE));
+    setSlide(null);
     setChoices(makeChoices(t, p));
     setReveal(false);
     if (orientation === 'random') setFlipped(coinFlip());
+  }
+
+  // Fresh deal for round boundaries: new queue, empty history, no slide.
+  function dealFrom(p: string[]) {
+    missedRef.current = false;
+    const q = fillQueue(p, target);
+    queueRef.current = q;
+    queuePoolRef.current = p.join(',');
+    setPast([]);
+    applyQueue(p, q);
+  }
+
+  // Answer advance: records the result, shifts the queue (the previewed
+  // next tile becomes current), and slides the tape. A changed pool
+  // (practice subset switched mid-round) flushes to a fresh queue.
+  function advanceIn(p: string[]) {
+    const key = p.join(',');
+    const result: TapeMark = { sq: target, ok: !missedRef.current };
+    setPast((prev) => [...prev, result].slice(-MAX_PAST));
+    missedRef.current = false;
+    let q = queueRef.current;
+    if (queuePoolRef.current !== key || q.length === 0) {
+      q = fillQueue(p, target);
+      queueRef.current = q;
+      queuePoolRef.current = key;
+      applyQueue(p, q);
+      return;
+    }
+    q = [...q.slice(1)];
+    q.push(drawSpread(p, q, q[q.length - 1]));
+    queueRef.current = q;
+    const incoming = q[q.length - 1] ?? '';
+    const t = q[0] ?? target;
+    slideIdRef.current += 1;
+    setSlide({ exit: view.past[0] ?? null, id: slideIdRef.current });
+    setView((v) => slideView(v, result, incoming, NEXT_WIDE));
+    setTarget(t);
+    setChoices(makeChoices(t, p));
+    setReveal(false);
+    if (orientation === 'random') setFlipped(coinFlip());
+  }
+
+  function advance() {
+    advanceIn(pool());
   }
 
   function stopClock() {
@@ -423,20 +577,20 @@ export default function SquareTrainer() {
   }
 
   function queueAdvance() {
-    if (advanceRef.current !== null) window.clearTimeout(advanceRef.current);
-    advanceRef.current = window.setTimeout(() => {
-      advanceRef.current = null;
-      dealRef.current();
+    if (advanceTimer.current !== null) window.clearTimeout(advanceTimer.current);
+    advanceTimer.current = window.setTimeout(() => {
+      advanceTimer.current = null;
+      advanceRef.current();
       setFlash(null);
       setChoiceFlash(null);
       setReveal(false);
     }, 450);
   }
 
-  // dealRef lets the delayed advance always use fresh state.
-  const dealRef = useRef(deal);
+  // advanceRef lets the delayed advance always use fresh state.
+  const advanceRef = useRef(advance);
   useEffect(() => {
-    dealRef.current = deal;
+    advanceRef.current = advance;
   });
 
   // Round-over score counts up from zero; under reduced motion the dialog
@@ -529,7 +683,7 @@ export default function SquareTrainer() {
 
   function startRun() {
     stopClock();
-    if (advanceRef.current !== null) window.clearTimeout(advanceRef.current);
+    if (advanceTimer.current !== null) window.clearTimeout(advanceTimer.current);
     endedRef.current = false;
     correctRef.current = 0;
     tallyRef.current = {};
@@ -559,7 +713,10 @@ export default function SquareTrainer() {
 
   function switchMode(m: Mode) {
     stopClock();
-    if (advanceRef.current !== null) window.clearTimeout(advanceRef.current);
+    if (advanceTimer.current !== null) window.clearTimeout(advanceTimer.current);
+    missedRef.current = false;
+    setPast([]);
+    setSlide(null);
     setMode(m);
     setPhase('idle');
     endedRef.current = false;
@@ -630,6 +787,7 @@ export default function SquareTrainer() {
 
   function registerMiss(picked: string) {
     beep(false);
+    missedRef.current = true;
     if (shakeTimer.current !== null) window.clearTimeout(shakeTimer.current);
     setShaking(true);
     shakeTimer.current = window.setTimeout(() => setShaking(false), 200);
@@ -642,6 +800,10 @@ export default function SquareTrainer() {
     // one square while the clock runs. Survival and practice stay put.
     if (timed) queueAdvance();
     if (mode === 'survival') {
+      // The killing miss never advances, so record it for the results
+      // tape here — read from closure (fresh in handlers), never from
+      // inside the updater below, which StrictMode may invoke twice.
+      if (lives <= 1) setPast((prev) => [...prev, { sq: target, ok: false }].slice(-MAX_PAST));
       setLives((l) => {
         const left = l - 1;
         if (left <= 0) {
@@ -743,7 +905,7 @@ export default function SquareTrainer() {
 
   function dismiss() {
     stopClock();
-    if (advanceRef.current !== null) window.clearTimeout(advanceRef.current);
+    if (advanceTimer.current !== null) window.clearTimeout(advanceTimer.current);
     endedRef.current = false;
     correctRef.current = 0;
     tallyRef.current = {};
@@ -935,37 +1097,49 @@ export default function SquareTrainer() {
 
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_270px]">
         <div className="min-w-0">
-          <div className="mb-1 flex min-h-[40px] flex-nowrap items-center justify-between gap-x-3">
-            <p className="truncate text-sm text-white/70">
-              {reverse ? (
-                <>
-                  What square is lit?{' '}
-                  {streak >= 3 && (
-                    <span className="ml-1 text-xs font-bold uppercase tracking-wide text-amber-300">
-                      Combo ×{streak}
-                    </span>
+          <div className="mb-3">
+            {reverse ? (
+              <p className="flex h-14 items-center justify-center text-sm text-white/70">
+                Name the lit square
+              </p>
+            ) : (
+              <div className="tape-window relative overflow-hidden" role="group" aria-label="Answer sequence">
+                <span className="sr-only">Find {target}.</span>
+                <div
+                  key={slide?.id ?? 'rest'}
+                  onAnimationEnd={(e) => {
+                    // animationend bubbles: only the strip's own slide
+                    // clears the exit tile, never a tile's miss shake.
+                    if (e.target === e.currentTarget) setSlide(null);
+                  }}
+                  aria-hidden="true"
+                  className={`tape-strip flex h-14 w-max items-center ${slide && !reduceMotion ? 'tape-slide' : ''}`}
+                >
+                  {slide && !reduceMotion && (
+                    <TapeSlot>{slide.exit ? <PastTile mark={slide.exit} /> : <GhostSlot />}</TapeSlot>
                   )}
-                </>
-              ) : (
-                <>
-                  Tap <strong key={target} className="target-in text-4xl font-bold text-white">{target}</strong>
-                  {timed && upcoming.length > 0 && (
-                    <span
-                      className="ml-2 whitespace-nowrap font-mono text-sm text-white/35"
-                      aria-label={`Up next: ${upcoming.join(', ')}`}
-                    >
-                      → {upcoming.join(' · ')}
-                    </span>
-                  )}
-                  {streak >= 3 && (
-                    <span className="ml-2 text-xs font-bold uppercase tracking-wide text-amber-300">
-                      Combo ×{streak}
-                    </span>
-                  )}
-                </>
+                  {leftSlots.map((m, i) => (
+                    <TapeSlot key={`left-${i}`}>{m ? <PastTile mark={m} /> : <GhostSlot />}</TapeSlot>
+                  ))}
+                  <TapeSlot>
+                    <CurrentTile sq={view.current} miss={shaking} />
+                  </TapeSlot>
+                  {view.next.map((sq, i) => (
+                    <TapeSlot key={`next-${i}`} cls={i === 3 ? 'tape-next-4' : undefined}>
+                      <NextTile sq={sq} />
+                    </TapeSlot>
+                  ))}
+                </div>
+                <div aria-hidden="true" className="tape-bar tape-bar-l" />
+                <div aria-hidden="true" className="tape-bar tape-bar-r" />
+              </div>
+            )}
+            <p className="flex h-5 items-center justify-center gap-2 text-xs text-white/50" aria-live="polite">
+              {streak >= 3 && (
+                <span className="font-bold uppercase tracking-wide text-amber-300">
+                  Combo ×{streak}
+                </span>
               )}
-            </p>
-            <p className="shrink-0 text-xs text-white/50" aria-live="polite">
               {flash?.ok || choiceFlash?.ok ? (
                 <span className="font-bold text-green-400">Correct!</span>
               ) : inputError ? (
@@ -976,7 +1150,7 @@ export default function SquareTrainer() {
                   {timed ? '.' : ' — try again.'}
                 </span>
               ) : (
-                <span>&nbsp;</span>
+                streak < 3 && <span>&nbsp;</span>
               )}
             </p>
           </div>
@@ -1441,6 +1615,29 @@ export default function SquareTrainer() {
                   <p className="mt-0.5 text-xl font-bold tabular-nums text-white">{bestStreak}</p>
                 </div>
               </div>
+              {past.length > 0 && (
+                <div>
+                  <h4 className="text-base font-bold text-white">Sequence</h4>
+                  <p className="text-xs text-white/45">
+                    {missed.length > 0 ? `Missed: ${missed.join(', ')}` : 'No misses.'}
+                  </p>
+                  <div className="mt-2 flex max-h-32 flex-wrap gap-1.5 overflow-y-auto">
+                    {past.map((m, i) => (
+                      <span
+                        key={`${m.sq}-${i}`}
+                        className={`inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 font-mono text-xs ${
+                          m.ok ? 'border-white/10 text-white/75' : 'border-red-400/40 text-red-400'
+                        }`}
+                      >
+                        <span aria-hidden="true" className={m.ok ? 'text-green-400' : ''}>
+                          {m.ok ? '✓' : '✗'}
+                        </span>
+                        <span className={m.ok ? '' : 'line-through'}>{m.sq}</span>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
             <div className="st-heat">
               <h4 className="text-base font-bold text-white">Where you slip</h4>

@@ -21,6 +21,27 @@ function shuffled(pool: string[]): string[] {
 
 // Draws one item, refilling (and reshuffling) when the bag runs out or the
 // pool changes. Avoids `except` whenever another item is available; a
+// single-item pool returns its only item. Rejected draws are reinserted
+// at a random spot instead of discarded, so every square still appears
+// exactly once per cycle — avoidance only reorders, never starves.
+export function drawAvoiding(
+  bag: ShuffleBag,
+  pool: string[],
+  except: string | undefined,
+  avoid: (s: string) => boolean,
+  tries = 8,
+): string {
+  for (let i = 0; i < tries; i++) {
+    const s = drawFromBag(bag, pool, except);
+    if (!avoid(s)) return s;
+    const at = Math.floor(Math.random() * (bag.squares.length + 1));
+    bag.squares.splice(at, 0, s);
+  }
+  return drawFromBag(bag, pool, except);
+}
+
+// Draws one item, refilling (and reshuffling) when the bag runs out or the
+// pool changes. Avoids `except` whenever another item is available; a
 // single-item pool returns its only item.
 export function drawFromBag(bag: ShuffleBag, pool: string[], except?: string): string {
   if (pool.length === 0) throw new Error('drawFromBag: empty pool');
@@ -38,24 +59,3 @@ export function drawFromBag(bag: ShuffleBag, pool: string[], except?: string): s
   return second;
 }
 
-// Peeks the next n draws without consuming them, threading each peek as
-// the except for the next — so the peeked sequence is exactly what the
-// next n draws will return (while the pool stays the same). Powers the
-// upcoming queue; only a shuffle bag has a knowable future.
-export function peekFromBag(
-  bag: ShuffleBag,
-  pool: string[],
-  except: string | undefined,
-  n: number,
-): string[] {
-  if (pool.length === 0 || n <= 0) return [];
-  const sim: ShuffleBag = { key: bag.key, squares: [...bag.squares] };
-  const out: string[] = [];
-  let prev = except;
-  for (let i = 0; i < n; i++) {
-    const next = drawFromBag(sim, pool, prev);
-    out.push(next);
-    prev = next;
-  }
-  return out;
-}

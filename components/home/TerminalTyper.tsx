@@ -1,35 +1,114 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
-import type { TermLine } from '@/lib/homepage';
+import { useEffect, useRef, useState } from 'react';
+import {
+  birthdayDraws,
+  birthdayLine,
+  flipRun,
+  formatFlip,
+  formatHtopRow,
+  formatMonty,
+  HTOP_SEED,
+  montyRun,
+  psRow,
+} from '@/lib/terminal-scenes';
+import type { TerminalLines } from './heroData';
 
-// Human-ish typing rhythm: jittered keystrokes, a beat before Enter,
-// instant output, a hold so the result can be read, a breath, next command.
-const CHAR_MIN = 45;
-const CHAR_VAR = 45;
+// One-command-one-output terminal: types a command, prints exactly one
+// line, holds it, types `clear`, moves on. Data scenes drop out when
+// their feed is down; the sims always run. Fixed 2-line frame, no layout
+// shift; pauses off-screen and in hidden tabs; reduced motion gets a
+// static snapshot with no typing or blinking.
+
+const CHAR_MIN = 60;
+const CHAR_VAR = 50;
+const CLEAR_CHAR_MIN = 100;
+const CLEAR_CHAR_VAR = 60;
 const ENTER_PAUSE = 350;
-const HOLD_PAUSE = 2500;
-const GAP_PAUSE = 400;
+const HOLD_MS = 4000;
+const CLEAR_BEAT = 400;
+const FLIP_COINS = 2500;
+const BIRTHDAY_KIDS = 23;
+const MONTY_RUNS = 1000;
 
-type Wait = 'type' | 'hold' | 'clear';
+type SceneId = 'blog' | 'cast' | 'market' | 'git' | 'ps' | 'flip' | 'birthday' | 'monty';
 
-// Loops the scripts like a real terminal: types one command, prints its
-// output instantly on the next line, holds, clears, and starts the next.
-// The box never resizes — an invisible copy of the longest script fixes the
-// height from first paint. Pauses off-screen and in hidden tabs;
-// reduced-motion readers get the steady state instantly with no typing,
-// rotation, or blinking.
-export default function TerminalTyper({ scripts }: { scripts: TermLine[][] }) {
-  const [state, setState] = useState<{ si: number; li: number; ch: number; wait: Wait }>({
-    si: 0,
-    li: 0,
-    ch: 0,
-    wait: 'type',
-  });
+const CMDS: Record<SceneId, string> = {
+  blog: '$ tail -1 blog',
+  cast: '$ top podcasts',
+  market: '$ market',
+  git: '$ git log --oneline -n 1',
+  ps: '$ ps --brain',
+  flip: `$ flip --coins ${FLIP_COINS}`,
+  birthday: `$ birthday --kids ${BIRTHDAY_KIDS}`,
+  monty: `$ montyhall --runs ${MONTY_RUNS}`,
+};
+
+function orderFor(lines: TerminalLines): SceneId[] {
+  const order: SceneId[] = [];
+  if (lines.blog) order.push('blog');
+  if (lines.cast) order.push('cast');
+  if (lines.market) order.push('market');
+  if (lines.commit) order.push('git');
+  order.push('ps', 'flip', 'birthday', 'monty');
+  return order;
+}
+
+interface Line {
+  id: number;
+  kind: 'cmd' | 'out';
+  text: string;
+}
+
+type Phase = 'cmd' | 'hold' | 'clear';
+
+interface Engine {
+  order: SceneId[];
+  idx: number;
+  cycle: number;
+  phase: Phase;
+  typed: number;
+  lines: Line[];
+  seq: number;
+}
+
+// Single output line per scene, computed at print time inside a timeout
+// (never during render, so randomness here is lint-clean).
+function outputFor(scene: SceneId, lines: TerminalLines, cycle: number): string {
+  switch (scene) {
+    case 'blog':
+      return lines.blog ?? '';
+    case 'cast':
+      return lines.cast ?? '';
+    case 'market':
+      return lines.market ?? '';
+    case 'git':
+      return lines.commit ?? '';
+    case 'ps':
+      return formatHtopRow(psRow(cycle, Math.random));
+    case 'flip':
+      return formatFlip(flipRun(FLIP_COINS, Math.random));
+    case 'birthday':
+      return birthdayLine(birthdayDraws(Math.random, BIRTHDAY_KIDS), BIRTHDAY_KIDS);
+    case 'monty':
+      return formatMonty(montyRun(MONTY_RUNS, Math.random));
+  }
+}
+
+export default function TerminalTyper({ lines }: { lines: TerminalLines }) {
   const [reduceMotion] = useState(
     () => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches,
   );
   const [active, setActive] = useState(true);
+  const [eng, setEng] = useState<Engine>(() => ({
+    order: orderFor(lines),
+    idx: 0,
+    cycle: 0,
+    phase: 'cmd',
+    typed: 0,
+    lines: [],
+    seq: 0,
+  }));
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -53,124 +132,148 @@ export default function TerminalTyper({ scripts }: { scripts: TermLine[][] }) {
     };
   }, []);
 
-  const script = useMemo(() => scripts[state.si] ?? [], [scripts, state.si]);
-  const sizer = useMemo(() => {
-    const ranked = [...scripts].sort(
-      (a, b) => b.reduce((n, l) => n + l.text.length, 0) - a.reduce((n, l) => n + l.text.length, 0),
-    );
-    return ranked[0] ?? [];
-  }, [scripts]);
-
   useEffect(() => {
-    if (reduceMotion || scripts.length === 0 || !active) return;
-    if (state.wait === 'hold') {
-      const t = setTimeout(() => setState((s) => ({ ...s, wait: 'clear' })), HOLD_PAUSE);
-      return () => clearTimeout(t);
-    }
-    if (state.wait === 'clear') {
+    if (reduceMotion || !active) return undefined;
+    const scene = eng.order[eng.idx] ?? 'ps';
+    if (eng.phase === 'hold') {
+      // Scroll the old command out so `$ clear` types visibly beneath the
+      // output — the 2-line frame can't fit all three rows at once.
       const t = setTimeout(
-        () => setState((s) => ({ si: (s.si + 1) % scripts.length, li: 0, ch: 0, wait: 'type' })),
-        GAP_PAUSE,
+        () => setEng({ ...eng, phase: 'clear', typed: 0, lines: eng.lines.slice(-1) }),
+        HOLD_MS,
       );
       return () => clearTimeout(t);
     }
-    const line = script[state.li];
-    if (!line) {
-      const t = setTimeout(() => setState((s) => ({ ...s, wait: 'hold' })), 60);
-      return () => clearTimeout(t);
-    }
-    if (line.typed && state.ch < line.text.length) {
+    const target = eng.phase === 'cmd' ? CMDS[scene] : '$ clear';
+    if (eng.typed < target.length) {
       const t = setTimeout(
-        () => setState((s) => ({ ...s, ch: s.ch + 1 })),
-        CHAR_MIN + Math.random() * CHAR_VAR,
+        () => setEng({ ...eng, typed: eng.typed + 1 }),
+        eng.phase === 'clear'
+          ? CLEAR_CHAR_MIN + Math.random() * CLEAR_CHAR_VAR
+          : CHAR_MIN + Math.random() * CHAR_VAR,
       );
       return () => clearTimeout(t);
     }
     const t = setTimeout(
-      () => setState((s) => ({ ...s, li: s.li + 1, ch: 0 })),
-      line.typed ? ENTER_PAUSE : 60,
+      () => {
+        if (eng.phase === 'cmd') {
+          setEng({
+            ...eng,
+            lines: [
+              { id: eng.seq, kind: 'cmd', text: CMDS[scene] },
+              { id: eng.seq + 1, kind: 'out', text: outputFor(scene, lines, eng.cycle) },
+            ],
+            seq: eng.seq + 2,
+            phase: 'hold',
+          });
+        } else {
+          const ni = eng.idx + 1;
+          const wrap = ni >= eng.order.length;
+          setEng({
+            ...eng,
+            idx: wrap ? 0 : ni,
+            cycle: wrap ? eng.cycle + 1 : eng.cycle,
+            phase: 'cmd',
+            typed: 0,
+            lines: [],
+          });
+        }
+      },
+      eng.phase === 'cmd' ? ENTER_PAUSE : CLEAR_BEAT,
     );
     return () => clearTimeout(t);
-  }, [state, script, scripts.length, reduceMotion, active]);
+  }, [eng, active, reduceMotion, lines]);
 
-  const renderLine = (line: TermLine, text: string, key: number | string, cursor: boolean, blink: boolean) => {
-    if (line.text.startsWith('$')) {
+  const renderLine = (line: Line) => {
+    if (line.kind === 'cmd') {
       return (
-        <p key={key} className="whitespace-nowrap overflow-hidden text-ellipsis leading-normal text-[#0aee3c]">
-          {text.startsWith('$') ? (
-            <>
-              <span className="text-[#0aee3c]/50">$</span>
-              {text.slice(1)}
-            </>
-          ) : (
-            text
-          )}
-          {cursor && <Cursor blink={blink} />}
+        <p key={line.id} className="whitespace-nowrap overflow-hidden text-ellipsis leading-normal text-[#0aee3c]">
+          <span className="text-[#0aee3c]/50">$</span>
+          {line.text.slice(1)}
         </p>
       );
     }
-    const body =
-      text === line.text && line.href ? (
-        <a href={line.href} className="transition-colors hover:text-[#0aee3c]">
-          {text}
-        </a>
-      ) : (
-        text
-      );
     return (
-      <p key={key} className="whitespace-nowrap overflow-hidden text-ellipsis leading-normal text-[#0aee3c]/70">
-        {body}
-        {cursor && <Cursor blink={blink} />}
+      <p key={line.id} className="whitespace-nowrap overflow-hidden text-ellipsis leading-normal text-[#0aee3c]/70">
+        {line.text}
       </p>
     );
   };
 
-  if (scripts.length === 0) return null;
-
-  // Steady state for reduced motion: first script, static prompt.
+  // Steady state for reduced motion: the first scene, static. Sims need
+  // randomness, which can't run identically on server and client, so the
+  // snapshot prefers a data scene and falls back to the un-jittered ps
+  // seed — fully deterministic, no hydration mismatch.
   if (reduceMotion) {
-    const steady = scripts.slice(0, 1);
+    const order = orderFor(lines);
+    const scene = order.find((s) => s === 'blog' || s === 'cast' || s === 'market' || s === 'git') ?? 'ps';
+    const seed = HTOP_SEED[0] ?? { pid: 101, name: 'curiosity', cpu: 97 };
+    const steady: Line[] = [
+      { id: 0, kind: 'cmd', text: CMDS[scene] },
+      { id: 1, kind: 'out', text: scene === 'ps' ? formatHtopRow(seed) : outputFor(scene, lines, 0) },
+    ];
     return (
-      <div ref={ref} aria-label="Site terminal">
-        {steady.map((s, si) => s.map((l, i) => renderLine(l, l.text, `${si}-${i}`, false, false)))}
-        <p className="whitespace-nowrap leading-normal">
-          <span className="text-[#0aee3c]/50">$</span> <Cursor blink={false} />
-        </p>
-        <span className="sr-only">{scripts.flatMap((s) => s.map((l) => l.text)).join('. ')}</span>
+      <div ref={ref} className="relative" aria-label="Site terminal">
+        <Sizer />
+        <div aria-hidden className="absolute inset-0">
+          {steady.map(renderLine)}
+          <p className="whitespace-nowrap leading-normal">
+            <span className="text-[#0aee3c]/50">$</span> <Cursor blink={false} />
+          </p>
+        </div>
+        <span className="sr-only">Live terminal cycling one-line stats: latest post, podcast, market, commits, and simulations.</span>
       </div>
     );
   }
 
-  const cleared = state.wait === 'clear';
-  const blink = state.wait !== 'type';
-  const typing =
-    !cleared && state.wait === 'type' && !!script[state.li] && script[state.li].typed && state.ch < script[state.li].text.length;
-  const current = cleared
-    ? []
-    : script.map((line, i) => {
-        if (i > state.li) return null;
-        const complete = i < state.li || !line.typed;
-        const text = complete ? line.text : line.text.slice(0, state.ch);
-        return renderLine(line, text, `c-${i}`, typing && i === state.li, false);
-      });
+  const scene = eng.order[eng.idx] ?? 'ps';
+  const target = eng.phase === 'clear' ? '$ clear' : CMDS[scene];
+  const typing = eng.phase !== 'hold' && eng.typed < target.length;
+  // Fully typed but awaiting the beat: keep the submitted line on screen
+  // (with a solid cursor) instead of flashing a bare prompt.
+  const submitted = eng.phase !== 'hold' && !typing;
+  const shown = submitted ? target : target.slice(0, eng.typed);
 
   return (
     <div ref={ref} className="relative" aria-label="Site terminal">
-      {/* Sizer: invisible longest script pins the box height before typing starts. */}
-      <div aria-hidden className="invisible">
-        {sizer.map((l, i) => renderLine(l, l.text, `s-${i}`, false, false))}
-        <p className="whitespace-nowrap leading-normal text-[#0aee3c]">$</p>
-      </div>
+      <Sizer />
       {/* Live overlay; screen readers get the static summary instead. */}
       <div aria-hidden className="absolute inset-0">
-        {current}
-        {!typing && (
+        {eng.lines.map(renderLine)}
+        {typing || submitted ? (
+          <p className="whitespace-nowrap overflow-hidden leading-normal text-[#0aee3c]">
+            {shown.startsWith('$') ? (
+              <>
+                <span className="text-[#0aee3c]/50">$</span>
+                {shown.slice(1)}
+              </>
+            ) : (
+              shown
+            )}
+            <Cursor blink={false} />
+          </p>
+        ) : (
           <p className="whitespace-nowrap leading-normal">
-            <span className="text-[#0aee3c]/50">$</span> <Cursor blink={blink} />
+            <span className="text-[#0aee3c]/50">$</span> <Cursor blink />
           </p>
         )}
       </div>
-      <span className="sr-only">{scripts.flatMap((s) => s.map((l) => l.text)).join('. ')}</span>
+      <span className="sr-only">Live terminal cycling one-line stats: latest post, podcast, market, commits, and simulations.</span>
+    </div>
+  );
+}
+
+// Invisible 2-line frame plus prompt row: pins the box height from first
+// paint so scenes never shift the layout.
+function Sizer() {
+  return (
+    <div aria-hidden className="invisible">
+      {[0, 1].map((i) => (
+        <p key={i} className="whitespace-nowrap leading-normal">
+          {'\u00a0'}
+        </p>
+      ))}
+      <p className="whitespace-nowrap leading-normal">$</p>
     </div>
   );
 }

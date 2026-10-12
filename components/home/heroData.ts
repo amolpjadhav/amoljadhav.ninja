@@ -1,15 +1,20 @@
-// Server-only data loaders shared by the homepage hero terminal and the
-// Tools row. Never imported by node tests (extensionless sibling imports).
-// TTLs bound upstream cost: the page revalidates every 60s, but the YouTube
-// fan-out stays hourly and the index strip every 5 minutes.
-import { supabase } from '@/lib/supabase';
-import { mostWatched, trendingNow } from '@/lib/podcasts';
-import { getMarketStrip } from '@/lib/stocks';
-import { currentMonth, MONTHS } from '@/lib/five-monthly';
-import { BOOK_POOL, poolById } from '@/lib/book-pool';
-import type { Difficulty } from '@/lib/book-spins';
-import { memoizeTtl, toStripItems, toTopEpisode } from '@/lib/homepage';
+// Server-only data loaders for the homepage: Tools row (strip, episodes)
+// plus hero terminal one-liners (post, cast, market, commit). Never
+// imported by node tests (extensionless sibling imports).
+import { supabaseAdmin } from '@/lib/supabase';
+import { formatPerHour, mostWatched, timeAgo, trendingNow } from '@/lib/podcasts';
+import { formatPct, getMarketStrip } from '@/lib/stocks';
+import { memoizeTtl, stripHasMoves, toStripItems, toTopEpisode } from '@/lib/homepage';
 import { getPool } from '@/lib/podcast-pool';
+import {
+  blogLine,
+  castLine,
+  filterCommitEntries,
+  formatCommit,
+  marketLine,
+  pickMarketQuote,
+  type CommitEntry,
+} from '@/lib/terminal-scenes';
 
 export const getStrip = memoizeTtl(5 * 60 * 1000, async () => {
   const { strip } = await getMarketStrip({ timeoutMs: 6000 });
@@ -27,86 +32,79 @@ const getLists = async () => {
 
 export const getEpisode = async () => toTopEpisode((await getLists())?.trending[0]);
 
-export const getPodcastLists = getLists;
+const getLatestPost = memoizeTtl(
+  5 * 60 * 1000,
+  async (): Promise<{ title: string; createdAt: string } | null> => {
+    try {
+      const { data, error } = await supabaseAdmin
+        .from('blog_posts')
+        .select('title, created_at')
+        .eq('published', true)
+        .order('created_at', { ascending: false })
+        .limit(1);
+      if (error || !data || data.length === 0) return null;
+      const row = data[0] as { title?: unknown; created_at?: unknown };
+      if (typeof row.title !== 'string' || typeof row.created_at !== 'string') return null;
+      return { title: row.title, createdAt: row.created_at };
+    } catch {
+      return null;
+    }
+  },
+);
 
-// Request clock for the terminal's date, countdown, and fortune rotation.
-// Lives here (not in the component) so render stays a pure function of data.
-export function requestNowMs(): number {
-  return Date.now();
+export interface TerminalLines {
+  blog: string | null;
+  cast: string | null;
+  market: string | null;
+  commit: string | null;
 }
 
-export interface PostRow {
-  title: string;
-  slug: string;
-  createdAt: string;
-  views: number | null;
-  category: string | null;
-  readTime: number | null;
-}
-
-export interface PostStats {
-  latest: { title: string; slug: string; createdAt: string } | null;
-  posts: PostRow[];
-}
-
-// One cheap query (~50 rows) feeds every post-derived terminal command:
-// tails, tops, stats, months, fortune, per-category counts.
-export const getPostStats = memoizeTtl(60 * 1000, async (): Promise<PostStats> => {
-  const empty: PostStats = { latest: null, posts: [] };
-  const { data, error } = await supabase
-    .from('blog_posts')
-    .select('title, slug, created_at, views, category, read_time')
-    .eq('published', true)
-    .order('created_at', { ascending: false })
-    .limit(200);
-  if (error) return empty;
-  const posts: PostRow[] = (data ?? []).map((r) => ({
-    title: r.title,
-    slug: r.slug,
-    createdAt: r.created_at,
-    views: typeof r.views === 'number' ? r.views : null,
-    category: typeof r.category === 'string' ? r.category : null,
-    readTime: typeof r.read_time === 'number' ? r.read_time : null,
-  }));
-  const l = posts[0];
-  return { latest: l ? { title: l.title, slug: l.slug, createdAt: l.createdAt } : null, posts };
-});
-
-export interface BookSlotData {
-  title: string;
-  pages: number;
-}
-
-export interface BookSpinData {
-  label: string;
-  verdictDate: string;
-  quick: BookSlotData | null;
-  classic: BookSlotData | null;
-  stretch: BookSlotData | null;
-  totalPages: number;
-  poolBooks: number;
-  poolGenres: number;
-}
-
-// Official monthly spin plus pool totals, resolved from the static data
-// files — no fetch, so the book commands always render.
-export function getBookSpin(): BookSpinData | null {
-  if (MONTHS.length === 0) return null;
-  const month = currentMonth();
-  const books = month.picks.map((p) => poolById(p.bookId)).filter((b) => b !== undefined);
-  if (books.length === 0) return null;
-  const slot = (diff: Difficulty): BookSlotData | null => {
-    const b = books.find((x) => x.difficulty === diff);
-    return b ? { title: b.title, pages: b.pages } : null;
-  };
+// One output line per data scene, composed server-side; null drops the
+// scene quietly. A flat strip reads as a dead feed, not a calm market,
+// so it drops out too.
+export const getTerminalLines = async (): Promise<TerminalLines> => {
+  const [post, ep, strip, commits] = await Promise.all([
+    getLatestPost(),
+    getEpisode(),
+    getStrip(),
+    getCommits(),
+  ]);
+  const quote = stripHasMoves(strip) ? pickMarketQuote(strip) : null;
+  const entry = filterCommitEntries(commits)[0];
   return {
-    label: month.label,
-    verdictDate: month.verdictDate,
-    quick: slot('quick'),
-    classic: slot('classic'),
-    stretch: slot('stretch'),
-    totalPages: books.reduce((n, b) => n + b.pages, 0),
-    poolBooks: BOOK_POOL.length,
-    poolGenres: new Set(BOOK_POOL.map((b) => b.genre)).size,
+    blog: post ? blogLine(post.title, timeAgo(post.createdAt)) : null,
+    cast: ep ? castLine(ep.channel, formatPerHour(ep.viewsPerHour)) : null,
+    market: quote && quote.changePct !== null ? marketLine(quote.label, formatPct(quote.changePct)) : null,
+    commit: entry ? formatCommit(entry.sha, entry.message) : null,
   };
-}
+};
+
+const COMMITS_URL = 'https://api.github.com/repos/amolpjadhav/amoljadhav.ninja/commits?per_page=20';
+
+// Latest commits for the git log scene, refreshed hourly. Unauthenticated
+// GitHub quota is shared and thin, so a token lifts it when set — either
+// way the scene drops out quietly on failure.
+export const getCommits = memoizeTtl(60 * 60 * 1000, async (): Promise<CommitEntry[]> => {
+  try {
+    const res = await fetch(COMMITS_URL, {
+      headers: {
+        Accept: 'application/vnd.github+json',
+        ...(process.env.GITHUB_TOKEN ? { Authorization: `Bearer ${process.env.GITHUB_TOKEN}` } : {}),
+      },
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!res.ok) return [];
+    const raw: unknown = await res.json();
+    if (!Array.isArray(raw)) return [];
+    const out: CommitEntry[] = [];
+    for (const item of raw) {
+      if (typeof item !== 'object' || item === null) continue;
+      const sha = (item as { sha?: unknown }).sha;
+      const message = ((item as { commit?: unknown }).commit as { message?: unknown } | null)?.message;
+      if (typeof sha === 'string' && typeof message === 'string') out.push({ sha, message });
+    }
+    return out;
+  } catch {
+    return [];
+  }
+});
