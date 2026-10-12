@@ -1,163 +1,90 @@
-// Pure scene logic for the hero channels terminal. The React player only
-// schedules ticks; everything here is deterministic given its inputs
-// (randomness is injected) so `npm test` covers the behavior.
+// Scene logic for the hero terminal: fortune rotation, Earth-orbit
+// counter, year progress, date factoring, this-day-in-history picks.
+// Pure and dependency-free so node tests cover it.
 
-export interface HtopRow {
-  pid: number;
-  name: string;
-  cpu: number;
-  note?: string;
+export interface Fortune {
+  text: string;
+  link?: string;
 }
 
-export const HTOP_SEED: HtopRow[] = [
-  { pid: 101, name: 'curiosity', cpu: 97 },
-  { pid: 204, name: 'chess_training', cpu: 41 },
-  { pid: 311, name: 'coffee.daemon', cpu: 88 },
-  { pid: 412, name: 'reading_books', cpu: 3, note: 'zombie' },
-];
-
-// Jitters CPU ±5, clamped to 1..99 — except the zombie, which never
-// rises above 5%. Returns fresh rows; the seed is never mutated.
-export function jitterHtop(rows: HtopRow[], rand: () => number): HtopRow[] {
-  return rows.map((r) => {
-    const next = r.cpu + Math.floor(rand() * 11) - 5;
-    const cpu = r.note === 'zombie' ? Math.min(5, Math.max(0, next)) : Math.min(99, Math.max(1, next));
-    return { ...r, cpu };
-  });
+// Draw one fortune index with no repeats until all shown; the pool
+// refills itself on exhaustion. `remaining` carries across scenes.
+export function drawFortune(
+  remaining: number[],
+  total: number,
+  rand: () => number,
+): { pick: number; remaining: number[] } {
+  const pool = remaining.length > 0 ? remaining : Array.from({ length: total }, (_, i) => i);
+  if (pool.length === 0) return { pick: 0, remaining: [] };
+  const at = Math.floor(rand() * pool.length);
+  const pick = pool[at] ?? 0;
+  return { pick, remaining: [...pool.slice(0, at), ...pool.slice(at + 1)] };
 }
 
-export function formatHtopRow(r: HtopRow): string {
-  return `${String(r.pid).padEnd(4)} ${r.name.padEnd(16)}${r.cpu}%${r.note ? `   (${r.note})` : ''}`;
+// Earth moves ~29.8 km/s around the Sun; floor + locale grouping.
+export function uptimeLine(landedMs: number, nowMs: number): string {
+  const km = Math.floor(Math.max(0, (nowMs - landedMs) / 1000) * 29.8);
+  return `since you landed: Earth moved ${km.toLocaleString('en-US')} km around the Sun`;
 }
 
-export interface FlipState {
-  flips: number;
-  heads: number;
+// "2026 ████████████████████░░░░░ 78.1%": 25-char bar of the elapsed
+// share of the current year in local time, 1 decimal.
+export function calProgressLine(nowMs: number): string {
+  const now = new Date(nowMs);
+  const start = new Date(now.getFullYear(), 0, 1).getTime();
+  const end = new Date(now.getFullYear() + 1, 0, 1).getTime();
+  const pct = ((nowMs - start) / (end - start)) * 100;
+  const filled = Math.round((pct / 100) * 25);
+  return `${now.getFullYear()} ${'█'.repeat(filled)}${'░'.repeat(25 - filled)} ${pct.toFixed(1)}%`;
 }
 
-export function flipStep(s: FlipState, rand: () => number): FlipState {
-  return { flips: s.flips + 1, heads: s.heads + (rand() < 0.5 ? 1 : 0) };
+export function yyyymmdd(nowMs: number): string {
+  const d = new Date(nowMs);
+  const p = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}`;
 }
 
-export function formatFlip(s: FlipState): string {
-  const pct = s.flips === 0 ? 0 : (s.heads / s.flips) * 100;
-  return `flips: ${s.flips}  heads: ${pct.toFixed(1)}%`;
-}
-
-// One-shot run for the single-output flip scene.
-export function flipRun(flips: number, rand: () => number): FlipState {
-  let s: FlipState = { flips: 0, heads: 0 };
-  for (let i = 0; i < flips; i++) s = flipStep(s, rand);
-  return s;
-}
-
-const BDAY_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-const BDAY_CUM = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365];
-
-export function dayLabel(doy: number): string {
-  const d = Math.min(364, Math.max(0, doy));
-  let m = 0;
-  while (m < 11 && d >= (BDAY_CUM[m + 1] ?? 365)) m += 1;
-  return `${BDAY_MONTHS[m] ?? 'Jan'} ${d - (BDAY_CUM[m] ?? 0) + 1}`;
-}
-
-export interface BirthdayClass {
-  dates: string[];
-  match: string | null;
-}
-
-// Rolls birthdays until the first repeat (capped so a freak run can't
-// loop the scene forever). dates includes the repeat when one lands.
-export function birthdayDraws(rand: () => number, maxDraws = 60): BirthdayClass {
-  const seen = new Set<number>();
-  const dates: string[] = [];
-  for (let i = 0; i < maxDraws; i++) {
-    const d = Math.floor(rand() * 365);
-    dates.push(dayLabel(d));
-    if (seen.has(d)) return { dates, match: dayLabel(d) };
-    seen.add(d);
+// Trial division at runtime — never hard-code, factor post dates were
+// wrong before. Ascending, with multiplicity.
+export function primeFactors(n: number): number[] {
+  const out: number[] = [];
+  let m = Math.max(2, Math.floor(n));
+  for (let d = 2; d * d <= m; d++) {
+    while (m % d === 0) {
+      out.push(d);
+      m /= d;
+    }
   }
-  return { dates, match: null };
+  if (m > 1) out.push(m);
+  return out;
 }
 
-export interface MontyState {
-  runs: number;
-  switchWins: number;
+export function factorLine(n: number): string {
+  return `${n}: ${primeFactors(n).join(' ')}`;
 }
 
-// One batch of Monty Hall runs: the car hides behind a random door, you
-// pick randomly, and switching wins unless your first pick was the car.
-export function montyBatch(s: MontyState, n: number, rand: () => number): MontyState {
-  let { runs, switchWins } = s;
-  for (let i = 0; i < n; i++) {
-    runs += 1;
-    if (Math.floor(rand() * 3) !== Math.floor(rand() * 3)) switchWins += 1;
+export interface HistoryEvent {
+  year: number;
+  text: string;
+}
+
+// Shape Wikipedia On-This-Day events: keep short readable ones, collapse
+// whitespace. Unknown shapes pass through as empty, never throw.
+export function pickHistoryEvents(raw: unknown, maxLen = 70): HistoryEvent[] {
+  if (!Array.isArray(raw)) return [];
+  const out: HistoryEvent[] = [];
+  for (const item of raw) {
+    if (typeof item !== 'object' || item === null) continue;
+    const { year, text } = item as { year?: unknown; text?: unknown };
+    if (typeof year !== 'number' || !Number.isInteger(year)) continue;
+    if (typeof text !== 'string') continue;
+    const clean = text.replace(/\s+/g, ' ').trim();
+    if (clean.length === 0 || clean.length > maxLen) continue;
+    out.push({ year, text: clean });
   }
-  return { runs, switchWins };
+  return out;
 }
 
-export function formatMonty(s: MontyState): string {
-  const pct = s.runs === 0 ? 0 : (s.switchWins / s.runs) * 100;
-  return `runs: ${s.runs}  switch wins: ${pct.toFixed(1)}%`;
-}
-
-// One-shot run for the single-output monty scene.
-export function montyRun(runs: number, rand: () => number): MontyState {
-  return montyBatch({ runs: 0, switchWins: 0 }, runs, rand);
-}
-
-// Single-line birthday result: the match when one lands in n kids.
-export function birthdayLine(room: BirthdayClass, kids: number): string {
-  return room.match ? `match on ${room.match} · ${room.dates.length} kids` : `no match · ${kids} kids`;
-}
-
-// The ps scene shows one brain process per cycle, jittered once — the old
-// 4-row table as a single honest top line.
-export function psRow(cycle: number, rand: () => number): HtopRow {
-  const i = ((cycle % HTOP_SEED.length) + HTOP_SEED.length) % HTOP_SEED.length;
-  const seed = HTOP_SEED[i] ?? { pid: 101, name: 'curiosity', cpu: 97 };
-  return jitterHtop([seed], rand)[0] ?? seed;
-}
-
-export interface CommitEntry {
-  sha: string;
-  message: string;
-}
-
-// Drops noisy history (wip/tmp scratch, merges) and caps the scroll.
-export function filterCommitEntries(entries: CommitEntry[], limit = 8): CommitEntry[] {
-  return entries.filter((e) => e.message.trim() && !/^(wip|tmp|merge)/i.test(e.message.trim())).slice(0, limit);
-}
-
-export function formatCommit(sha: string, message: string): string {
-  const first = message.split('\n')[0].trim();
-  return `${sha.slice(0, 6)}  ${first}`;
-}
-
-// One-line composers for the data scenes. Each takes preformatted
-// primitives (the server feeds them with timeAgo/formatPerHour/formatPct)
-// so this module stays dependency-free and node-testable.
-
-export function blogLine(title: string, age: string | null): string {
-  return age ? `${title} · ${age}` : title;
-}
-
-export function castLine(channel: string, perHour: string | null): string | null {
-  return perHour ? `${channel} · ${perHour}` : null;
-}
-
-export interface MarketQuote {
-  label: string;
-  changePct: number | null;
-}
-
-// The market scene leads with the S&P 500, else the first quote carrying
-// a number; null when the strip has no usable quote at all.
-export function pickMarketQuote(items: MarketQuote[]): MarketQuote | null {
-  const live = (q: MarketQuote) => q.changePct !== null && Number.isFinite(q.changePct);
-  return items.find((q) => q.label === 'S&P 500' && live(q)) ?? items.find(live) ?? null;
-}
-
-export function marketLine(label: string, pct: string): string {
-  return `${label} ${pct}`;
+export function historyLine(e: HistoryEvent): string {
+  return `${e.year}  ${e.text}`;
 }
