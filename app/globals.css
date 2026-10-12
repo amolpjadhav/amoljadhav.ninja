@@ -455,19 +455,20 @@ body {
 }
 } /* end article typography layer */
 
-/* Sequence tape (coordinate trainer). Unlayered so slot widths, the strip
-   offset, and the narrow hide rule beat Tailwind utilities.
-   - Current slot center sits at 33%: margin = 33% − 2.5 slots.
+/* Sequence tape (coordinate trainer). Unlayered so slot widths and the
+   strip offset beat Tailwind utilities.
+   - Symmetric 3 past + current + 3 next; current slot center sits at 50%:
+     margin = 50% − 3.5 slots.
    - Slide renders one extra exiting slot, glides left exactly one slot,
      then React drops the exit tile at the end position: keyframe distance
      must match .tape-slot width.
-   - Narrow containers get 48px slots and 3 upcoming tiles. */
+   - Narrow containers get 48px slots. */
 .tape-window {
   -webkit-mask-image: linear-gradient(to right, transparent, #000 15%, #000 85%, transparent);
   mask-image: linear-gradient(to right, transparent, #000 15%, #000 85%, transparent);
 }
 .tape-strip {
-  margin-left: calc(33% - 130px);
+  margin-left: calc(50% - 182px);
 }
 .tape-slot {
   width: 52px;
@@ -482,10 +483,10 @@ body {
   pointer-events: none;
 }
 .tape-bar-l {
-  left: calc(33% - 28px);
+  left: calc(50% - 28px);
 }
 .tape-bar-r {
-  left: calc(33% + 26px);
+  left: calc(50% + 26px);
 }
 @keyframes st-tape-slide {
   to {
@@ -502,19 +503,16 @@ body {
 }
 @container widget (max-width: 360px) {
   .tape-strip {
-    margin-left: calc(33% - 120px);
+    margin-left: calc(50% - 168px);
   }
   .tape-slot {
     width: 48px;
   }
-  .tape-next-4 {
-    display: none;
-  }
   .tape-bar-l {
-    left: calc(33% - 26px);
+    left: calc(50% - 26px);
   }
   .tape-bar-r {
-    left: calc(33% + 24px);
+    left: calc(50% + 24px);
   }
   .tape-slide {
     animation-name: st-tape-slide-narrow;

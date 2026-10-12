@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import { createShuffleBag, drawAvoiding, drawFromBag } from '@/lib/shuffle-bag';
-import { TAPE_PAST, buildView, missedSquares, slideView } from '@/lib/tape';
+import { TAPE_NEXT, TAPE_PAST, buildView, missedSquares, slideView } from '@/lib/tape';
 import type { TapeMark, TapeView } from '@/lib/tape';
 
 // Name-that-square, game edition. Three modes — Practice (calm, endless),
@@ -29,11 +29,10 @@ const BEST_SURVIVAL_KEY = 'square-trainer-best-survival-v3';
 const MISS_HIST_KEY = 'square-trainer-miss-history-v2';
 const MAX_HIST_ROUNDS = 10;
 const MAX_DRILL_SQUARES = 8;
-// Tape: the deal queue holds current + 4 upcoming; the strip slides one
+// Tape: the deal queue holds current + upcoming; the strip slides one
 // slot per answer. Slot widths live in globals.css (.tape-slot, 52px
 // desktop / 48px narrow) — the slide keyframes must match them.
-const QUEUE_LEN = 5;
-const NEXT_WIDE = 4;
+const QUEUE_LEN = 1 + TAPE_NEXT;
 const MAX_PAST = 500;
 
 type MissRound = Record<string, number>;
@@ -261,12 +260,8 @@ function SwitchRow({
   );
 }
 
-function TapeSlot({ children, cls }: { children: ReactNode; cls?: string }) {
-  return (
-    <div className={`tape-slot flex shrink-0 items-center justify-center${cls ? ` ${cls}` : ''}`}>
-      {children}
-    </div>
-  );
+function TapeSlot({ children }: { children: ReactNode }) {
+  return <div className="tape-slot flex shrink-0 items-center justify-center">{children}</div>;
 }
 
 // Empty past slot at round start: a dashed ghost where ✓/✗ tiles land.
@@ -360,7 +355,7 @@ export default function SquareTrainer() {
   const missedRef = useRef(false);
   const slideIdRef = useRef(0);
   const [target, setTarget] = useState(opening.queue[0] ?? 'e4');
-  const [view, setView] = useState<TapeView>(() => buildView(opening.queue, NEXT_WIDE));
+  const [view, setView] = useState<TapeView>(() => buildView(opening.queue, TAPE_NEXT));
   const [past, setPast] = useState<TapeMark[]>([]);
   const [slide, setSlide] = useState<{ exit: TapeMark | null; id: number } | null>(null);
   const [choices, setChoices] = useState<string[]>(() => []);
@@ -412,10 +407,10 @@ export default function SquareTrainer() {
   const slipTop = missTallyEntries(slipAgg).slice(0, MAX_DRILL_SQUARES);
   const past2 = view.past.slice(-TAPE_PAST);
   // Left of current, oldest first; ghosts hold empty slots at round start.
-  const leftSlots: (TapeMark | null)[] = [
-    past2[past2.length - TAPE_PAST] ?? null,
-    past2[past2.length - 1] ?? null,
-  ];
+  const leftSlots: (TapeMark | null)[] = Array.from(
+    { length: TAPE_PAST },
+    (_, i) => past2[past2.length - TAPE_PAST + i] ?? null,
+  );
   const missed = missedSquares(past);
   const sideLabel =
     orientation === 'random'
@@ -490,7 +485,7 @@ export default function SquareTrainer() {
     // desync the target from its choices, the tape, or the flip.
     const t = q[0] ?? target;
     setTarget(t);
-    setView(buildView(q, NEXT_WIDE));
+    setView(buildView(q, TAPE_NEXT));
     setSlide(null);
     setChoices(makeChoices(t, p));
     setReveal(false);
@@ -530,7 +525,7 @@ export default function SquareTrainer() {
     const t = q[0] ?? target;
     slideIdRef.current += 1;
     setSlide({ exit: view.past[0] ?? null, id: slideIdRef.current });
-    setView((v) => slideView(v, result, incoming, NEXT_WIDE));
+    setView((v) => slideView(v, result, incoming, TAPE_NEXT));
     setTarget(t);
     setChoices(makeChoices(t, p));
     setReveal(false);
@@ -1096,7 +1091,7 @@ export default function SquareTrainer() {
       )}
 
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_270px]">
-        <div className="min-w-0">
+        <div className="min-w-0 lg:mx-auto lg:w-full lg:max-w-[80%]">
           <div className="mb-3">
             {reverse ? (
               <p className="flex h-14 items-center justify-center text-sm text-white/70">
@@ -1125,7 +1120,7 @@ export default function SquareTrainer() {
                     <CurrentTile sq={view.current} miss={shaking} />
                   </TapeSlot>
                   {view.next.map((sq, i) => (
-                    <TapeSlot key={`next-${i}`} cls={i === 3 ? 'tape-next-4' : undefined}>
+                    <TapeSlot key={`next-${i}`}>
                       <NextTile sq={sq} />
                     </TapeSlot>
                   ))}

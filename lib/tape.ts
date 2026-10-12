@@ -12,7 +12,8 @@ export interface TapeView {
   next: string[];
 }
 
-export const TAPE_PAST = 2;
+export const TAPE_PAST = 3;
+export const TAPE_NEXT = 3;
 
 // Compose the initial view from a fresh deal queue ([current, ...next]).
 export function buildView(queue: string[], nextCount: number): TapeView {
