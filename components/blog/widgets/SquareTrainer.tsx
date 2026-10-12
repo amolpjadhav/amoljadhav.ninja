@@ -5,6 +5,7 @@ import type { CSSProperties, ReactNode } from 'react';
 import { createShuffleBag, drawAvoiding, drawFromBag } from '@/lib/shuffle-bag';
 import { TAPE_NEXT, TAPE_PAST, buildView, missedSquares, slideView } from '@/lib/tape';
 import type { TapeMark, TapeView } from '@/lib/tape';
+import { encodeSeq } from '@/lib/score-seq';
 
 // Name-that-square, game edition. Three modes — Practice (calm, endless),
 // Blitz (30 seconds, points), Survival (3 lives, wrong taps cost one) — plus
@@ -892,11 +893,50 @@ export default function SquareTrainer() {
     ...(best > 0 ? { pb: String(best) } : {}),
     ...(timed ? { secs: String(blitzSecs) } : {}),
     ...(isNewBest ? { best: '1' } : {}),
+    ...(past.length > 0 ? { seq: encodeSeq(past) } : {}),
   });
   const shareUrl = `https://amoljadhav.ai/share/chess-notation?${cardParams.toString()}`;
   const xHref = `https://twitter.com/intent/tweet?text=${encodeURIComponent(
     shareText,
   )}&url=${encodeURIComponent(shareUrl)}`;
+  const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+
+  // Saves the same score card the X post embeds. Touch devices get the
+  // native share sheet (Save to Photos/Files), since mobile browsers
+  // ignore programmatic downloads; desktops download the file directly.
+  async function saveCard() {
+    if (saveState === 'saving') return;
+    setSaveState('saving');
+    try {
+      const res = await fetch(`/api/og/score?${cardParams.toString()}`);
+      if (!res.ok) throw new Error('card fetch failed');
+      const blob = await res.blob();
+      const name = `chess-notation-${score}-${attempts > 0 ? attempts : score}.png`;
+      const file = new File([blob], name, { type: 'image/png' });
+      const coarse = window.matchMedia('(pointer: coarse)').matches;
+      if (coarse && typeof navigator.canShare === 'function' && navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], title: 'Chess notation score' });
+      } else {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = name;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.setTimeout(() => URL.revokeObjectURL(url), 5000);
+      }
+      setSaveState('saved');
+    } catch (e) {
+      // Dismissing the share sheet is not a failure — just go idle.
+      if (e instanceof DOMException && e.name === 'AbortError') {
+        setSaveState('idle');
+        return;
+      }
+      setSaveState('error');
+    }
+    window.setTimeout(() => setSaveState('idle'), 2500);
+  }
 
   function dismiss() {
     stopClock();
@@ -1711,13 +1751,28 @@ export default function SquareTrainer() {
                     : `Drill your ${slipTop.length} weakest squares`}
                 </button>
               )}
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-3 gap-2">
               <button
                 type="button"
                 onClick={startRun}
                 className="flex items-center justify-center rounded-xl border border-white/20 px-4 py-2 text-sm font-bold text-white/85 transition-all duration-150 hover:bg-white/5 hover:shadow-[0_0_14px_rgba(10,238,60,0.35)] active:scale-[0.97]"
               >
                 Play again
+              </button>
+              <button
+                type="button"
+                onClick={saveCard}
+                disabled={saveState === 'saving'}
+                aria-label="Save score card image"
+                className="flex items-center justify-center rounded-xl border border-white/20 px-4 py-2 text-sm font-bold text-white/85 transition-all duration-150 hover:bg-white/5 hover:shadow-[0_0_14px_rgba(10,238,60,0.35)] active:scale-[0.97] disabled:opacity-60"
+              >
+                {saveState === 'saving'
+                  ? 'Saving…'
+                  : saveState === 'saved'
+                    ? 'Saved ✓'
+                    : saveState === 'error'
+                      ? 'Retry save'
+                      : 'Save'}
               </button>
               <a
                 href={xHref}

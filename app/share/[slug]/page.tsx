@@ -43,6 +43,7 @@ export async function generateMetadata({
     ...(first(sp.pb) ? { pb: first(sp.pb) as string } : {}),
     ...(first(sp.secs) ? { secs: first(sp.secs) as string } : {}),
     ...(first(sp.best) === '1' ? { best: '1' } : {}),
+    ...(first(sp.seq) ? { seq: first(sp.seq) as string } : {}),
   });
   const cardUrl = `${SITE}/api/og/score?${cardParams.toString()}`;
   const title = `I scored ${score}/${total} on ${postTitle}`;

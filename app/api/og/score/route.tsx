@@ -1,17 +1,22 @@
 import { ImageResponse } from 'next/og';
+import { parseSeq, seqMissed } from '@/lib/score-seq';
 
 // Personalized score card for link previews (X/Twitter, iMessage, …).
-// GET /api/og/score?score=16&total=20&acc=89&avg=1.8&best=1
+// GET /api/og/score?score=16&total=20&acc=89&avg=1.8&best=1&seq=b21e50
 // All params are validated and clamped — never trust the query string.
 export const runtime = 'edge';
 
 const W = 1200;
 const H = 630;
 const GREEN = '#4ade80';
+const RED = '#f87171';
 const BG = '#0c0e10';
 const PANEL = '#14171a';
 const INK = '#f2f4f3';
 const MUTED = '#9aa3a8';
+const SEQ_TILE = 44;
+const SEQ_GAP = 6;
+const SEQ_MAX = 42;
 
 function clampNum(v: string | null, min: number, max: number): number | null {
   if (v === null) return null;
@@ -50,10 +55,19 @@ export async function GET(req: Request) {
   const pbN = clampNum(q.get('pb'), 0, 999);
   const secsN = clampNum(q.get('secs'), 0, 999);
   const isBest = q.get('best') === '1';
+  const seq = parseSeq(q.get('seq'));
+  const missed = seqMissed(seq);
+  const overflow = seq.length > SEQ_MAX ? seq.length - SEQ_MAX + 1 : 0;
+  const shown = overflow > 0 ? seq.slice(0, SEQ_MAX - 1) : seq.slice(0, SEQ_MAX);
+  const missedLine =
+    missed.length === 0
+      ? 'CLEAN ROUND'
+      : `MISSED: ${missed.slice(0, 6).join(', ')}${missed.length > 6 ? ` +${missed.length - 6}` : ''}`;
 
   const font = await loadFont();
 
-  // Faint 8x8 board on the right for chess identity.
+  // Faint 8x8 board on the right for chess identity (fallback when no
+  // sequence travels with the link).
   const squares = Array.from({ length: 64 }, (_, i) => {
     const light = (Math.floor(i / 8) + (i % 8)) % 2 === 0;
     return (
@@ -148,18 +162,85 @@ export async function GET(req: Request) {
           </div>
         </div>
 
-        <div
-          style={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            width: 352,
-            alignContent: 'center',
-            opacity: 0.9,
-            marginLeft: 32,
-          }}
-        >
-          {squares}
-        </div>
+        {seq.length === 0 ? (
+          <div
+            style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              width: 352,
+              alignContent: 'center',
+              opacity: 0.9,
+              marginLeft: 32,
+            }}
+          >
+            {squares}
+          </div>
+        ) : (
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+              width: 352,
+              marginLeft: 32,
+            }}
+          >
+            <span style={{ fontSize: 20, color: MUTED, fontWeight: 700, letterSpacing: 2 }}>
+              SEQUENCE
+            </span>
+            <span
+              style={{
+                fontSize: 22,
+                fontWeight: 800,
+                color: missed.length === 0 ? GREEN : RED,
+                marginTop: 4,
+                marginBottom: 12,
+              }}
+            >
+              {missedLine}
+            </span>
+            <div style={{ display: 'flex', flexWrap: 'wrap', width: 352, gap: SEQ_GAP }}>
+              {shown.map((m, i) => (
+                <div
+                  key={`${m.sq}-${i}`}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: SEQ_TILE,
+                    height: SEQ_TILE,
+                    borderRadius: 10,
+                    background: m.ok ? '#0e2114' : '#2a1215',
+                    border: `2px solid ${m.ok ? GREEN : RED}`,
+                    color: m.ok ? GREEN : RED,
+                    fontSize: 19,
+                    fontWeight: 800,
+                  }}
+                >
+                  {m.sq}
+                </div>
+              ))}
+              {overflow > 0 ? (
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: SEQ_TILE,
+                    height: SEQ_TILE,
+                    borderRadius: 10,
+                    background: PANEL,
+                    color: MUTED,
+                    fontSize: 19,
+                    fontWeight: 800,
+                  }}
+                >
+                  +{overflow}
+                </div>
+              ) : null}
+            </div>
+          </div>
+        )}
       </div>
     ),
     {
