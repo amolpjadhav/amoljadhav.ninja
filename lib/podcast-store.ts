@@ -128,6 +128,26 @@ export async function upsertEpisodes(eps: ScoredInput[]): Promise<void> {
   }
 }
 
+// Refresh-throttle clock: single 'pool' row stamped by whoever runs the
+// YouTube fan-out, so N instances share a few refreshes a day.
+export async function getLastRefresh(): Promise<string | null> {
+  const { data, error } = await admin()
+    .from('podcast_refresh_state')
+    .select('refreshed_at')
+    .eq('key', 'pool')
+    .limit(1);
+  if (error) throw error;
+  const row = (data ?? [])[0] as { refreshed_at?: unknown } | undefined;
+  return typeof row?.refreshed_at === 'string' ? row.refreshed_at : null;
+}
+
+export async function setLastRefreshNow(): Promise<void> {
+  const { error } = await admin()
+    .from('podcast_refresh_state')
+    .upsert({ key: 'pool', refreshed_at: new Date().toISOString() }, { onConflict: 'key' });
+  if (error) throw error;
+}
+
 // Views-only refresh for known rows (partial upsert leaves other columns).
 export async function updateViews(counts: Map<string, number>): Promise<void> {
   const rows = [...counts].map(([video_id, views]) => ({

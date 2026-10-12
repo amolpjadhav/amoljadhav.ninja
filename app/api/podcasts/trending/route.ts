@@ -3,7 +3,7 @@ import { mostWatched, trendingNow } from '@/lib/podcasts';
 import { getPool, stripDescriptions } from '@/lib/podcast-pool';
 
 // Trending podcast episodes across the curated channel list: Trending now
-// (7-day velocity) plus Most watched (30-day volume). Shares one hourly
+// (7-day velocity) plus Most watched (30-day volume). Shares one throttled
 // pool fetch with the person route and homepage; cached 1h.
 // GET /api/podcasts/trending
 export async function GET() {
