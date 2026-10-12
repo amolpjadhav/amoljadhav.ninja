@@ -13,17 +13,17 @@ import {
 } from '@/lib/terminal-scenes';
 
 // Fortune/facts terminal: fortune → uptime → fortune → cal → fortune →
-// factor → fortune → history, looping. One command, one output (wrapping
-// to 2 lines max), hold, then a visible `clear`. Fixed 4-line frame, no
-// layout shift; pauses off-screen and in hidden tabs; reduced motion gets
-// a static snapshot with no typing or blinking.
+// factor → fortune → history, looping. Command types, output types, hold
+// 2s, then a visible `clear`. Fixed 4-line frame, no layout shift; pauses
+// off-screen and in hidden tabs; reduced motion gets a static snapshot
+// with no typing or blinking.
 
 const CHAR_MIN = 60;
 const CHAR_VAR = 50;
 const CLEAR_CHAR_MIN = 100;
 const CLEAR_CHAR_VAR = 60;
 const ENTER_PAUSE = 350;
-const HOLD_MS = 2500;
+const HOLD_MS = 2000;
 const LIVE_TICK = 100;
 const LIVE_TICKS = HOLD_MS / LIVE_TICK;
 const CLEAR_BEAT = 800;
@@ -50,7 +50,7 @@ interface Line {
   href?: string;
 }
 
-type Phase = 'cmd' | 'hold' | 'live' | 'clear';
+type Phase = 'cmd' | 'out' | 'hold' | 'live' | 'clear';
 
 interface Engine {
   order: SceneId[];
@@ -63,6 +63,8 @@ interface Engine {
   fortunes: number[];
   factorCmd: string | null;
   liveTicks: number;
+  outText: string;
+  outHref?: string;
 }
 
 interface Props {
@@ -122,6 +124,8 @@ export default function TerminalTyper({ fortunes, history, snapshot }: Props) {
     fortunes: [],
     factorCmd: null,
     liveTicks: 0,
+    outText: '',
+    outHref: undefined,
   }));
   const ref = useRef<HTMLDivElement>(null);
 
@@ -175,7 +179,7 @@ export default function TerminalTyper({ fortunes, history, snapshot }: Props) {
       }, LIVE_TICK);
       return () => clearTimeout(t);
     }
-    const target = eng.phase === 'cmd' ? cmdFor(scene, eng) : '$ clear';
+    const target = eng.phase === 'out' ? eng.outText : eng.phase === 'cmd' ? cmdFor(scene, eng) : '$ clear';
     if (eng.typed < target.length) {
       const t = setTimeout(
         () => setEng({ ...eng, typed: eng.typed + 1 }),
@@ -187,18 +191,26 @@ export default function TerminalTyper({ fortunes, history, snapshot }: Props) {
     }
     const t = setTimeout(
       () => {
-        if (eng.phase === 'cmd') {
+        if (eng.phase === 'out') {
+          // Output fully typed: settle it (with any link) and hold.
+          setEng({
+            ...eng,
+            lines: [...eng.lines, { id: eng.seq + 1, kind: 'out', text: eng.outText, href: eng.outHref }],
+            seq: eng.seq + 1,
+            liveTicks: 0,
+            phase: scene === 'uptime' ? 'live' : 'hold',
+          });
+        } else if (eng.phase === 'cmd') {
           const out = outputFor(scene, eng, { fortunes, history, landed });
           setEng({
             ...eng,
-            lines: [
-              { id: eng.seq, kind: 'cmd', text: cmdFor(scene, eng) },
-              { id: eng.seq + 1, kind: 'out', text: out.text, href: out.href },
-            ],
-            seq: eng.seq + 2,
+            lines: [{ id: eng.seq, kind: 'cmd', text: cmdFor(scene, eng) }],
+            seq: eng.seq + 1,
             fortunes: out.fortunes,
-            liveTicks: 0,
-            phase: scene === 'uptime' ? 'live' : 'hold',
+            typed: 0,
+            outText: out.text,
+            outHref: out.href,
+            phase: 'out',
           });
         } else {
           const ni = eng.idx + 1;
@@ -215,7 +227,7 @@ export default function TerminalTyper({ fortunes, history, snapshot }: Props) {
           });
         }
       },
-      eng.phase === 'cmd' ? ENTER_PAUSE : CLEAR_BEAT,
+      eng.phase === 'cmd' ? ENTER_PAUSE : eng.phase === 'out' ? 150 : CLEAR_BEAT,
     );
     return () => clearTimeout(t);
   }, [eng, active, reduceMotion, fortunes, history, landed]);
@@ -274,6 +286,7 @@ export default function TerminalTyper({ fortunes, history, snapshot }: Props) {
   // (with a solid cursor) instead of flashing a bare prompt.
   const submitted = (eng.phase === 'cmd' || eng.phase === 'clear') && !typing;
   const shown = submitted ? target : target.slice(0, eng.typed);
+  const outTyping = eng.phase === 'out';
 
   return (
     <div ref={ref} className="relative" aria-label="Site terminal">
@@ -281,7 +294,12 @@ export default function TerminalTyper({ fortunes, history, snapshot }: Props) {
       {/* Live overlay; screen readers get the static summary instead. */}
       <div aria-hidden className="absolute inset-0">
         {eng.lines.map(renderLine)}
-        {typing || submitted ? (
+        {outTyping ? (
+          <p className="whitespace-normal break-words leading-normal text-[#0aee3c]/70">
+            {eng.outText.slice(0, eng.typed)}
+            <Cursor blink={false} />
+          </p>
+        ) : typing || submitted ? (
           <p className="whitespace-nowrap overflow-hidden leading-normal text-[#0aee3c]">
             {shown.startsWith('$') ? (
               <>
