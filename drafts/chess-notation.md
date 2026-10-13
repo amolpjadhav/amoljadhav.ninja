@@ -1,4 +1,4 @@
-# How to Read Chess Notation in 10 Minutes
+# Chess Notation Trainer: Learn It, Then Drill It
 
 Category: Gaming
 

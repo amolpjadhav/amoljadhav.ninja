@@ -8,7 +8,7 @@ import type { QuizQuestion } from '@/types/database';
 // LOCAL-ONLY PREVIEW — not wired to Supabase, not linked from the site.
 // Delete this route once the draft is reviewed and published for real.
 
-const TITLE = 'How to Read Chess Notation in 10 Minutes';
+const TITLE = 'Chess Notation Trainer: Learn It, Then Drill It';
 const CATEGORY = 'Gaming';
 
 const QUIZ: QuizQuestion[] = [

@@ -1,4 +1,4 @@
-// Publishes "How to Read Chess Notation in 10 Minutes" to the blog.
+// Publishes "Chess Notation Trainer: Learn It, Then Drill It" to the blog.
 //
 // The HTML below is generated from drafts/chess-notation.md, so the draft
 // stays the source of truth for the prose. Entities are deliberately absent:
@@ -34,7 +34,7 @@ const supabase = createClient(supabaseUrl, serviceKey, {
   auth: { autoRefreshToken: false, persistSession: false },
 });
 
-const TITLE = 'How to Read Chess Notation in 10 Minutes';
+const TITLE = 'Chess Notation Trainer: Learn It, Then Drill It';
 const SLUG = 'chess-notation';
 const CATEGORY = 'Gaming';
 const READ_TIME = 4;

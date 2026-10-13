@@ -115,7 +115,8 @@ export default function ChessStepper({ positions }: { positions?: string }) {
           })
         )}
       </p>
-      <p className="text-white/70 text-sm mb-4">{pos.caption}</p>
+      {/* Fixed two-line height so stepping between one- and two-line captions never moves the board. */}
+      <p className="text-white/70 text-sm mb-4 min-h-10">{pos.caption}</p>
 
       <div className="bg-black/30 rounded-lg p-3 flex justify-center overflow-x-auto">
         <div className="shrink-0 inline-block">
