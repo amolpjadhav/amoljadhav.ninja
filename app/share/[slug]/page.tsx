@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import ShareRedirect from '@/components/blog/ShareRedirect';
+import { ARTICLE_SLUG, ARTICLE_TITLE, buildCardParams, encodeMarks, parseCardParams } from '@/lib/games/share';
 
 // Share landing: /share/chess-notation?score=16&total=20&acc=89&avg=1.8&best=1
 // Crawlers read the score-card metadata below (that's the snapshot embedded in
@@ -32,6 +33,39 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const sp = await searchParams;
+
+  // Classic-games cards: /share/classic-games-revisited?g=code-breaker&big=4/10&…
+  // Same convention as the chess card below, via lib/games/share.
+  if (slug === ARTICLE_SLUG) {
+    const card = parseCardParams((k) => first(sp[k]) ?? null);
+    if (card) {
+      const cardParams = buildCardParams({
+        game: card.game,
+        big: card.big,
+        line: card.line,
+        text: '',
+        stats: card.stats,
+        grid: card.grid.length > 0 ? encodeMarks(card.grid) : undefined,
+      });
+      const cardUrl = `${SITE}/api/og/games?${cardParams.toString()}`;
+      const title = `${card.label}: ${card.big}${card.line ? ` — ${card.line}` : ''} · ${ARTICLE_TITLE}`;
+      const description = `My ${card.label} result from ${ARTICLE_TITLE}. Can you beat it?`;
+      return {
+        title,
+        description,
+        alternates: { canonical: `${SITE}/blog/${slug}` },
+        openGraph: {
+          title,
+          description,
+          type: 'website',
+          url: `${SITE}/share/${slug}?${cardParams.toString()}`,
+          images: [{ url: cardUrl, width: 1200, height: 630, alt: title }],
+        },
+        twitter: { card: 'summary_large_image', title, description, images: [cardUrl] },
+      };
+    }
+  }
+
   const postTitle = (await getTitle(slug)) ?? 'this chess drill';
   const score = first(sp.score) ?? '0';
   const total = first(sp.total) ?? '20';
@@ -75,6 +109,8 @@ export default async function SharePage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  if ((await getTitle(slug)) === null) notFound();
+  // The games article may still be a draft: its share links should bounce
+  // to the article slug regardless of publish state.
+  if (slug !== ARTICLE_SLUG && (await getTitle(slug)) === null) notFound();
   return <ShareRedirect to={`/blog/${slug}`} />;
 }

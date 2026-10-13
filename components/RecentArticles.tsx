@@ -9,6 +9,10 @@ import { viewCountLabel } from '@/lib/homepage';
 // Unknown or unpublished slugs are silently skipped.
 export const PINNED_SLUGS = ['look-up-stock-and-company-details', 'monthly-book-spin', 'trending-podcasts'];
 
+// Playable game articles: rendered as the Games row, excluded from the
+// article pools for the same no-duplicate reason.
+export const GAMES_SLUGS = ['classic-games-revisited', 'chess-notation'];
+
 export default async function RecentArticles() {
   // A generous limit rather than a second "top by views" query — this blog
   // has well under 50 posts, so one date-ordered fetch covers both the
@@ -28,7 +32,7 @@ export default async function RecentArticles() {
     );
   }
 
-  const { rest } = splitPinnedPosts(posts, PINNED_SLUGS);
+  const { rest } = splitPinnedPosts(posts, [...PINNED_SLUGS, ...GAMES_SLUGS]);
   const [latest, ...pool] = rest;
 
   const mostRead = [...pool].sort((a, b) => (b.views ?? 0) - (a.views ?? 0)).slice(0, 3);

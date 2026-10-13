@@ -104,6 +104,40 @@ body {
   }
 }
 
+/* Five Letters tile motion: type pop, staggered reveal flip, invalid
+   shake. All static under reduced motion (instant color instead). */
+@keyframes tile-pop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+.animate-tile-pop {
+  animation: tile-pop 80ms ease-out;
+}
+@keyframes tile-flip {
+  0% { transform: rotateX(0); }
+  50% { transform: rotateX(90deg); }
+  100% { transform: rotateX(0); }
+}
+.animate-tile-flip {
+  animation: tile-flip 250ms ease-in-out;
+}
+@keyframes row-shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-6px); }
+  40%, 80% { transform: translateX(6px); }
+}
+.animate-row-shake {
+  animation: row-shake 300ms ease-in-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-tile-pop,
+  .animate-tile-flip,
+  .animate-row-shake {
+    animation: none;
+  }
+}
+
 /* Medium-style reading typography for blog post bodies.
    Wrapped in @layer components so Tailwind utilities (utilities layer) win
    over these rules: widgets portal into .article-content, and their authored

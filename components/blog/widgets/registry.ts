@@ -50,6 +50,8 @@ import RegressionToMean from './RegressionToMean';
 import GradientDescent from './GradientDescent';
 import FlagBrowser from './FlagBrowser';
 import FlagRow from './FlagRow';
+// Local-only: these belong to unpublished drafts and are deliberately not
+// committed. Commit them alongside the article that uses them.
 import EqualTransitMyth from './EqualTransitMyth';
 import DownwashPushback from './DownwashPushback';
 import UpsideDownWing from './UpsideDownWing';
@@ -59,13 +61,18 @@ import SkillMoveFinder from './SkillMoveFinder';
 import SkillInput from './SkillInput';
 import SquareTrainer from './SquareTrainer';
 import MoveTrainer from './MoveTrainer';
+import FiveLetters from './FiveLetters';
+import Game2048 from './Game2048';
+import CodeBreaker from './CodeBreaker';
+import Minesweeper from './Minesweeper';
+import GameScorecard from './GameScorecard';
+import TftItemCombinator from './TftItemCombinator';
+import TftItemsSheet from './TftItemsSheet';
 import NewtonPlayground from './NewtonPlayground';
 import StocksLookupWidget from './StocksLookupWidget';
 import BirthdayClassroom from './BirthdayClassroom';
 import BookFinderWidget from './BookFinderWidget';
 import PodcastTrendingWidget from './PodcastTrendingWidget';
-import TftItemCombinator from './TftItemCombinator';
-import TftItemsSheet from './TftItemsSheet';
 
 // Article content (stored as HTML in Supabase) can embed a widget by
 // including a placeholder element with a matching data-widget value, e.g.:
@@ -133,11 +140,16 @@ export const WIDGET_REGISTRY: Record<string, ComponentType> = {
   'skill-input': SkillInput,
   'square-trainer': SquareTrainer,
   'move-trainer': MoveTrainer,
+  'five-letters': FiveLetters,
+  'game-2048': Game2048,
+  'code-breaker': CodeBreaker,
+  'minesweeper': Minesweeper,
+  'game-scorecard': GameScorecard,
+  'tft-item-combinator': TftItemCombinator,
+  'tft-items-sheet': TftItemsSheet,
   'newton-playground': NewtonPlayground,
   'stocks-lookup': StocksLookupWidget,
   'birthday-classroom': BirthdayClassroom,
   'book-finder': BookFinderWidget,
   'podcast-trending': PodcastTrendingWidget,
-  'tft-item-combinator': TftItemCombinator,
-  'tft-items-sheet': TftItemsSheet,
 };

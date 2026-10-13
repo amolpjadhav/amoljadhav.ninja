@@ -4,6 +4,7 @@ import { Suspense } from 'react';
 import MatrixBackground from '@/components/layout/MatrixBackground';
 import RecentArticles from '@/components/RecentArticles';
 import ToolsRow from '@/components/home/ToolsRow';
+import GamesRow from '@/components/home/GamesRow';
 import HeroTerminal from '@/components/home/HeroTerminal';
 import SubscribeForm from '@/components/blog/SubscribeForm';
 
@@ -42,6 +43,26 @@ function ToolsSkeleton() {
           <div
             key={i}
             className="h-44 rounded-lg border border-[#0aee3c]/10 bg-white/[0.02] motion-safe:animate-pulse"
+          />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function GamesSkeleton() {
+  return (
+    <section aria-hidden className="relative mb-6">
+      <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide mb-2">
+        <span className="text-[#0aee3c]">$</span>
+        <span className="text-[#0aee3c]/60">Games</span>
+        <span className="flex-1 h-px bg-gradient-to-r from-[#0aee3c]/30 to-transparent" />
+      </div>
+      <div className="grid gap-3 md:grid-cols-2">
+        {[0, 1].map((i) => (
+          <div
+            key={i}
+            className="h-36 rounded-lg border border-[#0aee3c]/10 bg-white/[0.02] motion-safe:animate-pulse"
           />
         ))}
       </div>
@@ -94,6 +115,9 @@ export default function Home() {
                 </Link>
                 <Link href="/#tools" className="text-[#0aee3c]/70 hover:text-[#0aee3c] transition-colors">
                   Tools
+                </Link>
+                <Link href="/#games" className="text-[#0aee3c]/70 hover:text-[#0aee3c] transition-colors">
+                  Games
                 </Link>
                 <Link href="/stats" className="text-[#0aee3c]/70 hover:text-[#0aee3c] transition-colors">
                   Stats
@@ -148,6 +172,10 @@ export default function Home() {
 
             <Suspense fallback={<ToolsSkeleton />}>
               <ToolsRow />
+            </Suspense>
+
+            <Suspense fallback={<GamesSkeleton />}>
+              <GamesRow />
             </Suspense>
 
             {/* Latest Blog Posts */}

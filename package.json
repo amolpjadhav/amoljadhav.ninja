@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --test lib/blog-content.test.mjs lib/view-dedup.test.mjs components/blog/widgets/tftItemsSheetData.test.mjs lib/treasure-hunt.test.mjs lib/newton.test.mjs lib/trampoline.test.mjs lib/bowling.test.mjs lib/mash.test.mjs lib/stocks.test.mjs lib/publish-scripts.test.mjs lib/birthday.test.mjs lib/books.test.mjs lib/book-spins.test.mjs lib/podcasts.test.mjs lib/homepage.test.mjs lib/crypto.test.mjs lib/people.test.mjs lib/podcast-store.test.mjs lib/shuffle-bag.test.mjs lib/refresh-guard.test.mjs lib/tape.test.mjs lib/terminal-scenes.test.mjs lib/score-seq.test.mjs",
+    "test": "node --test lib/blog-content.test.mjs lib/view-dedup.test.mjs components/blog/widgets/tftItemsSheetData.test.mjs lib/treasure-hunt.test.mjs lib/newton.test.mjs lib/trampoline.test.mjs lib/bowling.test.mjs lib/mash.test.mjs lib/stocks.test.mjs lib/publish-scripts.test.mjs lib/birthday.test.mjs lib/books.test.mjs lib/book-spins.test.mjs lib/podcasts.test.mjs lib/homepage.test.mjs lib/crypto.test.mjs lib/people.test.mjs lib/podcast-store.test.mjs lib/shuffle-bag.test.mjs lib/refresh-guard.test.mjs lib/tape.test.mjs lib/terminal-scenes.test.mjs lib/score-seq.test.mjs lib/games/five-letters.test.mjs lib/games/g2048.test.mjs lib/games/code-breaker.test.mjs lib/games/minesweeper.test.mjs lib/games/share.test.mjs lib/games/scorecard.test.mjs",
     "migrate:medium": "node scripts/migrate-medium.mjs"
   },
   "dependencies": {
