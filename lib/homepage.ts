@@ -48,16 +48,39 @@ export interface StripQuote {
   label: string;
   changePct: number | null;
   spark: number[];
+  prevClose: number | null;
 }
 
 export interface StripItem {
   label: string;
   changePct: number | null;
   spark: number[];
+  /** Baseline for the card's intraday chart: where the day started. */
+  prevClose: number | null;
 }
 
 export function toStripItems(strip: StripQuote[]): StripItem[] {
-  return strip.map((q) => ({ label: q.label, changePct: q.changePct, spark: q.spark }));
+  return strip.map((q) => ({
+    label: q.label,
+    changePct: q.changePct,
+    spark: q.spark,
+    prevClose: q.prevClose,
+  }));
+}
+
+export type ChangeTone = 'up' | 'down' | 'flat';
+
+// Honest move formatting for the Tools card. Two rules, both about not
+// overclaiming: a move too small to round to anything is flat and gray
+// (green "+0.0%" says "up" about a number that isn't), and a move under a
+// tenth of a percent gets a second decimal so the color has something real
+// to describe. changePct arrives as a fraction: -0.001 is -0.1%.
+export function formatChangePct(x: number | null | undefined): { text: string; tone: ChangeTone } {
+  if (x === null || x === undefined || !Number.isFinite(x)) return { text: '—', tone: 'flat' };
+  const pct = x * 100;
+  if (Math.abs(pct) < 0.005) return { text: '0.00%', tone: 'flat' };
+  const text = `${pct > 0 ? '+' : '-'}${Math.abs(pct).toFixed(Math.abs(pct) < 0.1 ? 2 : 1)}%`;
+  return { text, tone: pct > 0 ? 'up' : 'down' };
 }
 
 // A strip where every quote rounds to 0.0% is a dead feed (seen on

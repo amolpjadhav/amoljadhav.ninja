@@ -5,9 +5,9 @@ import { genreBySlug } from '@/lib/books';
 import { coverUrl } from '@/lib/books';
 import { poolById } from '@/lib/book-pool';
 import { formatPerHour } from '@/lib/podcasts';
-import { formatPct } from '@/lib/stocks';
 import { stripHasMoves } from '@/lib/homepage';
 import { PINNED_SLUGS } from '@/components/RecentArticles';
+import MarketStrip from './MarketStrip';
 import TickerLookup from './TickerLookup';
 import { getEpisode, getStrip } from './heroData';
 
@@ -49,67 +49,25 @@ function Fallback({ excerpt }: { excerpt: string | null }) {
   return <p className="text-white/40 text-xs leading-relaxed line-clamp-3">{excerpt}</p>;
 }
 
-function Sparkline({ points, positive }: { points: number[]; positive: boolean }) {
-  if (points.length < 2) return null;
-  const w = 100;
-  const h = 28;
-  const min = Math.min(...points);
-  const max = Math.max(...points);
-  const range = max - min || 1;
-  const coords = points
-    .map(
-      (p, i) =>
-        `${((i / (points.length - 1)) * w).toFixed(1)},${(h - ((p - min) / range) * (h - 4) - 2).toFixed(1)}`,
-    )
-    .join(' ');
-  return (
-    <svg viewBox={`0 0 ${w} ${h}`} className="h-7 w-full" preserveAspectRatio="none" aria-hidden>
-      <polyline
-        points={coords}
-        fill="none"
-        stroke={positive ? '#0aee3c' : '#f87171'}
-        strokeWidth="1.5"
-        vectorEffect="non-scaling-stroke"
-      />
-    </svg>
-  );
-}
-
 async function StockCard({ slug, title, excerpt }: { slug: string; title: string; excerpt: string | null }) {
   const strip = await getStrip();
   const live = strip !== null && strip.length >= 3 && stripHasMoves(strip);
-  const featured = live && strip ? (strip.find((s) => s.label === 'S&P 500') ?? strip[0]) : null;
   // A form can't live inside the card link, so this card is a plain shell
   // with a linked title instead of a whole-card link.
   return (
     <div className="group flex flex-col bg-black border border-[#0aee3c]/20 rounded-lg p-4 transition-all hover:border-[#0aee3c]/50 hover:shadow-[0_0_16px_rgba(10,238,60,0.25)]">
-      <Link href={`/blog/${slug}`}>
-        <h3 className="text-white/85 group-hover:text-white transition-colors font-medium text-base mb-2">
-          {title}
-        </h3>
-      </Link>
-      {live && strip ? (
-        <>
-          <div className="font-mono text-xs">
-            {strip.slice(0, 4).map((s) => (
-              <div key={s.label} className="flex items-baseline justify-between gap-2 py-0.5">
-                <span className="text-white/50">{s.label}</span>
-                <span className={s.changePct !== null && s.changePct < 0 ? 'text-red-400' : 'text-[#0aee3c]'}>
-                  {formatPct(s.changePct)}
-                </span>
-              </div>
-            ))}
-          </div>
-          {featured && featured.spark.length >= 2 && (
-            <div className="mt-2">
-              <p className="font-mono text-[11px] text-white/40 mb-1">{featured.label}</p>
-              <Sparkline points={featured.spark} positive={(featured.changePct ?? 0) >= 0} />
-            </div>
-          )}
-        </>
-      ) : (
-        <Fallback excerpt={excerpt} />
-      )}
+      <div className="mb-2 flex items-baseline justify-between gap-2">
+        <Link href={`/blog/${slug}`}>
+          <h3 className="text-white/85 group-hover:text-white transition-colors font-medium text-base">{title}</h3>
+        </Link>
+        <Link
+          href={`/blog/${slug}`}
+          className="shrink-0 font-mono text-[11px] text-[#0aee3c]/60 transition-colors hover:text-[#0aee3c]"
+        >
+          Open <span aria-hidden>→</span>
+        </Link>
+      </div>
+      {live && strip ? <MarketStrip items={strip.slice(0, 4)} /> : <Fallback excerpt={excerpt} />}
       <div className="mt-auto pt-3">
         <TickerLookup />
       </div>
