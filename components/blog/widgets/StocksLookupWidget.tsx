@@ -5,35 +5,16 @@ import { useSearchParams } from 'next/navigation';
 import StocksLookup from '@/components/stocks/StocksLookup';
 import CryptoLookup from '@/components/stocks/CryptoLookup';
 
-type Mode = 'stocks' | 'crypto';
-
-function ModeToggle({ mode, onChange }: { mode: Mode; onChange: (m: Mode) => void }) {
-  const btn = (active: boolean) =>
-    `text-sm font-bold px-4 py-1.5 rounded-full transition-colors ${
-      active ? 'bg-white/10 text-white/90' : 'text-white/40 hover:text-white/70'
-    }`;
-  return (
-    <div role="tablist" aria-label="Lookup type" className="flex gap-1 mb-6 border-b border-white/10 pb-3">
-      <button role="tab" aria-selected={mode === 'stocks'} type="button" onClick={() => onChange('stocks')} className={btn(mode === 'stocks')}>
-        Stocks
-      </button>
-      <button role="tab" aria-selected={mode === 'crypto'} type="button" onClick={() => onChange('crypto')} className={btn(mode === 'crypto')}>
-        Crypto
-      </button>
-    </div>
-  );
-}
-
-function LookupWithMode() {
+function LookupSwitch() {
   const searchParams = useSearchParams();
-  // Shared ?coin= links open straight into crypto mode.
-  const [mode, setMode] = useState<Mode>(() => (searchParams.get('coin') ? 'crypto' : 'stocks'));
-  return (
-    <div>
-      <ModeToggle mode={mode} onChange={setMode} />
-      {mode === 'stocks' ? <StocksLookup initialTicker="" /> : <CryptoLookup initialCoin="" />}
-    </div>
-  );
+  // Shared ?coin= links open straight into crypto mode. A coin picked or
+  // typed in the unified stock search swaps here; back returns to stocks.
+  // No tabs: the search box figures out the type.
+  const [coin, setCoin] = useState<string | null>(() => searchParams.get('coin'));
+  if (coin) {
+    return <CryptoLookup initialCoin={coin} onBack={() => setCoin(null)} />;
+  }
+  return <StocksLookup initialTicker="" onPickCoin={(id) => setCoin(id)} />;
 }
 
 // Article embed for the lookup tool (<div data-widget="stocks-lookup">).
@@ -42,7 +23,7 @@ function LookupWithMode() {
 export default function StocksLookupWidget() {
   return (
     <Suspense fallback={<p className="text-white/50 text-sm animate-pulse">Loading lookup…</p>}>
-      <LookupWithMode />
+      <LookupSwitch />
     </Suspense>
   );
 }

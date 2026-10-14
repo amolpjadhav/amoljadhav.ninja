@@ -19,6 +19,9 @@ import {
 } from './ProfileBlocks';
 
 const ACCENT = categoryColor('Investing');
+// Actions are yellow (Look up, Subscribe); the category accent stays on
+// headings, never on prices.
+const ACTION_BG = '#facc15';
 const RECENT_KEY = 'crypto-recent';
 const EXAMPLES = ['BTC', 'ETH', 'SOL'];
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -77,7 +80,14 @@ function Sparkline({ points }: { points: number[] }) {
   );
 }
 
-export default function CryptoLookup({ initialCoin }: { initialCoin: string }) {
+export default function CryptoLookup({
+  initialCoin,
+  onBack,
+}: {
+  initialCoin: string;
+  // Back to the unified stock search (the widget swaps components; no tabs).
+  onBack?: () => void;
+}) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -249,19 +259,19 @@ export default function CryptoLookup({ initialCoin }: { initialCoin: string }) {
     // Static text trips browser spellcheck on symbols (dotted underlines);
     // nothing here is editable.
     <div spellCheck={false}>
+      {onBack && (
+        <button
+          type="button"
+          onClick={onBack}
+          className="mb-4 text-xs font-bold text-white/45 hover:text-white/80 transition-colors"
+        >
+          ← Back to search
+        </button>
+      )}
       {idle ? (
         <>
-          <p className="text-[11px] font-bold uppercase tracking-widest text-white/40 mb-3">Investing · Free tool</p>
-          <h1 className="font-serif text-4xl sm:text-5xl font-bold text-white/95 mb-3">Look up any coin</h1>
-          <p className="text-white/55 text-base leading-relaxed mb-6 max-w-xl">
-            <span className="hidden sm:inline">
-              The market behind the symbol: price, supply, tokenomics, and trend — all from CoinGecko market data.
-            </span>
-            <span className="sm:hidden">Price, supply, and tokenomics, from CoinGecko market data.</span>
-          </p>
-
           <form
-            className="flex gap-2 mb-4"
+            className="mb-4"
             onSubmit={(e) => {
               e.preventDefault();
               lookup(input);
@@ -281,25 +291,26 @@ export default function CryptoLookup({ initialCoin }: { initialCoin: string }) {
                 autoCorrect="off"
                 spellCheck={false}
                 enterKeyHint="search"
-                className="w-full bg-black/40 border border-white/15 rounded-xl pl-11 pr-4 sm:pr-12 py-3.5 text-[15px] text-white/90 placeholder:text-white/30 focus:outline-none focus:border-white/40 transition-colors"
+                className="h-14 w-full rounded-[14px] border border-white/15 bg-black/40 pl-11 pr-24 text-[15px] text-white/90 placeholder:text-white/30 transition-colors focus:border-[#facc15]/80 focus:outline-none sm:pr-44"
               />
-              <kbd
-                aria-hidden
-                title="Press / to focus search"
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-white/30 border border-white/15 rounded-md px-1.5 py-0.5 pointer-events-none hidden sm:block"
+              <button
+                type="submit"
+                disabled={loading || input.trim() === ''}
+                aria-label="Look up"
+                className="absolute right-1.5 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center gap-1.5 rounded-[10px] font-sans text-[15px] font-semibold transition hover:brightness-110 active:translate-y-[calc(-50%+1px)] disabled:cursor-default sm:h-11 sm:w-auto sm:px-4"
+                style={input.trim() ? { background: ACTION_BG, color: '#0a0a0a' } : { background: '#2a2d33', color: '#6b7280' }}
               >
-                /
-              </kbd>
+                <span className="hidden sm:inline">{loading ? 'Looking up' : 'Look up'}</span>
+                {loading ? (
+                  <span
+                    aria-hidden
+                    className="inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-black/30 border-t-black"
+                  />
+                ) : (
+                  <span aria-hidden>→</span>
+                )}
+              </button>
             </div>
-            {/* Mobile submits via the keyboard's search action (per mock). */}
-            <button
-              type="submit"
-              disabled={loading}
-              className="hidden sm:block text-[15px] font-bold px-6 rounded-xl transition-transform hover:scale-105 disabled:opacity-50 disabled:hover:scale-100 shrink-0"
-              style={{ background: ACCENT, color: '#0a0a0a' }}
-            >
-              {loading ? 'Looking up...' : 'Look up'}
-            </button>
           </form>
 
           <div className="flex flex-wrap items-center gap-2 mb-2">
@@ -330,7 +341,7 @@ export default function CryptoLookup({ initialCoin }: { initialCoin: string }) {
             </p>
 
             <form
-              className="flex flex-col sm:flex-row gap-2 mb-3"
+              className="mb-3"
               onSubmit={(e) => {
                 e.preventDefault();
                 lookup(input);
@@ -339,24 +350,35 @@ export default function CryptoLookup({ initialCoin }: { initialCoin: string }) {
               <label htmlFor="coin" className="sr-only">
                 Coin symbol
               </label>
-              <input
-                id="coin"
-                ref={inputRef}
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder="SYMBOL  e.g. SOL"
-                autoCorrect="off"
-                spellCheck={false}
-                className="flex-1 min-w-0 bg-black/40 border border-white/15 rounded px-3 py-2 text-sm text-white/90 placeholder:text-white/30 focus:outline-none focus:border-white/40 transition-colors"
-              />
-              <button
-                type="submit"
-                disabled={loading}
-                className="text-sm font-bold px-4 py-2 rounded transition-transform hover:scale-105 disabled:opacity-50 disabled:hover:scale-100 shrink-0"
-                style={{ background: ACCENT, color: '#0a0a0a' }}
-              >
-                {loading ? 'Looking up...' : 'Lookup'}
-              </button>
+              <div className="relative">
+                <input
+                  id="coin"
+                  ref={inputRef}
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  placeholder="SYMBOL  e.g. SOL"
+                  autoCorrect="off"
+                  spellCheck={false}
+                  className="h-11 w-full rounded-[10px] border border-white/15 bg-black/40 pl-3 pr-[104px] text-sm text-white/90 placeholder:text-white/30 transition-colors focus:border-[#facc15]/80 focus:outline-none"
+                />
+                <button
+                  type="submit"
+                  disabled={loading || input.trim() === ''}
+                  aria-label="Look up"
+                  className="absolute right-1 top-1/2 flex h-9 -translate-y-1/2 items-center justify-center gap-1.5 rounded-lg px-3 font-sans text-[13px] font-semibold transition hover:brightness-110 active:translate-y-[calc(-50%+1px)] disabled:cursor-default"
+                  style={input.trim() ? { background: ACTION_BG, color: '#0a0a0a' } : { background: '#2a2d33', color: '#6b7280' }}
+                >
+                  {loading ? 'Looking up' : 'Lookup'}
+                  {loading ? (
+                    <span
+                      aria-hidden
+                      className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-black/30 border-t-black"
+                    />
+                  ) : (
+                    <span aria-hidden>→</span>
+                  )}
+                </button>
+              </div>
             </form>
 
             <div className="flex flex-wrap gap-2 mb-2 text-xs">
@@ -446,7 +468,7 @@ export default function CryptoLookup({ initialCoin }: { initialCoin: string }) {
             <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 mt-1">
               <span className="text-3xl font-bold text-white/95 tabular-nums">{formatCryptoPrice(data.price)}</span>
               {data.changePct24h !== null && (
-                <span className={`text-base font-semibold tabular-nums ${up ? 'text-green-400' : 'text-orange-400'}`}>
+                <span className={`text-base font-semibold tabular-nums ${up ? 'text-green-400' : 'text-red-400'}`}>
                   {up ? '↑' : '↓'} {formatPct(data.changePct24h)}
                   {data.change24h !== null && (
                     <span className="text-sm font-normal text-white/50">
@@ -506,7 +528,7 @@ export default function CryptoLookup({ initialCoin }: { initialCoin: string }) {
             <>
               <ProfileSection n={2} title="Overview" question={`What is ${data.name}?`} note="Categories are CoinGecko's labels, not a rating. Read the description for what the network does, then check who actually uses it before going further.">
                 {data.description ? (
-                  <p className="text-[15px] text-white/80 leading-relaxed">{data.description}</p>
+                  <p className="text-[15px] text-white/80 leading-relaxed font-sans">{data.description}</p>
                 ) : (
                   <p className="text-sm text-white/40">No description available for this coin.</p>
                 )}
@@ -553,7 +575,7 @@ export default function CryptoLookup({ initialCoin }: { initialCoin: string }) {
                     >
                       <div className="h-full bg-amber-300" style={{ width: `${emitted * 100}%` }} />
                     </div>
-                    <p className="mt-2 text-sm text-white/75 leading-relaxed">
+                    <p className="mt-2 text-sm text-white/75 leading-relaxed font-sans">
                       {formatPct(emitted, 0)} of all {data.symbol} that will ever exist is already in circulation
                       {data.fdv !== null && data.marketCap ? (
                         <>
@@ -594,7 +616,7 @@ export default function CryptoLookup({ initialCoin }: { initialCoin: string }) {
                       label={r.label}
                       value={
                         r.value !== null ? (
-                          <span className={r.value >= 0 ? 'text-green-400' : 'text-orange-400'}>{formatPct(r.value)}</span>
+                          <span className={r.value >= 0 ? 'text-green-400' : 'text-red-400'}>{formatPct(r.value)}</span>
                         ) : (
                           '—'
                         )

@@ -72,14 +72,20 @@ export default function LikeButton({
       onClick={toggleLike}
       disabled={pending}
       aria-pressed={liked}
-      aria-label={liked ? `Unlike this post, ${likes} likes` : `Like this post, ${likes} likes`}
+      aria-label={
+        likes > 0
+          ? liked
+            ? `Unlike this post, ${likes} likes`
+            : `Like this post, ${likes} likes`
+          : 'Like this post'
+      }
       className="flex items-center gap-2 text-sm text-white/60 border border-white/15 rounded-full px-3 py-1.5 hover:border-white/30 hover:text-white transition-colors disabled:opacity-60"
     >
       <Heart
         size={16}
         className={liked ? 'fill-[#f472b6] text-[#f472b6]' : ''}
       />
-      <span>{likes}</span>
+      {likes > 0 && <span>{likes}</span>}
     </button>
   );
 }

@@ -1756,7 +1756,12 @@ export function formatEps(v: number | null | undefined): string {
 
 export function formatPct(x: number | null | undefined, digits = 1): string {
   if (x === null || x === undefined || !Number.isFinite(x)) return '—';
-  return `${x < 0 ? '-' : x > 0 ? '+' : ''}${Math.abs(x * 100).toFixed(digits)}%`;
+  // Below half a basis point the move is noise: print a flat 0.00% so a
+  // dust-negative never renders as "-0.0%". Under 0.1% one decimal would
+  // round to "0.0%", so show two.
+  if (Math.abs(x * 100) < 0.005) return '0.00%';
+  const d = Math.abs(x * 100) < 0.1 ? Math.max(digits, 2) : digits;
+  return `${x < 0 ? '-' : x > 0 ? '+' : ''}${Math.abs(x * 100).toFixed(d)}%`;
 }
 
 export function formatInt(n: number | null | undefined): string {
@@ -2500,6 +2505,12 @@ export interface MarketQuote {
   changePct: number | null;
   volume: number | null;
   spark: number[];
+  // Intraday timestamps parallel to spark (for chart hover tooltips).
+  // Present only when spark came from a /chart payload.
+  sparkT?: number[];
+  // After-hours move vs the regular close (post-16:00 ET prints), from
+  // the same /chart payload. Null when the session produced none.
+  ahChangePct?: number | null;
   prevClose: number | null;
 }
 
@@ -2529,6 +2540,9 @@ const MARKET_STRIP_DEFS: StripDef[] = [
   { label: 'Russell 2000', symbol: 'IWM', via: 'IWM', assetClasses: ['etf'] },
   { label: 'Gold', symbol: 'GLD', via: 'GLD', assetClasses: ['etf'] },
   { label: 'Crude Oil', symbol: 'USO', via: 'USO', assetClasses: ['etf'] },
+  // The fear gauge itself isn't quotable keyless; VIXY is its liquid
+  // tracker, labeled like every other proxy.
+  { label: 'VIX', symbol: 'VIXY', via: 'VIXY', assetClasses: ['etf'] },
 ];
 
 const MAG7 = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'NVDA', 'META', 'TSLA'];
@@ -2574,6 +2588,12 @@ const MARKET_WATCHLIST = [
   'ABNB',
 ];
 
+// Headline → ticker matching universe for the news section (Mag 7 +
+// movers watchlist + a few liquid names headlines name constantly).
+export const NEWS_TICKER_UNIVERSE: string[] = [
+  ...new Set([...MAG7, ...MARKET_WATCHLIST, 'TSM', 'MRVL', 'SPY', 'QQQ']),
+];
+
 function toMarketQuote(
   label: string,
   via: string | null,
@@ -2592,6 +2612,7 @@ function toMarketQuote(
     changePct: q.changePct,
     volume: q.volume,
     spark: sparkLen > 0 ? card.priceHistory.slice(-sparkLen).map((p) => p.close) : [],
+    sparkT: [],
     prevClose: null,
   };
 }
@@ -2616,22 +2637,29 @@ function chartToMarketQuote(
     changePct: q.changePct,
     volume: q.volume,
     spark: thinPoints(chart.points),
+    sparkT: thinTimes(chart.points),
     prevClose: chart.prevClose,
   };
 }
 
 // Pure: top 5 gainers / losers by day change, top 5 trending by dollar
 // volume. Rows missing the ranked field are skipped, never crash the sort.
+// Gainers/losers need 1M+ shares on the day so a thin name can't top the
+// board; the watchlist is curated large-caps, so no market-cap gate is
+// needed on top. (Average-volume data isn't available keyless, which is
+// why trending ranks by today's dollar volume, not relative volume.)
+const MOVER_MIN_VOLUME = 1_000_000;
 export function selectMovers(quotes: MarketQuote[]): {
   gainers: MarketQuote[];
   losers: MarketQuote[];
   trending: MarketQuote[];
 } {
-  const scored = quotes.filter((q) => q.changePct !== null);
+  const liquid = (q: MarketQuote) => (q.volume ?? 0) >= MOVER_MIN_VOLUME;
+  const scored = quotes.filter((q) => q.changePct !== null && liquid(q));
   const gainers = [...scored].sort((a, b) => b.changePct! - a.changePct!).slice(0, 5);
   const losers = [...scored].sort((a, b) => a.changePct! - b.changePct!).slice(0, 5);
   const trending = quotes
-    .filter((q) => q.price !== null && q.volume !== null)
+    .filter((q) => q.price !== null && q.volume !== null && liquid(q))
     .sort((a, b) => b.price! * b.volume! - a.price! * a.volume!)
     .slice(0, 5);
   return { gainers, losers, trending };
@@ -2752,7 +2780,31 @@ export async function getMarketMovers(opts?: { timeoutMs?: number }): Promise<{
   const withSpark = (q: MarketQuote): MarketQuote => {
     const chart = rankedCharts[ranked.indexOf(q.symbol)];
     if (!chart) return q;
-    return { ...q, spark: thinPoints(chart.points), prevClose: chart.prevClose };
+    const cq = chart.quote;
+    // One payload per row: price and % come from the same /chart response
+    // as the sparkline and previous close. Mixing the /info quote with the
+    // /chart series produced rows like "+1.9%" over a line sitting entirely
+    // under its dashed close (two sessions, one row). When the chart has
+    // no usable quote, fall back to deriving the move from the series
+    // anchor; only a dead chart keeps the /info numbers.
+    const aligned =
+      cq && cq.price !== null && Number.isFinite(cq.price)
+        ? {
+            price: cq.price,
+            change: cq.change,
+            changePct:
+              cq.changePct ??
+              (chart.prevClose !== null && chart.prevClose > 0 ? (cq.price - chart.prevClose) / chart.prevClose : null),
+          }
+        : null;
+    return {
+      ...q,
+      ...aligned,
+      spark: thinPoints(chart.points),
+      sparkT: thinTimes(chart.points),
+      prevClose: chart.prevClose,
+      ahChangePct: chart.ahChangePct,
+    };
   };
   return {
     gainers: gainers.map(withSpark),
@@ -2979,6 +3031,33 @@ export interface IntradayChart {
   prevClose: number | null;
   company: string | null;
   quote: StockQuote | null;
+  // Extended-hours move vs the regular close, from the series' own
+  // post-16:00 ET prints. Null when the series ends at/below the close
+  // time or has no usable close to compare against.
+  ahChangePct: number | null;
+}
+
+// Minutes since midnight in America/New_York for an epoch-ms instant.
+// Local copy (this module stays import-free; lib/market-hours has the
+// full civil-date machinery, this needs only the clock).
+const ET_CLOCK = new Intl.DateTimeFormat('en-US', {
+  timeZone: 'America/New_York',
+  hour: 'numeric',
+  minute: 'numeric',
+  hourCycle: 'h23',
+});
+function etMinutesOfDay(epochMs: number): number | null {
+  try {
+    const parts: Record<string, string> = {};
+    for (const p of ET_CLOCK.formatToParts(new Date(epochMs))) {
+      if (p.type !== 'literal') parts[p.type] = p.value;
+    }
+    const h = Number(parts.hour) % 24;
+    const m = Number(parts.minute);
+    return Number.isFinite(h) && Number.isFinite(m) ? h * 60 + m : null;
+  } catch {
+    return null;
+  }
 }
 
 interface NasdaqChartJson {
@@ -3009,18 +3088,29 @@ export function extractChart(d: NasdaqChartJson['data']): IntradayChart | null {
   if (points.length === 0) return null;
   points.sort((a, b) => a.t - b.t);
   const pct = parseNum(d?.percentageChange);
+  const close = parseNum(d?.lastSalePrice);
+  // After-hours: the /info payload carries no extended-hours quote, but
+  // the series keeps printing past 16:00 ET. Last post-close print vs
+  // the regular close is the after-hours move.
+  const last = points[points.length - 1];
+  const lastMin = last ? etMinutesOfDay(last.t) : null;
+  const ahChangePct =
+    close !== null && close > 0 && last && lastMin !== null && lastMin > 16 * 60
+      ? (last.v - close) / close
+      : null;
   return {
     points,
     prevClose: parseNum(d?.previousClose),
     company: d?.company ?? null,
     quote: {
-      price: parseNum(d?.lastSalePrice),
+      price: close,
       change: parseNum(d?.netChange),
       changePct: pct !== null ? pct / 100 : null,
       volume: parseNum(d?.volume),
       lastTrade: d?.timeAsOf ?? null,
       marketStatus: null,
     },
+    ahChangePct,
   };
 }
 
@@ -3054,6 +3144,19 @@ export function thinPoints(points: IntradayPoint[], max = 60): number[] {
   const step = Math.ceil(points.length / max);
   const out = points.filter((_, i) => i % step === 0).map((p) => p.v);
   const last = points[points.length - 1].v;
+  if (out[out.length - 1] !== last) out.push(last);
+  return out;
+}
+
+// Timestamps parallel to thinPoints' values (same stride, same anchor),
+// for chart hover tooltips. Keep the two in sync: spark[i] happened at
+// sparkT[i].
+export function thinTimes(points: IntradayPoint[], max = 60): number[] {
+  if (points.length <= max) return points.map((p) => p.t);
+  const step = Math.ceil(points.length / max);
+  const idx = points.map((_, i) => i).filter((i) => i % step === 0);
+  const out = idx.map((i) => points[i].t);
+  const last = points[points.length - 1].t;
   if (out[out.length - 1] !== last) out.push(last);
   return out;
 }

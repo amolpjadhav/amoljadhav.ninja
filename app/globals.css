@@ -172,6 +172,15 @@ body {
   margin-top: 0;
 }
 
+/* The stock lookup is a full-bleed tool, not prose: it keeps none of the
+   editorial frame (accent bar, tint, inset padding). */
+.article-section:has(> [data-widget='stocks-lookup']) {
+  border-left: 0;
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
+}
+
 .article-section > *:last-child {
   margin-bottom: 0;
 }
@@ -578,5 +587,48 @@ body {
     border-radius: 0;
     border-left-width: 0;
     border-right-width: 0;
+  }
+}
+
+/* Market motion: ticker tape scroll, sparkline draw-in, paint flash.
+   Everything lives behind prefers-reduced-motion: no-preference, so
+   reduced-motion readers get the static row, full charts, and plain
+   numbers with zero animation. */
+.tape-track {
+  width: max-content;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .tape-track {
+    animation: tape-scroll 45s linear infinite;
+  }
+  .tape:hover .tape-track,
+  .tape:focus-within .tape-track {
+    animation-play-state: paused;
+  }
+  .spark-draw {
+    stroke-dasharray: 500;
+    stroke-dashoffset: 500;
+    animation: spark-draw 600ms ease-out forwards;
+  }
+  .paint-flash {
+    animation: paint-flash 400ms ease-out;
+  }
+}
+@keyframes tape-scroll {
+  to {
+    transform: translateX(-50%);
+  }
+}
+@keyframes spark-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes paint-flash {
+  0% {
+    filter: brightness(2.2);
+  }
+  100% {
+    filter: brightness(1);
   }
 }

@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import Header from '@/components/layout/Header';
@@ -9,13 +10,14 @@ import {
   formatLastTrade,
   formatPct,
   formatPrice,
-  getMarketStrip,
   getStockCardData,
   normalizeTicker,
   quoteDayParam,
 } from '@/lib/stocks';
 import { getCoinCard, normalizeCoinId } from '@/lib/crypto';
 import ShareButtons from '@/components/blog/ShareButtons';
+import TapeBar from '@/components/stocks/TickerTape';
+import MarketHeadlines from '@/components/stocks/MarketHeadlines';
 import LikeButton from '@/components/blog/LikeButton';
 import ViewCounter from '@/components/blog/ViewCounter';
 import QuizModal from '@/components/blog/QuizModal';
@@ -150,57 +152,34 @@ export async function generateMetadata({
 
 // The lookup article's body is only the interactive widget placeholder —
 // the tool itself mounts in the browser — so crawlers and no-JS readers
-// saw an empty article. This server block gives them the same landing
-// state as text: what the tool covers, today's index snapshot, and the
-// quoted company when a ?ticker= / ?coin= link is shared. The strip is
-// the fast 7-symbol loader (bounded, degrades to nothing); the 40-stock
-// movers fan-out stays client-side behind the widget's own skeleton.
+// saw an empty article. This server block gives them the quoted company
+// when a ?ticker= / ?coin= link is shared; the markets grid itself lives
+// in the widget between search and movers (client-fetched, skeletoned
+// like movers always were). Prose is serif at reading width; monospace
+// is reserved for tickers and numbers, matching the rest of the page.
 async function LookupSeo({ ticker, coin }: { ticker: string; coin: string }) {
-  const [strip, card, coinCard] = await Promise.all([
-    getMarketStrip().catch(() => null),
+  const [card, coinCard] = await Promise.all([
     ticker ? getStockCardData(ticker).catch(() => null) : Promise.resolve(null),
     !ticker && coin ? getCoinCard(coin).catch(() => null) : Promise.resolve(null),
   ]);
 
   const cardName = card ? displayCompanyName(card.companyName) : null;
-  const day =
-    strip && strip.strip.length > 0
-      ? new Date(strip.asOf).toLocaleDateString([], { month: 'short', day: 'numeric' })
-      : null;
 
   return (
-    <section aria-label="About this lookup tool" className="space-y-4 text-[15px] leading-relaxed text-white/75">
-      <div className="space-y-2">
-        <h2 className="text-lg font-bold text-white/90">What this tool does</h2>
-        <p>
-          Look up any US stock for its live price and day&apos;s move, what the company actually does, segment
-          revenue, financials, and its latest SEC filings — on one page. Crypto lookups cover price, supply,
-          tokenomics, and trend. Quotes are delayed; company profiles are built from SEC filings.
-        </p>
-        <p className="text-sm text-white/55">
-          Try:{' '}
-          {['NVDA', 'AAPL', 'META', 'TSLA', 'AMZN'].map((t, i) => (
-            <span key={t}>
-              {i > 0 && ' · '}
-              <a className="text-white/80 underline decoration-white/25 underline-offset-2 hover:text-white" href={`/blog/${STOCK_LOOKUP_SLUG}?ticker=${t}`}>
-                {t}
-              </a>
-            </span>
-          ))}
-        </p>
-      </div>
-
+    <section aria-label="Market snapshot" className="space-y-6 font-sans text-[15px] leading-relaxed text-white/75">
       {card && cardName && (
-        <div className="space-y-1">
+        <div className="space-y-1 max-w-[70ch]">
           <h2 className="text-lg font-bold text-white/90">
-            {cardName} ({card.ticker})
+            {cardName} (<span className="font-mono">{card.ticker}</span>)
           </h2>
           <p>
             {card.quote && card.quote.price !== null ? (
               <>
-                Last {formatPrice(card.quote.price)}
-                {card.quote.changePct !== null && <> ({formatPct(card.quote.changePct)})</>} ·{' '}
-                {formatLastTrade(card.quote.lastTrade, card.quote.marketStatus)}
+                Last <span className="font-mono tabular-nums">{formatPrice(card.quote.price)}</span>
+                {card.quote.changePct !== null && (
+                  <> (<span className="font-mono tabular-nums">{formatPct(card.quote.changePct)}</span>)</>
+                )}{' '}
+                · {formatLastTrade(card.quote.lastTrade, card.quote.marketStatus)}
               </>
             ) : (
               <>Quote unavailable right now — the live tool below retries automatically.</>
@@ -213,13 +192,15 @@ async function LookupSeo({ ticker, coin }: { ticker: string; coin: string }) {
       {coinCard && (
         <div className="space-y-1">
           <h2 className="text-lg font-bold text-white/90">
-            {coinCard.name} ({coinCard.symbol})
+            {coinCard.name} (<span className="font-mono">{coinCard.symbol}</span>)
           </h2>
           <p>
             {coinCard.price !== null ? (
               <>
-                Last {formatPrice(coinCard.price)}
-                {coinCard.changePct24h !== null && <> ({formatPct(coinCard.changePct24h, 1)} / 24h)</>}
+                Last <span className="font-mono tabular-nums">{formatPrice(coinCard.price)}</span>
+                {coinCard.changePct24h !== null && (
+                  <> (<span className="font-mono tabular-nums">{formatPct(coinCard.changePct24h, 1)}</span> / 24h)</>
+                )}
               </>
             ) : (
               <>Price unavailable right now — the live tool below retries automatically.</>
@@ -229,22 +210,6 @@ async function LookupSeo({ ticker, coin }: { ticker: string; coin: string }) {
         </div>
       )}
 
-      {strip && strip.strip.length > 0 && (
-        <div className="space-y-2">
-          <h2 className="text-lg font-bold text-white/90">Markets today{day ? ` · ${day}` : ''}</h2>
-          <ul className="grid gap-x-6 sm:grid-cols-2">
-            {strip.strip.map((q) => (
-              <li key={q.symbol} className="flex items-baseline justify-between gap-3 border-b border-white/5 py-1">
-                <span className="text-white/85">{q.label}</span>
-                <span className="tabular-nums text-white/60">
-                  {formatPrice(q.price)} ({formatPct(q.changePct)})
-                </span>
-              </li>
-            ))}
-          </ul>
-          <p className="text-xs text-white/35">Delayed 15 min · dashed = prev close in the live charts below.</p>
-        </div>
-      )}
     </section>
   );
 }
@@ -278,6 +243,11 @@ export default async function BlogPostPage({
           rounded corners all go, leaving a single 16px reading margin. */}
       <main className="min-h-screen pt-24 pb-16 px-0 sm:px-4">
         <article className="container mx-auto max-w-3xl lg:w-[80vw] lg:max-w-5xl bg-[#1c1d20] border-y sm:border border-white/10 sm:rounded-lg p-4 sm:p-6 md:p-10">
+          {isLookup && (
+            <div className="mb-6 empty:hidden">
+              <TapeBar />
+            </div>
+          )}
           <div className="mb-10 animate-fadeIn">
             {post.category && (
               <span
@@ -304,19 +274,27 @@ export default async function BlogPostPage({
               </div>
             )}
 
-            <h1 className="font-serif text-2xl md:text-3xl font-bold text-white/95 leading-tight mb-4">
-              {post.title}
-            </h1>
+            {isLookup ? (
+              // No masthead on the tool page — tape, then straight into
+              // the tool. The title survives for screen readers only.
+              <h1 className="sr-only">{post.title}</h1>
+            ) : (
+              <h1 className="font-serif text-2xl md:text-3xl font-bold text-white/95 leading-tight mb-4">
+                {post.title}
+              </h1>
+            )}
 
-            <div className="flex gap-3 items-center text-white/45 text-sm">
-              <span>{formatDate(post.created_at)}</span>
-              {post.read_time && (
-                <>
-                  <span aria-hidden>·</span>
-                  <span>{post.read_time} min read</span>
-                </>
-              )}
-            </div>
+            {!isLookup && (
+              <div className="flex gap-3 items-center text-white/45 text-sm">
+                <span>{formatDate(post.created_at)}</span>
+                {post.read_time && (
+                  <>
+                    <span aria-hidden>·</span>
+                    <span>{post.read_time} min read</span>
+                  </>
+                )}
+              </div>
+            )}
 
             <div className="flex items-center gap-3 mt-5">
               <ShareButtons title={post.title} slug={post.slug} />
@@ -334,6 +312,12 @@ export default async function BlogPostPage({
           )}
 
           <ArticleContent html={contentHtml} category={post.category} />
+
+          {isLookup && (
+            <Suspense fallback={null}>
+              <MarketHeadlines />
+            </Suspense>
+          )}
 
           {post.quiz && post.quiz.length > 0 && (
             <QuizModal questions={post.quiz} accent={categoryColor(post.category)} title={post.title} slug={post.slug} />

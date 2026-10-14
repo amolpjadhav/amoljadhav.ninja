@@ -6,17 +6,19 @@ import {
   drawFortune,
   factorLine,
   historyLine,
-  uptimeLine,
+  pickScene,
   yyyymmdd,
   type Fortune,
   type HistoryEvent,
+  type TerminalScene,
+  type Trivia,
 } from '@/lib/terminal-scenes';
 
-// Fortune/facts terminal: fortune → uptime → fortune → cal → fortune →
-// factor → fortune → history, looping. Command types, output types, hold
-// 2s, then a visible `clear`. Fixed 4-line frame, no layout shift; pauses
-// off-screen and in hidden tabs; reduced motion gets a static snapshot
-// with no typing or blinking.
+// Fortune/trivia terminal: scenes are picked at random, never repeating
+// a command within the previous three scenes. Command types, output
+// types, hold 2s, then a visible `clear`. Fixed 4-line frame, no layout
+// shift; pauses off-screen and in hidden tabs; reduced motion gets a
+// static snapshot with no typing or blinking.
 
 const CHAR_MIN = 60;
 const CHAR_VAR = 50;
@@ -24,24 +26,16 @@ const CLEAR_CHAR_MIN = 100;
 const CLEAR_CHAR_VAR = 60;
 const ENTER_PAUSE = 350;
 const HOLD_MS = 2000;
-const LIVE_TICK = 100;
-const LIVE_TICKS = HOLD_MS / LIVE_TICK;
 const CLEAR_BEAT = 800;
 
-type SceneId = 'fortune' | 'uptime' | 'cal' | 'factor' | 'history';
+type SceneId = TerminalScene;
 
 const CMDS: Record<Exclude<SceneId, 'factor'>, string> = {
   fortune: '$ fortune',
-  uptime: '$ uptime --you',
+  trivia: '$ trivia',
   cal: '$ cal --progress',
   history: '$ history --today',
 };
-
-function orderFor(history: HistoryEvent[]): SceneId[] {
-  const order: SceneId[] = ['fortune', 'uptime', 'fortune', 'cal', 'fortune', 'factor', 'fortune'];
-  if (history.length > 0) order.push('history');
-  return order;
-}
 
 interface Line {
   id: number;
@@ -50,25 +44,25 @@ interface Line {
   href?: string;
 }
 
-type Phase = 'cmd' | 'out' | 'hold' | 'live' | 'clear';
+type Phase = 'cmd' | 'out' | 'hold' | 'clear';
 
 interface Engine {
-  order: SceneId[];
-  idx: number;
-  cycle: number;
+  scene: SceneId;
+  recent: SceneId[];
   phase: Phase;
   typed: number;
   lines: Line[];
   seq: number;
   fortunes: number[];
+  trivia: number[];
   factorCmd: string | null;
-  liveTicks: number;
   outText: string;
   outHref?: string;
 }
 
 interface Props {
   fortunes: Fortune[];
+  trivia: Trivia[];
   history: HistoryEvent[];
   snapshot: { fortune: Fortune; cal: string };
 }
@@ -78,27 +72,30 @@ interface Props {
 function outputFor(
   scene: SceneId,
   eng: Engine,
-  props: Pick<Props, 'fortunes' | 'history'> & { landed: number },
-): { text: string; href?: string; fortunes: number[] } {
+  props: Pick<Props, 'fortunes' | 'trivia' | 'history'>,
+): { text: string; href?: string; fortunes: number[]; trivia: number[] } {
   switch (scene) {
     case 'fortune': {
       const d = drawFortune(eng.fortunes, props.fortunes.length, Math.random);
       const f = props.fortunes[d.pick];
-      return { text: f?.text ?? 'No fortunes today.', href: f?.link, fortunes: d.remaining };
+      return { text: f?.text ?? 'No fortunes today.', href: f?.link, fortunes: d.remaining, trivia: eng.trivia };
     }
-    case 'uptime':
-      return { text: uptimeLine(props.landed, Date.now()), fortunes: eng.fortunes };
+    case 'trivia': {
+      const d = drawFortune(eng.trivia, props.trivia.length, Math.random);
+      const item = props.trivia[d.pick];
+      return { text: item?.text ?? 'No trivia today.', fortunes: eng.fortunes, trivia: d.remaining };
+    }
     case 'cal':
-      return { text: calProgressLine(Date.now()), fortunes: eng.fortunes };
+      return { text: calProgressLine(Date.now()), fortunes: eng.fortunes, trivia: eng.trivia };
     case 'factor': {
       const stamp = eng.factorCmd ?? `factor ${yyyymmdd(Date.now())}`;
       const parsed = Number(stamp.split(' ')[1]);
       const n = Number.isFinite(parsed) && parsed > 0 ? Math.floor(parsed) : Number(yyyymmdd(Date.now()));
-      return { text: factorLine(n), fortunes: eng.fortunes };
+      return { text: factorLine(n), fortunes: eng.fortunes, trivia: eng.trivia };
     }
     case 'history': {
       const e = props.history[Math.floor(Math.random() * props.history.length)];
-      return { text: e ? historyLine(e) : 'No history today.', fortunes: eng.fortunes };
+      return { text: e ? historyLine(e) : 'No history today.', fortunes: eng.fortunes, trivia: eng.trivia };
     }
   }
 }
@@ -107,23 +104,21 @@ function cmdFor(scene: SceneId, eng: Engine): string {
   return scene === 'factor' ? (eng.factorCmd ?? '$ factor') : CMDS[scene];
 }
 
-export default function TerminalTyper({ fortunes, history, snapshot }: Props) {
+export default function TerminalTyper({ fortunes, trivia, history, snapshot }: Props) {
   const [reduceMotion] = useState(
     () => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches,
   );
   const [active, setActive] = useState(true);
-  const [landed] = useState(() => Date.now());
   const [eng, setEng] = useState<Engine>(() => ({
-    order: orderFor(history),
-    idx: 0,
-    cycle: 0,
+    scene: 'fortune',
+    recent: ['fortune'],
     phase: 'cmd',
     typed: 0,
     lines: [],
     seq: 0,
     fortunes: [],
+    trivia: [],
     factorCmd: null,
-    liveTicks: 0,
     outText: '',
     outHref: undefined,
   }));
@@ -152,7 +147,7 @@ export default function TerminalTyper({ fortunes, history, snapshot }: Props) {
 
   useEffect(() => {
     if (reduceMotion || !active) return undefined;
-    const scene = eng.order[eng.idx] ?? 'fortune';
+    const scene = eng.scene;
     if (eng.phase === 'hold') {
       // Scroll the old command out so `$ clear` types visibly beneath the
       // output — the 3-line frame can't fit all rows at once.
@@ -160,23 +155,6 @@ export default function TerminalTyper({ fortunes, history, snapshot }: Props) {
         () => setEng({ ...eng, phase: 'clear', typed: 0, lines: eng.lines.slice(-1) }),
         HOLD_MS,
       );
-      return () => clearTimeout(t);
-    }
-    if (eng.phase === 'live') {
-      const t = setTimeout(() => {
-        const ticks = eng.liveTicks + 1;
-        if (ticks >= LIVE_TICKS) {
-          setEng({ ...eng, phase: 'clear', typed: 0, liveTicks: 0, lines: eng.lines.slice(-1) });
-        } else {
-          setEng({
-            ...eng,
-            liveTicks: ticks,
-            lines: eng.lines.map((l) =>
-              l.kind === 'out' ? { ...l, text: uptimeLine(landed, Date.now()) } : l,
-            ),
-          });
-        }
-      }, LIVE_TICK);
       return () => clearTimeout(t);
     }
     const target = eng.phase === 'out' ? eng.outText : eng.phase === 'cmd' ? cmdFor(scene, eng) : '$ clear';
@@ -197,29 +175,27 @@ export default function TerminalTyper({ fortunes, history, snapshot }: Props) {
             ...eng,
             lines: [...eng.lines, { id: eng.seq + 1, kind: 'out', text: eng.outText, href: eng.outHref }],
             seq: eng.seq + 1,
-            liveTicks: 0,
-            phase: scene === 'uptime' ? 'live' : 'hold',
+            phase: 'hold',
           });
         } else if (eng.phase === 'cmd') {
-          const out = outputFor(scene, eng, { fortunes, history, landed });
+          const out = outputFor(scene, eng, { fortunes, trivia, history });
           setEng({
             ...eng,
             lines: [{ id: eng.seq, kind: 'cmd', text: cmdFor(scene, eng) }],
             seq: eng.seq + 1,
             fortunes: out.fortunes,
+            trivia: out.trivia,
             typed: 0,
             outText: out.text,
             outHref: out.href,
             phase: 'out',
           });
         } else {
-          const ni = eng.idx + 1;
-          const wrap = ni >= eng.order.length;
-          const next = eng.order[wrap ? 0 : ni] ?? 'fortune';
+          const next = pickScene(eng.recent, history.length > 0, Math.random);
           setEng({
             ...eng,
-            idx: wrap ? 0 : ni,
-            cycle: wrap ? eng.cycle + 1 : eng.cycle,
+            scene: next,
+            recent: [...eng.recent, next].slice(-3),
             phase: 'cmd',
             typed: 0,
             lines: [],
@@ -230,7 +206,7 @@ export default function TerminalTyper({ fortunes, history, snapshot }: Props) {
       eng.phase === 'cmd' ? ENTER_PAUSE : eng.phase === 'out' ? 150 : CLEAR_BEAT,
     );
     return () => clearTimeout(t);
-  }, [eng, active, reduceMotion, fortunes, history, landed]);
+  }, [eng, active, reduceMotion, fortunes, trivia, history]);
 
   const renderLine = (line: Line) => {
     if (line.kind === 'cmd') {
@@ -272,14 +248,13 @@ export default function TerminalTyper({ fortunes, history, snapshot }: Props) {
           </p>
         </div>
         <span className="sr-only">
-          Terminal cycling surprising facts, an Earth-orbit counter, year progress, date factoring, and this day in
-          history.
+          Terminal cycling surprising facts, scale trivia, year progress, date factoring, and this day in history.
         </span>
       </div>
     );
   }
 
-  const scene = eng.order[eng.idx] ?? 'fortune';
+  const scene = eng.scene;
   const target = eng.phase === 'clear' ? '$ clear' : eng.phase === 'cmd' ? cmdFor(scene, eng) : '';
   const typing = (eng.phase === 'cmd' || eng.phase === 'clear') && eng.typed < target.length;
   // Fully typed but awaiting the beat: keep the submitted line on screen
@@ -300,7 +275,11 @@ export default function TerminalTyper({ fortunes, history, snapshot }: Props) {
             <Cursor blink={false} />
           </p>
         ) : typing || submitted ? (
-          <p className="whitespace-nowrap overflow-hidden leading-normal text-[#0aee3c]">
+          <p
+            className={`whitespace-nowrap overflow-hidden leading-normal ${
+              eng.phase === 'clear' ? 'text-[#0aee3c]/70' : 'text-[#0aee3c]'
+            }`}
+          >
             {shown.startsWith('$') ? (
               <>
                 <span className="text-[#0aee3c]/50">$</span>
@@ -318,8 +297,7 @@ export default function TerminalTyper({ fortunes, history, snapshot }: Props) {
         )}
       </div>
       <span className="sr-only">
-        Terminal cycling surprising facts, an Earth-orbit counter, year progress, date factoring, and this day in
-        history.
+        Terminal cycling surprising facts, scale trivia, year progress, date factoring, and this day in history.
       </span>
     </div>
   );

@@ -15,10 +15,13 @@ export function generateSlug(title: string): string {
 }
 
 export function formatDate(date: string): string {
+  // Pinned to UTC: reader-local timezones turned one timestamp into two
+  // different dates (Oct 6 in ET, Oct 7 in UTC). The stored stamps are UTC.
   return new Date(date).toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
-    day: 'numeric'
+    day: 'numeric',
+    timeZone: 'UTC'
   });
 }
 

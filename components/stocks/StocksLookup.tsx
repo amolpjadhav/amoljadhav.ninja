@@ -3,10 +3,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Link as LinkIcon, Check, Search } from 'lucide-react';
-import type { FinancialSeries, PricePoint, SegmentSeries, StockResponse } from '@/lib/stocks';
+import type { Filing, FinancialSeries, PricePoint, SegmentSeries, StockResponse } from '@/lib/stocks';
 import { FILING_LABELS, cagr, cagrDetails, displayCompanyName, edgarCompanyUrl, fiscalYearEndMonth, fiscalYearSpan, formatCompact, formatEps, formatFilingDate, formatHeadquarters, formatInt, formatLastTrade, formatMoney, formatPct, formatPrice, formatQuoteChange, isMarketOpen, isOtherSegment, latestValue, marginLine, normalizeTicker, peHistoryNote, periodReturn, pickLede, positionInRangeLabel, revenueLine, shareCacheBuster, stockShareLinks, stockShareText, tableYears, yoyGrowth } from '@/lib/stocks';
 import { categoryColor } from '@/lib/blog-content';
-import { MarketStrip, MoverTiles, useMarketMovers, useMarketStrip } from './MarketOverview';
+import { MarketStrip, Monogram, MoverTiles, useMarketMovers, useMarketStrip } from './MarketOverview';
+import { newsAge, type NewsItem } from '@/lib/news';
 import {
   ChartSubhead,
   ExternalLink,
@@ -20,10 +21,13 @@ import {
 } from './ProfileBlocks';
 
 const ACCENT = categoryColor('Investing');
+// Actions are yellow (Look up, Subscribe); the category accent stays on
+// headings and chips, never on prices.
+const ACTION_BG = '#facc15';
 const RECENT_KEY = 'stocks-recent';
 const EXAMPLES = ['META', 'NVDA', 'AAPL', 'TSLA', 'AMZN'];
 const TREND_ARROW = { up: '↑', down: '↓', flat: '→' } as const;
-const TREND_COLOR = { up: 'text-green-400', down: 'text-orange-400', flat: 'text-white/40' } as const;
+const TREND_COLOR = { up: 'text-green-400', down: 'text-red-400', flat: 'text-white/40' } as const;
 
 function loadRecent(): string[] {
   try {
@@ -38,10 +42,10 @@ function loadRecent(): string[] {
 function PartHead({ n, title, lede }: { n: number; title: string; lede: string }) {
   return (
     <div>
-      <h2 className="text-xl font-bold" style={{ color: ACCENT }}>
+      <h2 className="text-xl font-bold font-sans" style={{ color: ACCENT }}>
         Part {n} · {title}
       </h2>
-      <p className="text-sm text-white/50 mt-1">{lede}</p>
+      <p className="text-sm text-white/50 mt-1 font-sans">{lede}</p>
     </div>
   );
 }
@@ -108,7 +112,7 @@ function SegmentMixBar({ series, shortName }: { series: SegmentSeries; shortName
         ))}
       </ul>
       {top >= 0 && shares[top] >= 0.7 && (
-        <p className="mt-2 text-sm text-white/75 leading-relaxed">
+        <p className="mt-2 text-sm text-white/75 leading-relaxed font-sans">
           → {series.members[top]} is {Math.round(shares[top] * 100)}% of revenue, so {shortName}&rsquo;s
           results mostly track that one business.
         </p>
@@ -152,8 +156,8 @@ function SegmentProfitBars({ series }: { series: SegmentSeries }) {
         const v = vals[i];
         const half = v === null || maxAbs <= 0 ? 0 : (Math.abs(v) / maxAbs) * 50;
         const left = v !== null && v < 0 ? 50 - half : 50;
-        const bar = v === null || v === 0 ? null : v > 0 ? 'bg-green-400' : 'bg-orange-400';
-        const text = v === null ? 'text-white/40' : v > 0 ? 'text-green-400' : v < 0 ? 'text-orange-400' : 'text-white/60';
+        const bar = v === null || v === 0 ? null : v > 0 ? 'bg-green-400' : 'bg-red-400';
+        const text = v === null ? 'text-white/40' : v > 0 ? 'text-green-400' : v < 0 ? 'text-red-400' : 'text-white/60';
         return (
           <li key={m} className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)_4.75rem] items-center gap-x-3">
             <span className="text-[13px] text-white/85 truncate" title={m}>{m}</span>
@@ -348,7 +352,26 @@ function FinancialsTable({ series, missing, years, peHistory, psHistory, ttm, pe
   );
 }
 
-export default function StocksLookup({ initialTicker }: { initialTicker: string }) {
+interface StockSuggestion {
+  ticker: string;
+  title: string;
+}
+
+interface CoinSuggestionRow {
+  id: string;
+  name: string;
+  symbol: string;
+}
+
+export default function StocksLookup({
+  initialTicker,
+  onPickCoin,
+}: {
+  initialTicker: string;
+  // Unified search: a coin typed or picked here hands off to the crypto
+  // view (the widget swaps components; no tabs).
+  onPickCoin?: (coinId: string) => void;
+}) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -364,6 +387,13 @@ export default function StocksLookup({ initialTicker }: { initialTicker: string 
   const [shareToken, setShareToken] = useState('');
   const mounted = useRef(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  // Unified autocomplete: stock matches from the SEC map scan plus coin
+  // matches, shown together with a type badge. Coins resolve on pick.
+  const [sugStocks, setSugStocks] = useState<StockSuggestion[]>([]);
+  const [sugCoins, setSugCoins] = useState<CoinSuggestionRow[]>([]);
+  const [sugOpen, setSugOpen] = useState(false);
+  const [sugActive, setSugActive] = useState(-1);
+  const [searchFocused, setSearchFocused] = useState(false);
 
   // Company-name resolution against the SEC ticker map. Returns the parsed
   // /api/ticker-search payload ({ ticker } | { suggestions } | error) or
@@ -414,6 +444,27 @@ export default function StocksLookup({ initialTicker }: { initialTicker: string 
           const r = await resolveQuery(trimmed);
           if (r?.ticker && r.ticker !== symbol) return lookup(r.ticker, true);
           if (r?.suggestions?.length) throw new Error(suggestionError(trimmed, r.suggestions));
+        }
+        // No stock match at all: maybe a coin ("BTC"). Hand off to the
+        // crypto view instead of erroring.
+        if (onPickCoin) {
+          try {
+            const cRes = await fetch(`/api/crypto-search?q=${encodeURIComponent(trimmed)}`).then((r) =>
+              r.ok ? r.json() : null,
+            );
+            const id =
+              typeof cRes?.id === 'string'
+                ? cRes.id
+                : Array.isArray(cRes?.suggestions) && typeof cRes.suggestions[0]?.id === 'string'
+                  ? cRes.suggestions[0].id
+                  : null;
+            if (id) {
+              onPickCoin(id);
+              return;
+            }
+          } catch {
+            /* fall through to the stock error */
+          }
         }
         throw new Error(json?.error || 'Lookup failed.');
       }
@@ -479,16 +530,142 @@ export default function StocksLookup({ initialTicker }: { initialTicker: string 
     return () => mq.removeEventListener('change', update);
   }, []);
 
+  const closeSug = () => {
+    setSugOpen(false);
+    setSugActive(-1);
+  };
+
+  const pickCoin = (id: string) => {
+    closeSug();
+    onPickCoin?.(id);
+  };
+
+  // Headlines for the open company, merged into News & filings. Fetched
+  // per ticker; a down feed just leaves the filings timeline as-is.
+  const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
+  useEffect(() => {
+    if (!data?.ticker) return;
+    let cancelled = false;
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/news?ticker=${encodeURIComponent(data.ticker)}`);
+        const json = res.ok ? await res.json() : null;
+        if (!cancelled && Array.isArray(json?.items)) setNewsItems(json.items);
+      } catch {
+        if (!cancelled) setNewsItems([]);
+      }
+    }, 0);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [data?.ticker]);
+
   const q = data?.quote;
   const up = (q?.change ?? 0) >= 0;
   // Nothing looked up yet: the search block centers like a search homepage.
   const idle = !data && !loading && !error;
-  // Split fetches: the strip paints while the movers fan-out still runs.
-  const { data: strip, loaded: stripLoaded } = useMarketStrip();
+  // Markets grid sits between search and movers (the page's tape rides
+  // above the article); both halves fetch client-side behind skeletons.
   const { data: movers, loaded: moversLoaded } = useMarketMovers();
+  const { data: stripData, loaded: stripLoaded } = useMarketStrip();
+
+  // Suggest-as-you-type on the landing form only: stocks from the SEC map
+  // scan, coins appended as they resolve. Every write lands in the timer
+  // so a keystroke costs one render pass.
+  useEffect(() => {
+    if (!idle) return;
+    const query = input.trim();
+    let cancelled = false;
+    const timer = setTimeout(async () => {
+      if (cancelled) return;
+      if (query.length < 2) {
+        setSugStocks([]);
+        setSugCoins([]);
+        setSugOpen(false);
+        return;
+      }
+      const [sRes, cRes] = await Promise.all([
+        fetch(`/api/stocks/search?q=${encodeURIComponent(query)}`)
+          .then((r) => (r.ok ? r.json() : null))
+          .catch(() => null),
+        fetch(`/api/crypto-search?q=${encodeURIComponent(query)}`)
+          .then((r) => (r.ok ? r.json() : null))
+          .catch(() => null),
+      ]);
+      if (cancelled) return;
+      const stocks: StockSuggestion[] = (
+        Array.isArray(sRes?.results) ? sRes.results : []
+      )
+        .filter((r: unknown): r is StockSuggestion => typeof (r as StockSuggestion)?.ticker === 'string')
+        .slice(0, 5);
+      const coins: CoinSuggestionRow[] = [];
+      if (cRes && typeof cRes.id === 'string') {
+        coins.push({ id: cRes.id, name: cRes.id, symbol: '' });
+      } else if (cRes && Array.isArray(cRes.suggestions)) {
+        for (const s of cRes.suggestions.slice(0, 3)) {
+          if (s && typeof s.id === 'string') coins.push({ id: s.id, name: s.name ?? s.id, symbol: s.symbol ?? '' });
+        }
+      }
+      setSugStocks(stocks);
+      setSugCoins(coins);
+      setSugOpen(stocks.length + coins.length > 0);
+      setSugActive(-1);
+    }, 220);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [input, idle]);
+
+  const sugTotal = sugStocks.length + sugCoins.length;
+
+  const pickActive = () => {
+    if (sugActive < 0 || sugActive >= sugTotal) return false;
+    if (sugActive < sugStocks.length) {
+      const t = sugStocks[sugActive].ticker;
+      closeSug();
+      setInput(t);
+      lookup(t);
+    } else {
+      pickCoin(sugCoins[sugActive - sugStocks.length].id);
+    }
+    return true;
+  };
+
+  const onSugKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Escape') {
+      closeSug();
+      return;
+    }
+    if (!sugOpen || sugTotal === 0) return;
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setSugActive((a) => (a + 1) % sugTotal);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setSugActive((a) => (a <= 0 ? sugTotal - 1 : a - 1));
+    } else if (e.key === 'Enter' && sugActive >= 0) {
+      // A highlighted suggestion wins; otherwise the form submits.
+      e.preventDefault();
+      pickActive();
+    }
+  };
   const selectTile = (t: string) => {
     setInput(t);
     lookup(t);
+  };
+
+  // Back to the lookup landing (tape, search, markets, movers): clear the
+  // result, drop the ?ticker= share param, and return to the top.
+  const backHome = () => {
+    setData(null);
+    setError(null);
+    setLoading(false);
+    setInput('');
+    setShareToken('');
+    router.replace(pathname, { scroll: false });
+    requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'smooth' }));
   };
   const finYears = data?.financials ? tableYears(data.financials) : [];
   const years = data?.ttm ? [...finYears, 'TTM'] : finYears;
@@ -507,6 +684,19 @@ export default function StocksLookup({ initialTicker }: { initialTicker: string 
   const bizItem = annualForm === '10-K' ? 'Item 1' : 'Item 4';
   const riskItem = annualForm === '10-K' ? 'Item 1A' : 'risk factors';
   const eightKs = (data?.filings ?? []).filter((f) => f.form === '8-K');
+  // News & filings as one timeline: SEC filings (official) interleaved
+  // with headlines by recency, newest first, ten rows total.
+  type TimelineRow = { ts: number; filing?: Filing; news?: NewsItem };
+  const timeline: TimelineRow[] = data
+    ? [
+        ...otherFilings
+          .slice(0, pinnedAnnual ? 7 : 8)
+          .map((f) => ({ ts: Date.parse(`${f.filingDate}T12:00:00Z`) || 0, filing: f })),
+        ...newsItems.map((n) => ({ ts: n.datetime * 1000, news: n })),
+      ]
+        .sort((a, b) => b.ts - a.ts)
+        .slice(0, 10)
+    : [];
 
   // Section data: one read per profile question, all derived from the same
   // annual series, TTM column, and price history.
@@ -539,6 +729,11 @@ export default function StocksLookup({ initialTicker }: { initialTicker: string 
   const histFirst = data?.priceHistory?.[0]?.date;
   const histLast = data?.priceHistory?.[data.priceHistory.length - 1]?.date;
   const histSpanYears = histFirst && histLast ? (Date.parse(histLast) - Date.parse(histFirst)) / (365.25 * 86400000) : 0;
+  // Distance from the all-time high over available (split-adjusted) daily
+  // history. Dividends aren't in this feed, so this is a price high.
+  const histAth = data?.priceHistory?.reduce((m, p) => Math.max(m, p.close), 0) ?? null;
+  const ath = histAth != null && q?.price != null ? Math.max(histAth, q.price) : histAth;
+  const offAth = ath != null && ath > 0 && q?.price != null ? (q.price - ath) / ath : null;
   const pos52 =
     q?.price != null && data?.stats.week52High != null && data?.stats.week52Low != null
       ? ratioOrNull(q.price - data.stats.week52Low, data.stats.week52High - data.stats.week52Low)
@@ -583,27 +778,17 @@ export default function StocksLookup({ initialTicker }: { initialTicker: string 
     <div spellCheck={false}>
       {idle ? (
         <>
-          <p className="text-[11px] font-bold uppercase tracking-widest text-white/40 mb-3">
-            Investing · Free tool
-          </p>
-          <h1 className="font-serif text-4xl sm:text-5xl font-bold text-white/95 mb-3">Look up any company</h1>
-          <p className="text-white/55 text-base leading-relaxed mb-6 max-w-xl">
-            <span className="hidden sm:inline">
-              The business behind the ticker: what it does, how it makes money, the numbers, and the risks.
-              All from its own SEC filings.
-            </span>
-            <span className="sm:hidden">The business behind the ticker, from its own SEC filings.</span>
-          </p>
-
+          {/* The article header above carries the title, so the widget
+              starts straight at the search. */}
           <form
-            className="flex gap-2 mb-4"
+            className="mb-4"
             onSubmit={(e) => {
               e.preventDefault();
               lookup(input);
             }}
           >
             <label htmlFor="ticker" className="sr-only">
-              Company name or stock ticker
+              Company name, stock ticker, or coin
             </label>
             <div className="relative flex-1 min-w-0">
               <Search size={18} aria-hidden className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/30 pointer-events-none" />
@@ -612,29 +797,112 @@ export default function StocksLookup({ initialTicker }: { initialTicker: string 
                 ref={inputRef}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder={isNarrow ? 'Company or ticker' : 'Search a company or ticker, like Costco or COST'}
+                onKeyDown={onSugKeyDown}
+                onBlur={() => {
+                  setSearchFocused(false);
+                  setTimeout(closeSug, 120);
+                }}
+                onFocus={() => {
+                  setSearchFocused(true);
+                  if (sugTotal > 0) setSugOpen(true);
+                }}
+                placeholder={isNarrow ? 'Company, ticker, or coin' : 'Search a company, ticker, or coin — like Costco, COST, or BTC'}
                 autoCorrect="off"
                 spellCheck={false}
                 enterKeyHint="search"
-                className="w-full bg-black/40 border border-white/15 rounded-xl pl-11 pr-4 sm:pr-12 py-3.5 text-[15px] text-white/90 placeholder:text-white/30 focus:outline-none focus:border-white/40 transition-colors"
+                role="combobox"
+                aria-expanded={sugOpen}
+                aria-controls="lookup-suggestions"
+                aria-autocomplete="list"
+                aria-activedescendant={sugActive >= 0 ? `lookup-option-${sugActive}` : undefined}
+                autoComplete="off"
+                className="h-14 w-full rounded-[14px] border border-white/15 bg-black/40 pl-11 pr-24 text-[15px] text-white/90 placeholder:text-white/30 transition-colors focus:border-[#facc15]/80 focus:outline-none sm:pr-44"
               />
-              <kbd
-                aria-hidden
-                title="Press / to focus search"
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-white/30 border border-white/15 rounded-md px-1.5 py-0.5 pointer-events-none hidden sm:block"
+              {!searchFocused && input.trim() === '' && (
+                <kbd
+                  aria-hidden
+                  title="Press / to focus search"
+                  className="pointer-events-none absolute right-14 top-1/2 hidden -translate-y-1/2 rounded-md border border-white/15 px-1.5 py-0.5 text-xs text-white/30 sm:right-[7.5rem] md:block"
+                >
+                  /
+                </kbd>
+              )}
+              <button
+                type="submit"
+                disabled={loading || input.trim() === ''}
+                aria-label="Look up"
+                className="absolute right-1.5 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center gap-1.5 rounded-[10px] font-sans text-[15px] font-semibold transition hover:brightness-110 active:translate-y-[calc(-50%+1px)] disabled:cursor-default sm:h-11 sm:w-auto sm:px-4"
+                style={input.trim() ? { background: ACTION_BG, color: '#0a0a0a' } : { background: '#2a2d33', color: '#6b7280' }}
               >
-                /
-              </kbd>
+                <span className="hidden sm:inline">{loading ? 'Looking up' : 'Look up'}</span>
+                {loading ? (
+                  <span
+                    aria-hidden
+                    className="inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-black/30 border-t-black"
+                  />
+                ) : (
+                  <span aria-hidden>→</span>
+                )}
+              </button>
+              {sugOpen && sugTotal > 0 && (
+                <ul
+                  id="lookup-suggestions"
+                  role="listbox"
+                  aria-label="Suggestions"
+                  className="absolute left-0 right-0 top-full z-20 mt-1 overflow-hidden rounded-xl border border-white/15 bg-[#141518] shadow-[0_8px_30px_rgba(0,0,0,0.7)]"
+                >
+                  {sugStocks.map((r, i) => (
+                    <li
+                      key={`s-${r.ticker}`}
+                      id={`lookup-option-${i}`}
+                      role="option"
+                      aria-selected={i === sugActive}
+                      onMouseEnter={() => setSugActive(i)}
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => {
+                        closeSug();
+                        setInput(r.ticker);
+                        lookup(r.ticker);
+                      }}
+                      className={`flex cursor-pointer items-center gap-2 px-3.5 py-2.5 ${i === sugActive ? 'bg-white/10' : ''}`}
+                    >
+                      <Monogram symbol={r.ticker} />
+                      <span className="font-mono text-sm font-bold text-white/90">{r.ticker}</span>
+                      <span className="truncate text-[13px] text-white/45">{r.title}</span>
+                      <span className="ml-auto shrink-0 rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white/50">
+                        Stock
+                      </span>
+                    </li>
+                  ))}
+                  {sugCoins.map((c, j) => {
+                    const i = sugStocks.length + j;
+                    return (
+                      <li
+                        key={`c-${c.id}`}
+                        id={`lookup-option-${i}`}
+                        role="option"
+                        aria-selected={i === sugActive}
+                        onMouseEnter={() => setSugActive(i)}
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => pickCoin(c.id)}
+                        className={`flex cursor-pointer items-center gap-2 px-3.5 py-2.5 ${i === sugActive ? 'bg-white/10' : ''}`}
+                      >
+                        <Monogram symbol={c.symbol || c.id} />
+                        <span className="font-mono text-sm font-bold text-white/90">
+                          {c.symbol || c.name}
+                        </span>
+                        <span className="truncate text-[13px] text-white/45">
+                          {c.symbol ? `${c.name} · ${c.symbol}` : 'Coin'}
+                        </span>
+                        <span className="ml-auto shrink-0 rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white/50">
+                          Crypto
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
             </div>
-            {/* Mobile submits via the keyboard's search action (per mock). */}
-            <button
-              type="submit"
-              disabled={loading}
-              className="hidden sm:block text-[15px] font-bold px-6 rounded-xl transition-transform hover:scale-105 disabled:opacity-50 disabled:hover:scale-100 shrink-0"
-              style={{ background: ACCENT, color: '#0a0a0a' }}
-            >
-              {loading ? 'Looking up...' : 'Look up'}
-            </button>
           </form>
 
           <div className="flex flex-wrap items-center gap-2 mb-2">
@@ -655,13 +923,19 @@ export default function StocksLookup({ initialTicker }: { initialTicker: string 
           </div>
 
           <div className="mt-10">
-            <MarketStrip data={strip} loaded={stripLoaded} />
+            <MarketStrip data={stripData} loaded={stripLoaded} />
           </div>
           <MoverTiles data={movers} loaded={moversLoaded} onSelect={selectTile} />
         </>
       ) : (
         <>
-          <MarketStrip data={strip} loaded={stripLoaded} />
+          <button
+            type="button"
+            onClick={backHome}
+            className="mb-4 inline-flex items-center gap-1.5 rounded-full border border-white/20 px-3.5 py-1.5 text-xs font-bold text-white/70 transition-colors hover:border-white/40 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/60"
+          >
+            ← Back to lookup home
+          </button>
           <div>
           <h2 className="text-xl font-bold mb-2" style={{ color: ACCENT }}>
             Stock lookup
@@ -671,7 +945,7 @@ export default function StocksLookup({ initialTicker }: { initialTicker: string 
           </p>
 
           <form
-            className="flex flex-col sm:flex-row gap-2 mb-3"
+            className="mb-3"
             onSubmit={(e) => {
               e.preventDefault();
               lookup(input);
@@ -680,25 +954,36 @@ export default function StocksLookup({ initialTicker }: { initialTicker: string 
             <label htmlFor="ticker" className="sr-only">
               Stock ticker
             </label>
-            <input
-              id="ticker"
-              ref={inputRef}
-              value={input}
-              onChange={(e) => setInput(e.target.value.toUpperCase())}
-              placeholder="TICKER  e.g. META"
-              autoCapitalize="characters"
-              autoCorrect="off"
-              spellCheck={false}
-              className="flex-1 min-w-0 bg-black/40 border border-white/15 rounded px-3 py-2 text-sm text-white/90 placeholder:text-white/30 focus:outline-none focus:border-white/40 transition-colors uppercase"
-            />
-            <button
-              type="submit"
-              disabled={loading}
-              className="text-sm font-bold px-4 py-2 rounded transition-transform hover:scale-105 disabled:opacity-50 disabled:hover:scale-100 shrink-0"
-              style={{ background: ACCENT, color: '#0a0a0a' }}
-            >
-              {loading ? 'Looking up...' : 'Lookup'}
-            </button>
+            <div className="relative">
+              <input
+                id="ticker"
+                ref={inputRef}
+                value={input}
+                onChange={(e) => setInput(e.target.value.toUpperCase())}
+                placeholder="TICKER  e.g. META"
+                autoCapitalize="characters"
+                autoCorrect="off"
+                spellCheck={false}
+                className="h-11 w-full rounded-[10px] border border-white/15 bg-black/40 pl-3 pr-[104px] text-sm uppercase text-white/90 placeholder:text-white/30 transition-colors focus:border-[#facc15]/80 focus:outline-none"
+              />
+              <button
+                type="submit"
+                disabled={loading || input.trim() === ''}
+                aria-label="Look up"
+                className="absolute right-1 top-1/2 flex h-9 items-center justify-center gap-1.5 rounded-lg px-3 font-sans text-[13px] font-semibold -translate-y-1/2 transition hover:brightness-110 active:translate-y-[calc(-50%+1px)] disabled:cursor-default"
+                style={input.trim() ? { background: ACTION_BG, color: '#0a0a0a' } : { background: '#2a2d33', color: '#6b7280' }}
+              >
+                {loading ? 'Looking up' : 'Lookup'}
+                {loading ? (
+                  <span
+                    aria-hidden
+                    className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-black/30 border-t-black"
+                  />
+                ) : (
+                  <span aria-hidden>→</span>
+                )}
+              </button>
+            </div>
           </form>
 
           <div className="flex flex-wrap gap-2 mb-2 text-xs">
@@ -818,29 +1103,43 @@ export default function StocksLookup({ initialTicker }: { initialTicker: string 
             title="Snapshot"
             note="Market cap is the price of the whole company. P/E is how many years of current profit that price equals; compare it to the stock's own history."
           >
-            <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 mt-1">
-              <span className="text-xl font-bold text-white/95">{data.companyName}</span>
-              <span className="text-sm text-white/45">
-                {[data.ticker, data.exchange, data.stats.sector].filter((x): x is string => x !== null).join(' · ')}
-              </span>
+            <div className="flex items-center gap-3 mt-1">
+              <Monogram symbol={data.ticker} size="md" />
+              <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 min-w-0">
+                <span className="text-xl font-bold text-white/95 font-sans">{data.companyName}</span>
+                <span className="font-mono text-sm text-white/45">
+                  {[data.ticker, data.exchange, data.stats.sector].filter((x): x is string => x !== null).join(' · ')}
+                </span>
+              </div>
             </div>
-            {oneLiner && <p className="text-sm text-white/70 leading-relaxed mt-2">{oneLiner}</p>}
+            {oneLiner && <p className="text-sm text-white/70 leading-relaxed mt-2 font-sans">{oneLiner}</p>}
             {q ? (
-              <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 mt-3">
-                <span className="text-2xl font-semibold text-white/95 tabular-nums">
-                  {formatPrice(q.price)}
-                </span>
-                {(q.change !== null || q.changePct !== null) && (
-                  <span className={`text-base font-semibold tabular-nums ${up ? 'text-green-400' : 'text-red-400'}`}>
-                    {formatQuoteChange(q.change, q.changePct)}
+              <div className="mt-3">
+                <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+                  <span className="text-[52px] leading-none font-bold text-white/95 tabular-nums font-mono">
+                    {formatPrice(q.price)}
                   </span>
-                )}
-                <span className="text-xs text-white/35 inline-flex items-center gap-1.5">
-                  {q.marketStatus && (
-                    <span className={`inline-block w-1.5 h-1.5 rounded-full ${isMarketOpen(q.marketStatus) ? 'bg-green-400' : 'bg-white/25'}`} />
+                  {(q.change !== null || q.changePct !== null) && (
+                    <span className={`text-xl font-semibold tabular-nums font-mono ${up ? 'text-green-400' : 'text-red-400'}`}>
+                      {formatQuoteChange(q.change, q.changePct)}
+                    </span>
                   )}
-                  {q.marketStatus ? `${q.marketStatus} · ` : ''}{formatLastTrade(q.lastTrade, q.marketStatus)} · delayed
-                </span>
+                </div>
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2">
+                  <span className="font-mono text-xs text-white/35 tabular-nums inline-flex items-center gap-1.5">
+                    {q.marketStatus && (
+                      <span className={`inline-block w-1.5 h-1.5 rounded-full ${isMarketOpen(q.marketStatus) ? 'bg-green-400' : 'bg-white/25'}`} />
+                    )}
+                    {q.marketStatus ? `${q.marketStatus} · ` : ''}{formatLastTrade(q.lastTrade, q.marketStatus)} · delayed
+                  </span>
+                  {offAth !== null && histSpanYears >= 1 && (
+                    <span className="font-mono text-xs text-white/35 tabular-nums">
+                      {Math.abs(offAth) * 100 < 0.05
+                        ? 'At its all-time high'
+                        : `${formatPct(offAth)} from its all-time high`}
+                    </span>
+                  )}
+                </div>
               </div>
             ) : (
               <p className="text-sm text-white/40 mt-3">Quote unavailable for this ticker.</p>
@@ -889,12 +1188,12 @@ export default function StocksLookup({ initialTicker }: { initialTicker: string 
               question={`What does ${shortName} do?`}
               note="If you can't say what they sell and who pays for it in one sentence after reading this, you don't understand the company yet — keep that sentence in mind while you read the numbers."
             >
-              <p className="text-sm text-white/75 leading-relaxed whitespace-pre-line">{data.description.extract}</p>
+              <p className="text-sm text-white/75 leading-relaxed whitespace-pre-line font-sans">{data.description.extract}</p>
               {data.filingInsights && data.filingInsights.segments.length > 0 && (
                 <dl className="mt-3">
                   <div className="grid grid-cols-[6.5rem_1fr] gap-x-3">
                     <dt className="text-white/40 text-[13px] pt-[1px]">What they sell</dt>
-                    <dd className="text-sm text-white/85 leading-relaxed">{data.filingInsights.segments.join(' · ')}</dd>
+                    <dd className="text-sm text-white/85 leading-relaxed font-sans">{data.filingInsights.segments.join(' · ')}</dd>
                   </div>
                 </dl>
               )}
@@ -949,7 +1248,7 @@ export default function StocksLookup({ initialTicker }: { initialTicker: string 
           >
             {data.filingInsights?.businessModel ? (
               <>
-                <p className="text-sm text-white/75 leading-relaxed">{data.filingInsights.businessModel}</p>
+                <p className="text-sm text-white/75 leading-relaxed font-sans">{data.filingInsights.businessModel}</p>
                 <p className="text-xs text-white/40 mt-2 leading-relaxed">
                   From the segment, product, and sales subsections of {bizItem} (Business) — what each part of the
                   company sells, in its own words.
@@ -957,7 +1256,7 @@ export default function StocksLookup({ initialTicker }: { initialTicker: string 
               </>
             ) : data.filingInsights?.business ? (
               <>
-                <p className="text-sm text-white/75 leading-relaxed">{data.filingInsights.business}</p>
+                <p className="text-sm text-white/75 leading-relaxed font-sans">{data.filingInsights.business}</p>
                 <p className="text-xs text-white/40 mt-2 leading-relaxed">
                   From {bizItem} (Business) of the latest {annualForm} — no separate segment or product subsection was
                   found, so this is the filing&apos;s opening description.
@@ -1285,7 +1584,7 @@ export default function StocksLookup({ initialTicker }: { initialTicker: string 
 
           {data.filings.length > 0 && (
             <div>
-              <SectionTitle>Recent filings</SectionTitle>
+              <SectionTitle>News &amp; filings</SectionTitle>
               {pinnedAnnual && (
                 <a
                   href={pinnedAnnual.url}
@@ -1310,31 +1609,57 @@ export default function StocksLookup({ initialTicker }: { initialTicker: string 
                 </a>
               )}
               <ul className="divide-y divide-white/5">
-                {otherFilings.map((f) => (
-                  <li key={f.url} className="flex items-center gap-3 py-2 text-sm">
-                    <span
-                      className="shrink-0 border rounded px-2 py-0.5 text-xs font-bold"
-                      style={isAnnualForm(f.form) ? { borderColor: `${ACCENT}99`, color: ACCENT } : { borderColor: 'rgba(255,255,255,0.2)', color: 'rgba(255,255,255,0.7)' }}
-                      title={FILING_LABELS[f.form] ?? f.form}
-                    >
-                      {f.form}
-                    </span>
-                    <span className="text-white/50 text-xs tabular-nums">{f.filingDate}</span>
-                    {f.eventLabel && <span className="text-white/70 text-xs">{f.eventLabel}</span>}
-                    {f.reportDate && !f.eventLabel && <span className="text-white/30 text-xs tabular-nums hidden sm:inline">period {f.reportDate}</span>}
-                    <a
-                      href={f.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="ml-auto text-sm text-[#8ab4f8] underline decoration-[#8ab4f8]/40 underline-offset-[3px] hover:text-white hover:decoration-white transition-colors shrink-0"
-                    >
-                      EDGAR
-                    </a>
-                  </li>
-                ))}
+                {timeline.map((row) =>
+                  row.news ? (
+                    <li key={`n-${row.news.id}`} className="flex items-center gap-3 py-2 text-sm">
+                      <span className="shrink-0 rounded border border-white/20 px-2 py-0.5 text-xs font-bold text-white/70">
+                        NEWS
+                      </span>
+                      <a
+                        href={row.news.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title={row.news.headline}
+                        className="min-w-0 flex-1 truncate text-white/80 hover:text-white transition-colors"
+                      >
+                        {row.news.headline}
+                      </a>
+                      <span className="shrink-0 font-mono text-[11px] tabular-nums text-white/35">
+                        {row.news.source} · {newsAge(row.news.datetime)}
+                      </span>
+                    </li>
+                  ) : row.filing ? (
+                    <li key={row.filing.url} className="flex items-center gap-3 py-2 text-sm">
+                      <span
+                        className="shrink-0 border rounded px-2 py-0.5 text-xs font-bold"
+                        style={isAnnualForm(row.filing.form) ? { borderColor: `${ACCENT}99`, color: ACCENT } : { borderColor: 'rgba(255,255,255,0.2)', color: 'rgba(255,255,255,0.7)' }}
+                        title={FILING_LABELS[row.filing.form] ?? row.filing.form}
+                      >
+                        {row.filing.form}
+                      </span>
+                      <span className="text-white/50 text-xs tabular-nums">{row.filing.filingDate}</span>
+                      {row.filing.eventLabel && <span className="text-white/70 text-xs">{row.filing.eventLabel}</span>}
+                      {row.filing.form === '8-K' && (
+                        <span className="shrink-0 rounded-full bg-[#facc15]/15 text-[#facc15] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide">
+                          Official · SEC
+                        </span>
+                      )}
+                      {row.filing.reportDate && !row.filing.eventLabel && <span className="text-white/30 text-xs tabular-nums hidden sm:inline">period {row.filing.reportDate}</span>}
+                      <a
+                        href={row.filing.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="ml-auto text-sm text-[#8ab4f8] underline decoration-[#8ab4f8]/40 underline-offset-[3px] hover:text-white hover:decoration-white transition-colors shrink-0"
+                      >
+                        EDGAR
+                      </a>
+                    </li>
+                  ) : null,
+                )}
               </ul>
               <p className="text-xs text-white/30 mt-2">
-                10-K/20-F annual report · 10-Q quarterly update · 8-K material event. Start with {bizItem} (Business)
+                Filings are the company&apos;s own announcements (Official · SEC); headlines via Finnhub,
+                linked to source. 10-K/20-F annual report · 10-Q quarterly update · 8-K material event. Start with {bizItem} (Business)
                 — the company describing itself, in its own words.
               </p>
             </div>

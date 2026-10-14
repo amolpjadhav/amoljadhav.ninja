@@ -24,7 +24,7 @@ export function LinkedInIcon() {
 export function SectionTitle({ children }: { children: React.ReactNode }) {
   // Matches article h3: bold, category accent, 1.1rem.
   return (
-    <h3 className="text-lg font-bold mb-3" style={{ color: ACCENT }}>
+    <h3 className="text-lg font-bold mb-3 font-sans" style={{ color: ACCENT }}>
       {children}
     </h3>
   );
@@ -90,10 +90,10 @@ export function ProfileSection({
   const accent = SECTION_ACCENTS[(n - 1) % SECTION_ACCENTS.length];
   return (
     <section className="article-section" style={{ '--accent': accent, borderLeft: 0, borderRadius: 10 } as React.CSSProperties}>
-      <p className="text-xs font-semibold uppercase tracking-widest text-white/35">{n} · {title}</p>
-      {question && <h3 className="text-xl font-bold text-white/90 mt-1 mb-3">{question}</h3>}
+      <p className="text-xs font-semibold uppercase tracking-widest text-white/35 font-sans">{n} · {title}</p>
+      {question && <h3 className="text-xl font-bold text-white/90 mt-1 mb-3 font-sans">{question}</h3>}
       {children}
-      <p className="text-xs text-white/55 mt-3 leading-relaxed">
+      <p className="text-xs text-white/55 mt-3 leading-relaxed font-sans">
         <strong className="text-white/75">How to read this:</strong> {note}
       </p>
     </section>
@@ -101,7 +101,7 @@ export function ProfileSection({
 }
 
 export function ChartSubhead({ children }: { children: React.ReactNode }) {
-  return <h4 className="text-[13px] font-semibold text-white/70 mb-2">{children}</h4>;
+  return <h4 className="text-[13px] font-semibold text-white/70 mb-2 font-sans">{children}</h4>;
 }
 
 export const shareButtonClass =

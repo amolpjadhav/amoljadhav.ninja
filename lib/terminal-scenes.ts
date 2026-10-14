@@ -1,10 +1,32 @@
-// Scene logic for the hero terminal: fortune rotation, Earth-orbit
-// counter, year progress, date factoring, this-day-in-history picks.
+// Scene logic for the hero terminal: fortune and trivia rotation,
+// scene picking, year progress, date factoring, this-day-in-history picks.
 // Pure and dependency-free so node tests cover it.
 
 export interface Fortune {
   text: string;
   link?: string;
+}
+
+export interface Trivia {
+  text: string;
+}
+
+export type TerminalScene = 'fortune' | 'trivia' | 'cal' | 'factor' | 'history';
+
+// Pick the next scene at random from every scene except the previous
+// three, so no command repeats until at least three others have run.
+export function pickScene(
+  recent: TerminalScene[],
+  hasHistory: boolean,
+  rand: () => number,
+): TerminalScene {
+  const all: TerminalScene[] = hasHistory
+    ? ['fortune', 'trivia', 'cal', 'factor', 'history']
+    : ['fortune', 'trivia', 'cal', 'factor'];
+  const blocked = new Set(recent.slice(-3));
+  const candidates = all.filter((scene) => !blocked.has(scene));
+  const pool = candidates.length > 0 ? candidates : all.filter((scene) => scene !== recent[recent.length - 1]);
+  return pool[Math.floor(rand() * pool.length)] ?? 'fortune';
 }
 
 // Draw one fortune index with no repeats until all shown; the pool
@@ -19,12 +41,6 @@ export function drawFortune(
   const at = Math.floor(rand() * pool.length);
   const pick = pool[at] ?? 0;
   return { pick, remaining: [...pool.slice(0, at), ...pool.slice(at + 1)] };
-}
-
-// Earth moves ~29.8 km/s around the Sun; floor + locale grouping.
-export function uptimeLine(landedMs: number, nowMs: number): string {
-  const km = Math.floor(Math.max(0, (nowMs - landedMs) / 1000) * 29.8);
-  return `since you landed: Earth moved ${km.toLocaleString('en-US')} km around the Sun`;
 }
 
 // "2026 ████████████████████░░░░░ 78.1%": 25-char bar of the elapsed
