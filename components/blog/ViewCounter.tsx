@@ -68,7 +68,9 @@ export default function ViewCounter({
       title={`${views} view${views === 1 ? '' : 's'}`}
     >
       <BarChart2 size={16} />
-      <span>{formatCount(views)}</span>
+      <span>
+        {formatCount(views)} <span className="sr-only">views</span>
+      </span>
     </span>
   );
 }

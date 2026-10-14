@@ -6,6 +6,10 @@ import { formatDate } from '@/lib/utils';
 import { colorizeArticleSections, categoryColor } from '@/lib/blog-content';
 import {
   displayCompanyName,
+  formatLastTrade,
+  formatPct,
+  formatPrice,
+  getMarketStrip,
   getStockCardData,
   normalizeTicker,
   quoteDayParam,
@@ -144,15 +148,125 @@ export async function generateMetadata({
   }
 }
 
-export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
+// The lookup article's body is only the interactive widget placeholder —
+// the tool itself mounts in the browser — so crawlers and no-JS readers
+// saw an empty article. This server block gives them the same landing
+// state as text: what the tool covers, today's index snapshot, and the
+// quoted company when a ?ticker= / ?coin= link is shared. The strip is
+// the fast 7-symbol loader (bounded, degrades to nothing); the 40-stock
+// movers fan-out stays client-side behind the widget's own skeleton.
+async function LookupSeo({ ticker, coin }: { ticker: string; coin: string }) {
+  const [strip, card, coinCard] = await Promise.all([
+    getMarketStrip().catch(() => null),
+    ticker ? getStockCardData(ticker).catch(() => null) : Promise.resolve(null),
+    !ticker && coin ? getCoinCard(coin).catch(() => null) : Promise.resolve(null),
+  ]);
+
+  const cardName = card ? displayCompanyName(card.companyName) : null;
+  const day =
+    strip && strip.strip.length > 0
+      ? new Date(strip.asOf).toLocaleDateString([], { month: 'short', day: 'numeric' })
+      : null;
+
+  return (
+    <section aria-label="About this lookup tool" className="space-y-4 text-[15px] leading-relaxed text-white/75">
+      <div className="space-y-2">
+        <h2 className="text-lg font-bold text-white/90">What this tool does</h2>
+        <p>
+          Look up any US stock for its live price and day&apos;s move, what the company actually does, segment
+          revenue, financials, and its latest SEC filings — on one page. Crypto lookups cover price, supply,
+          tokenomics, and trend. Quotes are delayed; company profiles are built from SEC filings.
+        </p>
+        <p className="text-sm text-white/55">
+          Try:{' '}
+          {['NVDA', 'AAPL', 'META', 'TSLA', 'AMZN'].map((t, i) => (
+            <span key={t}>
+              {i > 0 && ' · '}
+              <a className="text-white/80 underline decoration-white/25 underline-offset-2 hover:text-white" href={`/blog/${STOCK_LOOKUP_SLUG}?ticker=${t}`}>
+                {t}
+              </a>
+            </span>
+          ))}
+        </p>
+      </div>
+
+      {card && cardName && (
+        <div className="space-y-1">
+          <h2 className="text-lg font-bold text-white/90">
+            {cardName} ({card.ticker})
+          </h2>
+          <p>
+            {card.quote && card.quote.price !== null ? (
+              <>
+                Last {formatPrice(card.quote.price)}
+                {card.quote.changePct !== null && <> ({formatPct(card.quote.changePct)})</>} ·{' '}
+                {formatLastTrade(card.quote.lastTrade, card.quote.marketStatus)}
+              </>
+            ) : (
+              <>Quote unavailable right now — the live tool below retries automatically.</>
+            )}{' '}
+            Use the lookup below for {cardName}&rsquo;s business breakdown, financials, and filings.
+          </p>
+        </div>
+      )}
+
+      {coinCard && (
+        <div className="space-y-1">
+          <h2 className="text-lg font-bold text-white/90">
+            {coinCard.name} ({coinCard.symbol})
+          </h2>
+          <p>
+            {coinCard.price !== null ? (
+              <>
+                Last {formatPrice(coinCard.price)}
+                {coinCard.changePct24h !== null && <> ({formatPct(coinCard.changePct24h, 1)} / 24h)</>}
+              </>
+            ) : (
+              <>Price unavailable right now — the live tool below retries automatically.</>
+            )}{' '}
+            Use the lookup below for supply, tokenomics, and trend.
+          </p>
+        </div>
+      )}
+
+      {strip && strip.strip.length > 0 && (
+        <div className="space-y-2">
+          <h2 className="text-lg font-bold text-white/90">Markets today{day ? ` · ${day}` : ''}</h2>
+          <ul className="grid gap-x-6 sm:grid-cols-2">
+            {strip.strip.map((q) => (
+              <li key={q.symbol} className="flex items-baseline justify-between gap-3 border-b border-white/5 py-1">
+                <span className="text-white/85">{q.label}</span>
+                <span className="tabular-nums text-white/60">
+                  {formatPrice(q.price)} ({formatPct(q.changePct)})
+                </span>
+              </li>
+            ))}
+          </ul>
+          <p className="text-xs text-white/35">Delayed 15 min · dashed = prev close in the live charts below.</p>
+        </div>
+      )}
+    </section>
+  );
+}
+
+export default async function BlogPostPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<{ ticker?: string; coin?: string }>;
+}) {
   const { slug } = await params;
-  const post = await getBlogPost(slug);
+  const [post, query] = await Promise.all([getBlogPost(slug), searchParams.catch(() => null)]);
 
   if (!post) {
     notFound();
   }
 
   const { html: contentHtml, headings } = colorizeArticleSections(post.content);
+  const isLookup = slug === STOCK_LOOKUP_SLUG;
+  const lookupTicker = isLookup ? normalizeTicker(query?.ticker ?? '') : '';
+  const lookupCoin = isLookup && !lookupTicker ? normalizeCoinId(query?.coin ?? '') : '';
 
   return (
     <>
@@ -212,6 +326,12 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
           </div>
 
           <TableOfContents headings={headings} accent={categoryColor(post.category)} />
+
+          {isLookup && (
+            <div className="mb-8">
+              <LookupSeo ticker={lookupTicker} coin={lookupCoin} />
+            </div>
+          )}
 
           <ArticleContent html={contentHtml} category={post.category} />
 
