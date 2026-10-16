@@ -100,7 +100,7 @@ export default async function ToolsRow() {
         <span className="text-[#0aee3c]">$</span> Tools
         <span className="flex-1 h-px bg-gradient-to-r from-[#0aee3c]/30 to-transparent" />
       </h2>
-      <div className="grid gap-3 md:grid-cols-3">
+      <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
         {cards.map((post) =>
           post.slug === 'look-up-stock-and-company-details' ? (
             <StockCard key={post.slug} slug={post.slug} title={post.title} excerpt={post.excerpt} />

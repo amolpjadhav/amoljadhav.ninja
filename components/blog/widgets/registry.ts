@@ -70,6 +70,7 @@ import TftItemCombinator from './TftItemCombinator';
 import TftItemsSheet from './TftItemsSheet';
 import NewtonPlayground from './NewtonPlayground';
 import StocksLookupWidget from './StocksLookupWidget';
+import TransitLookup from './TransitLookup';
 import BirthdayClassroom from './BirthdayClassroom';
 import BookFinderWidget from './BookFinderWidget';
 import PodcastTrendingWidget from './PodcastTrendingWidget';
@@ -149,6 +150,7 @@ export const WIDGET_REGISTRY: Record<string, ComponentType> = {
   'tft-items-sheet': TftItemsSheet,
   'newton-playground': NewtonPlayground,
   'stocks-lookup': StocksLookupWidget,
+  'transit-lookup': TransitLookup,
   'birthday-classroom': BirthdayClassroom,
   'book-finder': BookFinderWidget,
   'podcast-trending': PodcastTrendingWidget,

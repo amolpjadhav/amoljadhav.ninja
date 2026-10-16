@@ -7,7 +7,12 @@ import { viewCountLabel } from '@/lib/homepage';
 // Pinned utilities: rendered as the Tools row above, and excluded from the
 // Latest / Most Read / Recent pools below so they never render twice.
 // Unknown or unpublished slugs are silently skipped.
-export const PINNED_SLUGS = ['look-up-stock-and-company-details', 'monthly-book-spin', 'trending-podcasts'];
+export const PINNED_SLUGS = [
+  'look-up-stock-and-company-details',
+  'monthly-book-spin',
+  'trending-podcasts',
+  'seattle-transit-next-bus',
+];
 
 // Playable game articles: rendered as the Games row, excluded from the
 // article pools for the same no-duplicate reason.
