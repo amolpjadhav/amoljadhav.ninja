@@ -2,46 +2,25 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { formatChangePct } from '@/lib/homepage';
-import { TONE_TEXT } from './tone';
 
 // Ticker jump for the Stock Lookup tool card: typing here deep-links
 // straight into a lookup (?ticker=), the same URL shares produce.
 //
 // An empty box is a dead end — most people can't name a ticker on the spot —
-// so it suggests while you type (company name or symbol, via the SEC map)
-// and puts the Mag 7 underneath as one-tap shortcuts that double as a read
-// on where the market's heaviest names are today.
+// so it suggests while you type (company name or symbol, via the SEC map).
 
 const LOOKUP_PATH = '/blog/look-up-stock-and-company-details';
-
-// Same order as MAG7 in lib/stocks, which is what /api/markets/movers ranks.
-// Rendered immediately with em-dashes for the moves, so the shortcuts work
-// even when the quote feed is slow or down.
-const MAG7 = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'NVDA', 'META', 'TSLA'];
 
 interface Candidate {
   ticker: string;
   title: string;
 }
 
-interface Mover {
-  symbol: string;
-  changePct: number | null;
-}
-
-type IdleWindow = Window & {
-  requestIdleCallback?: (cb: () => void) => number;
-  cancelIdleCallback?: (handle: number) => void;
-};
-
 export default function TickerLookup() {
   const [value, setValue] = useState('');
   const [results, setResults] = useState<Candidate[]>([]);
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(-1);
-  const [mag7, setMag7] = useState<Mover[]>(() => MAG7.map((symbol) => ({ symbol, changePct: null })));
-  const [mag7Loaded, setMag7Loaded] = useState(false);
   const boxRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
@@ -85,41 +64,6 @@ export default function TickerLookup() {
       clearTimeout(timer);
     };
   }, [value]);
-
-  // The Mag 7 quotes are a nicety on top of working shortcuts, so they wait
-  // for idle rather than competing with the rest of the homepage for the
-  // network. The movers route is a slower two-phase fan-out than the strip.
-  useEffect(() => {
-    let cancelled = false;
-    const load = async () => {
-      try {
-        const res = await fetch('/api/markets/movers');
-        const json: unknown = await res.json();
-        const rows = (json as { mag7?: { symbol?: unknown; changePct?: unknown }[] } | null)?.mag7 ?? [];
-        const bySymbol = new Map(
-          rows
-            .filter((q): q is { symbol: string; changePct: unknown } => typeof q?.symbol === 'string')
-            .map((q) => [q.symbol, typeof q.changePct === 'number' ? q.changePct : null] as const),
-        );
-        if (!cancelled && bySymbol.size > 0) {
-          // Keep the fixed order rather than the response's: a block that
-          // reshuffles between loads is harder to read than a stale one.
-          setMag7(MAG7.map((symbol) => ({ symbol, changePct: bySymbol.get(symbol) ?? null })));
-        }
-      } catch {
-        /* keep the shortcuts, just without the moves */
-      } finally {
-        if (!cancelled) setMag7Loaded(true);
-      }
-    };
-    const w = window as IdleWindow;
-    const handle = w.requestIdleCallback ? w.requestIdleCallback(load) : window.setTimeout(load, 1200);
-    return () => {
-      cancelled = true;
-      if (w.cancelIdleCallback && w.requestIdleCallback) w.cancelIdleCallback(handle);
-      else clearTimeout(handle);
-    };
-  }, []);
 
   // A click anywhere else dismisses the list.
   useEffect(() => {
@@ -166,7 +110,7 @@ export default function TickerLookup() {
           onChange={(e) => setValue(e.target.value)}
           onKeyDown={onKeyDown}
           onFocus={() => setOpen(results.length > 0)}
-          placeholder="Look up a ticker"
+          placeholder="Ticker…"
           aria-label="Look up a ticker"
           role="combobox"
           aria-expanded={open}
@@ -179,7 +123,7 @@ export default function TickerLookup() {
         />
         <button
           type="submit"
-          className="shrink-0 rounded bg-[#0aee3c] px-3 py-1.5 text-xs font-bold text-black transition-all hover:brightness-110"
+          className="shrink-0 rounded border border-[#0aee3c]/50 bg-transparent px-3 py-1.5 text-xs font-semibold text-[#0aee3c] transition-all hover:bg-[#0aee3c]/10"
         >
           Go
         </button>
@@ -214,34 +158,6 @@ export default function TickerLookup() {
           ))}
         </ul>
       )}
-
-      <div className="mt-3">
-        <p className="mb-1.5 font-mono text-[10px] uppercase tracking-wide text-white/25">Mag 7</p>
-        <div className="grid grid-cols-4 gap-1" aria-busy={!mag7Loaded}>
-          {mag7.map((m) => {
-            const move = formatChangePct(m.changePct);
-            return (
-              <button
-                key={m.symbol}
-                type="button"
-                onClick={() => go(m.symbol)}
-                aria-label={`${m.symbol}, ${move.text}. Look up.`}
-                className="flex min-w-0 flex-col items-center rounded border border-[#0aee3c]/20 px-1 py-1 transition-colors hover:border-[#0aee3c]/50 hover:bg-white/[0.03]"
-              >
-                <span className="font-mono text-[11px] leading-tight text-[#0aee3c]/80">{m.symbol}</span>
-                <span
-                  aria-hidden={!mag7Loaded}
-                  className={`font-mono text-[10px] leading-tight ${TONE_TEXT[move.tone]} ${
-                    mag7Loaded ? '' : 'motion-safe:animate-pulse blur-[2px]'
-                  }`}
-                >
-                  {move.text}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
     </div>
   );
 }

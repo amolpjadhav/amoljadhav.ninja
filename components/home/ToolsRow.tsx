@@ -8,6 +8,7 @@ import { formatPerHour } from '@/lib/podcasts';
 import { stripHasMoves } from '@/lib/homepage';
 import { PINNED_SLUGS } from '@/components/RecentArticles';
 import MarketStrip from './MarketStrip';
+import Mag7Summary from './Mag7Summary';
 import TickerLookup from './TickerLookup';
 import { getEpisode, getStrip } from './heroData';
 
@@ -68,7 +69,10 @@ async function StockCard({ slug, title, excerpt }: { slug: string; title: string
           Open <span aria-hidden>→</span>
         </Link>
       </div>
-      {live && strip ? <MarketStrip items={strip.slice(0, 4)} /> : <Fallback excerpt={excerpt} />}
+      {live && strip ? <MarketStrip items={strip.slice(0, 3)} /> : <Fallback excerpt={excerpt} />}
+      <div className="mt-2">
+        <Mag7Summary />
+      </div>
       <div className="mt-auto pt-3">
         <TickerLookup />
       </div>
@@ -101,7 +105,7 @@ export default async function ToolsRow() {
         <span className="text-[#0aee3c]">$</span> Tools
         <span className="flex-1 h-px bg-gradient-to-r from-[#0aee3c]/30 to-transparent" />
       </h2>
-      <div className="grid items-start gap-3 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
         {cards.map((post) =>
           post.slug === 'look-up-stock-and-company-details' ? (
             <StockCard key={post.slug} slug={post.slug} title={post.title} excerpt={post.excerpt} />
@@ -121,8 +125,8 @@ export default async function ToolsRow() {
                     ))}
                   </div>
                   {covers.length > 0 && (
-                    <div className="mt-3 flex">
-                      {covers.map((c) => (
+                    <div className="mt-3 flex max-w-full overflow-hidden">
+                      {covers.slice(0, 4).map((c) => (
                         // eslint-disable-next-line @next/next/no-img-element -- external Open Library covers, sized by CSS
                         <img
                           key={c.id}
