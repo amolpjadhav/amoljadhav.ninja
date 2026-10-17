@@ -10,6 +10,7 @@ import {
   Footprints,
   LocateFixed,
   MapPin,
+  Navigation,
   Pin,
   X,
   TriangleAlert,
@@ -38,6 +39,8 @@ interface ArrivalRow {
   live: boolean;
   delayMin: number | null;
   cancelled: boolean;
+  stopsAway: number | null;
+  passingStop: string | null;
   minutes: string;
   clock: string;
 }
@@ -169,7 +172,10 @@ function TripBar({ journey }: { journey: PlannedJourney }) {
               key={s.key}
               style={{
                 flexGrow: Math.max(s.min, 4),
-                background: s.color && /^[0-9A-Fa-f]{6}$/.test(s.color) ? `#${s.color}` : '#F5C542',
+                background: (() => {
+                  const display = s.route ? routeDisplayColor(s.route, s.color) : (s.color ?? '');
+                  return display && /^[0-9A-Fa-f]{6}$/.test(display) ? `#${display}` : '#FFD60A';
+                })(),
               }}
               className="flex h-9 min-w-11 items-center justify-center rounded-md font-mono text-sm font-bold text-black"
             >
@@ -177,17 +183,38 @@ function TripBar({ journey }: { journey: PlannedJourney }) {
             </span>
           ),
         )}
-        <span className="ml-1 h-2.5 w-2.5 self-center rounded-full bg-[#F5C542]" />
+        <span className="ml-1 h-2.5 w-2.5 self-center rounded-full bg-[#FFD60A]" />
       </div>
-      <div className="mt-1.5 flex justify-between gap-2 text-[11px] text-white/45">
-        <span className="font-mono tabular-nums">
-          Leave {fmtClock(journey.departMs - journey.walkToStopM * 750 - 60000)}
-        </span>
-        <span className="truncate">
-          Board {journey.legs[0].fromStop.name} · <span className="font-mono tabular-nums">{journey.legs[0].departClock}</span>
-        </span>
-        <span className="font-mono tabular-nums">Arrive {journey.arriveClock}</span>
-      </div>
+      {journey.legs.length === 1 ? (
+        <div className="mt-1.5 grid grid-cols-4 gap-2">
+          {(
+            [
+              ['Leave', fmtClock(journey.departMs - journey.walkToStopM * 750 - 60000), false],
+              ['Board', journey.legs[0].departClock, false],
+              ['Get off', journey.legs[0].arriveClock, false],
+              ['Arrive', journey.arriveClock, true],
+            ] as [string, string, boolean][]
+          ).map(([k, v, right]) => (
+            <span key={k} className={right ? 'text-right' : ''}>
+              <span className="block text-[10px] tracking-wide text-white/35 uppercase">{k}</span>
+              <span className="block truncate font-mono text-[13px] font-semibold text-white/85 tabular-nums">
+                {v}
+              </span>
+            </span>
+          ))}
+        </div>
+      ) : (
+        <div className="mt-1.5 flex justify-between gap-2 text-[11px] text-white/45">
+          <span className="font-mono tabular-nums">
+            Leave {fmtClock(journey.departMs - journey.walkToStopM * 750 - 60000)}
+          </span>
+          <span className="truncate">
+            Board {journey.legs[0].fromStop.name} ·{' '}
+            <span className="font-mono tabular-nums">{journey.legs[0].departClock}</span>
+          </span>
+          <span className="font-mono tabular-nums">Arrive {journey.arriveClock}</span>
+        </div>
+      )}
     </div>
   );
 }
@@ -218,7 +245,15 @@ interface PlanResult {
 // Recent lookups live on the device only (localStorage): one click
 // re-runs the trip, the stop search, or opens the stop board again.
 type RecentInput =
-  | { kind: 'trip'; from: string; to: string; fromHit: PlaceHit | null; toHit: PlaceHit | null }
+  | {
+      kind: 'trip';
+      from: string;
+      to: string;
+      fromHit: PlaceHit | null;
+      toHit: PlaceHit | null;
+      route?: string;
+      totalMin?: number;
+    }
   | { kind: 'stops'; from: string; fromHit: PlaceHit | null }
   | { kind: 'stop'; stopId: string; stopName: string };
 
@@ -270,16 +305,28 @@ function feet(m: number): string {
   return ft < 100 ? `${ft} ft` : `${(ft / 5280).toFixed(2)} mi`;
 }
 
+// Shared glass surface for tool cards floating over the page glow.
+const GLASS_CARD =
+  'rounded-[22px] border border-white/[0.12] bg-white/[0.06] backdrop-blur-[30px] backdrop-saturate-[1.8] shadow-[0_10px_40px_rgba(0,0,0,0.35)]';
+
+// RapidRide reads as rail on the map, so it gets iOS pink instead of
+// Metro's feed color. Everything else keeps its official GTFS color.
+function routeDisplayColor(route: string, color?: string): string {
+  if (/^[CDEFGHJ]$/.test(route.trim())) return 'FF375F';
+  return color ?? '';
+}
+
 function RouteBadge({ route, color, big }: { route: string; color?: string; big?: boolean }) {
-  const hasColor = !!color && /^[0-9A-Fa-f]{6}$/.test(color);
+  const display = routeDisplayColor(route, color);
+  const hasColor = /^[0-9A-Fa-f]{6}$/.test(display);
   return (
     <span
-      className={`inline-flex shrink-0 items-center justify-center rounded-md font-mono font-bold ${
-        big ? 'min-w-11 px-2 py-1.5 text-base' : 'min-w-7 px-1.5 py-0.5 text-xs'
+      className={`inline-flex shrink-0 items-center justify-center font-mono font-bold ${
+        big ? 'min-w-11 rounded-xl px-2 py-1.5 text-base' : 'min-w-7 rounded-md px-1.5 py-0.5 text-xs'
       }`}
       style={
         hasColor
-          ? { background: `#${color}`, color: '#000' }
+          ? { background: `#${display}`, color: '#000' }
           : { background: 'rgba(255,255,255,0.12)', color: '#fff' }
       }
     >
@@ -289,16 +336,16 @@ function RouteBadge({ route, color, big }: { route: string; color?: string; big?
 }
 
 function LiveChip({ live, delayMin, cancelled }: { live: boolean; delayMin: number | null; cancelled?: boolean }) {
-  if (cancelled) return <span className="text-xs font-medium text-red-400">Cancelled</span>;
+  if (cancelled) return <span className="text-xs font-medium text-[#FF453A]">Cancelled</span>;
   if (!live) return <span className="text-xs text-white/40">Scheduled</span>;
   return (
-    <span className="inline-flex items-center gap-1.5 text-xs font-medium text-[#3DDC97]">
+    <span className="inline-flex items-center gap-1.5 text-xs font-medium text-[#30D158]">
       <span className="relative flex h-1.5 w-1.5">
-        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#3DDC97] opacity-60 motion-reduce:animate-none" />
-        <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[#3DDC97]" />
+        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#30D158] opacity-60 motion-reduce:animate-none" />
+        <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[#30D158]" />
       </span>
       Live
-      {delayMin !== null && delayMin > 0 && <span className="text-[#FFB020]">· {delayMin} min late</span>}
+      {delayMin !== null && delayMin > 0 && <span className="text-[#FF9F0A]">· {delayMin} min late</span>}
       {delayMin !== null && delayMin < 0 && <span>· {-delayMin} min early</span>}
       {delayMin === 0 && <span className="text-white/40">· on time</span>}
     </span>
@@ -493,18 +540,259 @@ function haversineMeters(lat1: number, lon1: number, lat2: number, lon2: number)
 // "Your stop" card for the landing state: the next bus at one stop,
 // refreshing every 30s with minutes ticking locally. Shows what the
 // tool does before anyone types anything.
+// Seattle minutes since midnight, ticking once a minute. Used for the
+// time-of-day sky (dawn / day / golden hour / night).
+function useSeattleMinutes(): number {
+  const [nowMs, setNowMs] = useState(() => Date.now());
+  useEffect(() => {
+    const t = setInterval(() => setNowMs(Date.now()), 60000);
+    return () => clearInterval(t);
+  }, []);
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Los_Angeles',
+    hour: 'numeric',
+    minute: 'numeric',
+    hour12: false,
+  }).formatToParts(nowMs);
+  const h = Number(parts.find((p) => p.type === 'hour')?.value ?? '0') % 24;
+  const m = Number(parts.find((p) => p.type === 'minute')?.value ?? '0');
+  return h * 60 + m;
+}
+
+interface SkySpec {
+  gradient: string;
+  accent: string;
+  stars: boolean;
+  moon: boolean;
+  rainier: string;
+  // A soft wash at the horizon so the black skyline reads against the
+  // sky, especially at night. The sky gradient itself is untouched.
+  horizon: string;
+  sun: { left: string; top?: string; bottom?: string; size: number } | null;
+}
+
+function skyForMinutes(total: number): SkySpec {
+  if (total >= 360 && total < 480)
+    return {
+      gradient: 'linear-gradient(180deg, #2E3A6B 0%, #7A5C99 45%, #F2A07B 100%)',
+      accent: '#F2A07B',
+      stars: false,
+      moon: false,
+      rainier: 'rgba(255,232,232,.38)',
+      horizon: 'rgba(242,160,123,.35)',
+      sun: { left: '20%', bottom: '60px', size: 96 },
+    };
+  if (total >= 480 && total < 1020)
+    return {
+      gradient: 'linear-gradient(180deg, #1B63C9 0%, #3E95EE 55%, #9ED8FF 100%)',
+      accent: '#3E95EE',
+      stars: false,
+      moon: false,
+      rainier: 'rgba(255,255,255,.6)',
+      horizon: 'rgba(255,255,255,.30)',
+      sun: { left: '80%', top: '36px', size: 96 },
+    };
+  if (total >= 1020 && total < 1170)
+    return {
+      gradient: 'linear-gradient(180deg, #2B2160 0%, #6B3C82 38%, #E8685A 72%, #FFC46B 100%)',
+      accent: '#E8685A',
+      stars: false,
+      moon: false,
+      rainier: 'rgba(255,214,200,.38)',
+      horizon: 'rgba(255,196,107,.35)',
+      sun: { left: '22%', bottom: '56px', size: 96 },
+    };
+  return {
+    gradient: 'linear-gradient(180deg, #03061A 0%, #0D1738 60%, #1B2A5C 100%)',
+    accent: '#5A6FD6',
+    stars: true,
+    moon: true,
+    rainier: 'rgba(150,170,230,.2)',
+    horizon: 'rgba(90,111,214,.32)',
+    sun: null,
+  };
+}
+
+// Deterministic pseudo-random: the same 40 stars on every render, so
+// server and client agree and nothing jumps on re-render.
+function mulberry32(seed: number): () => number {
+  return () => {
+    seed |= 0;
+    seed = (seed + 0x6d2b79f5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+// Countdown digits that roll vertically instead of flipping. Digit
+// columns hold a 0–9 strip translated to the current value; anything
+// else (spaces, "min") renders as static text.
+function RollingNumber({ text, className }: { text: string; className?: string }) {
+  return (
+    <span aria-label={text} className={className}>
+      <span aria-hidden>
+        {text.split('').map((ch, i) =>
+          /[0-9]/.test(ch) ? (
+            <span key={i} className="rolling-digit">
+              <span
+                className="rolling-digit-strip"
+                style={{ transform: `translateY(-${Number(ch)}em)` }}
+              >
+                {'0123456789'.split('').map((d) => (
+                  <span key={d} className="block h-[1em] leading-[1]">
+                    {d}
+                  </span>
+                ))}
+              </span>
+            </span>
+          ) : (
+            <span key={i}>{ch}</span>
+          ),
+        )}
+      </span>
+    </span>
+  );
+}
+
+// Header sky: a gradient that follows Seattle time with a black
+// skyline silhouette along the bottom, twinkling stars at night, and
+// the slim status row floating over it. (No big title here — the
+// article's own H1 already says it.)
+function SkyHeader({ clock }: { clock: string }) {
+  const total = useSeattleMinutes();
+  const sky = skyForMinutes(total);
+  const stars = useMemo(() => {
+    const rnd = mulberry32(42);
+    return Array.from({ length: 70 }, () => ({
+      left: rnd() * 100,
+      top: rnd() * 70,
+      size: rnd() * 1.5 + 1,
+      delay: rnd() * 4,
+      dur: 3 + rnd() * 3,
+    }));
+  }, []);
+  return (
+    <div className="relative h-[250px] overflow-hidden md:h-[330px]">
+      <div className="absolute inset-0" style={{ background: sky.gradient }} aria-hidden />
+      {sky.sun && (
+        <>
+          {/* 360px halo first, then the 96px disc: both soft radial
+              gradients, never a blurred box (which leaves square edges). */}
+          <span
+            aria-hidden
+            className="absolute rounded-full"
+            style={{
+              left: `calc(${sky.sun.left} - 132px)`,
+              ...(sky.sun.top ? { top: `calc(${sky.sun.top} - 132px)` } : { bottom: `calc(${sky.sun.bottom} - 132px)` }),
+              width: 360,
+              height: 360,
+              background:
+                'radial-gradient(circle, rgba(255,170,100,.6) 0%, rgba(255,150,90,.25) 35%, transparent 70%)',
+            }}
+          />
+          <span
+            aria-hidden
+            className="absolute rounded-full"
+            style={{
+              left: sky.sun.left,
+              ...(sky.sun.top ? { top: sky.sun.top } : { bottom: sky.sun.bottom }),
+              width: sky.sun.size,
+              height: sky.sun.size,
+              background: 'radial-gradient(circle, #FFF1C2 0%, #FFB86B 60%, #FF8A5B 100%)',
+            }}
+          />
+        </>
+      )}
+      {sky.moon && (
+        <span
+          aria-hidden
+          className="absolute rounded-full"
+          style={{
+            right: '8%',
+            top: '36px',
+            width: 44,
+            height: 44,
+            boxShadow: 'inset 11px -7px 0 0 #F2EFE6',
+          }}
+        />
+      )}
+      {sky.stars &&
+        stars.map((s, i) => (
+          <span
+            key={i}
+            aria-hidden
+            className="sky-star"
+            style={{
+              left: `${s.left}%`,
+              top: `${s.top}%`,
+              width: s.size,
+              height: s.size,
+              animationDelay: `${s.delay}s`,
+              animationDuration: `${s.dur}s`,
+            }}
+          />
+        ))}
+      {/* Horizon wash behind the skyline so the black buildings read
+          against the sky, especially at night. */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute bottom-[30px] left-0 h-24 w-full md:bottom-14 md:h-[150px]"
+        style={{ background: `linear-gradient(180deg, transparent 0%, ${sky.horizon} 100%)` }}
+      />
+      {/* Vector skyline (same shapes as seattle-skyline.svg in this
+          folder): city + needle in page black, Rainier tinted by phase.
+          Its base sits exactly where the planner card begins, so the
+          buildings rise from behind the card instead of hiding under it. */}
+      <svg
+        aria-hidden
+        viewBox="0 0 1200 150"
+        preserveAspectRatio="none"
+        className="pointer-events-none absolute bottom-[30px] left-0 h-24 w-full md:bottom-14 md:h-[150px]"
+      >
+        <path
+          d="M860 150 L1000 80 L1022 70 L1040 75 L1058 71 L1200 138 V150 Z"
+          fill={sky.rainier}
+        />
+        <path
+          d="M0 150 V128 H36 V120 H64 V132 H96 V116 H128 V124 H170 V134 H230 V126 H262 V138 H340 V126 H380 V112 H410 V122 H450 V100 H478 V90 H500 V106 H540 V82 H560 V70 H586 V88 H620 V66 H644 V58 H664 V52 H690 V74 H720 V60 H748 V84 H780 V48 L796 40 L812 48 V78 H846 V68 H872 V90 H910 V76 H940 V102 H980 V94 H1010 V114 H1060 V108 H1100 V122 H1150 V118 H1200 V150 Z"
+          fill="#000"
+        />
+        <g fill="#000">
+          <path d="M293 150 L298 62 L302 62 L307 150 Z" />
+          <path d="M276 58 Q300 50 324 58 Q300 66 276 58 Z" />
+          <path d="M290 57 L295 49 L305 49 L310 57 Z" />
+          <rect x="299" y="28" width="2" height="22" />
+        </g>
+      </svg>
+      <div className="relative flex items-start gap-3 px-6 pt-5 [text-shadow:0_1px_8px_rgba(0,0,0,0.6)]">
+        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#FFD60A] text-black">
+          <Bus className="h-6 w-6" aria-hidden />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block text-[32px] leading-none font-bold tracking-tight text-white md:text-[34px]">
+            Seattle Transit
+          </span>
+          <span className="mt-1 block text-[15px] text-white/75">Metro · RapidRide</span>
+        </span>
+        <span className="flex shrink-0 items-center gap-1.5 rounded-full border border-white/25 bg-black/30 px-3 py-1 backdrop-blur-md">
+          <span className="live-pulse inline-block h-1.5 w-1.5 rounded-full bg-[#30D158]" />
+          <span className="text-[11px] font-semibold tracking-wider text-[#30D158]">Live</span>
+          <span className="font-mono text-[13px] text-white/85 tabular-nums">{clock || '—'}</span>
+        </span>
+      </div>
+    </div>
+  );
+}
+
 function MiniBoard({
   stopId,
-  eyebrow,
   stopName,
-  sub,
   origin,
   onSeeAll,
 }: {
   stopId: string;
-  eyebrow: string;
   stopName: string;
-  sub?: string;
   origin?: { lat: number; lon: number };
   onSeeAll: () => void;
 }) {
@@ -546,45 +834,114 @@ function MiniBoard({
       : null;
   const leaveIn = first && walkTo !== null ? Math.round((first.timeMs - walkTo * 60000 - 60000 - nowMs) / 60000) : null;
 
+  const glowHex = (() => {
+    const display = first ? routeDisplayColor(first.route, first.routeColor) : '';
+    return /^[0-9A-Fa-f]{6}$/.test(display) ? `#${display}` : '#FFD60A';
+  })();
+  // Bus position along the track from minutes away: a bus 30+ min out
+  // sits at the left edge, an arriving bus at the stop (right edge).
+  const firstMin = first ? Math.round((first.timeMs - nowMs) / 60000) : 0;
+  const busPct = first ? Math.min(94, Math.max(6, (1 - Math.max(0, firstMin) / 30) * 100)) : 6;
+  const trackLabel = !first
+    ? 'No bus approaching'
+    : first.cancelled
+      ? 'Trip cancelled'
+      : firstMin <= 0
+        ? 'Bus arriving now'
+        : `Bus ${firstMin} minute${firstMin === 1 ? '' : 's'} away`;
+
+  const shortStop = shortenStopName(board?.stop.name ?? stopName);
+  // Endpoint label under the progress track: real vehicle position
+  // when the feed reports it, otherwise the walk (when known).
+  const progressLabel = !first
+    ? ''
+    : first.cancelled
+      ? 'Cancelled'
+      : first.live && first.stopsAway !== null && first.stopsAway !== undefined
+        ? first.stopsAway === 0
+          ? 'At the stop'
+          : `${first.stopsAway} stop${first.stopsAway === 1 ? '' : 's'} away${
+              first.passingStop ? ` · passing ${shortenStopName(first.passingStop)}` : ''
+            }`
+        : walkTo !== null
+          ? `${walkTo} min walk`
+          : '';
+
   return (
-    <div className="rounded-[14px] border border-white/[0.08] bg-[#1A1D22] p-4">
-      <p className="flex items-baseline gap-2">
-        <span className="min-w-0 flex-1 truncate text-[13px] font-semibold text-white/85">
-          {eyebrow} · {stopName}
-        </span>
-        <span className="flex shrink-0 items-center gap-1.5 font-mono text-xs text-white/50 tabular-nums">
-          <span className="live-pulse inline-block h-1.5 w-1.5 rounded-full bg-[#3DDC97]" />
-          updated {board ? fmtClock(board.asOf) : '—'}
+    <div
+      className="rounded-[28px] border bg-black p-5"
+      style={{ borderColor: `${glowHex}59`, boxShadow: `0 0 24px ${glowHex}33` }}
+    >
+      <p className="flex items-baseline justify-end gap-2">
+        <span className="flex shrink-0 items-center gap-1.5 text-[13px]">
+          {!first || (!first.live && !first.cancelled) ? (
+            <span className="text-white/40">Scheduled · {shortStop}</span>
+          ) : first.cancelled ? (
+            <span className="text-[#FF453A]">Cancelled · {shortStop}</span>
+          ) : (
+            <>
+              <span className="live-pulse inline-block h-1.5 w-1.5 rounded-full bg-[#30D158]" />
+              <span className="font-medium text-[#30D158]">Live</span>
+              <span className="text-white/40">· {shortStop}</span>
+            </>
+          )}
         </span>
       </p>
-      {sub && <p className="mt-0.5 text-xs text-white/40">{sub}</p>}
       {!board ? (
-        <div className="mt-3 space-y-2" aria-label="Loading live departures">
-          {[0, 1].map((i) => (
-            <div key={i} className="h-11 animate-pulse rounded-lg bg-white/[0.05] motion-reduce:animate-none" />
-          ))}
-        </div>
+        <div className="mt-3 h-[104px] animate-pulse rounded-2xl bg-white/[0.05] motion-reduce:animate-none" aria-label="Loading live departures" />
       ) : !first ? (
         <p className="mt-3 text-sm text-white/50">No buses in the next few hours at this stop.</p>
       ) : (
         <>
           <div className="mt-3 flex items-center gap-3">
             <RouteBadge route={first.route} color={first.routeColor} big />
-            <span className="min-w-0 flex-1 truncate text-[15px] text-white/85">{first.headsign}</span>
-            <span className="shrink-0 text-right">
-              <span
-                key={label(first)}
-                className="minute-flip font-mono text-[22px] leading-none font-semibold text-white tabular-nums"
-              >
-                {first.cancelled ? '—' : label(first)}
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-[17px] leading-snug font-semibold text-white">
+                {first.headsign}
               </span>
+              <span className="mt-0.5 block truncate text-[13px] text-white/60">
+                {shortStop} ·{' '}
+                {first.cancelled ? (
+                  <span className="text-[#FF453A]">Cancelled</span>
+                ) : first.live ? (
+                  <span className="text-[#30D158]">
+                    Live{first.delayMin !== null && first.delayMin > 0 ? ` · ${first.delayMin} min late` : ''}
+                  </span>
+                ) : (
+                  'Scheduled'
+                )}
+              </span>
+            </span>
+            <span className="shrink-0 text-right">
+              <RollingNumber
+                text={first.cancelled ? '—' : label(first)}
+                className="block font-mono text-[34px] leading-none font-bold text-white tabular-nums"
+              />
               {second && (
-                <span className="ml-2 font-mono text-sm text-white/45 tabular-nums">
+                <span className="mt-1 block font-mono text-[15px] text-white/55 tabular-nums">
                   then {second.cancelled ? '—' : label(second)}
                 </span>
               )}
             </span>
           </div>
+          <div className="relative mt-4 h-1.5 rounded-full bg-white/[0.12]" role="img" aria-label={trackLabel}>
+            <span
+              className="absolute top-0 left-0 h-full rounded-full"
+              style={{ width: `${busPct}%`, background: glowHex }}
+              aria-hidden
+            />
+            <span
+              className="absolute top-1/2 flex h-6 w-6 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full text-black"
+              style={{ left: `${busPct}%`, background: glowHex }}
+              aria-hidden
+            >
+              <Bus className="h-3.5 w-3.5" aria-hidden />
+            </span>
+          </div>
+          <p className="mt-1.5 flex items-baseline justify-between gap-2 text-[13px]">
+            <span className="min-w-0 truncate font-medium text-white/85">{progressLabel}</span>
+            <span className="shrink-0 truncate text-white/40">{shortStop}</span>
+          </p>
           <p className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-white/50">
             {leaveIn !== null && walkTo !== null && (
               <span>{leaveIn <= 0 ? 'Leave now' : `Leave in ${leaveIn} min`} · {walkTo} min walk</span>
@@ -592,7 +949,7 @@ function MiniBoard({
             <button
               type="button"
               onClick={onSeeAll}
-              className="ml-auto font-medium text-[#F5C542]/90 transition hover:text-[#F5C542]"
+              className="ml-auto font-medium text-[#0A84FF] transition hover:text-[#0A84FF]/80"
             >
               All departures →
             </button>
@@ -656,9 +1013,9 @@ function SavedStopCard({
         : 'Scheduled';
 
   return (
-    <div className="rounded-[14px] border border-white/[0.08] bg-[#1A1D22] p-3.5">
+    <div className={`${GLASS_CARD} p-4`}>
       <p className="flex items-center gap-1.5">
-        <MapPin className="h-3.5 w-3.5 shrink-0 text-[#F5C542]/80" aria-hidden />
+        <MapPin className="h-3.5 w-3.5 shrink-0 text-[#FFD60A]/80" aria-hidden />
         <span
           className="min-w-0 flex-1 truncate text-[13px] font-semibold text-white/85"
           title={board?.stop.name ?? stopName}
@@ -697,13 +1054,13 @@ function SavedStopCard({
           </p>
           <p className="mt-2 flex items-center gap-2 text-xs text-white/50">
             <span className="flex items-center gap-1.5">
-              <span className="live-pulse inline-block h-1.5 w-1.5 rounded-full bg-[#3DDC97]" />
+              <span className="live-pulse inline-block h-1.5 w-1.5 rounded-full bg-[#30D158]" />
               {status}
             </span>
             <button
               type="button"
               onClick={onOpen}
-              className="ml-auto font-medium text-[#F5C542]/90 transition hover:text-[#F5C542]"
+              className="ml-auto font-medium text-[#0A84FF] transition hover:text-[#0A84FF]/80"
             >
               All departures →
             </button>
@@ -744,36 +1101,41 @@ function JourneyResults({
   const bestLeave = leaveInMin(best);
 
   return (
-    <div className="mt-5">
+    <div>
       <p
-        className="mb-2.5 truncate text-xs text-white/40"
+        className="mb-2.5 truncate text-[17px] font-bold text-white"
         title={`${plan.fromLabel ?? plan.from.matchedAddress} → ${plan.toLabel ?? plan.to.matchedAddress}`}
       >
-        <span className="text-white/60">
-          {shortenPlace(shortAddress(plan.fromLabel ?? plan.from.matchedAddress))}
-        </span>
-        {'  →  '}
-        <span className="text-white/60">
-          {shortenPlace(shortAddress(plan.toLabel ?? plan.to.matchedAddress))}
-        </span>
+        {shortenPlace(shortAddress(plan.fromLabel ?? plan.from.matchedAddress))}
+        {' → '}
+        {shortenPlace(shortAddress(plan.toLabel ?? plan.to.matchedAddress))}
       </p>
-      <div className="result-row rounded-xl border border-white/[0.08] bg-white/[0.02] px-4 py-3.5">
-        <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <p className="flex items-center gap-2 text-[28px] leading-none font-bold tracking-tight">
-            {bestLeave <= 0 ? (
-              <>
-                <span className="live-pulse inline-block h-2.5 w-2.5 rounded-full bg-[#3DDC97]" />
-                Leave now
-              </>
-            ) : (
-              <>
-                Leave in {bestLeave} <span className="font-mono tabular-nums">min</span>
-              </>
-            )}
-          </p>
-          <p className="font-mono text-[15px] text-white/70 tabular-nums">
-            Arrive {best.arriveClock} · {totalMin(best)} min
-          </p>
+      <div className={`result-row ${GLASS_CARD} px-4 py-3.5`}>
+        <div className="flex flex-wrap items-start justify-between gap-2">
+          <div>
+            <p className="flex items-center gap-2 text-[28px] leading-none font-bold tracking-tight">
+              {bestLeave <= 0 ? (
+                <>
+                  <span className="live-pulse inline-block h-2.5 w-2.5 rounded-full bg-[#30D158]" />
+                  Leave now
+                </>
+              ) : (
+                <>
+                  Leave in {bestLeave} <span className="font-mono tabular-nums">min</span>
+                </>
+              )}
+            </p>
+            <p className="mt-1.5 text-[13px] text-white/50">
+              {walkMin(best.walkToStopM)} min walk · bus at {best.legs[0].departClock}
+            </p>
+          </div>
+          <div className="text-right">
+            <p className="text-[11px] tracking-wide text-white/40 uppercase">Arrive</p>
+            <p className="font-mono text-[22px] leading-tight font-bold text-white tabular-nums">
+              {best.arriveClock}
+            </p>
+            <p className="font-mono text-[13px] text-white/55 tabular-nums">{totalMin(best)} min</p>
+          </div>
         </div>
 
         <div className="mt-3">
@@ -826,13 +1188,16 @@ function JourneyResults({
           <button
             type="button"
             onClick={() => onBoard(best.legs[0].fromStop.id)}
-            className="ml-auto font-medium text-[#F5C542]/90 transition hover:text-[#F5C542]"
+            className="ml-auto font-medium text-[#0A84FF] transition hover:text-[#0A84FF]/80"
           >
             Live board →
           </button>
         </div>
       </div>
 
+      {rest.length > 0 && (
+        <p className="mt-3 mb-1 text-[11px] font-semibold tracking-[0.08em] text-white/40 uppercase">Later</p>
+      )}
       {rest.slice(0, 3).map((j, ri) => {
         const leave = leaveInMin(j);
         const label = leave <= 0 ? 'leaving now' : `leave in ${leave} min`;
@@ -841,16 +1206,15 @@ function JourneyResults({
             key={ri}
             type="button"
             onClick={() => onBoard(j.legs[0].fromStop.id)}
-            className="result-row mt-2 flex w-full items-center gap-2.5 rounded-xl border border-white/[0.08] px-4 py-2.5 text-left transition hover:border-white/20"
+            className="result-row mt-1.5 flex w-full items-center gap-2.5 rounded-xl border border-white/[0.08] px-4 py-2 text-left transition hover:border-white/20"
             style={{ animationDelay: `${(ri + 1) * 40}ms` }}
           >
             <RouteBadge route={j.legs[0].route} color={j.legs[0].routeColor} />
-            <span className="min-w-0 flex-1 truncate text-sm text-white/75">
-              Next: <span className="font-mono tabular-nums">{j.legs[0].departClock}</span> bus → arrive{' '}
-              <span className="font-mono tabular-nums">{j.arriveClock}</span>
+            <span className="min-w-0 flex-1 truncate font-mono text-sm text-white/85 tabular-nums">
+              {j.legs[0].departClock} → {j.arriveClock}
               {j.transfers > 0 && <span className="text-white/45"> · {j.transfers} transfer</span>}
             </span>
-            <span className="shrink-0 font-mono text-xs text-[#3DDC97] tabular-nums">{label}</span>
+            <span className="shrink-0 text-[13px] font-medium text-[#30D158]">{label}</span>
           </button>
         );
       })}
@@ -858,9 +1222,9 @@ function JourneyResults({
   );
 }
 
-// Live board rows, grouped by route + headsign: one 72px row per
-// group with the big next ETA, the next two below it, and a "later"
-// line for the rest.
+// Live board rows, grouped by route + headsign: one inset-grouped
+// 56px row per group with the big next ETA, the next two below it,
+// and a "later" line for the rest.
 function GroupedBoard({ arrivals }: { arrivals: ArrivalRow[] }) {
   // Same grouping as groupArrivalsByRoute in lib/transit.ts, kept local
   // because this client bundle must not import the server GTFS code.
@@ -877,11 +1241,17 @@ function GroupedBoard({ arrivals }: { arrivals: ArrivalRow[] }) {
     }
   }
   return (
-    <ul className="mt-3 divide-y divide-white/8 overflow-hidden rounded-xl border border-white/10">
+    <ul className="mt-3 overflow-hidden rounded-2xl border border-white/[0.12] bg-white/[0.06] backdrop-blur-[30px] backdrop-saturate-[1.8]">
       {groups.map((times, gi) => {
         const first = times[0];
         return (
-          <li key={`${first.route}-${first.headsign}-${gi}`} className="flex min-h-[72px] items-center gap-3 px-4 py-2.5">
+          <li
+            key={`${first.route}-${first.headsign}-${gi}`}
+            className={`stagger-in relative flex min-h-[56px] items-center gap-3 px-4 py-2 ${
+              gi > 0 ? 'before:absolute before:top-0 before:right-0 before:left-16 before:h-px before:bg-white/10' : ''
+            }`}
+            style={{ animationDelay: `${gi * 40}ms` }}
+          >
             <RouteBadge route={first.route} color={first.routeColor} big />
             <span className="min-w-0 flex-1">
               <span className="block truncate text-[15px] font-medium text-white/90">
@@ -932,7 +1302,7 @@ function RecentList({
   savedIds: Set<string>;
   onToggleSave: (stopId: string, stopName: string) => void;
 }) {
-  const [live, setLive] = useState<Record<string, { route: string; color: string; minutes: string }>>({});
+  const [live, setLive] = useState<Record<string, { route: string; color: string; minutes: string; headsign: string; routeCount: number }>>({});
 
   useEffect(() => {
     let alive = true;
@@ -951,6 +1321,8 @@ function RecentList({
                 route: first.route as string,
                 color: first.routeColor as string,
                 minutes: first.cancelled ? '—' : (first.minutes as string),
+                headsign: (first.headsign as string) || '',
+                routeCount: Array.isArray(json.routes) ? json.routes.length : 0,
               },
             ] as const;
           } catch {
@@ -959,7 +1331,7 @@ function RecentList({
         }),
       );
       if (alive) {
-        const next: Record<string, { route: string; color: string; minutes: string }> = {};
+        const next: Record<string, { route: string; color: string; minutes: string; headsign: string; routeCount: number }> = {};
         for (const e of entries) {
           if (e && e[1]) next[e[0]] = e[1];
         }
@@ -986,41 +1358,72 @@ function RecentList({
       : item.kind === 'stops'
         ? item.from
         : item.stopName;
+  // Second line under the name: the next bus and route count for
+  // stops, the route and duration for trips (when the plan that
+  // created them recorded it).
+  const subLabel = (item: RecentItem): string => {
+    if (item.kind === 'trip') {
+      return item.route && item.totalMin !== undefined && item.totalMin !== null
+        ? `Route ${item.route} · ${item.totalMin} min trip`
+        : '';
+    }
+    if (item.kind !== 'stop') return '';
+    const info = live[item.stopId];
+    if (!info) return '';
+    const bits = [] as string[];
+    if (info.headsign) bits.push(info.headsign);
+    if (info.routeCount > 1) bits.push(`${info.routeCount} routes`);
+    else if (info.routeCount === 1) bits.push('1 route');
+    return bits.join(' · ');
+  };
 
   return (
-    <ul className="grid grid-cols-1 gap-0.5 sm:grid-cols-2">
+    <ul className="grid grid-cols-1 gap-0.5">
       {items.map((item) => (
         <li
           key={recentKey(item)}
-          className="group flex h-10 items-center gap-1 rounded-lg px-2 transition hover:bg-white/[0.04]"
+          className="group flex min-h-[56px] items-center gap-1 rounded-xl px-2 py-1.5 transition hover:bg-white/[0.04]"
         >
           <button
             type="button"
             onClick={() => onRun(item)}
             title={fullLabel(item)}
             aria-label={fullLabel(item)}
-            className="flex min-w-0 flex-1 items-center gap-2 text-left"
+            className="flex min-w-0 flex-1 items-center gap-2.5 text-left"
           >
-            {item.kind === 'trip' ? (
-              <ArrowRight className="h-3.5 w-3.5 shrink-0 text-white/45" aria-hidden />
-            ) : (
-              <MapPin className="h-3.5 w-3.5 shrink-0 text-white/45" aria-hidden />
-            )}
-            <span className="min-w-0 flex-1 truncate text-[13px] text-white/80">{shortLabel(item)}</span>
+            <span
+              className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${
+                item.kind === 'trip'
+                  ? 'bg-[rgba(10,132,255,0.15)] text-[#0A84FF]'
+                  : 'bg-[rgba(255,214,10,0.15)] text-[#FFD60A]'
+              }`}
+              aria-hidden
+            >
+              {item.kind === 'trip' ? (
+                <ArrowRight className="h-4 w-4" aria-hidden />
+              ) : (
+                <MapPin className="h-4 w-4" aria-hidden />
+              )}
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-[15px] font-medium text-white/90">{shortLabel(item)}</span>
+              {subLabel(item) && (
+                <span className="block truncate text-[13px] text-white/45">{subLabel(item)}</span>
+              )}
+            </span>
             {item.kind === 'stop' &&
               (live[item.stopId] ? (
                 <span className="flex shrink-0 items-center gap-1.5">
                   <RouteBadge route={live[item.stopId].route} color={live[item.stopId].color} />
-                  <span className="font-mono text-[13px] text-white tabular-nums">{live[item.stopId].minutes}</span>
+                  <span className="font-mono text-[15px] font-semibold text-white tabular-nums">
+                    {live[item.stopId].minutes}
+                  </span>
                 </span>
               ) : (
-                <span className="shrink-0 font-mono text-[13px] text-white/30">—</span>
+                <span className="shrink-0 font-mono text-[15px] text-white/30">—</span>
               ))}
             {item.kind !== 'stop' && (
-              <span className="flex shrink-0 items-center gap-0.5 text-xs text-white/40">
-                {item.kind === 'trip' ? 'Trip' : ''}
-                <ChevronRight className="h-3.5 w-3.5" aria-hidden />
-              </span>
+              <ChevronRight className="h-4 w-4 shrink-0 text-white/30" aria-hidden />
             )}
           </button>
           {item.kind === 'stop' && (
@@ -1031,7 +1434,7 @@ function RecentList({
               aria-pressed={savedIds.has(item.stopId)}
               title={savedIds.has(item.stopId) ? 'Pinned' : 'Pin this stop'}
               className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md transition hover:bg-white/10 ${
-                savedIds.has(item.stopId) ? 'text-[#F5C542]' : 'text-white/35 hover:text-white'
+                savedIds.has(item.stopId) ? 'text-[#FFD60A]' : 'text-white/35 hover:text-white'
               }`}
             >
               <Pin
@@ -1052,6 +1455,40 @@ function RecentList({
         </li>
       ))}
     </ul>
+  );
+}
+
+// Recent with its section header, reused on the landing and beside
+// trip results: Recent first on mobile, side by side on desktop.
+function RecentSection({
+  items,
+  onRun,
+  onRemove,
+  savedIds,
+  onToggleSave,
+  onClear,
+}: {
+  items: RecentItem[];
+  onRun: (item: RecentItem) => void;
+  onRemove: (key: string) => void;
+  savedIds: Set<string>;
+  onToggleSave: (stopId: string, stopName: string) => void;
+  onClear: () => void;
+}) {
+  return (
+    <div>
+      <p className="mb-1.5 flex items-center">
+        <span className="text-[17px] font-bold text-white">Recent</span>
+        <button
+          type="button"
+          onClick={onClear}
+          className="ml-auto text-[13px] font-medium text-[#0A84FF] transition hover:text-[#0A84FF]/80"
+        >
+          Clear
+        </button>
+      </p>
+      <RecentList items={items} onRun={onRun} onRemove={onRemove} savedIds={savedIds} onToggleSave={onToggleSave} />
+    </div>
   );
 }
 
@@ -1101,6 +1538,15 @@ function TransitTool() {
       }
       return next;
     });
+  }, []);
+
+  const clearRecents = useCallback(() => {
+    setRecents([]);
+    try {
+      localStorage.removeItem(RECENTS_KEY);
+    } catch {
+      // ignore
+    }
   }, []);
 
   const [saved, setSaved] = useState<SavedStop[]>([]);
@@ -1262,9 +1708,29 @@ function TransitTool() {
         setSearchError(json.error);
         setStops(null);
       } else {
-        setPlan({ ...(json as PlanResult), fromLabel: q, toLabel: dest });
+        const result = json as PlanResult;
+        setPlan({ ...result, fromLabel: q, toLabel: dest });
         setStops(null);
-        pushRecent({ kind: 'trip', from: q, to: dest, fromHit: fh, toHit: th });
+        const firstJourney = result.journeys[0];
+        pushRecent({
+          kind: 'trip',
+          from: q,
+          to: dest,
+          fromHit: fh,
+          toHit: th,
+          route: firstJourney?.legs[0]?.route,
+          totalMin: firstJourney
+            ? Math.max(
+                1,
+                Math.round(
+                  (firstJourney.arriveMs +
+                    firstJourney.walkFromStopM * 750 -
+                    (firstJourney.departMs - firstJourney.walkToStopM * 750)) /
+                    60000,
+                ),
+              )
+            : undefined,
+        });
       }
     } catch {
       setSearchError('Lookup is unavailable right now. Try again in a moment.');
@@ -1352,50 +1818,24 @@ function TransitTool() {
   const hasResults = !!(board || stops || plan || boardLoading);
 
   return (
-    <div className="not-prose relative overflow-hidden rounded-[20px] border border-white/[0.08] bg-[#15171B] font-sans text-[#E8EAED] shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_20px_60px_rgba(0,0,0,0.5)]">
-      {/* Header: title, live clock, skyline as a horizon strip along
-          the bottom edge — never behind text. */}
-      <div className="relative overflow-hidden border-b border-white/[0.08] px-6 pt-4 pb-7">
-        <svg
-          aria-hidden
-          viewBox="0 0 600 28"
-          preserveAspectRatio="xMidYMax slice"
-          className="pointer-events-none absolute bottom-0 left-0 h-7 w-full text-white opacity-[0.05]"
-          fill="currentColor"
-        >
-          <path d="M0 28V18h22v-5h12v5h16V8h9v10h19v-4h13l6-9 3 6h4l2 4h12v-3h15v6h18V5h10v13h17v-4h13v4h19v-7h12v7h20V9h13v5h18l7-10 4 7h5l2 4h14V9h16v7h20V4h11v12h18v-5h14v5h21V8h13v6h19V4l8-2 4 6h6l2 4h16v-3h15v7h19V8h12v6h20v14z" />
-          <path d="M470 28V13h4l8-9 2 4h3v5h5v15h-8V18h-6v10z" />
-          <circle cx="482" cy="6" r="4" />
-        </svg>
-        <div className="relative flex items-center gap-3">
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#F5C542] text-black">
-          <Bus className="h-5 w-5" aria-hidden />
-        </span>
-        <span className="min-w-0 flex-1">
-          <span className="block text-[17px] leading-tight font-semibold tracking-tight">Seattle Transit</span>
-          <span className="block text-[13px] text-[#9AA0A6]">King County Metro · next bus & trips</span>
-        </span>
-        <span className="relative shrink-0 text-right">
-          <span className="flex items-center justify-end gap-1.5 text-[11px] font-semibold tracking-wider text-[#3DDC97]">
-            <span className="live-pulse inline-block h-1.5 w-1.5 rounded-full bg-[#3DDC97]" />
-            LIVE
-          </span>
-          <span className="mt-0.5 block font-mono text-[13px] text-white/60 tabular-nums">
-            <span key={clock} className="minute-flip">{clock || '—'}</span> Seattle
-          </span>
-        </span>
-        </div>
-      </div>
+    <div className="transit-ui not-prose relative overflow-hidden rounded-[22px] border border-white/[0.12] bg-black text-[#E8EAED] shadow-[0_10px_40px_rgba(0,0,0,0.35)]">
+      {/* Ambient glow so the glass below has something to blur. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -top-32 left-1/2 h-[420px] w-[600px] -translate-x-1/2 rounded-full opacity-15 blur-[120px]"
+        style={{ background: '#FF7A59' }}
+      />
+      <SkyHeader clock={clock} />
 
-      <div className="p-6">
-        <form onSubmit={onSearch} role="search">
+      <div className="relative -mt-[30px] px-6 pb-6 md:-mt-14">
+        <form onSubmit={onSearch} role="search" className={`${GLASS_CARD} p-5 md:p-6`}>
           <div className="flex gap-3">
             {/* Signature transit line: hollow station at From, a thick
                 yellow line, filled station at To. */}
             <div className="relative w-3 shrink-0" aria-hidden>
-              <span className="absolute top-[49px] left-1/2 h-[68px] w-1 -translate-x-1/2 rounded-full bg-[#F5C542]" />
-              <span className="absolute top-[43px] left-1/2 h-3 w-3 -translate-x-1/2 rounded-full border-2 border-white bg-[#15171B]" />
-              <span className="absolute top-[111px] left-1/2 h-3 w-3 -translate-x-1/2 rounded-full bg-[#F5C542]" />
+              <span className="absolute top-[49px] left-1/2 h-[68px] w-1 -translate-x-1/2 rounded-full bg-gradient-to-b from-[#30D158] to-[#FFD60A]" />
+              <span className="absolute top-[43px] left-1/2 h-3 w-3 -translate-x-1/2 rounded-full border-2 border-white bg-black" />
+              <span className="absolute top-[111px] left-1/2 h-3 w-3 -translate-x-1/2 rounded-full bg-[#FFD60A]" />
             </div>
             <div className="min-w-0 flex-1 space-y-3">
               <div>
@@ -1420,7 +1860,7 @@ function TransitTool() {
                     }}
                     placeholder="Building, place or address"
                     ariaLabel="Where are you leaving from?"
-                    className="h-12 w-full rounded-xl border border-white/[0.08] bg-[#0F1013] pr-12 pl-3.5 text-[15px] text-white shadow-[inset_0_2px_6px_rgba(0,0,0,0.45)] placeholder:text-white/35 transition focus:border-[#F5C542] focus:shadow-[0_0_0_3px_rgba(245,197,66,0.15),inset_0_2px_6px_rgba(0,0,0,0.45)] focus:outline-none"
+                    className="h-12 w-full rounded-xl border border-transparent bg-[rgba(118,118,128,0.24)] pr-12 pl-3.5 text-[17px] text-white placeholder:text-white/35 transition focus:border-transparent focus:shadow-[0_0_0_3px_rgba(10,132,255,0.5)] focus:outline-none"
                   />
                   <button
                     type="button"
@@ -1450,9 +1890,9 @@ function TransitTool() {
                     setToHit(hit);
                     setDestination(label);
                   }}
-                  placeholder="Add a destination"
+                  placeholder="Where to?"
                   ariaLabel="Where are you going?"
-                  className="h-12 w-full rounded-xl border border-white/[0.08] bg-[#0F1013] pr-3 pl-3.5 text-[15px] text-white shadow-[inset_0_2px_6px_rgba(0,0,0,0.45)] placeholder:text-white/35 transition focus:border-[#F5C542] focus:shadow-[0_0_0_3px_rgba(245,197,66,0.15),inset_0_2px_6px_rgba(0,0,0,0.45)] focus:outline-none"
+                  className="h-12 w-full rounded-xl border border-transparent bg-[rgba(118,118,128,0.24)] pr-3 pl-3.5 text-[17px] text-white placeholder:text-white/35 transition focus:border-transparent focus:shadow-[0_0_0_3px_rgba(10,132,255,0.5)] focus:outline-none"
                 />
               </div>
             </div>
@@ -1466,29 +1906,37 @@ function TransitTool() {
                   setFromHit(toHit);
                   setToHit(fromHit);
                 }}
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/12 text-white/60 transition hover:border-white/30 hover:text-white active:scale-95"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[rgba(118,118,128,0.24)] text-white/70 transition hover:text-white"
               >
                 <ArrowUpDown className="h-4 w-4" aria-hidden />
               </button>
             </div>
           </div>
 
-          <div className="mt-4 flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="mt-4 flex items-center gap-2.5">
             <button
               type="button"
               onClick={useMyLocation}
-              className="inline-flex items-center gap-1.5 self-start text-[13px] text-white/55 transition hover:text-white"
+              aria-label="Use my location"
+              className="flex h-[50px] w-[50px] shrink-0 items-center justify-center rounded-full bg-[rgba(10,132,255,0.15)] text-[#0A84FF] transition sm:hidden"
             >
-              <LocateFixed className="h-3.5 w-3.5" aria-hidden />
+              <Navigation className="h-5 w-5" aria-hidden />
+            </button>
+            <button
+              type="button"
+              onClick={useMyLocation}
+              className="hidden items-center gap-1.5 rounded-full bg-[rgba(10,132,255,0.15)] px-3 py-1.5 text-[13px] font-medium text-[#0A84FF] transition sm:inline-flex"
+            >
+              <Navigation className="h-3.5 w-3.5" aria-hidden />
               {locating ? 'Locating…' : 'Use my location'}
             </button>
-            {geoError && <span className="text-xs text-[#FFD9A0] sm:hidden">{geoError}</span>}
+            {geoError && <span className="text-xs text-[#FF9F0A] sm:hidden">{geoError}</span>}
             <button
               type="submit"
               disabled={searching || !canSearch}
-              className={`h-12 w-full rounded-xl text-[15px] font-semibold transition active:translate-y-px sm:w-[200px] ${
+              className={`h-[50px] flex-1 rounded-full text-[17px] font-semibold transition sm:w-[200px] sm:flex-none ${
                 canSearch && !searching
-                  ? 'bg-[#F5C542] text-[#111111] hover:brightness-[1.06]'
+                  ? 'bg-[#FFD60A] text-[#111111] hover:brightness-[1.06]'
                   : 'cursor-not-allowed border border-white/[0.08] bg-transparent text-[#9AA0A6]'
               }`}
             >
@@ -1499,7 +1947,7 @@ function TransitTool() {
                   : 'Show next buses'}
             </button>
           </div>
-          {geoError && <p className="mt-2 hidden text-xs text-[#FFD9A0] sm:block">{geoError}</p>}
+          {geoError && <p className="mt-2 hidden text-xs text-[#FF9F0A] sm:block">{geoError}</p>}
         </form>
 
         {!hasResults && !searchError && (
@@ -1523,38 +1971,18 @@ function TransitTool() {
               </div>
             )}
             {recents.length > 0 ? (
-              <div>
-                <p className="mb-1.5 flex items-center text-[11px] font-semibold tracking-[0.08em] text-white/40 uppercase">
-                  Recent
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setRecents([]);
-                      try {
-                        localStorage.removeItem(RECENTS_KEY);
-                      } catch {
-                        // ignore
-                      }
-                    }}
-                    className="ml-auto text-[11px] font-normal normal-case text-white/35 transition hover:text-white"
-                  >
-                    Clear
-                  </button>
-                </p>
-                <RecentList
-                  items={recentTop}
-                  onRun={runRecent}
-                  onRemove={removeRecent}
-                  savedIds={savedIds}
-                  onToggleSave={toggleSaved}
-                />
-              </div>
+              <RecentSection
+                items={recentTop}
+                onRun={runRecent}
+                onRemove={removeRecent}
+                savedIds={savedIds}
+                onToggleSave={toggleSaved}
+                onClear={clearRecents}
+              />
             ) : (
               <MiniBoard
                 stopId="1110"
-                eyebrow="Right now"
                 stopName="Pine St & 5th Ave"
-                sub="by Westlake Station"
                 origin={fromHit ?? undefined}
                 onSeeAll={() => void loadBoard('1110')}
               />
@@ -1563,18 +1991,29 @@ function TransitTool() {
         )}
 
         {searchError && (
-          <p className="mt-4 rounded-lg border border-red-400/25 bg-red-400/10 px-3.5 py-2.5 text-sm text-red-300">
+          <p className="mt-4 rounded-lg border border-[#FF453A]/25 bg-[#FF453A]/10 px-3.5 py-2.5 text-sm text-[#FF453A]">
             {searchError}
           </p>
         )}
 
-        {plan && (
-          <JourneyResults
-            plan={plan}
-            nowMs={nowMs}
-            onBoard={(stopId) => void loadBoard(stopId)}
-          />
-        )}
+        {plan &&
+          (recents.length > 0 ? (
+            <div className="mt-5 grid grid-cols-1 gap-6 lg:grid-cols-2">
+              <RecentSection
+                items={recentTop}
+                onRun={runRecent}
+                onRemove={removeRecent}
+                savedIds={savedIds}
+                onToggleSave={toggleSaved}
+                onClear={clearRecents}
+              />
+              <JourneyResults plan={plan} nowMs={nowMs} onBoard={(stopId) => void loadBoard(stopId)} />
+            </div>
+          ) : (
+            <div className="mt-5">
+              <JourneyResults plan={plan} nowMs={nowMs} onBoard={(stopId) => void loadBoard(stopId)} />
+            </div>
+          ))}
 
         {!board && stops && (
           <div className="mt-5">
@@ -1588,9 +2027,15 @@ function TransitTool() {
                 No Metro stop within a short walk of there. Try a place closer to a bus route.
               </p>
             ) : (
-              <ul className="divide-y divide-white/8 overflow-hidden rounded-xl border border-white/10">
-                {stops.map((s) => (
-                  <li key={s.id}>
+              <ul className="overflow-hidden rounded-2xl border border-white/[0.12] bg-white/[0.06] backdrop-blur-[30px] backdrop-saturate-[1.8]">
+                {stops.map((s, si) => (
+                  <li
+                    key={s.id}
+                    className={`stagger-in relative ${
+                      si > 0 ? 'before:absolute before:top-0 before:right-0 before:left-4 before:h-px before:bg-white/10' : ''
+                    }`}
+                    style={{ animationDelay: `${si * 40}ms` }}
+                  >
                     <button
                       type="button"
                       onClick={() => void loadBoard(s.id)}
@@ -1641,7 +2086,7 @@ function TransitTool() {
                   aria-pressed={savedIds.has(board.stop.id)}
                   className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition ${
                     savedIds.has(board.stop.id)
-                      ? 'border-[#F5C542]/40 bg-[#F5C542]/10 text-[#F5C542]'
+                      ? 'border-[#FFD60A]/40 bg-[#FFD60A]/10 text-[#FFD60A]'
                       : 'border-white/10 text-white/55 hover:border-white/25 hover:text-white'
                   }`}
                 >
@@ -1677,7 +2122,7 @@ function TransitTool() {
                     const scope =
                       routes.length > 0 ? `Route${routes.length > 1 ? 's' : ''} ${routes.join(', ')}` : 'this stop';
                     return (
-                      <div className="mt-3 overflow-hidden rounded-xl border border-[#FFB020]/25 bg-[#FFB020]/[0.08]">
+                      <div className="mt-3 overflow-hidden rounded-xl border border-[#FF9F0A]/25 bg-[#FF9F0A]/[0.08]">
                         <button
                           type="button"
                           onClick={() => setAlertsOpen((o) => !o)}
@@ -1693,7 +2138,7 @@ function TransitTool() {
                           </span>
                         </button>
                         {alertsOpen && (
-                          <div className="space-y-2 border-t border-[#FFB020]/20 px-4 py-3">
+                          <div className="space-y-2 border-t border-[#FF9F0A]/20 px-4 py-3">
                             {board.alerts.map((a, i) => (
                               <p key={i} className="text-sm leading-snug text-[#FFE1B3]">
                                 {a.header}
@@ -1705,7 +2150,7 @@ function TransitTool() {
                     );
                   })()}
 
-                {boardError && <p className="mt-3 text-sm text-red-400">{boardError}</p>}
+                {boardError && <p className="mt-3 text-sm text-[#FF453A]">{boardError}</p>}
 
                 {board.arrivals.length === 0 ? (
                   <p className="mt-4 rounded-lg border border-white/10 px-4 py-3 text-sm text-white/60">

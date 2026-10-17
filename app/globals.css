@@ -203,20 +203,21 @@ body {
   animation: minute-flip 0.45s ease;
 }
 
-@keyframes live-ping {
-  0% {
-    box-shadow: 0 0 0 0 rgba(61, 220, 151, 0.55);
-  }
-  70% {
-    box-shadow: 0 0 0 7px rgba(61, 220, 151, 0);
-  }
+/* The live dot "breathes" instead of pinging. */
+@keyframes live-breathe {
+  0%,
   100% {
-    box-shadow: 0 0 0 0 rgba(61, 220, 151, 0);
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.25);
+    opacity: 0.55;
   }
 }
 
 .live-pulse {
-  animation: live-ping 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  animation: live-breathe 2s ease-in-out infinite;
 }
 
 @keyframes result-in {
@@ -236,12 +237,87 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   .minute-flip,
-  .result-row {
+  .result-row,
+  .stagger-in,
+  .sky-star {
     animation: none;
   }
   .live-pulse {
     animation: none;
   }
+  .rolling-digit-strip {
+    transition: none;
+  }
+}
+
+/* Seattle Transit "Apple" system: SF stack on Apple devices, rounded
+   numbers for countdowns (this redefines the mono utility inside the
+   widget so markup stays untouched), springy controls, staggered
+   result entrances, rolling digits, and twinkling sky stars. */
+.transit-ui {
+  font-family: -apple-system, 'SF Pro Text', Inter, system-ui, sans-serif;
+}
+
+.transit-ui .font-mono {
+  font-family: ui-rounded, 'SF Pro Rounded', system-ui, sans-serif;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .transit-ui button {
+    transition-timing-function: cubic-bezier(0.2, 0.9, 0.25, 1.15);
+    transition-duration: 350ms;
+  }
+  .transit-ui button:active {
+    transform: scale(0.97);
+  }
+}
+
+@keyframes stagger-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.stagger-in {
+  animation: stagger-rise 400ms cubic-bezier(0.2, 0.9, 0.25, 1.15) both;
+}
+
+.rolling-digit {
+  display: inline-block;
+  height: 1em;
+  width: 1ch;
+  overflow: hidden;
+  line-height: 1;
+  text-align: center;
+  vertical-align: baseline;
+}
+
+.rolling-digit-strip {
+  display: inline-block;
+  transition: transform 300ms cubic-bezier(0.2, 0.9, 0.25, 1.15);
+  will-change: transform;
+}
+
+@keyframes star-twinkle {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}
+
+.sky-star {
+  position: absolute;
+  border-radius: 9999px;
+  background: #fff;
+  animation: star-twinkle 4s ease-in-out infinite;
 }
 
 .article-content p {

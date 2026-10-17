@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 150" preserveAspectRatio="none">
+  <!-- Seattle skyline silhouette with Space Needle. Fill = page background (#000). Mount Rainier path is optional; tint per time of day. -->
+  <path id="rainier" d="M860 150 L1000 80 L1022 70 L1040 75 L1058 71 L1200 138 V150 Z" fill="rgba(255,214,200,.38)"/>
+  <path id="city" d="M0 150 V128 H36 V120 H64 V132 H96 V116 H128 V124 H170 V134 H230 V126 H262 V138 H340 V126 H380 V112 H410 V122 H450 V100 H478 V90 H500 V106 H540 V82 H560 V70 H586 V88 H620 V66 H644 V58 H664 V52 H690 V74 H720 V60 H748 V84 H780 V48 L796 40 L812 48 V78 H846 V68 H872 V90 H910 V76 H940 V102 H980 V94 H1010 V114 H1060 V108 H1100 V122 H1150 V118 H1200 V150 Z" fill="#000"/>
+  <g id="space-needle" fill="#000">
+    <path d="M293 150 L298 62 L302 62 L307 150 Z"/>
+    <path d="M276 58 Q300 50 324 58 Q300 66 276 58 Z"/>
+    <path d="M290 57 L295 49 L305 49 L310 57 Z"/>
+    <rect x="299" y="28" width="2" height="22"/>
+  </g>
+</svg>

@@ -35,6 +35,12 @@ export interface Arrival {
   live: boolean;
   delayMin: number | null;
   cancelled: boolean;
+  // Where the bus is relative to the boarding stop, derived from its
+  // live stop updates: how many stops away ("3 stops away") and the
+  // last stop it passed ("passing Broadway"). Both null when the trip
+  // has no usable live updates — callers fall back to minutes.
+  stopsAway?: number | null;
+  passingStop?: string | null;
 }
 
 export interface TransitAlert {
@@ -195,6 +201,45 @@ export function mergeArrivals(
     .filter((a) => a.timeMs >= nowMs - 45000)
     .sort((a, b) => a.timeMs - b.timeMs)
     .slice(0, limit);
+}
+
+// Vehicle progress from one trip's live stop updates: the count of
+// future updates before the boarding stop ("3 stops away") and the
+// last stop the bus passed ("passing Broadway"). Updates without
+// timestamps carry no position information and are ignored; when
+// none of the pre-boarding updates has a time, the result is null
+// (the bus may not have started, or the feed only covers the stop
+// itself). Pure: `updates` are normalized {stopId, seq, timeSec}
+// triples, `seqByStopId` maps this trip's stop ids to their sequence
+// (first visit wins on loop routes).
+export function vehicleProgress(
+  updates: { stopId: string; seq: number | null; timeSec: number | null }[],
+  seqByStopId: Map<string, number>,
+  boardStopId: string,
+  nowMs: number,
+): { stopsAway: number; passingStopId: string | null } | null {
+  const boardSeq = seqByStopId.get(boardStopId);
+  if (boardSeq === undefined) return null;
+  const nowSec = nowMs / 1000;
+  let timed = false;
+  let boardFuture = false;
+  let away = 0;
+  let passing: { seq: number; stopId: string } | null = null;
+  for (const u of updates) {
+    const seq = u.seq ?? (u.stopId ? seqByStopId.get(u.stopId) : undefined) ?? null;
+    if (seq === null || u.timeSec === null) continue;
+    if (seq >= boardSeq) {
+      // The feed starts at (or past) our stop and the bus has not
+      // reached it yet: it is 0 stops away.
+      if (seq === boardSeq && u.timeSec >= nowSec - 30) boardFuture = true;
+      continue;
+    }
+    timed = true;
+    if (u.timeSec >= nowSec - 30) away += 1;
+    else if (passing === null || seq > passing.seq) passing = { seq, stopId: u.stopId };
+  }
+  if (!timed) return boardFuture ? { stopsAway: 0, passingStopId: null } : null;
+  return { stopsAway: away, passingStopId: passing?.stopId ?? null };
 }
 
 // Board grouping: collapse arrivals sharing route + headsign into one
@@ -533,6 +578,32 @@ export async function getStopBoard(stopId: string, nowMs = Date.now()): Promise<
         const trip = data.trips.get(tripId);
         const route = trip ? data.routes.get(trip.routeId) : undefined;
         const delaySec = stu.arrival?.delay ?? stu.departure?.delay ?? null;
+        const cancelled = tu.trip?.scheduleRelationship === 3 || stu.scheduleRelationship === 1;
+        // Where this bus is: its live updates before our stop, resolved
+        // against the static stop sequence. Skipped on cancelled trips
+        // (a pulled bus is nowhere).
+        let stopsAway: number | null = null;
+        let passingStop: string | null = null;
+        if (!cancelled) {
+          const seqByStopId = new Map<string, number>();
+          for (const s of data.tripStops.get(tripId) ?? []) {
+            if (!seqByStopId.has(s.stopId)) seqByStopId.set(s.stopId, s.seq);
+          }
+          const progress = vehicleProgress(
+            (tu.stopTimeUpdate ?? []).map((u) => ({
+              stopId: u.stopId ?? '',
+              seq: typeof u.stopSequence === 'number' ? u.stopSequence : null,
+              timeSec: toNum(u.arrival?.time) ?? toNum(u.departure?.time),
+            })),
+            seqByStopId,
+            stopId,
+            nowMs,
+          );
+          if (progress) {
+            stopsAway = progress.stopsAway;
+            passingStop = progress.passingStopId ? (data.stops.get(progress.passingStopId)?.name ?? null) : null;
+          }
+        }
         live.push({
           tripId,
           route: route?.shortName ?? sched?.route ?? '',
@@ -542,7 +613,9 @@ export async function getStopBoard(stopId: string, nowMs = Date.now()): Promise<
           scheduledMs: sched?.scheduledMs ?? null,
           live: true,
           delayMin: delaySec !== null ? Math.round(delaySec / 60) : null,
-          cancelled: tu.trip?.scheduleRelationship === 3 || stu.scheduleRelationship === 1,
+          cancelled,
+          stopsAway,
+          passingStop,
         });
       }
     }
