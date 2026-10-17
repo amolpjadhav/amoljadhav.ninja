@@ -26,7 +26,7 @@ function ToolCard({
   return (
     <Link
       href={`/blog/${slug}`}
-      className="group flex flex-col bg-black border border-[#0aee3c]/20 rounded-lg p-3 transition-all hover:border-[#0aee3c]/50 hover:shadow-[0_0_16px_rgba(10,238,60,0.25)]"
+      className="group flex min-w-0 flex-col bg-black border border-[#0aee3c]/20 rounded-lg p-3 transition-all hover:border-[#0aee3c]/50 hover:shadow-[0_0_16px_rgba(10,238,60,0.25)]"
     >
       <h3 className="text-white/85 group-hover:text-white transition-colors font-medium text-base mb-2">{title}</h3>
       {children}
@@ -57,7 +57,7 @@ async function StockCard({ slug, title, excerpt }: { slug: string; title: string
   // A form can't live inside the card link, so this card is a plain shell
   // with a linked title instead of a whole-card link.
   return (
-    <div className="group flex flex-col bg-black border border-[#0aee3c]/20 rounded-lg p-3 transition-all hover:border-[#0aee3c]/50 hover:shadow-[0_0_16px_rgba(10,238,60,0.25)]">
+    <div className="group flex min-w-0 flex-col bg-black border border-[#0aee3c]/20 rounded-lg p-3 transition-all hover:border-[#0aee3c]/50 hover:shadow-[0_0_16px_rgba(10,238,60,0.25)]">
       <div className="mb-2 flex items-baseline justify-between gap-2">
         <Link href={`/blog/${slug}`}>
           <h3 className="text-white/85 group-hover:text-white transition-colors font-medium text-base">{title}</h3>
@@ -105,7 +105,10 @@ export default async function ToolsRow() {
         <span className="text-[#0aee3c]">$</span> Tools
         <span className="flex-1 h-px bg-gradient-to-r from-[#0aee3c]/30 to-transparent" />
       </h2>
-      <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+      {/* Explicit minmax(0,1fr) columns on every breakpoint: the Mag 7
+          tape is max-content wide, and an implicit auto column would size
+          to it and blow the row (and the page) out on mobile. */}
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4">
         {cards.map((post) =>
           post.slug === 'look-up-stock-and-company-details' ? (
             <StockCard key={post.slug} slug={post.slug} title={post.title} excerpt={post.excerpt} />

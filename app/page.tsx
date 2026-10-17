@@ -38,7 +38,7 @@ function ToolsSkeleton() {
         <span className="text-[#0aee3c]/60">Tools</span>
         <span className="flex-1 h-px bg-gradient-to-r from-[#0aee3c]/30 to-transparent" />
       </div>
-      <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4">
         {[0, 1, 2, 3].map((i) => (
           <div
             key={i}

@@ -78,7 +78,7 @@ export default function Mag7Summary() {
   return (
     <div>
       <p className="mb-1 font-mono text-[10px] tracking-wide text-white/25 uppercase">Mag 7</p>
-      <div className="tape overflow-hidden" role="marquee" aria-label="Mag 7 moves">
+      <div className="tape min-w-0 overflow-hidden" role="marquee" aria-label="Mag 7 moves">
         <div className="tape-track flex h-6 items-center">
           {row(false)}
           {row(true)}
