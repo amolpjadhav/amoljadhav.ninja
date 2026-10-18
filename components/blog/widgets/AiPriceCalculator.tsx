@@ -300,7 +300,7 @@ export default function AiPriceCalculator() {
             {typedOutput.toLocaleString('en-US')} out
             {thinking > 1 && ` · ×${thinking} output applied to reasoning models only`}
           </p>
-          <div className="overflow-x-auto rounded-2xl bg-black/30">
+          <div className="hidden overflow-x-auto rounded-2xl bg-black/30 md:block">
             <table className="w-full min-w-[520px] text-left text-sm">
               <thead>
                 <tr className="text-[11px] tracking-wide text-white/40 uppercase">
@@ -352,6 +352,51 @@ export default function AiPriceCalculator() {
                 })}
               </tbody>
             </table>
+          </div>
+          <div className="rounded-2xl bg-black/30 px-4 py-1 md:hidden" aria-label="Models ranked for your usage, compact">
+            {visible.map(({ m, perRequest: cost }) => {
+              const selected = m.id === model.id;
+              const monthly = cost * requests;
+              const ratio = cheapest > 0 ? cost / cheapest : 1;
+              return (
+                <button
+                  key={m.id}
+                  type="button"
+                  onClick={() => setModelId(m.id)}
+                  aria-pressed={selected}
+                  className={`block w-full border-b border-white/[0.06] py-3 text-left last:border-0 ${
+                    selected ? 'rounded-lg bg-[#FFD60A]/[0.07]' : ''
+                  }`}
+                >
+                  <span className="flex items-baseline justify-between gap-2">
+                    <span className={`text-sm ${selected ? 'font-semibold text-white' : 'text-white/90'}`}>
+                      {m.label} {m.reasoning ? '🧠' : ''}
+                      {m.tag && <span className="ml-1 text-[10px] font-normal text-white/35">{m.tag}</span>}
+                    </span>
+                    <span className="font-mono text-sm text-white/90 tabular-nums">{formatUSD(monthly)}/mo</span>
+                  </span>
+                  <span className="mt-1.5 block h-1.5 overflow-hidden rounded-full bg-white/[0.08]">
+                    <span
+                      className={`block h-full rounded-full ${selected ? 'bg-[#FFD60A]' : 'bg-[#FFD60A]/60'}`}
+                      style={{ width: `${maxMonthly > 0 ? Math.max(2, (monthly / maxMonthly) * 100) : 0}%` }}
+                    />
+                  </span>
+                  <span className="mt-1.5 flex items-center justify-between text-xs">
+                    <span className="font-mono text-white/60 tabular-nums">{formatCents(cost)} per request</span>
+                    {ratio <= 1 ? (
+                      <span className="rounded-full bg-[#30D158]/15 px-2 py-0.5 font-bold text-[#30D158]">
+                        cheapest
+                      </span>
+                    ) : (
+                      <span className="font-mono text-white/60 tabular-nums">
+                        {ratio >= 100 ? Math.round(ratio) : ratio.toFixed(1)}× vs cheapest
+                      </span>
+                    )}
+                  </span>
+                  <span className="mt-0.5 block text-[11px] text-white/35">{m.vendor}</span>
+                </button>
+              );
+            })}
           </div>
           {models.length > 8 && (
             <button
