@@ -1,22 +1,30 @@
 import { ImageResponse } from 'next/og';
 import { parseSeq, seqMissed } from '@/lib/score-seq';
+import { rankFor } from '@/lib/games/ranks';
 
 // Personalized score card for link previews (X/Twitter, iMessage, …).
-// GET /api/og/score?score=16&total=20&acc=89&avg=1.8&best=1&seq=b21e50
-// All params are validated and clamped — never trust the query string.
+// GET /api/og/score?beat=20&d=30&avg=1.5&best=1&seq=b21e50
+// Legacy links (?score=&total=&secs=) still render: beat falls back to
+// score, d to secs. All params are validated and clamped — never trust
+// the query string.
+//
+// Apple-style design: dark ambient glows, knight squircle, giant score,
+// gold rank pill, and a rounded board panel with ×-marked misses. The
+// bottom 80px stays EMPTY (X overlays og:title there). Rank glyphs come
+// from Noto Sans Symbols 2, fetched like Inter — the edge runtime ships
+// no chess-glyph font of its own.
 export const runtime = 'edge';
 
 const W = 1200;
 const H = 630;
-const GREEN = '#4ade80';
-const RED = '#f87171';
-const BG = '#0c0e10';
-const PANEL = '#14171a';
-const INK = '#f2f4f3';
+const INK = '#ffffff';
 const MUTED = '#9aa3a8';
-const SEQ_TILE = 44;
-const SEQ_GAP = 6;
-const SEQ_MAX = 42;
+const GREEN = '#22c55e';
+const DARK_GREEN = '#052e16';
+const MISS = '#e5484d';
+const SQ = 48;
+const GAP = 6;
+const DURATIONS = [15, 30, 60];
 
 function clampNum(v: string | null, min: number, max: number): number | null {
   if (v === null) return null;
@@ -25,22 +33,44 @@ function clampNum(v: string | null, min: number, max: number): number | null {
   return Math.min(max, Math.max(min, Math.round(n * 10) / 10));
 }
 
-async function loadFont(): Promise<ArrayBuffer | null> {
+async function fontCss(family: string): Promise<string | null> {
   try {
-    const css = await fetch(
-      'https://fonts.googleapis.com/css2?family=Inter:wght@900&display=swap',
+    const res = await fetch(
+      `https://fonts.googleapis.com/css2?family=${encodeURIComponent(family)}:wght@400;900&display=swap`,
       { headers: { 'User-Agent': 'Mozilla/5.0 (compatible; og-image/1.0)' } },
-    ).then((r) => {
-      if (!r.ok) throw new Error('font css');
-      return r.text();
-    });
-    const url = css.match(/https:\/\/[^)]+\.woff2/)?.[0];
-    if (!url) return null;
-    const buf = await fetch(url).then((r) => {
-      if (!r.ok) throw new Error('font file');
-      return r.arrayBuffer();
-    });
-    return buf;
+    );
+    if (!res.ok) return null;
+    return await res.text();
+  } catch {
+    return null;
+  }
+}
+
+/** Font URL of the @font-face block covering a codepoint (unicode-range). */
+function pickUrl(css: string, codepoint: number): string | null {
+  const blocks = css.match(/@font-face\s*\{[^}]+\}/g) ?? [];
+  for (const b of blocks) {
+    const url = b.match(/url\((https:\/\/[^)]+)\)/)?.[1];
+    const ranges = b.match(/unicode-range:\s*([^;]+);/)?.[1];
+    if (!url) continue;
+    // No unicode-range means the whole font: covers every codepoint.
+    if (!ranges) return url;
+    for (const part of ranges.split(',')) {
+      const m = part.trim().match(/U\+([0-9A-Fa-f]+)(?:-([0-9A-Fa-f]+))?/);
+      if (!m) continue;
+      const lo = parseInt(m[1], 16);
+      const hi = m[2] ? parseInt(m[2], 16) : lo;
+      if (codepoint >= lo && codepoint <= hi) return url;
+    }
+  }
+  return null;
+}
+
+async function loadFontBuffer(url: string): Promise<ArrayBuffer | null> {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    return await res.arrayBuffer();
   } catch {
     return null;
   }
@@ -48,39 +78,72 @@ async function loadFont(): Promise<ArrayBuffer | null> {
 
 export async function GET(req: Request) {
   const q = new URL(req.url).searchParams;
-  const score = clampNum(q.get('score'), 0, 999) ?? 0;
-  const total = clampNum(q.get('total'), 1, 999) ?? 20;
-  const accN = clampNum(q.get('acc'), 0, 100);
+  const beatN = clampNum(q.get('beat'), 0, 999);
+  const scoreN = clampNum(q.get('score'), 0, 999);
+  const n = Math.round(beatN ?? scoreN ?? 0);
+  const dRaw = Number(q.get('d') ?? q.get('secs'));
+  const duration = DURATIONS.includes(dRaw) ? dRaw : null;
+  const total = Math.round(clampNum(q.get('total'), 1, 999) ?? Math.max(n, 1));
   const avgN = clampNum(q.get('avg'), 0, 99);
-  const pbN = clampNum(q.get('pb'), 0, 999);
-  const secsN = clampNum(q.get('secs'), 0, 999);
   const isBest = q.get('best') === '1';
   const seq = parseSeq(q.get('seq'));
-  const missed = seqMissed(seq);
-  const overflow = seq.length > SEQ_MAX ? seq.length - SEQ_MAX + 1 : 0;
-  const shown = overflow > 0 ? seq.slice(0, SEQ_MAX - 1) : seq.slice(0, SEQ_MAX);
-  const missedLine =
-    missed.length === 0
-      ? 'CLEAN ROUND'
-      : `MISSED: ${missed.slice(0, 6).join(', ')}${missed.length > 6 ? ` +${missed.length - 6}` : ''}`;
 
-  const font = await loadFont();
+  const rank = duration !== null ? rankFor(n, duration) : null;
+  const misses = seq.length > 0 ? seqMissed(seq).length : n === 0 ? 0 : Math.max(0, total - n);
+  const lineParts = [
+    rank ? `${rank.rank} speed` : null,
+    avgN !== null ? `${avgN}s each` : null,
+    `${misses} ${misses === 1 ? 'miss' : 'misses'}`,
+  ].filter((p): p is string => p !== null);
 
-  // Faint 8x8 board on the right for chess identity (fallback when no
-  // sequence travels with the link).
-  const squares = Array.from({ length: 64 }, (_, i) => {
-    const light = (Math.floor(i / 8) + (i % 8)) % 2 === 0;
-    return (
-      <div
-        key={i}
-        style={{
-          width: 44,
-          height: 44,
-          background: light ? '#1e2422' : '#121615',
-        }}
-      />
-    );
-  });
+  const status = new Map<string, boolean>();
+  for (const m of seq) status.set(m.sq, m.ok);
+
+  const [interCss, symbolsCss] = await Promise.all([fontCss('Inter'), fontCss('Noto Sans Symbols 2')]);
+  const interUrl = interCss ? pickUrl(interCss, 0x41) : null;
+  // Chess knights live at U+265E; also cover the whole pieces block.
+  const symbolsUrl = symbolsCss ? pickUrl(symbolsCss, 0x265e) : null;
+  const [interData, symbolsData] = await Promise.all([
+    interUrl ? loadFontBuffer(interUrl) : null,
+    symbolsUrl ? loadFontBuffer(symbolsUrl) : null,
+  ]);
+  const fonts = [
+    ...(interData ? [{ name: 'Inter', data: interData, weight: 900 as const, style: 'normal' as const }] : []),
+    ...(symbolsData
+      ? [{ name: 'Noto Sans Symbols 2', data: symbolsData, weight: 400 as const, style: 'normal' as const }]
+      : []),
+  ];
+  const family = fonts.length > 0 ? 'Inter, "Noto Sans Symbols 2", sans-serif' : 'sans-serif';
+
+  const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+  const board = [8, 7, 6, 5, 4, 3, 2, 1].map((rankNum) => (
+    <div key={rankNum} style={{ display: 'flex', gap: GAP }}>
+      {files.map((f, i) => {
+        const sq = `${f}${rankNum}`;
+        const hit = status.get(sq) ?? null;
+        const light = ((8 - rankNum + i) % 2 + 2) % 2 === 0;
+        return (
+          <div
+            key={sq}
+            style={{
+              width: SQ,
+              height: SQ,
+              borderRadius: 8,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: hit === true ? GREEN : hit === false ? MISS : light ? '#20262b' : '#14181c',
+              color: '#ffffff',
+              fontSize: 22,
+              fontWeight: 700,
+            }}
+          >
+            {hit === false ? '×' : ''}
+          </div>
+        );
+      })}
+    </div>
+  ));
 
   return new ImageResponse(
     (
@@ -89,32 +152,49 @@ export async function GET(req: Request) {
           width: W,
           height: H,
           display: 'flex',
-          background: BG,
+          backgroundColor: '#05070a',
+          backgroundImage:
+            'radial-gradient(600px 420px at 12% 8%, rgba(34,197,94,0.20), transparent 70%), radial-gradient(720px 520px at 92% 105%, rgba(59,130,246,0.18), transparent 70%)',
           color: INK,
-          fontFamily: font ? 'Inter, sans-serif' : 'sans-serif',
-          padding: 64,
+          fontFamily: family,
+          paddingTop: 56,
+          paddingBottom: 80,
+          paddingLeft: 64,
+          paddingRight: 64,
         }}
       >
-        {/* Neon edge */}
-        <div style={{ width: 10, background: GREEN, borderRadius: 5, marginRight: 56 }} />
-
         <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', flex: 1 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            <span style={{ color: GREEN, fontSize: 26, fontWeight: 800, letterSpacing: 3 }}>
-              NOTATION TRAINER
-            </span>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <div
+              style={{
+                width: 60,
+                height: 60,
+                borderRadius: 18,
+                background: GREEN,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: DARK_GREEN,
+                fontSize: 34,
+                fontWeight: 400,
+              }}
+            >
+              {symbolsData ? '♞' : 'N'}
+            </div>
             {isBest ? (
               <span
                 style={{
                   background: GREEN,
                   color: '#06110a',
-                  fontSize: 22,
+                  fontSize: 20,
                   fontWeight: 900,
-                  paddingTop: 5,
-                  paddingBottom: 5,
+                  paddingTop: 6,
+                  paddingBottom: 6,
                   paddingLeft: 14,
                   paddingRight: 14,
                   borderRadius: 999,
+                  whiteSpace: 'nowrap',
+                  marginLeft: 14,
                 }}
               >
                 NEW BEST
@@ -122,131 +202,46 @@ export async function GET(req: Request) {
             ) : null}
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'baseline', marginTop: 12 }}>
-            <span style={{ fontSize: 190, fontWeight: 900, lineHeight: 1 }}>{score}</span>
-            <span style={{ fontSize: 72, fontWeight: 800, color: MUTED }}>/{total}</span>
-          </div>
-          <div style={{ fontSize: 30, color: MUTED, fontWeight: 700, letterSpacing: 2, marginTop: 4 }}>
-            {secsN !== null && secsN > 0 ? `SQUARES NAMED IN ${Math.round(secsN)} SECONDS` : 'SQUARES NAMED · CHESS NOTATION'}
+          <div style={{ fontSize: 33, fontWeight: 700, marginTop: 14, lineHeight: 1.25 }}>
+            How fast can you read a chessboard?
           </div>
 
-          <div style={{ display: 'flex', gap: 12, marginTop: 32 }}>
-            {[
-              ['ACCURACY', accN === null ? '—' : `${Math.round(accN)}%`],
-              ['AVG / SQUARE', avgN === null ? '—' : `${avgN.toFixed(1)}s`],
-              ['MY BEST', pbN === null ? '—' : `${Math.round(pbN)}`],
-            ].map(([label, value]) => (
-              <div
-                key={label}
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  background: PANEL,
-                  borderRadius: 14,
-                  paddingTop: 14,
-                  paddingBottom: 14,
-                  paddingLeft: 20,
-                  paddingRight: 20,
-                }}
-              >
-                <span style={{ fontSize: 20, color: MUTED, fontWeight: 700, letterSpacing: 2 }}>
-                  {label}
-                </span>
-                <span style={{ fontSize: 36, fontWeight: 800 }}>{value}</span>
-              </div>
-            ))}
-          </div>
-
-          <div style={{ fontSize: 26, color: MUTED, marginTop: 32 }}>
-            amoljadhav.ai · can you beat it?
-          </div>
-        </div>
-
-        {seq.length === 0 ? (
-          <div
-            style={{
-              display: 'flex',
-              flexWrap: 'wrap',
-              width: 352,
-              alignContent: 'center',
-              opacity: 0.9,
-              marginLeft: 32,
-            }}
-          >
-            {squares}
-          </div>
-        ) : (
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'center',
-              width: 352,
-              marginLeft: 32,
-            }}
-          >
-            <span style={{ fontSize: 20, color: MUTED, fontWeight: 700, letterSpacing: 2 }}>
-              SEQUENCE
-            </span>
-            <span
+          <div style={{ display: 'flex', alignItems: 'center', marginTop: 10 }}>
+            <div style={{ fontSize: 160, fontWeight: 800, lineHeight: 1, flexShrink: 0 }}>{String(n)}</div>
+            <div
               style={{
-                fontSize: 22,
-                fontWeight: 800,
-                color: missed.length === 0 ? GREEN : RED,
-                marginTop: 4,
-                marginBottom: 12,
+                fontSize: 34,
+                color: MUTED,
+                fontWeight: 600,
+                marginLeft: 20,
+                lineHeight: 1.2,
+                flexShrink: 1,
+                minWidth: 0,
               }}
             >
-              {missedLine}
-            </span>
-            <div style={{ display: 'flex', flexWrap: 'wrap', width: 352, gap: SEQ_GAP }}>
-              {shown.map((m, i) => (
-                <div
-                  key={`${m.sq}-${i}`}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    width: SEQ_TILE,
-                    height: SEQ_TILE,
-                    borderRadius: 10,
-                    background: m.ok ? '#0e2114' : '#2a1215',
-                    border: `2px solid ${m.ok ? GREEN : RED}`,
-                    color: m.ok ? GREEN : RED,
-                    fontSize: 19,
-                    fontWeight: 800,
-                  }}
-                >
-                  {m.sq}
-                </div>
-              ))}
-              {overflow > 0 ? (
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    width: SEQ_TILE,
-                    height: SEQ_TILE,
-                    borderRadius: 10,
-                    background: PANEL,
-                    color: MUTED,
-                    fontSize: 19,
-                    fontWeight: 800,
-                  }}
-                >
-                  +{overflow}
-                </div>
-              ) : null}
+              {duration !== null ? `chess squares in ${duration} seconds` : 'chess squares named'}
             </div>
           </div>
-        )}
+
+          <div style={{ fontSize: 30, fontWeight: 700, marginTop: 14 }}>{lineParts.join(' · ')}</div>
+        </div>
+
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            marginLeft: 32,
+            background: 'rgba(255,255,255,0.04)',
+            border: '1px solid rgba(255,255,255,0.09)',
+            borderRadius: 28,
+            padding: 24,
+          }}
+        >
+          <div style={{ display: 'flex', flexDirection: 'column', gap: GAP }}>{board}</div>
+        </div>
       </div>
     ),
-    {
-      width: W,
-      height: H,
-      fonts: font ? [{ name: 'Inter', data: font, weight: 900, style: 'normal' }] : undefined,
-    },
+    { width: W, height: H, fonts: fonts.length > 0 ? fonts : undefined },
   );
 }

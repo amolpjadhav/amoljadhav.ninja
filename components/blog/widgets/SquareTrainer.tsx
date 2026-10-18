@@ -3,9 +3,10 @@
 import { useEffect, useRef, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import { createShuffleBag, drawAvoiding, drawFromBag } from '@/lib/shuffle-bag';
-import { TAPE_NEXT, TAPE_PAST, buildView, missedSquares, slideView } from '@/lib/tape';
+import { TAPE_NEXT, TAPE_PAST, buildView, slideView } from '@/lib/tape';
 import type { TapeMark, TapeView } from '@/lib/tape';
 import { encodeSeq } from '@/lib/score-seq';
+import { RANK_GLYPH, rankFor } from '@/lib/games/ranks';
 
 // Name-that-square, game edition. Three modes — Practice (calm, endless),
 // Blitz (30 seconds, points), Survival (3 lives, wrong taps cost one) — plus
@@ -80,15 +81,16 @@ function heatBucket(count: number): number {
   return 0;
 }
 
-// Heat cells, darkest-last: index matches heatBucket.
-const HEAT_CELL = [
+// Dark amber heat for the results heatmap: index matches heatBucket.
+const HEAT_DARK = [
   '',
-  'bg-[#f3ddba] text-[#4a3419]',
-  'bg-[#eead6d] text-[#4a2c12]',
-  'bg-[#dd7f33] text-white',
-  'bg-[#b25a1d] text-white',
+  'bg-[#5a3a12] text-[#ffd9a0]',
+  'bg-[#7a4d14] text-white',
+  'bg-[#a8641a] text-white',
+  'bg-[#d98a1f] text-black',
 ];
-const HEAT_LABEL = ['1', '2', '3–4', '5+'];
+
+const RANK_ORDER = ['Pawn', 'Knight', 'Bishop', 'Rook', 'Queen', 'King'];
 
 type Mode = 'practice' | 'blitz' | 'survival';
 type Phase = 'idle' | 'playing' | 'over';
@@ -406,13 +408,14 @@ export default function SquareTrainer() {
   const over = phase === 'over';
   const slipAgg = aggregateMisses(missHist);
   const slipTop = missTallyEntries(slipAgg).slice(0, MAX_DRILL_SQUARES);
+  const weak3 = missTallyEntries(slipAgg).slice(0, 3);
+  const weak3Set = new Set(weak3);
   const past2 = view.past.slice(-TAPE_PAST);
   // Left of current, oldest first; ghosts hold empty slots at round start.
   const leftSlots: (TapeMark | null)[] = Array.from(
     { length: TAPE_PAST },
     (_, i) => past2[past2.length - TAPE_PAST + i] ?? null,
   );
-  const missed = missedSquares(past);
   const sideLabel =
     orientation === 'random'
       ? flipped
@@ -874,12 +877,23 @@ export default function SquareTrainer() {
     dealFrom(slipTop);
   }
 
+  // Rank for timed rounds (15s/30s/60s ladders); survival has none.
+  const shareRank = timed ? rankFor(score, blitzSecs) : null;
+  const RING_C = 2 * Math.PI * 56;
+  const ringFrac = shareRank && shareRank.nextAt ? Math.min(1, score / shareRank.nextAt) : 1;
+  // One of two challenge wordings, picked per completed round.
+  const shareVariant = useState(() => (Math.random() < 0.5 ? 0 : 1))[0];
+  const avgLabel = avgPer === null ? null : avgPer.toFixed(1).replace(/\.0$/, '');
   const shareText =
-    accuracy === null
-      ? `${score} squares · Can you beat it?`
-      : timed
-        ? `${score} squares in ${blitzSecs}s · ${accuracy}% · Can you beat it?`
-        : `${score} squares · ${accuracy}% · Can you beat it?`;
+    shareRank === null
+      ? accuracy === null
+        ? `${score} squares · Can you beat it?`
+        : timed
+          ? `${score} squares in ${blitzSecs}s · ${accuracy}% · Can you beat it?`
+          : `${score} squares · ${accuracy}% · Can you beat it?`
+      : shareVariant === 0 || avgLabel === null
+        ? `${RANK_GLYPH[shareRank.rank]} ${shareRank.rank} speed: ${score} chess squares in ${blitzSecs} seconds. Your turn?`
+        : `I can name a chess square every ${avgLabel} seconds. Faster than me?`;
 
   // Same X intent convention as ShareButtons: prefilled text plus a share
   // link that carries the score, so the X post embeds a personalized
@@ -894,6 +908,9 @@ export default function SquareTrainer() {
     ...(timed ? { secs: String(blitzSecs) } : {}),
     ...(isNewBest ? { best: '1' } : {}),
     ...(past.length > 0 ? { seq: encodeSeq(past) } : {}),
+    beat: String(score),
+    ...(timed ? { d: String(blitzSecs) } : {}),
+    ...(shareRank ? { r: shareRank.rank } : {}),
   });
   const shareUrl = `https://amoljadhav.ai/share/chess-notation?${cardParams.toString()}`;
   const xHref = `https://twitter.com/intent/tweet?text=${encodeURIComponent(
@@ -1571,16 +1588,16 @@ export default function SquareTrainer() {
         <div className="absolute inset-0 z-10 overflow-y-auto rounded-xl bg-black/90 backdrop-blur-[2px]">
           <div className="st-results">
             <div className="st-results-head">
-              <h3 className="text-xl font-bold text-[#f3ecd9]">
-                {timed ? 'Round complete' : 'Out of lives'}
-              </h3>
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-white/45">
+                {modeLabel} · {timed ? `${blitzSecs} seconds` : '3 lives'} · {sideLabel}
+              </p>
               <button
                 type="button"
                 onClick={dismiss}
                 aria-label="Close results"
-                className="rounded-lg p-1.5 text-white/60 hover:bg-white/10 hover:text-white"
+                className="rounded-full bg-white/[0.06] p-2.5 text-white/60 hover:bg-white/10 hover:text-white"
               >
-                <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 18 18" fill="none" aria-hidden="true">
                   <path
                     d="M4 4l10 10M14 4L4 14"
                     stroke="currentColor"
@@ -1591,21 +1608,57 @@ export default function SquareTrainer() {
               </button>
             </div>
             <div className="st-summary">
-              <p className="text-center text-xs font-bold uppercase tracking-widest text-white/40">
-                {modeLabel.toUpperCase()} · {timed ? `${blitzSecs} SEC` : '3 LIVES'} · {sideLabel.toUpperCase()}
-              </p>
-              <p className="text-center font-mono text-7xl font-bold tabular-nums leading-none text-[#f3ecd9]">{reduceMotion ? score : shownScore}</p>
-              {score > prevBest && score > 0 ? (
-                <p className="text-center">
-                  <span className="inline-block rounded-full bg-amber-300 px-4 py-1 text-sm font-bold text-black">
-                    New best · +{score - prevBest}
-                  </span>
-                </p>
-              ) : (
-                <p className="text-center text-sm text-white/50">
-                  Best {best > 0 ? best : '—'}
-                </p>
-              )}
+              <div className="flex items-center gap-5">
+                <div className="relative h-[140px] w-[140px] shrink-0" role="img" aria-label={`Scored ${score}`}>
+                  <svg width="140" height="140" viewBox="0 0 140 140" aria-hidden="true">
+                    <circle cx="70" cy="70" r="56" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="12" />
+                    <circle
+                      cx="70"
+                      cy="70"
+                      r="56"
+                      fill="none"
+                      stroke="#FFD60A"
+                      strokeWidth="12"
+                      strokeLinecap="round"
+                      strokeDasharray={`${(ringFrac * RING_C).toFixed(1)} ${RING_C.toFixed(1)}`}
+                      transform="rotate(-90 70 70)"
+                    />
+                  </svg>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center px-4">
+                    <span className="font-mono text-5xl font-bold tabular-nums leading-none text-white">
+                      {reduceMotion ? score : shownScore}
+                    </span>
+                    <span className="mt-1 text-center text-[11px] leading-tight text-white/50">
+                      {shareRank && shareRank.nextAt
+                        ? `of ${shareRank.nextAt} to ${shareRank.next}`
+                        : shareRank
+                          ? 'Top rank'
+                          : best > 0
+                            ? `Best ${best}`
+                            : 'No best yet'}
+                    </span>
+                  </div>
+                </div>
+                <div className="min-w-0">
+                  <p className="text-2xl font-bold leading-tight text-white md:text-3xl">
+                    {score} {score === 1 ? 'square' : 'squares'} in{' '}
+                    {timed ? `${blitzSecs} seconds` : 'this run'}
+                  </p>
+                  {isNewBest ? (
+                    <p className="mt-2">
+                      <span className="inline-block rounded-full bg-[#30D158]/15 px-3 py-1 text-sm font-bold text-[#30D158]">
+                        ★ New personal best
+                      </span>
+                    </p>
+                  ) : shareRank?.next && shareRank.nextAt ? (
+                    <p className="mt-2 text-sm text-white/50">
+                      {shareRank.nextAt - score === 1
+                        ? `One more square to reach ${shareRank.next}.`
+                        : `${shareRank.nextAt - score} more squares to reach ${shareRank.next}.`}
+                    </p>
+                  ) : null}
+                </div>
+              </div>
               {burst && (
                 <div
                   aria-hidden="true"
@@ -1624,6 +1677,32 @@ export default function SquareTrainer() {
                       }
                     />
                   ))}
+                </div>
+              )}
+              {shareRank && (
+                <div className="flex gap-1.5" role="img" aria-label={`Rank: ${shareRank.rank}`}>
+                  {RANK_ORDER.map((r) => {
+                    const cur = RANK_ORDER.indexOf(shareRank.rank);
+                    const idx = RANK_ORDER.indexOf(r);
+                    return (
+                      <div key={r} className="flex flex-1 flex-col items-center gap-1">
+                        <span
+                          className={`flex h-10 w-10 items-center justify-center rounded-xl text-xl ${
+                            idx === cur
+                              ? 'bg-[#FFD60A] text-black'
+                              : idx < cur
+                                ? 'bg-white/10 text-white'
+                                : 'bg-white/[0.04] text-white/30'
+                          }`}
+                        >
+                          {RANK_GLYPH[r]}
+                        </span>
+                        <span className={`text-[10px] ${idx === cur ? 'font-bold text-white' : 'text-white/40'}`}>
+                          {r}
+                        </span>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
               <div className="grid grid-cols-3 gap-2 text-center">
@@ -1651,86 +1730,63 @@ export default function SquareTrainer() {
                 </div>
               </div>
               {past.length > 0 && (
-                <div>
-                  <h4 className="text-base font-bold text-white">Sequence</h4>
-                  <p className="text-xs text-white/45">
-                    {missed.length > 0 ? `Missed: ${missed.join(', ')}` : 'No misses.'}
-                  </p>
-                  <div className="mt-2 flex max-h-32 flex-wrap gap-1.5 overflow-y-auto">
-                    {past.map((m, i) => (
-                      <span
-                        key={`${m.sq}-${i}`}
-                        className={`inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 font-mono text-xs ${
-                          m.ok ? 'border-white/10 text-white/75' : 'border-red-400/40 text-red-400'
-                        }`}
-                      >
-                        <span aria-hidden="true" className={m.ok ? 'text-green-400' : ''}>
-                          {m.ok ? '✓' : '✗'}
-                        </span>
-                        <span className={m.ok ? '' : 'line-through'}>{m.sq}</span>
-                      </span>
-                    ))}
-                  </div>
+                <div className="flex flex-wrap gap-1.5" aria-label="Round squares">
+                  {past.map((m, i) => (
+                    <span
+                      key={`${m.sq}-${i}`}
+                      title={m.ok ? `${m.sq} correct` : `${m.sq} missed`}
+                      className={`rounded-full px-2.5 py-1 font-mono text-xs font-bold ${
+                        m.ok ? 'bg-[#30D158]/15 text-[#30D158]' : 'bg-[#FF453A]/15 text-[#FF453A]'
+                      }`}
+                    >
+                      {m.sq}
+                    </span>
+                  ))}
                 </div>
               )}
             </div>
             <div className="st-heat">
-              <h4 className="text-base font-bold text-white">Where you slip</h4>
-              <p className="text-xs text-white/45">{missHist.length <= 1 ? 'Misses this round' : 'Misses over your last 10 rounds'}</p>
+              <h4 className="text-xl font-bold text-white">Where you slip</h4>
+              <p className="text-sm text-white/45">
+                {missHist.length <= 1
+                  ? 'Misses this round'
+                  : `Last ${missHist.length} rounds · weakest: ${weak3.join(', ') || '—'}`}
+              </p>
               {slipTop.length > 0 ? (
                 <>
-                  <div className="mx-auto mt-2 w-full max-w-[360px] rounded-xl bg-black/30 p-2">
-                    <div className="flex flex-col">
+                  <div className="mx-auto mt-3 w-full max-w-[360px] rounded-2xl bg-black/30 p-3">
+                    <div className="flex flex-col gap-1">
                       {[8, 7, 6, 5, 4, 3, 2, 1].map((rank) => (
-                        <div key={rank} className="flex items-stretch">
-                          <span className="flex w-[14px] shrink-0 items-center justify-center text-[10px] font-bold text-white/35">
-                            {rank}
-                          </span>
+                        <div key={rank} className="flex gap-1">
                           {FILES.map((file) => {
                             const sq = `${file}${rank}`;
                             const misses = slipAgg[sq] ?? 0;
                             const b = heatBucket(misses);
+                            const weakest = weak3Set.has(sq);
                             return (
                               <span
                                 key={sq}
                                 title={misses > 0 ? `${sq} · ${misses} misses` : sq}
-                                className={`flex aspect-square flex-1 items-center justify-center text-[10px] font-bold ${
+                                className={`flex aspect-square flex-1 items-center justify-center rounded-[4px] text-[10px] font-bold ${
                                   b === 0
                                     ? (FILES.indexOf(file) + rank) % 2 === 1
-                                      ? 'bg-white/[0.05]'
-                                      : 'bg-white/[0.02]'
-                                    : HEAT_CELL[b]
+                                      ? 'bg-white/[0.06]'
+                                      : 'bg-white/[0.03]'
+                                    : HEAT_DARK[b]
                                 }`}
                               >
-                                {misses > 0 ? sq : ''}
+                                {weakest && misses > 0 ? sq : ''}
                               </span>
                             );
                           })}
                         </div>
                       ))}
-                      <div className="flex">
-                        <span className="w-[14px] shrink-0" aria-hidden="true" />
-                        {FILES.map((file) => (
-                          <span
-                            key={file}
-                            className="flex-1 text-center text-[10px] font-bold text-white/35"
-                          >
-                            {file}
-                          </span>
-                        ))}
-                      </div>
                     </div>
                   </div>
-                  <div className="mt-1 flex items-center justify-center gap-3 text-xs text-white/50">
-                    {[1, 2, 3, 4].map((b) => (
-                      <span key={b} className="flex items-center gap-1">
-                        <span
-                          className={`h-3 w-3 rounded ${HEAT_CELL[b].split(' ')[0]}`}
-                          aria-hidden="true"
-                        />
-                        {HEAT_LABEL[b - 1]}
-                      </span>
-                    ))}
+                  <div className="mt-2 flex items-center justify-center gap-2 text-xs text-white/50">
+                    <span>Fewer</span>
+                    <span className="h-2 w-24 rounded-full bg-gradient-to-r from-white/10 to-[#d98a1f]" aria-hidden="true" />
+                    <span>More misses</span>
                   </div>
                 </>
               ) : (
@@ -1744,18 +1800,18 @@ export default function SquareTrainer() {
                 <button
                   type="button"
                   onClick={drillSlips}
-                  className="w-full rounded-xl bg-[#f3ecd9] px-4 py-2 text-sm font-bold text-black transition-all duration-150 hover:brightness-105 active:scale-[0.97]"
+                  className="w-full rounded-2xl bg-[#FFD60A] px-4 py-3 text-base font-bold text-black transition-all duration-150 hover:brightness-105 active:scale-[0.97]"
                 >
                   {slipTop.length === 1
                     ? 'Drill your weakest square'
                     : `Drill your ${slipTop.length} weakest squares`}
                 </button>
               )}
-              <div className="grid grid-cols-3 gap-2">
+              <div className="flex gap-2">
               <button
                 type="button"
                 onClick={startRun}
-                className="flex items-center justify-center rounded-xl border border-white/20 px-4 py-2 text-sm font-bold text-white/85 transition-all duration-150 hover:bg-white/5 hover:shadow-[0_0_14px_rgba(10,238,60,0.35)] active:scale-[0.97]"
+                className="flex-1 rounded-2xl bg-[#FFD60A]/15 px-4 py-3 text-base font-bold text-[#FFD60A] transition-all duration-150 hover:brightness-110 active:scale-[0.97]"
               >
                 Play again
               </button>
@@ -1763,34 +1819,55 @@ export default function SquareTrainer() {
                 type="button"
                 onClick={saveCard}
                 disabled={saveState === 'saving'}
-                aria-label="Save score card image"
-                className="flex items-center justify-center rounded-xl border border-white/20 px-4 py-2 text-sm font-bold text-white/85 transition-all duration-150 hover:bg-white/5 hover:shadow-[0_0_14px_rgba(10,238,60,0.35)] active:scale-[0.97] disabled:opacity-60"
-              >
-                {saveState === 'saving'
-                  ? 'Saving…'
-                  : saveState === 'saved'
-                    ? 'Saved ✓'
+                aria-label={
+                  saveState === 'saving'
+                    ? 'Saving score card image'
+                    : saveState === 'saved'
+                      ? 'Score card saved'
+                      : saveState === 'error'
+                        ? 'Save score card image (retry)'
+                        : 'Save score card image'
+                }
+                className={`flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-full border transition-all duration-150 active:scale-[0.97] disabled:opacity-60 ${
+                  saveState === 'saved'
+                    ? 'border-[#30D158]/40 text-[#30D158]'
                     : saveState === 'error'
-                      ? 'Retry save'
-                      : 'Save'}
+                      ? 'border-[#FF453A]/40 text-[#FF453A]'
+                      : 'border-white/15 text-white/85 hover:bg-white/5'
+                }`}
+              >
+                {saveState === 'saved' ? (
+                  <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+                    <path d="M3 9.5l4 4 8-9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                ) : (
+                  <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+                    <path
+                      d="M9 2v10m0 0L5 8m4 4l4-4M2.5 15.5h13"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                )}
               </button>
               <a
                 href={xHref}
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Share your score on X"
-                className="flex items-center justify-center gap-2 rounded-xl border border-white/20 px-4 py-2 text-sm font-bold text-white/85 transition-all duration-150 hover:bg-white/5 hover:shadow-[0_0_14px_rgba(10,238,60,0.35)] active:scale-[0.97]"
+                className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-full border border-white/15 text-white/85 transition-all duration-150 hover:bg-white/5 active:scale-[0.97]"
               >
                 <svg
-                  width="15"
-                  height="15"
+                  width="16"
+                  height="16"
                   viewBox="0 0 24 24"
                   fill="currentColor"
                   aria-hidden="true"
                 >
                   <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
                 </svg>
-                Share
               </a>
             </div>
             </div>

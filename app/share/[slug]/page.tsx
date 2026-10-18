@@ -78,9 +78,21 @@ export async function generateMetadata({
     ...(first(sp.secs) ? { secs: first(sp.secs) as string } : {}),
     ...(first(sp.best) === '1' ? { best: '1' } : {}),
     ...(first(sp.seq) ? { seq: first(sp.seq) as string } : {}),
+    ...(first(sp.beat) ? { beat: first(sp.beat) as string } : {}),
+    ...(first(sp.d) ? { d: first(sp.d) as string } : {}),
+    ...(first(sp.r) ? { r: first(sp.r) as string } : {}),
   });
   const cardUrl = `${SITE}/api/og/score?${cardParams.toString()}`;
-  const title = `I scored ${score}/${total} on ${postTitle}`;
+  // Challenge links (?beat=&d=) get a short caption that survives X's
+  // overlay; legacy links keep the old title rather than guessing.
+  const beatN = Number(first(sp.beat));
+  const dN = Number(first(sp.d) ?? first(sp.secs));
+  const title =
+    Number.isFinite(beatN) &&
+    first(sp.beat) !== undefined &&
+    [15, 30, 60].includes(dN)
+      ? `Can you beat ${Math.min(999, Math.max(0, Math.round(beatN)))}? The ${dN}-second chessboard test`
+      : `I scored ${score}/${total} on ${postTitle}`;
   const description = 'Think you know your squares? Try the 30-second drill and beat my score.';
 
   return {
