@@ -26,6 +26,7 @@ import OhmsLawDemo from './OhmsLawDemo';
 import BarCompare from './BarCompare';
 import WaterTowerDiagram from './WaterTowerDiagram';
 import VoltageDemo from './VoltageDemo';
+import BirdWireDemo from './BirdWireDemo';
 import CurrentDemo from './CurrentDemo';
 import ResistanceDemo from './ResistanceDemo';
 import LossAversionScale from './LossAversionScale';
@@ -108,6 +109,7 @@ export const WIDGET_REGISTRY: Record<string, ComponentType> = {
   'bar-compare': BarCompare,
   'water-tower-diagram': WaterTowerDiagram,
   'voltage-demo': VoltageDemo,
+  'bird-wire-demo': BirdWireDemo,
   'current-demo': CurrentDemo,
   'resistance-demo': ResistanceDemo,
   'loss-aversion-scale': LossAversionScale,
