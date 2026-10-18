@@ -43,6 +43,7 @@ function cardFooter(slug: string): string | undefined {
   if (slug === 'monthly-book-spin') return 'Browse books';
   if (slug === 'trending-podcasts') return 'See all';
   if (slug === 'seattle-transit-next-bus') return 'Plan a trip';
+  if (slug === 'ai-model-price-calculator') return 'Estimate cost';
   return undefined;
 }
 

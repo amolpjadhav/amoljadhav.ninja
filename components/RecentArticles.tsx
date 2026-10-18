@@ -11,7 +11,7 @@ export const PINNED_SLUGS = [
   'look-up-stock-and-company-details',
   'monthly-book-spin',
   'trending-podcasts',
-  'seattle-transit-next-bus',
+  'ai-model-price-calculator',
 ];
 
 // Playable game articles: rendered as the Games row, excluded from the
