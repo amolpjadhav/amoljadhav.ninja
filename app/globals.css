@@ -741,6 +741,11 @@ body {
    it and runs edge to edge: the comp boards and the trait tree are dense grids
    of chips, and 32px of nested padding costs a column of them.
 
+   The stock lookup is excluded: it is a reading-style tool (search, market
+   cards, mover rows), not a dense chip grid, so it keeps the article's
+   margins like the prose around it. Its glass card also keeps its radius
+   and side borders on mobile instead of being squared off.
+
    The -1rem has to match the p-4 on the <article> in app/blog/[slug]/page.tsx.
    The selector is the portal mount point's child, which is exactly the widget's
    root element — targeting .not-prose would also catch the inner ones a few
@@ -750,7 +755,7 @@ body {
   /* [data-inline] marks a small illustration sitting inside the prose — a row
      of flags, say. Those should keep the text's own margins rather than break
      out of them, so only the full-width widgets are pulled edge to edge. */
-  .article-content [data-widget]:not([data-inline]) > * {
+  .article-content [data-widget]:not([data-inline]):not([data-widget='stocks-lookup']) > * {
     margin-left: -1rem;
     margin-right: -1rem;
     border-radius: 0;
