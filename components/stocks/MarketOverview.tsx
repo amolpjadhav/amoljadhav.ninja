@@ -257,7 +257,7 @@ function StripSkeleton() {
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 animate-pulse" aria-hidden aria-label="Loading markets">
       {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => (
-        <div key={i} className="bg-white/[0.03] rounded-xl p-2">
+        <div key={i} className="rounded-xl border border-white/10 bg-white/[0.06] p-2">
           <div className="h-3.5 w-16 bg-white/10 rounded" />
           <div className="h-6 w-14 bg-white/10 rounded mt-1.5" />
           <div className="h-[34px] bg-white/[0.07] rounded mt-1.5" />
@@ -301,10 +301,14 @@ export function MarketStrip({ data, loaded }: { data: StripData | null; loaded: 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
         {/* Eight cards in a 4×2 grid: every slot filled, no empty eighth,
             no scroll. (Eight across would need ~1100px of article width.) */}
-        {data.strip.map((q) => {
+        {data.strip.map((q, i) => {
           const color = moveColor(q.changePct, q.change);
           return (
-            <div key={q.symbol} className="min-w-0 bg-white/[0.03] rounded-xl p-2">
+            <div
+              key={q.symbol}
+              className="min-w-0 rounded-xl border border-white/10 bg-white/[0.06] p-2 backdrop-blur-xl stagger-in"
+              style={{ animationDelay: `${Math.min(i, 7) * 40}ms` }}
+            >
               <p className="flex items-center gap-1 text-xs font-bold text-white/90 font-sans">
                 <span className="truncate" title={q.label}>
                   {q.label}
@@ -452,7 +456,7 @@ export function MoverTiles({
       {/* Breakpoint-driven, never flex-wrap: content-based wrapping made
           the tab bar jump when switching tabs near the breakpoint. */}
       <div className="flex flex-col gap-3 mb-1 md:flex-row md:items-end md:justify-between">
-        <h2 className="font-serif text-3xl font-bold text-white/95">Today&apos;s movers</h2>
+        <h2 className="text-2xl font-bold text-white/95">Today&apos;s movers</h2>
         {/* nowrap + shrink-0: "Mag 7" is the only label with a space and
             used to wrap under squeeze, resizing the whole bar per tab. */}
         {loaded ? (

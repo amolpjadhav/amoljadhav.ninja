@@ -262,6 +262,27 @@ body {
   font-family: ui-rounded, 'SF Pro Rounded', system-ui, sans-serif;
 }
 
+/* Stock Lookup "Apple" system: same SF-stack approach as transit-ui,
+   scoped so the Matrix terminal theme outside the widget is untouched.
+   Base text goes SF/system sans; .font-mono utilities become rounded
+   numbers (tickers, prices, %) instead of Geist Mono. */
+.stocks-ui {
+  font-family: -apple-system, 'SF Pro Text', Inter, system-ui, sans-serif;
+}
+
+.stocks-ui .font-mono {
+  font-family: ui-rounded, 'SF Pro Rounded', ui-monospace, system-ui, sans-serif;
+}
+
+.stocks-glass {
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(30px) saturate(180%);
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
+  border: 0.5px solid rgba(255, 255, 255, 0.12);
+  border-radius: 22px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .transit-ui button {
     transition-timing-function: cubic-bezier(0.2, 0.9, 0.25, 1.15);
@@ -779,4 +800,12 @@ body {
   100% {
     filter: brightness(1);
   }
+}
+
+/* Podcast rows render their own link styling. Without this guard the
+   article's global anchor rules (underline + tint) win over the widget's
+   `no-underline` utilities and leak decorations into video titles. */
+.article-content .podcast-rows a {
+  color: inherit;
+  text-decoration: none;
 }

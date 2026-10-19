@@ -774,14 +774,17 @@ export default function StocksLookup({
 
   return (
     // Static text trips browser spellcheck on tickers (dotted underlines);
-    // nothing here is editable.
-    <div spellCheck={false}>
+    // nothing here is editable. stocks-ui scopes the Apple system-font
+    // treatment (SF stack, rounded numbers) to the widget so the Matrix
+    // terminal theme outside it is untouched.
+    <div spellCheck={false} className="stocks-ui">
       {idle ? (
         <>
           {/* The article header above carries the title, so the widget
               starts straight at the search. */}
+          <div className="stocks-glass p-4 sm:p-5">
           <form
-            className="mb-4"
+            className="mb-3"
             onSubmit={(e) => {
               e.preventDefault();
               lookup(input);
@@ -921,8 +924,9 @@ export default function StocksLookup({
               </button>
             ))}
           </div>
+          </div>
 
-          <div className="mt-10">
+          <div className="mt-8">
             <MarketStrip data={stripData} loaded={stripLoaded} />
           </div>
           <MoverTiles data={movers} loaded={moversLoaded} onSelect={selectTile} />
@@ -964,16 +968,16 @@ export default function StocksLookup({
                 autoCapitalize="characters"
                 autoCorrect="off"
                 spellCheck={false}
-                className="h-11 w-full rounded-[10px] border border-white/15 bg-black/40 pl-3 pr-[104px] text-sm uppercase text-white/90 placeholder:text-white/30 transition-colors focus:border-[#facc15]/80 focus:outline-none"
+                className="h-11 w-full rounded-[10px] border border-white/15 bg-black/40 pl-3 pr-12 text-sm uppercase text-white/90 placeholder:text-white/30 transition-colors focus:border-[#facc15]/80 focus:outline-none sm:pr-[104px]"
               />
               <button
                 type="submit"
                 disabled={loading || input.trim() === ''}
                 aria-label="Look up"
-                className="absolute right-1 top-1/2 flex h-9 items-center justify-center gap-1.5 rounded-lg px-3 font-sans text-[13px] font-semibold -translate-y-1/2 transition hover:brightness-110 active:translate-y-[calc(-50%+1px)] disabled:cursor-default"
+                className="absolute right-1 top-1/2 flex h-9 w-9 items-center justify-center gap-1.5 rounded-lg text-[13px] font-semibold -translate-y-1/2 transition hover:brightness-110 active:translate-y-[calc(-50%+1px)] disabled:cursor-default sm:w-auto sm:px-3"
                 style={input.trim() ? { background: ACTION_BG, color: '#0a0a0a' } : { background: '#2a2d33', color: '#6b7280' }}
               >
-                {loading ? 'Looking up' : 'Lookup'}
+                <span className="hidden sm:inline">{loading ? 'Looking up' : 'Lookup'}</span>
                 {loading ? (
                   <span
                     aria-hidden
