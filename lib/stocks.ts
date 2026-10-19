@@ -524,11 +524,13 @@ const TWENTY_F_ITEMS = [
 // body "Item 1" — body order never runs backwards) never starts a slice;
 // repeated page headers of the same item share their end with the true
 // start, so measuring each candidate to the later item that would end its
-// slice lets the true start win.
+// slice lets the true start win. A fourth: some filers split headings across
+// bold runs, so htmlToText's ** markers can sit around ITEM and between it
+// and the number ("**Item**** ****4A.") — the pattern tolerates those.
 export function extractItemSection(text: string, items: string[], target: string): string | null {
   const occ: { index: number; item: string }[] = [];
   for (const it of items) {
-    const re = new RegExp(`^\\s*ITEM\\s+${it}(?![A-Z0-9])`, 'gim');
+    const re = new RegExp(`^\\s*(?:\\*\\*)*ITEM(?:\\*\\*|\\s)*${it}(?![A-Z0-9])`, 'gim');
     let m: RegExpExecArray | null;
     while ((m = re.exec(text)) !== null) occ.push({ index: m.index, item: it });
   }
