@@ -55,22 +55,33 @@ async function refreshPool(): Promise<ScoredInput[] | null> {
     const pool = await readPool();
     const now = Date.now();
     const recent = selectRecentIds(pool, now);
+    let updated = 0;
     if (recent.length > 0) {
       const counts = await fetchViewCounts(apiKey, recent);
       if (counts.size > 0) {
-        await updateViews(counts).catch(() => {});
+        try {
+          await updateViews(counts);
+        } catch (e) {
+          console.error('Podcast pool updateViews failed:', e instanceof Error ? e.message : e);
+          throw e;
+        }
         for (const ep of pool) {
           const v = counts.get(ep.videoId);
-          if (v !== undefined) ep.views = v;
+          if (v !== undefined) {
+            ep.views = v;
+            updated++;
+          }
         }
       }
     }
+    console.log(`Podcast pool refreshed: ${pool.length} episodes, ${updated} view counts`);
     return pool;
-  } catch {
+  } catch (e) {
     // YouTube down or quota spent: roll the claimed window back so the next
     // request retries in minutes instead of serving stale rows for another
     // full window. Then serve the DB copy (free, no quota) rather than
     // nothing.
+    console.error('Podcast pool refresh failed:', e instanceof Error ? e.message : e);
     await setLastRefresh(refreshRetryStamp(Date.now())).catch(() => {});
     const stale = await readPool().catch(() => []);
     if (stale.length > 0) return stale;
