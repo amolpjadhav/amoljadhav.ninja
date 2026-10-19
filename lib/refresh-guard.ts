@@ -14,3 +14,17 @@ export function shouldRefresh(
   if (!Number.isFinite(at)) return true;
   return nowMs - at >= windowMs;
 }
+
+// Failure backoff: a refresh claims the window before fetching so instances
+// don't stampede. When that fetch throws, the clock must roll back to
+// (window - retry) ago so the next request retries in `retryMs` instead of
+// serving stale rows for another full window.
+export const REFRESH_RETRY_MS = 5 * 60 * 1000;
+
+export function refreshRetryStamp(
+  nowMs: number,
+  windowMs: number = REFRESH_WINDOW_MS,
+  retryMs: number = REFRESH_RETRY_MS,
+): string {
+  return new Date(nowMs - windowMs + retryMs).toISOString();
+}

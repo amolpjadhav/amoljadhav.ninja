@@ -1,6 +1,6 @@
-// Server-only shared YouTube episode pool: one hourly refresh serves the
-// trending route, the person route, and the homepage. Never imported by
-// node tests (extensionless sibling imports).
+// Server-only shared YouTube episode pool: one throttled refresh (6h window
+// plus a daily cron) serves the trending route, the person route, and the
+// homepage. Never imported by node tests (extensionless sibling imports).
 //
 // History lives in Supabase (one-time backfill), so each refresh only
 // pays for page 1 per channel, details for brand-new videos, and fresh views
@@ -17,9 +17,9 @@ import {
   selectRecentIds,
   type ScoredInput,
 } from './podcasts';
-import { existingIds, getLastRefresh, readPool, setLastRefreshNow, updateViews, upsertEpisodes } from './podcast-store';
+import { existingIds, getLastRefresh, readPool, setLastRefresh, setLastRefreshNow, updateViews, upsertEpisodes } from './podcast-store';
 import { memoizeTtl } from './homepage';
-import { shouldRefresh } from './refresh-guard';
+import { refreshRetryStamp, shouldRefresh } from './refresh-guard';
 
 async function refreshPool(): Promise<ScoredInput[] | null> {
   const apiKey = process.env.YOUTUBE_API_KEY;
@@ -67,8 +67,11 @@ async function refreshPool(): Promise<ScoredInput[] | null> {
     }
     return pool;
   } catch {
-    // YouTube down or quota spent: the DB copy is free and needs no quota,
-    // so serve it stale rather than nothing (and skip a doomed refetch).
+    // YouTube down or quota spent: roll the claimed window back so the next
+    // request retries in minutes instead of serving stale rows for another
+    // full window. Then serve the DB copy (free, no quota) rather than
+    // nothing.
+    await setLastRefresh(refreshRetryStamp(Date.now())).catch(() => {});
     const stale = await readPool().catch(() => []);
     if (stale.length > 0) return stale;
     const direct = await fetchEpisodePool(apiKey).catch(() => []);

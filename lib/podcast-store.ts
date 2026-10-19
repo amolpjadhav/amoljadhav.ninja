@@ -141,11 +141,15 @@ export async function getLastRefresh(): Promise<string | null> {
   return typeof row?.refreshed_at === 'string' ? row.refreshed_at : null;
 }
 
-export async function setLastRefreshNow(): Promise<void> {
+export async function setLastRefresh(iso: string): Promise<void> {
   const { error } = await admin()
     .from('podcast_refresh_state')
-    .upsert({ key: 'pool', refreshed_at: new Date().toISOString() }, { onConflict: 'key' });
+    .upsert({ key: 'pool', refreshed_at: iso }, { onConflict: 'key' });
   if (error) throw error;
+}
+
+export async function setLastRefreshNow(): Promise<void> {
+  return setLastRefresh(new Date().toISOString());
 }
 
 // Views-only refresh for known rows (partial upsert leaves other columns).

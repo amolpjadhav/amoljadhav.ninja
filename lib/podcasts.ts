@@ -344,9 +344,9 @@ export async function fetchViewCounts(apiKey: string, ids: string[]): Promise<Ma
   return counts;
 }
 
-// Ids published within the window: the hourly refresh re-fetches views for
-// these (trending windows only ever read recent episodes), while older rows
-// keep stored counts until a person page refreshes them live.
+// Ids published within the window: each throttled refresh re-fetches views
+// for these (trending windows only ever read recent episodes), while older
+// rows keep stored counts until a person page refreshes them live.
 export function selectRecentIds(
   episodes: { videoId: string; publishedAt: string }[],
   nowMs: number,
