@@ -175,7 +175,8 @@ body {
 /* Full-bleed tools are not prose: they keep none of the editorial
    frame (accent bar, tint, inset padding). */
 .article-section:has(> [data-widget='stocks-lookup']),
-.article-section:has(> [data-widget='transit-lookup']) {
+.article-section:has(> [data-widget='transit-lookup']),
+.article-section:has(> [data-widget='podcast-trending']) {
   border-left: 0;
   background: transparent;
   border-radius: 0;
@@ -272,6 +273,33 @@ body {
 
 .stocks-ui .font-mono {
   font-family: ui-rounded, 'SF Pro Rounded', ui-monospace, system-ui, sans-serif;
+}
+
+/* Trending Podcasts "Apple" system: one SF family for everything — hierarchy
+   comes from size, weight, and gray level. Numbers stay tabular via the
+   tabular-nums utility; no monospace renders anywhere inside this view. */
+.podcasts-ui {
+  font-family: -apple-system, 'SF Pro Text', Inter, system-ui, sans-serif;
+}
+
+.podcasts-ui .font-mono {
+  font-family: -apple-system, 'SF Pro Text', Inter, system-ui, sans-serif;
+}
+
+/* Thumbnail inset hairline: dark artwork (a black Shawn Ryan frame) melts
+   into the page without it. Barely-visible edge inside the image; Apple
+   never frames artwork with a visible border. */
+.podcasts-ui .pod-thumb {
+  position: relative;
+}
+
+.podcasts-ui .pod-thumb::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  pointer-events: none;
 }
 
 .stocks-glass {
@@ -741,10 +769,10 @@ body {
    it and runs edge to edge: the comp boards and the trait tree are dense grids
    of chips, and 32px of nested padding costs a column of them.
 
-   The stock lookup is excluded: it is a reading-style tool (search, market
-   cards, mover rows), not a dense chip grid, so it keeps the article's
-   margins like the prose around it. Its glass card also keeps its radius
-   and side borders on mobile instead of being squared off.
+   The stock lookup and the transit lookup are excluded: they are
+   reading-style tools (search, cards, rows), not dense chip grids, so they
+   keep the article's margins like the prose around them. Their glass cards
+   also keep radius and side borders on mobile instead of being squared off.
 
    The -1rem has to match the p-4 on the <article> in app/blog/[slug]/page.tsx.
    The selector is the portal mount point's child, which is exactly the widget's
@@ -755,7 +783,7 @@ body {
   /* [data-inline] marks a small illustration sitting inside the prose — a row
      of flags, say. Those should keep the text's own margins rather than break
      out of them, so only the full-width widgets are pulled edge to edge. */
-  .article-content [data-widget]:not([data-inline]):not([data-widget='stocks-lookup']) > * {
+  .article-content [data-widget]:not([data-inline]):not([data-widget='stocks-lookup']):not([data-widget='transit-lookup']):not([data-widget='podcast-trending']) > * {
     margin-left: -1rem;
     margin-right: -1rem;
     border-radius: 0;

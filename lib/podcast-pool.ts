@@ -59,17 +59,33 @@ async function refreshPool(): Promise<ScoredInput[] | null> {
     if (recent.length > 0) {
       const counts = await fetchViewCounts(apiKey, recent);
       if (counts.size > 0) {
+        // updateViews upserts partial rows: an id missing from the table
+        // would attempt an INSERT, violate NOT NULL, and kill the whole
+        // batch. Re-verify presence and skip (loudly) instead.
+        let writable = counts;
         try {
-          await updateViews(counts);
+          const present = await existingIds([...counts.keys()]);
+          const missing = [...counts.keys()].filter((id) => !present.has(id));
+          if (missing.length > 0) {
+            console.error(`Podcast pool skipping ${missing.length} ids absent from table: ${missing.slice(0, 5).join(',')}`);
+            writable = new Map([...counts].filter(([id]) => present.has(id)));
+          }
         } catch (e) {
-          console.error('Podcast pool updateViews failed:', e instanceof Error ? e.message : e);
-          throw e;
+          console.error('Podcast pool presence check failed, writing anyway:', e instanceof Error ? e.message : e);
         }
-        for (const ep of pool) {
-          const v = counts.get(ep.videoId);
-          if (v !== undefined) {
-            ep.views = v;
-            updated++;
+        if (writable.size > 0) {
+          try {
+            await updateViews(writable);
+          } catch (e) {
+            console.error('Podcast pool updateViews failed:', e instanceof Error ? e.message : e);
+            throw e;
+          }
+          for (const ep of pool) {
+            const v = writable.get(ep.videoId);
+            if (v !== undefined) {
+              ep.views = v;
+              updated++;
+            }
           }
         }
       }

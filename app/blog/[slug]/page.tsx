@@ -46,6 +46,7 @@ async function getBlogPost(slug: string) {
 // image fetches) can't be trusted to follow it for og:image.
 const SITE_URL = 'https://www.amoljadhav.ai';
 const STOCK_LOOKUP_SLUG = 'look-up-stock-and-company-details';
+const PODCAST_SLUG = 'trending-podcasts';
 
 export async function generateMetadata({
   params,
@@ -230,6 +231,7 @@ export default async function BlogPostPage({
 
   const { html: contentHtml, headings } = colorizeArticleSections(post.content);
   const isLookup = slug === STOCK_LOOKUP_SLUG;
+  const isPodcast = slug === PODCAST_SLUG;
   const lookupTicker = isLookup ? normalizeTicker(query?.ticker ?? '') : '';
   const lookupCoin = isLookup && !lookupTicker ? normalizeCoinId(query?.coin ?? '') : '';
 
@@ -242,14 +244,20 @@ export default async function BlogPostPage({
           spent on nothing. Below sm the gutter, the side borders and the
           rounded corners all go, leaving a single 16px reading margin. */}
       <main className="min-h-screen pt-24 pb-16 px-0 sm:px-4">
-        <article className="container mx-auto max-w-3xl lg:w-[80vw] lg:max-w-5xl bg-[#1c1d20] border-y sm:border border-white/10 sm:rounded-lg p-4 sm:p-6 md:p-10">
+        <article
+          className={`container mx-auto max-w-3xl lg:w-[80vw] lg:max-w-5xl border-y sm:border sm:rounded-lg p-4 sm:p-6 md:p-10 ${
+            // Podcast tool page sits on pure black like Apple's apps; every
+            // other article keeps the gray card.
+            isPodcast ? 'bg-black border-transparent' : 'bg-[#1c1d20] border-white/10'
+          }`}
+        >
           {isLookup && (
             <div className="mb-6 empty:hidden">
               <TapeBar />
             </div>
           )}
           <div className="mb-10 animate-fadeIn">
-            {post.category && (
+            {post.category && !isPodcast && (
               <span
                 className="inline-block text-xs font-bold uppercase tracking-wide px-2.5 py-1 rounded mb-3"
                 style={{
@@ -274,9 +282,9 @@ export default async function BlogPostPage({
               </div>
             )}
 
-            {isLookup ? (
-              // No masthead on the tool page — tape, then straight into
-              // the tool. The title survives for screen readers only.
+            {isLookup || isPodcast ? (
+              // No masthead on tool pages — the widget renders its own Apple
+              // header. The title survives for screen readers only.
               <h1 className="sr-only">{post.title}</h1>
             ) : (
               <h1 className="font-serif text-2xl md:text-3xl font-bold text-white/95 leading-tight mb-4">
@@ -284,7 +292,7 @@ export default async function BlogPostPage({
               </h1>
             )}
 
-            {!isLookup && (
+            {!isLookup && !isPodcast && (
               <div className="flex gap-3 items-center text-white/45 text-sm">
                 <span>{formatDate(post.created_at)}</span>
                 {post.read_time && (
@@ -296,11 +304,13 @@ export default async function BlogPostPage({
               </div>
             )}
 
-            <div className="flex items-center gap-3 mt-5">
-              <ShareButtons title={post.title} slug={post.slug} />
-              <LikeButton slug={post.slug} initialLikes={post.likes} />
-              <ViewCounter slug={post.slug} initialViews={post.views ?? 0} />
-            </div>
+            {!isPodcast && (
+              <div className="flex items-center gap-3 mt-5">
+                <ShareButtons title={post.title} slug={post.slug} />
+                <LikeButton slug={post.slug} initialLikes={post.likes} />
+                <ViewCounter slug={post.slug} initialViews={post.views ?? 0} />
+              </div>
+            )}
           </div>
 
           <TableOfContents headings={headings} accent={categoryColor(post.category)} />
@@ -312,6 +322,14 @@ export default async function BlogPostPage({
           )}
 
           <ArticleContent html={contentHtml} category={post.category} />
+
+          {isPodcast && (
+            <div className="mt-10 flex items-center gap-3 border-t border-white/10 pt-6">
+              <ShareButtons title={post.title} slug={post.slug} />
+              <LikeButton slug={post.slug} initialLikes={post.likes} />
+              <ViewCounter slug={post.slug} initialViews={post.views ?? 0} />
+            </div>
+          )}
 
           {isLookup && (
             <Suspense fallback={null}>
