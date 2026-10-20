@@ -152,15 +152,7 @@ export async function setLastRefreshNow(): Promise<void> {
   return setLastRefresh(new Date().toISOString());
 }
 
-// Views-only refresh for known rows (partial upsert leaves other columns).
-export async function updateViews(counts: Map<string, number>): Promise<void> {
-  const rows = [...counts].map(([video_id, views]) => ({
-    video_id,
-    views,
-    views_updated_at: new Date().toISOString(),
-  }));
-  for (let i = 0; i < rows.length; i += 500) {
-    const { error } = await admin().from('podcast_episodes').upsert(rows.slice(i, i + 500), { onConflict: 'video_id' });
-    if (error) throw error;
-  }
-}
+// NOTE: there is deliberately no partial-row updateViews helper. Partial-row
+// upserts take the INSERT path on this table (23502 on title) even when the
+// row exists, killing the whole batch. Views refresh re-saves complete
+// episode rows through upsertEpisodes instead (see lib/podcast-pool.ts).

@@ -17,7 +17,7 @@ import {
   selectRecentIds,
   type ScoredInput,
 } from './podcasts';
-import { existingIds, getLastRefresh, readPool, setLastRefresh, setLastRefreshNow, updateViews, upsertEpisodes } from './podcast-store';
+import { existingIds, getLastRefresh, readPool, setLastRefresh, setLastRefreshNow, upsertEpisodes } from './podcast-store';
 import { memoizeTtl } from './homepage';
 import { refreshRetryStamp, shouldRefresh } from './refresh-guard';
 
@@ -59,33 +59,23 @@ async function refreshPool(): Promise<ScoredInput[] | null> {
     if (recent.length > 0) {
       const counts = await fetchViewCounts(apiKey, recent);
       if (counts.size > 0) {
-        // updateViews upserts partial rows: an id missing from the table
-        // would attempt an INSERT, violate NOT NULL, and kill the whole
-        // batch. Re-verify presence and skip (loudly) instead.
-        let writable = counts;
+        // Full-row write: partial-row upserts take the INSERT path on this
+        // table (23502 on title) even when the row exists, killing the whole
+        // batch. Re-saving the complete episode rows updates in place.
+        const rows = pool
+          .filter((ep) => counts.has(ep.videoId))
+          .map((ep) => ({ ...ep, views: counts.get(ep.videoId) ?? ep.views }));
         try {
-          const present = await existingIds([...counts.keys()]);
-          const missing = [...counts.keys()].filter((id) => !present.has(id));
-          if (missing.length > 0) {
-            console.error(`Podcast pool skipping ${missing.length} ids absent from table: ${missing.slice(0, 5).join(',')}`);
-            writable = new Map([...counts].filter(([id]) => present.has(id)));
-          }
+          await upsertEpisodes(rows);
         } catch (e) {
-          console.error('Podcast pool presence check failed, writing anyway:', e instanceof Error ? e.message : e);
+          console.error('Podcast pool views write failed:', e instanceof Error ? e.message : e);
+          throw e;
         }
-        if (writable.size > 0) {
-          try {
-            await updateViews(writable);
-          } catch (e) {
-            console.error('Podcast pool updateViews failed:', e instanceof Error ? e.message : e);
-            throw e;
-          }
-          for (const ep of pool) {
-            const v = writable.get(ep.videoId);
-            if (v !== undefined) {
-              ep.views = v;
-              updated++;
-            }
+        for (const ep of pool) {
+          const v = counts.get(ep.videoId);
+          if (v !== undefined) {
+            ep.views = v;
+            updated++;
           }
         }
       }
