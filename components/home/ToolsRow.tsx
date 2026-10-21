@@ -6,6 +6,7 @@ import { coverUrl } from '@/lib/books';
 import { poolById } from '@/lib/book-pool';
 import { formatPerHour } from '@/lib/podcasts';
 import { stripHasMoves } from '@/lib/homepage';
+import { fetchEarningsWeek, upcomingAfterClose } from '@/lib/earnings';
 import { PINNED_SLUGS } from '@/components/RecentArticles';
 import MarketStrip from './MarketStrip';
 import Mag7Summary from './Mag7Summary';
@@ -52,6 +53,34 @@ function Fallback({ excerpt }: { excerpt: string | null }) {
   return <p className="text-white/40 text-xs leading-relaxed line-clamp-3">{excerpt}</p>;
 }
 
+const LOOKUP_PATH = '/blog/look-up-stock-and-company-details';
+
+async function TonightLine() {
+  // One cached calendar call (shared with the lookup page's hourly slot);
+  // hides entirely when the feed is down or nothing is coming.
+  let tonight: { label: string; tickers: string[]; total: number } | null = null;
+  try {
+    tonight = upcomingAfterClose((await fetchEarningsWeek()).events);
+  } catch {
+    tonight = null;
+  }
+  if (!tonight) return null;
+  return (
+    <p className="mt-2 font-mono text-[11px] leading-relaxed text-white/45">
+      <span className="text-white/60">{tonight.label}:</span>{' '}
+      {tonight.tickers.map((t, i) => (
+        <span key={t}>
+          {i > 0 && <span aria-hidden> · </span>}
+          <Link href={`${LOOKUP_PATH}?ticker=${encodeURIComponent(t)}`} className="text-[#0aee3c]/80 hover:text-[#0aee3c] hover:underline">
+            {t}
+          </Link>
+        </span>
+      ))}
+      {tonight.total > tonight.tickers.length && <span> +{tonight.total - tonight.tickers.length} more</span>}
+    </p>
+  );
+}
+
 async function StockCard({ slug, title, excerpt }: { slug: string; title: string; excerpt: string | null }) {
   const strip = await getStrip();
   const live = strip !== null && strip.length >= 3 && stripHasMoves(strip);
@@ -74,6 +103,7 @@ async function StockCard({ slug, title, excerpt }: { slug: string; title: string
       <div className="mt-2">
         <Mag7Summary />
       </div>
+      <TonightLine />
       <div className="mt-auto pt-3">
         <TickerLookup />
       </div>

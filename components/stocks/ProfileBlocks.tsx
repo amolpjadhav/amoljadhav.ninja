@@ -78,19 +78,23 @@ export function ProfileSection({
   question,
   note,
   children,
+  bare,
 }: {
   n: number;
   title: string;
   question?: string;
   note: React.ReactNode;
   children: React.ReactNode;
+  // Hero use: skip the "n · title" label (the content is the page hero),
+  // keep the question, body and "How to read this" note.
+  bare?: boolean;
 }) {
   // Small caps label over the question-as-heading; the accent tints the
   // panel only (blue headings read as links).
   const accent = SECTION_ACCENTS[(n - 1) % SECTION_ACCENTS.length];
   return (
     <section className="article-section" style={{ '--accent': accent, borderLeft: 0, borderRadius: 10 } as React.CSSProperties}>
-      <p className="text-xs font-semibold uppercase tracking-widest text-white/35 font-sans">{n} · {title}</p>
+      {!bare && <p className="text-xs font-semibold uppercase tracking-widest text-white/35 font-sans">{n} · {title}</p>}
       {question && <h3 className="text-xl font-bold text-white/90 mt-1 mb-3 font-sans">{question}</h3>}
       {children}
       <p className="text-xs text-white/55 mt-3 leading-relaxed font-sans">

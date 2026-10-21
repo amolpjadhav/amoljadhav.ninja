@@ -19,10 +19,12 @@ export default function TapeBar() {
       ...(movers?.gainers ?? []),
       ...(movers?.losers ?? []),
     ]) {
-      if (!seen.has(q.symbol)) {
-        seen.add(q.symbol);
-        out.push(q);
-      }
+      // A blank symbol renders as a bare "▼ −0.3%" with no name — drop
+      // those rows at the boundary instead of showing a nameless tile.
+      const sym = q.symbol?.trim();
+      if (!sym || seen.has(sym)) continue;
+      seen.add(sym);
+      out.push(q);
     }
     return out;
   }, [strip, movers]);

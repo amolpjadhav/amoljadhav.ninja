@@ -1,12 +1,14 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type RefObject } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Link as LinkIcon, Check, Search } from 'lucide-react';
 import type { Filing, FinancialSeries, PricePoint, SegmentSeries, StockResponse } from '@/lib/stocks';
 import { FILING_LABELS, cagr, cagrDetails, displayCompanyName, edgarCompanyUrl, fiscalYearEndMonth, fiscalYearSpan, formatCompact, formatEps, formatFilingDate, formatHeadquarters, formatInt, formatLastTrade, formatMoney, formatPct, formatPrice, formatQuoteChange, isMarketOpen, isOtherSegment, latestValue, marginLine, normalizeTicker, peHistoryNote, periodReturn, pickLede, positionInRangeLabel, revenueLine, shareCacheBuster, stockShareLinks, stockShareText, tableYears, yoyGrowth } from '@/lib/stocks';
 import { categoryColor } from '@/lib/blog-content';
-import { MarketStrip, Monogram, MoverTiles, useMarketMovers, useMarketStrip } from './MarketOverview';
+import { EarningsCard, EarningsWeek, MarketStrip, Monogram, MoverTiles, WatchStar, useEarnings, useMarketMovers, useMarketStrip } from './MarketOverview';
+import { logoUrl } from '@/lib/earnings';
+import LikeButton from '@/components/blog/LikeButton';
 import { newsAge, type NewsItem } from '@/lib/news';
 import {
   ChartSubhead,
@@ -37,6 +39,47 @@ function loadRecent(): string[] {
   } catch {
     return [];
   }
+}
+
+// Real logo with monogram fallback, shared by the hero.
+function CompanyLogo({ ticker }: { ticker: string }) {
+  const [failed, setFailed] = useState(false);
+  if (failed) return <Monogram symbol={ticker} size="md" />;
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={logoUrl(ticker)}
+      alt=""
+      aria-hidden
+      loading="lazy"
+      onError={() => setFailed(true)}
+      className="h-11 w-11 shrink-0 rounded-full bg-white/10 object-contain"
+    />
+  );
+}
+
+// Article like count for the top-bar cluster. The slug comes from the path
+// (the widget mounts without props); hidden until the count loads so a
+// failed fetch never leaves a stray heart behind.
+function TickerLike() {
+  const path = usePathname();
+  const [likes, setLikes] = useState<number | null>(null);
+  const slug = path.split('/').filter(Boolean).pop() ?? '';
+  useEffect(() => {
+    if (!slug) return;
+    let cancelled = false;
+    fetch(`/api/posts/${encodeURIComponent(slug)}/like`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((j) => {
+        if (!cancelled && j && typeof j.likes === 'number') setLikes(j.likes);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [slug]);
+  if (likes === null) return null;
+  return <LikeButton slug={slug} initialLikes={likes} />;
 }
 
 function PartHead({ n, title, lede }: { n: number; title: string; lede: string }) {
@@ -505,15 +548,21 @@ export default function StocksLookup({
   }, []);
 
   useEffect(() => {
-    // "/" focuses the lookup input from anywhere (unless already typing).
+    // "/" or Cmd/Ctrl+K focuses the visible lookup input from anywhere
+    // (unless already typing). On ticker pages the mobile input wins when
+    // its row is open; otherwise the desktop input (or landing hero input).
     const onKey = (e: KeyboardEvent) => {
-      if (e.key !== '/' || e.metaKey || e.ctrlKey || e.altKey) return;
-      const el = document.activeElement;
-      if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || (el as HTMLElement).isContentEditable)) {
-        return;
+      const modK = (e.key === 'k' || e.key === 'K') && (e.metaKey || e.ctrlKey) && !e.altKey;
+      if (!modK) {
+        if (e.key !== '/' || e.metaKey || e.ctrlKey || e.altKey) return;
+        const el = document.activeElement;
+        if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || (el as HTMLElement).isContentEditable)) {
+          return;
+        }
       }
       e.preventDefault();
-      inputRef.current?.focus();
+      const mobile = document.getElementById('ticker-compact-m') as HTMLInputElement | null;
+      (mobile ?? inputRef.current)?.focus();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -569,6 +618,7 @@ export default function StocksLookup({
   // above the article); both halves fetch client-side behind skeletons.
   const { data: movers, loaded: moversLoaded } = useMarketMovers();
   const { data: stripData, loaded: stripLoaded } = useMarketStrip();
+  const { data: earnings, loaded: earningsLoaded } = useEarnings();
 
   // Suggest-as-you-type on the landing form only: stocks from the SEC map
   // scan, coins appended as they resolve. Every write lands in the timer
@@ -744,7 +794,9 @@ export default function StocksLookup({
       : null;
   const cap = data?.stats.marketCap;
   const capSize = cap == null ? null : cap >= 2e11 ? 'Mega-cap' : cap >= 1e10 ? 'Large-cap' : cap >= 2e9 ? 'Mid-cap' : cap >= 3e8 ? 'Small-cap' : 'Micro-cap';
-  const oneLiner = data ? pickLede(data.description?.extract, data.filingInsights?.businessModel) || null : null;
+  // Hero description prefers the filing's business summary (third person)
+  // over the quote-provider extract (often first-person marketing voice).
+  const heroLede = data ? pickLede(data.filingInsights?.businessModel, data.description?.extract) || null : null;
   const shortName = data ? displayCompanyName(data.companyName) : '';
   const filingDateText = formatFilingDate(data?.filingInsights?.filingDate);
   const revLine = revenueLine(cagrDetails(revPts));
@@ -766,11 +818,93 @@ export default function StocksLookup({
   const shareText = data ? stockShareText(data.ticker, shortName, data.quote) : '';
   const shareLinks = stockShareLinks(shareUrl, shareText);
 
+  // Ticker pages lead with a breadcrumb + compact search instead of the
+  // landing hero. Recent chips skip the open ticker and cap at five.
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+  const mobileInputRef = useRef<HTMLInputElement>(null);
+  const recentOthers = recent.filter((t) => t !== (data?.ticker ?? '')).slice(0, 5);
+  const compactSearch = (
+    id: string,
+    ref: RefObject<HTMLInputElement | null>,
+    className: string,
+    onDone?: () => void,
+  ) => (
+    <form
+      className={className}
+      role="search"
+      onSubmit={(e) => {
+        e.preventDefault();
+        onDone?.();
+        lookup(input);
+      }}
+    >
+      <label htmlFor={id} className="sr-only">
+        Search ticker
+      </label>
+      <input
+        id={id}
+        ref={ref}
+        value={input}
+        onChange={(e) => setInput(e.target.value.toUpperCase())}
+        placeholder="Search ticker…"
+        autoCapitalize="characters"
+        autoCorrect="off"
+        spellCheck={false}
+        enterKeyHint="search"
+        autoComplete="off"
+        className="h-9 w-full rounded-lg border border-white/15 bg-black/40 pl-3 pr-10 text-sm uppercase text-white/90 placeholder:normal-case placeholder:text-white/30 transition-colors focus:border-[#facc15]/80 focus:outline-none"
+      />
+      <button
+        type="submit"
+        disabled={loading || input.trim() === ''}
+        aria-label="Look up"
+        className="absolute right-1 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-md text-[13px] font-semibold transition hover:brightness-110 active:translate-y-[calc(-50%+1px)] disabled:cursor-default"
+        style={input.trim() ? { background: ACTION_BG, color: '#0a0a0a' } : { background: '#2a2d33', color: '#6b7280' }}
+      >
+        {loading ? (
+          <span aria-hidden className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-black/30 border-t-black" />
+        ) : (
+          <span aria-hidden>→</span>
+        )}
+      </button>
+    </form>
+  );
+
   async function copyShareLink() {
     await navigator.clipboard.writeText(shareUrl);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }
+
+  // Star + share + like, mounted twice (top bar on sm+, company header on
+  // mobile) — one is always hidden, localStorage is the source of truth.
+  const shareRow = data ? (
+    <>
+      <WatchStar ticker={data.ticker} />
+      <a
+        href={shareLinks.x}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Share on X"
+        className={shareButtonClass}
+      >
+        <XIcon />
+      </a>
+      <a
+        href={shareLinks.linkedin}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Share on LinkedIn"
+        className={shareButtonClass}
+      >
+        <LinkedInIcon />
+      </a>
+      <button onClick={copyShareLink} aria-label="Copy link" className={shareButtonClass}>
+        {copied ? <Check size={16} /> : <LinkIcon size={16} />}
+      </button>
+      <TickerLike />
+    </>
+  ) : null;
 
   return (
     // Static text trips browser spellcheck on tickers (dotted underlines);
@@ -930,83 +1064,64 @@ export default function StocksLookup({
             <MarketStrip data={stripData} loaded={stripLoaded} />
           </div>
           <MoverTiles data={movers} loaded={moversLoaded} onSelect={selectTile} />
+          <EarningsWeek data={earnings} loaded={earningsLoaded} onSelect={selectTile} />
         </>
       ) : (
         <>
-          <button
-            type="button"
-            onClick={backHome}
-            className="mb-4 inline-flex items-center gap-1.5 rounded-full border border-white/20 px-3.5 py-1.5 text-xs font-bold text-white/70 transition-colors hover:border-white/40 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/60"
-          >
-            ← Back to lookup home
-          </button>
-          <div>
-          <h2 className="text-xl font-bold mb-2" style={{ color: ACCENT }}>
-            Stock lookup
-          </h2>
-          <p className="text-white/60 text-sm mb-4">
-            A full company profile in four parts: the business, the numbers, the price, and the risks. Type a ticker to start.
-          </p>
-
-          <form
-            className="mb-3"
-            onSubmit={(e) => {
-              e.preventDefault();
-              lookup(input);
-            }}
-          >
-            <label htmlFor="ticker" className="sr-only">
-              Stock ticker
-            </label>
-            <div className="relative">
-              <input
-                id="ticker"
-                ref={inputRef}
-                value={input}
-                onChange={(e) => setInput(e.target.value.toUpperCase())}
-                placeholder="TICKER  e.g. META"
-                autoCapitalize="characters"
-                autoCorrect="off"
-                spellCheck={false}
-                className="h-11 w-full rounded-[10px] border border-white/15 bg-black/40 pl-3 pr-12 text-sm uppercase text-white/90 placeholder:text-white/30 transition-colors focus:border-[#facc15]/80 focus:outline-none sm:pr-[104px]"
-              />
+          <div className="flex items-center justify-between gap-3">
+            <nav aria-label="Breadcrumb" className="min-w-0 truncate text-sm text-white/45">
               <button
-                type="submit"
-                disabled={loading || input.trim() === ''}
-                aria-label="Look up"
-                className="absolute right-1 top-1/2 flex h-9 w-9 items-center justify-center gap-1.5 rounded-lg text-[13px] font-semibold -translate-y-1/2 transition hover:brightness-110 active:translate-y-[calc(-50%+1px)] disabled:cursor-default sm:w-auto sm:px-3"
-                style={input.trim() ? { background: ACTION_BG, color: '#0a0a0a' } : { background: '#2a2d33', color: '#6b7280' }}
+                type="button"
+                onClick={backHome}
+                className="transition-colors hover:text-white/80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/60"
               >
-                <span className="hidden sm:inline">{loading ? 'Looking up' : 'Lookup'}</span>
-                {loading ? (
-                  <span
-                    aria-hidden
-                    className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-black/30 border-t-black"
-                  />
-                ) : (
-                  <span aria-hidden>→</span>
-                )}
+                Stock lookup
+              </button>
+              <span aria-hidden className="mx-1.5 text-white/25">
+                ›
+              </span>
+              <span className="font-mono font-bold text-white/85">{data?.ticker || input.trim().toUpperCase() || '…'}</span>
+            </nav>
+            <div className="flex shrink-0 items-center gap-2">
+              {compactSearch('ticker-compact', inputRef, 'relative hidden w-60 sm:block')}
+              {shareRow && <div className="hidden items-center gap-2 sm:flex">{shareRow}</div>}
+              <button
+                type="button"
+                aria-label="Search"
+                aria-expanded={mobileSearchOpen}
+                onClick={() => {
+                  setMobileSearchOpen((v) => !v);
+                  setTimeout(() => mobileInputRef.current?.focus(), 50);
+                }}
+                className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-white/15 text-white/60 transition-colors hover:border-white/30 hover:text-white sm:hidden"
+              >
+                <Search size={17} aria-hidden />
               </button>
             </div>
-          </form>
-
-          <div className="flex flex-wrap gap-2 mb-2 text-xs">
-            {(recent.length > 0 ? recent : EXAMPLES).map((t) => (
-              <button
-                key={t}
-                type="button"
-                onClick={() => {
-                  setInput(t);
-                  lookup(t);
-                }}
-                className="text-white/50 border border-white/15 px-2.5 py-1 rounded-full hover:text-white hover:border-white/30 transition-colors"
-              >
-                {t}
-              </button>
-            ))}
-            <span className="text-white/30 self-center ml-1">{recent.length > 0 ? 'recent' : 'try one'}</span>
           </div>
-          </div>
+          {mobileSearchOpen && (
+            <div className="mt-2 sm:hidden">
+              {compactSearch('ticker-compact-m', mobileInputRef, 'relative w-full', () => setMobileSearchOpen(false))}
+            </div>
+          )}
+          {recentOthers.length > 0 && (
+            <div className="mt-2 flex flex-wrap items-center gap-1.5">
+              <span className="text-xs text-white/35">Recent</span>
+              {recentOthers.map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => {
+                    setInput(t);
+                    lookup(t);
+                  }}
+                  className="h-6 rounded-full border border-white/10 px-2.5 font-mono text-xs text-white/55 transition-colors hover:border-white/25 hover:text-white"
+                >
+                  {t}
+                </button>
+              ))}
+            </div>
+          )}
         </>
       )}
 
@@ -1017,7 +1132,7 @@ export default function StocksLookup({
       )}
 
       {data && (
-        <div className="mt-8 space-y-10 animate-fadeInUp">
+        <div className="mt-4 space-y-10 animate-fadeInUp">
           {data.warnings.length > 0 && (
             <div className="border border-yellow-500/40 rounded p-3 text-xs text-yellow-200/80 bg-yellow-950/10 space-y-1">
               {data.warnings.map((w, i) => (
@@ -1026,121 +1141,51 @@ export default function StocksLookup({
             </div>
           )}
 
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div>
-              <p className="text-xs text-white/40">
-                {[data.ticker, data.exchange, data.stats.sector].filter((x): x is string => x !== null).join(' · ')}
-              </p>
-              <h3 className="font-serif text-2xl font-bold text-white/95 mt-1">{data.companyName}</h3>
-            </div>
-            <div className="flex items-center gap-2 pt-1">
-              <a
-                href={shareLinks.x}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Share on X"
-                className={shareButtonClass}
-              >
-                <XIcon />
-              </a>
-              <a
-                href={shareLinks.linkedin}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Share on LinkedIn"
-                className={shareButtonClass}
-              >
-                <LinkedInIcon />
-              </a>
-              <button onClick={copyShareLink} aria-label="Copy link" className={shareButtonClass}>
-                {copied ? <Check size={16} /> : <LinkIcon size={16} />}
-              </button>
-            </div>
-          </div>
-
-          <div className="border border-white/10 rounded p-4 text-sm">
-            <p className="font-bold text-white/90 mb-2">{displayCompanyName(data.companyName)} in 4 lines</p>
-            <div className="space-y-1.5 leading-relaxed">
-              <div className="grid grid-cols-[6.5rem_1fr] gap-x-3">
-                <span className="text-white/40 text-[13px] pt-[1px]">What they do</span>
-                <span className="font-semibold text-white/90">{oneLiner ?? '—'}</span>
-              </div>
-              <div className="grid grid-cols-[6.5rem_1fr] gap-x-3">
-                <span className="text-white/40 text-[13px] pt-[1px]">Revenue</span>
-                <span className="font-semibold text-white/90">
-                  {revLine ? (
-                    <>
-                      <span className={TREND_COLOR[revLine.trend]}>{TREND_ARROW[revLine.trend]}</span>{' '}
-                      <span className={TREND_COLOR[revLine.trend]}>{revLine.word}:</span> {revLine.detail}
-                    </>
-                  ) : '—'}
-                </span>
-              </div>
-              <div className="grid grid-cols-[6.5rem_1fr] gap-x-3">
-                <span className="text-white/40 text-[13px] pt-[1px]">Margin</span>
-                <span className="font-semibold text-white/90">
-                  {margin ? (
-                    <>
-                      {margin.trend && (
-                        <>
-                          <span className={TREND_COLOR[margin.trend]}>{TREND_ARROW[margin.trend]}</span>{' '}
-                        </>
-                      )}
-                      {margin.text}
-                    </>
-                  ) : '—'}
-                </span>
-              </div>
-              <div className="grid grid-cols-[6.5rem_1fr] gap-x-3">
-                <span className="text-white/40 text-[13px] pt-[1px]">Size</span>
-                <span className="font-semibold text-white/90">
-                  {capSize && cap != null ? `${capSize} (${formatMoney(cap)})` : '—'}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <PartHead n={1} title="Understand the business" lede="What it is and how it makes money — before any numbers." />
-
           <ProfileSection
             n={1}
             title="Snapshot"
+            bare
             note="Market cap is the price of the whole company. P/E is how many years of current profit that price equals; compare it to the stock's own history."
           >
-            <div className="flex items-center gap-3 mt-1">
-              <Monogram symbol={data.ticker} size="md" />
-              <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 min-w-0">
-                <span className="text-xl font-bold text-white/95 font-sans">{data.companyName}</span>
-                <span className="font-mono text-sm text-white/45">
-                  {[data.ticker, data.exchange, data.stats.sector].filter((x): x is string => x !== null).join(' · ')}
-                </span>
+            <div className="flex items-start justify-between gap-3 mt-1">
+              <div className="flex items-center gap-3 min-w-0">
+                <CompanyLogo ticker={data.ticker} />
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                    <h1 className="text-[32px] leading-tight font-bold text-white/95 font-sans">{displayCompanyName(data.companyName)}</h1>
+                    <span className="font-sans text-sm text-white/45">
+                      {[data.ticker, data.exchange, data.stats.sector].filter((x): x is string => x !== null).join(' · ')}
+                    </span>
+                  </div>
+                </div>
               </div>
+              <div className="pt-2 sm:hidden">{shareRow}</div>
             </div>
-            {oneLiner && <p className="text-sm text-white/70 leading-relaxed mt-2 font-sans">{oneLiner}</p>}
+            {heroLede && <p className="text-sm text-white/70 leading-relaxed mt-2 font-sans">{heroLede}</p>}
             {q ? (
               <div className="mt-3">
                 <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
-                  <span className="text-[52px] leading-none font-bold text-white/95 tabular-nums font-mono">
+                  <span className="text-[52px] leading-none font-bold text-white/95 tabular-nums font-sans">
                     {formatPrice(q.price)}
                   </span>
                   {(q.change !== null || q.changePct !== null) && (
-                    <span className={`text-xl font-semibold tabular-nums font-mono ${up ? 'text-green-400' : 'text-red-400'}`}>
-                      {formatQuoteChange(q.change, q.changePct)}
+                    <span className={`text-xl font-semibold tabular-nums font-sans ${up ? 'text-green-400' : 'text-red-400'}`}>
+                      {formatQuoteChange(q.change, q.changePct).replace(/-/g, '−')}
                     </span>
                   )}
                 </div>
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2">
-                  <span className="font-mono text-xs text-white/35 tabular-nums inline-flex items-center gap-1.5">
+                  <span className="font-sans text-xs text-white/35 tabular-nums inline-flex items-center gap-1.5">
                     {q.marketStatus && (
                       <span className={`inline-block w-1.5 h-1.5 rounded-full ${isMarketOpen(q.marketStatus) ? 'bg-green-400' : 'bg-white/25'}`} />
                     )}
                     {q.marketStatus ? `${q.marketStatus} · ` : ''}{formatLastTrade(q.lastTrade, q.marketStatus)} · delayed
                   </span>
                   {offAth !== null && histSpanYears >= 1 && (
-                    <span className="font-mono text-xs text-white/35 tabular-nums">
+                    <span className="font-sans text-xs text-white/35 tabular-nums">
                       {Math.abs(offAth) * 100 < 0.05
                         ? 'At its all-time high'
-                        : `${formatPct(offAth)} from its all-time high`}
+                        : `${formatPct(offAth).replace('-', '−')} below all-time high`}
                     </span>
                   )}
                 </div>
@@ -1148,6 +1193,7 @@ export default function StocksLookup({
             ) : (
               <p className="text-sm text-white/40 mt-3">Quote unavailable for this ticker.</p>
             )}
+            <EarningsCard ticker={data.ticker} />
             <div className="grid md:grid-cols-3 gap-3 mt-3">
               <StatRow
                 label="Market cap"
@@ -1184,6 +1230,46 @@ export default function StocksLookup({
               <p className="text-xs text-white/30 mt-1">* estimated from share price × latest reported shares outstanding</p>
             )}
           </ProfileSection>
+
+          <div className="border border-white/10 rounded p-4 text-sm">
+            <p className="font-bold text-white/90 mb-2">In 4 lines</p>
+            <div className="space-y-1.5 leading-relaxed">
+              <div className="grid grid-cols-[6.5rem_1fr] gap-x-3">
+                <span className="text-white/40 text-[13px] pt-[1px]">Revenue</span>
+                <span className="font-semibold text-white/90">
+                  {revLine ? (
+                    <>
+                      <span className={TREND_COLOR[revLine.trend]}>{TREND_ARROW[revLine.trend]}</span>{' '}
+                      <span className={TREND_COLOR[revLine.trend]}>{revLine.word}:</span> {revLine.detail}
+                    </>
+                  ) : '—'}
+                </span>
+              </div>
+              <div className="grid grid-cols-[6.5rem_1fr] gap-x-3">
+                <span className="text-white/40 text-[13px] pt-[1px]">Margin</span>
+                <span className="font-semibold text-white/90">
+                  {margin ? (
+                    <>
+                      {margin.trend && (
+                        <>
+                          <span className={TREND_COLOR[margin.trend]}>{TREND_ARROW[margin.trend]}</span>{' '}
+                        </>
+                      )}
+                      {margin.text}
+                    </>
+                  ) : '—'}
+                </span>
+              </div>
+              <div className="grid grid-cols-[6.5rem_1fr] gap-x-3">
+                <span className="text-white/40 text-[13px] pt-[1px]">Size</span>
+                <span className="font-semibold text-white/90">
+                  {capSize && cap != null ? `${capSize} (${formatMoney(cap)})` : '—'}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <PartHead n={1} title="Understand the business" lede="What it is and how it makes money — before any numbers." />
 
           {data.description && (
             <ProfileSection

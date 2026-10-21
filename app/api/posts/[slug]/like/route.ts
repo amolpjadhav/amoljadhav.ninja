@@ -1,6 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 
+export async function GET(
+  _request: NextRequest,
+  { params }: { params: Promise<{ slug: string }> }
+) {
+  try {
+    const { slug } = await params;
+    const { data, error } = await supabaseAdmin
+      .from('blog_posts')
+      .select('likes')
+      .eq('slug', slug)
+      .maybeSingle();
+    if (error) throw error;
+    return NextResponse.json(
+      { likes: data?.likes ?? 0 },
+      { headers: { 'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300' } }
+    );
+  } catch (error) {
+    console.error('Like count API error:', error);
+    return NextResponse.json({ error: 'Failed to load likes' }, { status: 500 });
+  }
+}
+
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ slug: string }> }

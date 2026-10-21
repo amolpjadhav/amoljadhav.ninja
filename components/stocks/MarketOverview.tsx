@@ -5,6 +5,8 @@ import type { MarketQuote } from '@/lib/stocks';
 import { formatCompact, formatPct, formatPrice } from '@/lib/stocks';
 import { marketPhase, marketStatus } from '@/lib/market-hours';
 import { newsAge, type NewsItem } from '@/lib/news';
+import { nextEarningsFor as findNextEarnings, rankDay, visibleRows, beatVerdict, cleanTickers, etTimeLabel, formatEps, formatMoneyShort, logoUrl, pickMove, previewShareText, quarterTip, reportTimingLabel, resultShareText, shortName, toggleInList, WATCHLIST_KEY, type EnrichedEvent, type QuarterDetail } from '@/lib/earnings';
+import { ChevronDown, Share2 } from 'lucide-react';
 
 // Same red as the homepage and profile tables: a down day is red
 // everywhere, never orange here and red there.
@@ -75,11 +77,10 @@ function formatPoints(n: number | null | undefined): string {
   return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-// The honest sub-line for a strip card. Five of the seven rows are ETF
-// trackers, not the thing they track, so the proxy ticker and its price
-// are always named ("via SPY · $778.01"); the one true index quote shows
-// points. Bitcoin's 24/7 badge sits by its label instead, keeping this
-// line to one row on every card.
+// The honest sub-line for a strip tile, shown in its tooltip. Six of the
+// eight rows are ETF trackers, not the thing they track, so the proxy
+// ticker and its price are always named ("via SPY · $778.01"); the one true
+// index quote shows points. Bitcoin's 24/7 badge sits by its label instead.
 function stripMeta(q: MarketQuote): string {
   // One row on a 128px card means ≤17 characters: ETFs keep "via",
   // the index shows points (label already says Nasdaq 100), and Bitcoin
@@ -97,12 +98,13 @@ function stripMeta(q: MarketQuote): string {
 // Monogram avatar until logo-API terms + a key are sorted: deterministic
 // hue per symbol, first letter. Stands in wherever a logo would go.
 const MONO_HUES = [152, 210, 268, 18, 330, 45, 190, 100, 290, 0];
-export function Monogram({ symbol, size = 'sm' }: { symbol: string; size?: 'sm' | 'md' }) {
+export function Monogram({ symbol, size = 'sm' }: { symbol: string; size?: '2xs' | 'xs' | 'sm' | 'md' }) {
   const clean = symbol.replace(/[^A-Za-z]/g, '');
   const letter = (clean[0] ?? '?').toUpperCase();
   let h = 0;
   for (const c of symbol) h = (h * 31 + c.charCodeAt(0)) % 997;
-  const cls = size === 'md' ? 'w-11 h-11 text-lg' : 'w-6 h-6 text-[11px]';
+  const cls =
+    size === 'md' ? 'w-11 h-11 text-lg' : size === 'xs' ? 'w-5 h-5 text-[9px]' : size === '2xs' ? 'w-4 h-4 text-[8px]' : 'w-6 h-6 text-[11px]';
   return (
     <span
       aria-hidden
@@ -255,13 +257,16 @@ export function TickerTape({ items }: { items: MarketQuote[] }) {
 
 function StripSkeleton() {
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 animate-pulse" aria-hidden aria-label="Loading markets">
+    <div
+      className="flex gap-2 overflow-hidden animate-pulse lg:grid lg:grid-cols-8 lg:overflow-visible"
+      aria-hidden
+      aria-label="Loading markets"
+    >
       {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => (
-        <div key={i} className="rounded-xl border border-white/10 bg-white/[0.06] p-2">
-          <div className="h-3.5 w-16 bg-white/10 rounded" />
-          <div className="h-6 w-14 bg-white/10 rounded mt-1.5" />
-          <div className="h-[34px] bg-white/[0.07] rounded mt-1.5" />
-          <div className="h-3 w-20 bg-white/10 rounded mt-1.5" />
+        <div key={i} className="w-[42vw] max-w-[200px] shrink-0 rounded-xl bg-white/[0.04] p-2 lg:w-auto lg:max-w-none">
+          <div className="h-3 w-16 bg-white/10 rounded" />
+          <div className="h-5 w-12 bg-white/10 rounded mt-1.5" />
+          <div className="h-6 bg-white/[0.07] rounded mt-1.5" />
         </div>
       ))}
     </div>
@@ -277,19 +282,21 @@ export function MarketStrip({ data, loaded }: { data: StripData | null; loaded: 
     stamp();
   }, []);
   const status = now !== null ? marketStatus(new Date(now)) : null;
+  // Tapped tile whose via/price line shows in the detail bar below the row.
+  const [active, setActive] = useState<string | null>(null);
   if (loaded && (!data || data.strip.length === 0)) return null;
+  const activeQuote = !loaded || !data ? null : (data.strip.find((x) => x.symbol === active) ?? null);
   const day = data ? new Date(data.asOf).toLocaleDateString([], { month: 'short', day: 'numeric' }) : null;
   // Open → delayed quote; closed → last session. Bitcoin is 24/7, so its
   // card carries its own "24/7" source line instead.
   const line = status ? (status.live ? `Delayed 15 min${day ? ` · ${day}` : ''}` : status.text) : null;
   return (
-    <div className="mb-8">
+    <div className="mb-6">
       <div className="flex items-baseline justify-between gap-3 mb-2">
-        <h2 className="text-[11px] font-bold uppercase tracking-widest text-white/40">Markets today</h2>
+        <h2 className="shrink-0 text-[11px] font-bold uppercase tracking-widest text-white/40">Markets today</h2>
         {line ? (
           <p className="text-[11px] text-white/30 truncate">
-            {line}
-            <span className="hidden sm:inline"> · dashed = prev close</span>
+            {line} · dashed = prev close
           </p>
         ) : (
           <div className="h-3 w-40 bg-white/10 rounded animate-pulse" aria-hidden />
@@ -298,38 +305,67 @@ export function MarketStrip({ data, loaded }: { data: StripData | null; loaded: 
       {!loaded || !data ? (
         <StripSkeleton />
       ) : (
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
-        {/* Eight cards in a 4×2 grid: every slot filled, no empty eighth,
-            no scroll. (Eight across would need ~1100px of article width.) */}
+      <>
+      <div className="flex gap-2 overflow-x-auto snap-x pb-1 [mask-image:linear-gradient(to_right,#000_88%,transparent)] lg:grid lg:grid-cols-8 lg:overflow-visible lg:pb-0 lg:[mask-image:none]">
+        {/* Eight compact tiles in one row: name, % and a 24px spark. The
+            via/price line lives in the hover tooltip and the tap-to-open
+            detail bar below, so nothing permanent competes with the number. */}
         {data.strip.map((q, i) => {
           const color = moveColor(q.changePct, q.change);
+          const tip = `${q.label} · ${stripMeta(q)}`;
+          const open = active === q.symbol;
           return (
             <div
               key={q.symbol}
-              className="min-w-0 rounded-xl border border-white/10 bg-white/[0.06] p-2 backdrop-blur-xl stagger-in"
+              aria-label={tip}
+              aria-expanded={open}
+              tabIndex={0}
+              onClick={() => setActive(open ? null : q.symbol)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  setActive(open ? null : q.symbol);
+                }
+              }}
+              className="group relative w-[42vw] max-w-[200px] shrink-0 cursor-pointer snap-start rounded-xl bg-white/[0.04] p-2 stagger-in focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/60 lg:w-auto lg:max-w-none"
               style={{ animationDelay: `${Math.min(i, 7) * 40}ms` }}
             >
-              <p className="flex items-center gap-1 text-xs font-bold text-white/90 font-sans">
-                <span className="truncate" title={q.label}>
-                  {q.label}
-                </span>
+              <p className="flex items-center gap-1 font-sans text-xs font-semibold text-white/55">
+                <span className="truncate">{q.label}</span>
                 {q.symbol === 'BTC' && (
                   <span className="shrink-0 rounded bg-white/10 px-1 py-px text-[9px] font-bold uppercase tracking-wide text-white/50">
                     24/7
                   </span>
                 )}
               </p>
-              <p className="mt-1 text-xl font-bold tabular-nums font-mono paint-flash" style={{ color }}>
+              <p className="mt-0.5 text-lg font-bold tabular-nums font-mono paint-flash" style={{ color }}>
                 {formatPct(q.changePct)}
               </p>
-              <div className="mt-1.5">
-                <SparkWithRef values={q.spark} reference={q.prevClose} color={color} times={q.sparkT} />
+              <div className="mt-1">
+                <SparkWithRef values={q.spark} reference={q.prevClose} color={color} height={24} times={q.sparkT} />
               </div>
-              <p className="text-[9px] text-white/40 tabular-nums mt-1.5 font-mono whitespace-nowrap">{stripMeta(q)}</p>
+              <span
+                aria-hidden
+                className={`pointer-events-none absolute -top-1 z-10 hidden -translate-y-full whitespace-nowrap rounded border border-white/15 bg-black/90 px-2 py-1 font-mono text-[11px] tabular-nums text-white/85 group-hover:block group-focus-within:block ${
+                  i === 0
+                    ? 'left-0'
+                    : i === data.strip.length - 1
+                      ? 'right-0'
+                      : 'left-1/2 -translate-x-1/2'
+                }`}
+              >
+                {tip}
+              </span>
             </div>
           );
         })}
       </div>
+      {activeQuote && (
+        <p className="mt-2 truncate rounded-lg bg-white/[0.04] px-3 py-1.5 font-mono text-xs tabular-nums text-white/70">
+          {activeQuote.label} · {stripMeta(activeQuote)}
+        </p>
+      )}
+      </>
       )}
     </div>
   );
@@ -559,6 +595,574 @@ export function MoverTiles({
       </>
       ) : (
         <RowsSkeleton />
+      )}
+    </div>
+  );
+}
+
+export interface EarningsWeekData {
+  events: EnrichedEvent[];
+  fetchedAt: string;
+}
+
+const isEarningsWeek = (j: unknown): j is EarningsWeekData =>
+  !!j && Array.isArray((j as EarningsWeekData).events);
+
+export function useEarnings(): { data: EarningsWeekData | null; loaded: boolean } {
+  return useMarkets('/api/stocks/earnings', isEarningsWeek);
+}
+
+function epsLabel(eps: number | null): string {
+  if (eps === null) return 'EPS est —';
+  return `EPS est ${eps < 0 ? '−' : ''}$${Math.abs(eps).toFixed(2)}`;
+}
+
+function fmtEarningsDate(iso: string): string {
+  return new Date(`${iso}T12:00:00`).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+// Company-page line: "Next earnings Oct 28 · AMC · EPS est $1.02". Timing
+// and estimates appear only when Finnhub confirms them; otherwise the
+// honest fallback — never an invented date.
+export function NextEarningsLine({ ticker }: { ticker: string }) {
+  const { data } = useEarnings();
+  if (!data) return null;
+  const next = findNextEarnings(data.events, ticker);
+  if (!next) return <span className="text-white/40">No scheduled earnings date</span>;
+  return (
+    <span className="text-white/60">
+      Next earnings <span className="font-mono font-semibold text-white/85 tabular-nums">{fmtEarningsDate(next.date)}</span>
+      {next.hour === 'bmo' && ' · before open'}
+      {next.hour === 'amc' && ' · after close'}
+      {next.epsEstimate !== null && (
+        <span className="font-mono tabular-nums"> · {epsLabel(next.epsEstimate)}</span>
+      )}
+    </span>
+  );
+}
+
+// Company-page earnings card: pre-report estimates with beat history, or
+// the post-report verdict with the honest move. Sharing lives here (and on
+// the section headers) — never as icons on every list row.
+function quarterShort(qd: QuarterDetail): string {
+  return qd.year !== null ? `${qd.q}'${String(qd.year).slice(2)}` : qd.q;
+}
+
+function QuarterDots({ quarters }: { quarters: QuarterDetail[] }) {
+  if (quarters.length === 0) return null;
+  return (
+    <span className="inline-flex items-start gap-1.5" aria-hidden>
+      {quarters.map((qd, i) => (
+        <span key={i} title={quarterTip(qd)} className="flex w-8 flex-col items-center gap-1">
+          <span
+            className={`h-2.5 w-2.5 rounded-full ${qd.beat === null ? 'bg-white/20' : qd.beat ? 'bg-green-400' : 'bg-red-400'}`}
+          />
+          <span className="font-sans text-[11px] leading-none tabular-nums text-white/40">{quarterShort(qd)}</span>
+        </span>
+      ))}
+    </span>
+  );
+}
+
+// One quiet share pill: native sheet where available, X intent otherwise.
+// The card image URL rides along in both paths.
+function CardShareButton({ type, text, extra, label }: { type: 'preview' | 'result'; text: string; extra: Record<string, string>; label: string }) {
+  const nav = typeof navigator !== 'undefined' ? (navigator as Navigator & { share?: (d: { text?: string; url?: string }) => Promise<void> }) : null;
+  const native = nav && typeof nav.share === 'function' ? nav.share.bind(nav) : null;
+  const cardUrl = () =>
+    `${window.location.origin}/api/og/earnings?${new URLSearchParams({ type, v: Date.now().toString(36), ...extra }).toString()}`;
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        if (native) native({ text, url: cardUrl() }).catch(() => {});
+        else openCardShare(type, text, extra);
+      }}
+      className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full bg-white/[0.08] px-3 font-sans text-[13px] font-semibold text-white/85 transition-colors hover:bg-white/[0.14] hover:text-white"
+    >
+      <Share2 size={13} aria-hidden /> {label}
+    </button>
+  );
+}
+
+export function EarningsCard({ ticker }: { ticker: string }) {
+  const { data } = useEarnings();
+  const [quarters, setQuarters] = useState<QuarterDetail[] | null>(null);
+  const sym = ticker.trim().toUpperCase();
+  const events = (data?.events ?? []).filter((e) => e.symbol === sym);
+  const today = localToday();
+  const recent =
+    events.filter((e) => e.epsActual !== null && e.date <= today && e.date >= localDayShift(-2)).sort((a, b) => (a.date < b.date ? 1 : -1))[0] ?? null;
+  const upcoming =
+    events.filter((e) => e.date >= today).sort((a, b) => (a.date < b.date ? -1 : 1))[0] ?? null;
+  const target = recent ?? upcoming;
+  useEffect(() => {
+    if (!target || target.epsActual !== null) return;
+    let cancelled = false;
+    fetch(`/api/stocks/earnings/dots?ticker=${encodeURIComponent(sym)}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((j) => {
+        if (!cancelled && j && Array.isArray(j.quarters)) {
+          setQuarters(
+            j.quarters.filter(
+              (qd): qd is QuarterDetail =>
+                !!qd && typeof qd === 'object' && typeof (qd as QuarterDetail).q === 'string',
+            ),
+          );
+        }
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [sym, target]);
+  if (!target) return null;
+  const name = shortName(target.companyName) ?? sym;
+  const reported = target.epsActual !== null;
+  const text = reported
+    ? resultShareText({ symbol: sym, epsActual: target.epsActual, epsEstimate: target.epsEstimate, priceChangePct: target.priceChangePct, ahChangePct: target.ahChangePct })
+    : previewShareText({ symbol: sym, date: target.date, hour: target.hour, epsEstimate: target.epsEstimate, revenueEstimate: target.revenueEstimate, beats: target.beats });
+  const preEps = formatEps(target.epsEstimate);
+  const preRev = formatMoneyShort(target.revenueEstimate);
+  const preEstLine = !preEps && !preRev ? 'Estimates not announced yet' : `${preEps ? `EPS est ${preEps}` : ''}${preEps && preRev ? ' · ' : ''}${preRev ? `Rev est ${preRev}` : ''}`;
+  const dayStamp = `${new Date(`${target.date}T12:00:00`).toLocaleDateString('en-US', { weekday: 'short' })} ${fmtEarningsDate(target.date)}`;
+  const scored = (quarters ?? []).filter((qd) => qd.beat !== null);
+  return (
+    <div className="mt-3 max-w-[640px] rounded-xl border border-white/10 bg-white/[0.04] p-4">
+      {reported ? (
+        <EarningsCardResult event={target} name={name} dataFetchedAt={data?.fetchedAt} text={text} />
+      ) : (
+        <div>
+          <div className="flex items-start justify-between gap-3">
+            <p className="font-sans text-sm font-semibold text-white/90">
+              {target.hour === 'bmo' ? '☀️' : target.hour === 'amc' ? '🌙' : ''} Reports {reportTimingLabel(target.date, target.hour)}
+              <span className="font-normal text-white/45"> · {dayStamp}</span>
+            </p>
+            <CardShareButton type="preview" text={text} extra={{ ticker: sym }} label="Share preview" />
+          </div>
+          <div className="mt-1 flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+            <p className="font-sans text-[13px] tabular-nums text-white/60">{preEstLine}</p>
+            {quarters !== null && scored.length > 0 && (
+              <div className="flex shrink-0 items-center gap-3">
+                <QuarterDots quarters={quarters} />
+                <span className="font-sans text-xs text-white/55">
+                  Beat {scored.filter((qd) => qd.beat).length} of last {scored.length}
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function EarningsCardResult({ event, name, dataFetchedAt, text }: { event: EnrichedEvent; name: string; dataFetchedAt: string | undefined; text: string }) {
+  const verdict = beatVerdict(event.epsActual, event.epsEstimate);
+  const m = pickMove(event);
+  const a = formatEps(event.epsActual);
+  const est = formatEps(event.epsEstimate);
+  const pct = event.epsActual !== null && event.epsEstimate ? ((event.epsActual - event.epsEstimate) / Math.abs(event.epsEstimate)) * 100 : null;
+  const ra = event.revenueActual !== null ? formatMoneyShort(event.revenueActual) : null;
+  const re = formatMoneyShort(event.revenueEstimate);
+  const color = verdict === 'BEAT' ? 'text-green-300' : verdict === 'MISS' ? 'text-red-300' : 'text-white/70';
+  return (
+    <div>
+      <div className="flex items-start justify-between gap-3">
+        <p className={`font-sans text-[15px] font-bold ${color}`}>
+          {verdict === 'BEAT' ? '✓ Beat' : verdict === 'MISS' ? '✗ Miss' : '≈ Inline'}
+          <span className="font-normal text-white/45"> · {name}</span>
+        </p>
+        <CardShareButton type="result" text={text} extra={{ ticker: event.symbol }} label="Share result" />
+      </div>
+      <p className="mt-1 font-sans text-[13px] tabular-nums text-white/70">
+        {a && est && verdict !== 'REPORTED'
+          ? `EPS ${a} vs ${est} est (${pct !== null && pct >= 0 ? '+' : ''}${pct !== null ? pct.toFixed(0) : ''}%)`
+          : a
+            ? `EPS ${a} reported`
+            : 'Results announced'}
+        {ra && re ? ` · Revenue ${ra} vs ${re} est` : ra ? ` · Revenue ${ra}` : ''}
+      </p>
+      <p className="mt-1 font-sans text-xs tabular-nums text-white/45">
+        {m ? `Stock ${m.v >= 0 ? '+' : ''}${(m.v * 100).toFixed(1)}% ${m.label}` : 'Stock move unavailable'}
+        {dataFetchedAt ? ` · as of ${etTimeLabel(dataFetchedAt)}` : ''}
+      </p>
+    </div>
+  );
+}
+
+// Upcoming earnings, ranked by popularity: a day strip, then the selected
+// day split into before-open / after-close columns of compact rows.
+// Estimates are always labeled est, never results; rows without an EPS
+// estimate stay folded until the list expands; never any BMO/AMC jargon.
+function localToday(): string {
+  return localDayShift(0);
+}
+
+function localDayShift(deltaDays: number): string {
+  const d = new Date();
+  d.setDate(d.getDate() + deltaDays);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+// One share path for every earnings surface: X intent carrying the
+// cashtagged text plus the rendered card image URL (cache-busted, since X
+// caches images per URL for days).
+function openCardShare(type: 'preview' | 'result' | 'tonight' | 'morning', text: string, extra?: Record<string, string>) {
+  const params = new URLSearchParams({ type, v: Date.now().toString(36), ...extra });
+  const cardUrl = `${window.location.origin}/api/og/earnings?${params.toString()}`;
+  window.open(
+    `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(cardUrl)}`,
+    '_blank',
+    'noopener,width=550,height=420',
+  );
+}
+
+function EarnLogo({ event, px = 32 }: { event: EnrichedEvent; px?: number }) {
+  // Logos come straight from Finnhub's keyless logo endpoint (verified PNG,
+  // no profile fetch needed); unknown tickers fall back to a monogram.
+  const [failed, setFailed] = useState(false);
+  if (failed) return <Monogram symbol={event.symbol} size={px <= 16 ? '2xs' : px <= 20 ? 'xs' : 'sm'} />;
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={logoUrl(event.symbol)}
+      alt=""
+      aria-hidden
+      loading="lazy"
+      onError={() => setFailed(true)}
+      width={px}
+      height={px}
+      style={{ width: px, height: px }}
+      className="shrink-0 rounded-full bg-white/10 object-contain"
+    />
+  );
+}
+
+function BeatBadge({ beats }: { beats: EnrichedEvent['beats'] }) {
+  if (!beats || beats.total === 0) return null;
+  // One rule: perfect is green, one or fewer wins is amber, the middle is
+  // neutral. A 1/4 that "feels wrong" is still what the provider's own
+  // surprise data says (see the fetcher log).
+  const cls =
+    beats.wins === beats.total
+      ? 'bg-green-400/15 text-green-300'
+      : beats.wins <= 1
+        ? 'bg-amber-400/15 text-amber-300'
+        : 'bg-white/10 text-white/60';
+  return (
+    <span className={`shrink-0 rounded-md px-1.5 py-0.5 font-sans text-[11px] font-bold tabular-nums ${cls}`}>
+      Beat {beats.wins}/{beats.total}
+    </span>
+  );
+}
+
+// Starred tickers persist in localStorage; the earnings section pins
+// matching reporters above the week strip.
+function loadWatchlist(): string[] {
+  try {
+    return cleanTickers(JSON.parse(localStorage.getItem(WATCHLIST_KEY) ?? '[]'));
+  } catch {
+    return [];
+  }
+}
+
+function saveWatchlist(list: string[]) {
+  try {
+    localStorage.setItem(WATCHLIST_KEY, JSON.stringify(list));
+  } catch {
+    /* private mode — stars just don't persist */
+  }
+}
+
+export function WatchStar({ ticker }: { ticker: string }) {
+  const [list, setList] = useState<string[]>(() => (typeof window === 'undefined' ? [] : loadWatchlist()));
+  const active = list.includes(ticker.trim().toUpperCase());
+  return (
+    <button
+      type="button"
+      aria-pressed={active}
+      aria-label={active ? `Remove ${ticker} from watchlist` : `Add ${ticker} to watchlist`}
+      title={active ? 'In your watchlist' : 'Add to watchlist'}
+      onClick={() => {
+        const next = toggleInList(list, ticker);
+        saveWatchlist(next);
+        setList(next);
+      }}
+      className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-base leading-none transition-colors ${
+        active
+          ? 'border-yellow-300/60 bg-yellow-300/10 text-yellow-300'
+          : 'border-white/20 text-white/35 hover:border-white/40 hover:text-white/70'
+      }`}
+    >
+      <span aria-hidden>{active ? '★' : '☆'}</span>
+    </button>
+  );
+}
+
+function EarnRow({ event, onSelect }: { event: EnrichedEvent; onSelect: (ticker: string) => void }) {
+  const reported = event.epsActual !== null;
+  const eps = formatEps(event.epsEstimate);
+  const rev = event.revenueEstimate !== null ? formatMoneyShort(event.revenueEstimate) : null;
+  const mcap = formatMoneyShort(event.marketCap);
+  const move = event.priceChangePct;
+  // Same dust threshold as formatPct: below half a basis point it's flat.
+  const flat = move === null || Math.abs(move * 100) < 0.005;
+  const verdict = reported ? beatVerdict(event.epsActual, event.epsEstimate) : 'REPORTED';
+  const name = shortName(event.companyName) ?? event.symbol;
+  const sharePreview = () =>
+    openCardShare(
+      'preview',
+      previewShareText({ symbol: event.symbol, date: event.date, hour: event.hour, epsEstimate: event.epsEstimate, revenueEstimate: event.revenueEstimate, beats: event.beats }),
+      { ticker: event.symbol },
+    );
+  const shareResult = () =>
+    openCardShare(
+      'result',
+      resultShareText({ symbol: event.symbol, epsActual: event.epsActual, epsEstimate: event.epsEstimate, priceChangePct: event.priceChangePct, ahChangePct: event.ahChangePct }),
+      { ticker: event.symbol },
+    );
+  return (
+    <div className="group flex min-h-16 w-full items-center gap-1 border-b border-white/10 px-1 py-2 transition-colors hover:bg-white/[0.04]">
+      <button
+        type="button"
+        onClick={() => onSelect(event.symbol)}
+        aria-label={`${name} (${event.symbol}) earnings`}
+        className="flex min-w-0 flex-1 items-center gap-3 text-left"
+      >
+        <EarnLogo event={event} />
+        <span className="min-w-0 flex-1">
+          <span className="block truncate font-sans text-[15px] font-semibold text-white/90">
+            {name}{' '}
+            <span className="font-mono text-[13px] font-normal text-white/45">{event.symbol}</span>
+          </span>
+          {reported ? (
+            eps === null ? (
+              <span className="block truncate font-sans text-[13px] text-white/60 tabular-nums">
+                EPS {formatEps(event.epsActual)} reported
+              </span>
+            ) : (
+              <span
+                className={`block truncate font-sans text-[13px] tabular-nums ${
+                  verdict === 'BEAT' ? 'text-green-300' : verdict === 'MISS' ? 'text-red-300' : 'text-white/60'
+                }`}
+              >
+                EPS {formatEps(event.epsActual)} vs {eps} est{' '}
+                {verdict === 'BEAT' ? '✓ beat' : verdict === 'MISS' ? '✗ miss' : '≈ inline'}
+              </span>
+            )
+          ) : (
+            <span className="block truncate font-sans text-[13px] text-white/50 tabular-nums">
+              {eps ? `EPS est ${eps}` : 'EPS est —'}
+              {rev ? ` · Rev est ${rev}` : ''}
+            </span>
+          )}
+        </span>
+        <span className="flex shrink-0 flex-col items-end gap-1">
+          {reported && move !== null ? (
+            <span
+              title="Today's session move"
+              className={`shrink-0 rounded-md px-1.5 py-0.5 font-mono text-[11px] font-bold tabular-nums ${
+                flat ? 'bg-white/10 text-white/60' : move > 0 ? 'bg-green-400/15 text-green-300' : 'bg-red-400/15 text-red-300'
+              }`}
+            >
+              {flat ? '•' : move > 0 ? '▲' : '▼'} {formatPct(move)}
+            </span>
+          ) : (
+            mcap && <span className="font-sans text-[13px] text-white/50 tabular-nums">{mcap}</span>
+          )}
+          <BeatBadge beats={event.beats} />
+          {reported && (
+            <button
+              type="button"
+              onClick={shareResult}
+              className="shrink-0 rounded-md border border-white/15 px-1.5 py-0.5 font-sans text-[11px] font-semibold text-white/55 transition-colors hover:border-white/35 hover:text-white"
+            >
+              Share result
+            </button>
+          )}
+        </span>
+      </button>
+      {!reported && (
+        <button
+          type="button"
+          onClick={sharePreview}
+          aria-label={`Share ${event.symbol} earnings preview`}
+          title="Share earnings preview"
+          className="hidden h-8 w-8 shrink-0 items-center justify-center rounded-full text-white/30 opacity-0 transition-all hover:bg-white/[0.08] hover:text-white/80 focus-visible:opacity-100 [@media(hover:hover)]:inline-flex [@media(hover:hover)]:group-hover:opacity-100 [@media(hover:hover)]:group-focus-within:opacity-100"
+        >
+          <Share2 size={14} aria-hidden />
+        </button>
+      )}
+      <span aria-hidden className="shrink-0 text-white/25">›</span>
+    </div>
+  );
+}
+
+function ShareLineupButton({ date, events, half }: { date: string; events: EnrichedEvent[]; half: 'amc' | 'bmo' }) {
+  const evening = half === 'amc';
+  const openShare = () => {
+    const heads = rankDay(events).slice(0, 6).map((e) => e.symbol);
+    const dayName = new Date(`${date}T12:00:00`).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+    const text = evening
+      ? `Reporting after the close (${dayName}): ${heads.join(', ')}${events.length > heads.length ? ` +${events.length - heads.length} more` : ''}.`
+      : `Reporting before the open (${dayName}): ${heads.join(', ')}${events.length > heads.length ? ` +${events.length - heads.length} more` : ''}.`;
+    openCardShare(evening ? 'tonight' : 'morning', text, { date });
+  };
+  return (
+    <button
+      type="button"
+      onClick={openShare}
+      className="inline-flex h-[30px] shrink-0 items-center gap-1 rounded-full border border-white/15 px-2.5 font-sans text-[13px] font-semibold text-white/55 transition-colors hover:border-white/35 hover:text-white"
+    >
+      <Share2 size={12} aria-hidden /> {evening ? "Share tonight's lineup" : "Share this morning's lineup"}
+    </button>
+  );
+}
+
+function EarnColumn({ title, events, onSelect, action }: { title: string; events: EnrichedEvent[]; onSelect: (ticker: string) => void; action?: React.ReactNode }) {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState('');
+  if (events.length === 0) return null;
+  const ranked = rankDay(events);
+  const base = visibleRows(ranked, '', false);
+  const shown = open ? visibleRows(ranked, query, true) : base.slice(0, 6);
+  const hidden = visibleRows(ranked, '', true).length - shown.length;
+  return (
+    <div>
+      <div className="mb-1 flex min-h-12 items-center justify-between gap-2">
+        <p className="text-xs font-bold uppercase tracking-wider text-white/40">{title}</p>
+        {action}
+      </div>
+      <div className="border-t border-white/10">
+        {shown.map((e) => (
+          <EarnRow key={`${e.date}-${e.symbol}`} event={e} onSelect={onSelect} />
+        ))}
+      </div>
+      {hidden > 0 && !open && (
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="mt-1 flex w-full items-center justify-center gap-1 py-1.5 text-center font-sans text-[15px] font-medium text-white/50 transition-colors hover:text-white"
+        >
+          + {hidden} more companies <ChevronDown size={14} aria-hidden />
+        </button>
+      )}
+      {open && (
+        <div className="mt-1">
+          <input
+            value={query}
+            onChange={(ev) => setQuery(ev.target.value)}
+            placeholder="Filter ticker or name…"
+            aria-label={`Filter ${title} companies`}
+            className="w-full rounded-lg border border-white/15 bg-white/[0.06] px-3 py-2 font-sans text-sm text-white/90 placeholder:text-white/30 focus:border-white/40 focus:outline-none"
+          />
+          {shown.length === 0 && <p className="py-3 text-center font-sans text-sm text-white/40">No matches.</p>}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function EarningsWeek({ data, loaded, onSelect }: { data: EarningsWeekData | null; loaded: boolean; onSelect: (ticker: string) => void }) {
+  const [selected, setSelected] = useState<string | null>(null);
+  const [watchlist, setWatchlist] = useState<string[]>(() => (typeof window === 'undefined' ? [] : loadWatchlist()));
+  useEffect(() => {
+    // Stars toggle on the company page; pick them up on return.
+    const reload = () => setWatchlist(loadWatchlist());
+    window.addEventListener('focus', reload);
+    return () => window.removeEventListener('focus', reload);
+  }, []);
+  if (!loaded) {
+    return (
+      <div className="mt-8" aria-label="Loading earnings">
+        <div className="h-6 w-40 rounded bg-white/10 animate-pulse" />
+        <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+          {[0, 1, 2, 3].map((i) => (
+            <div key={i} className="h-16 rounded-xl border border-white/10 bg-white/[0.06] animate-pulse" />
+          ))}
+        </div>
+      </div>
+    );
+  }
+  if (!data || data.events.length === 0) return null;
+  const byDay = new Map<string, EnrichedEvent[]>();
+  for (const e of data.events) {
+    const list = byDay.get(e.date) ?? [];
+    list.push(e);
+    byDay.set(e.date, list);
+  }
+  const dates = [...byDay.keys()].sort();
+  const mine = watchlist.length > 0 ? rankDay(data.events.filter((e) => watchlist.includes(e.symbol))) : [];
+  const day = (selected && byDay.has(selected) ? selected : dates.find((d) => d >= localToday()) ?? dates[0]) as string;
+  const dayEvents = byDay.get(day) ?? [];
+  const bmo = dayEvents.filter((e) => e.hour === 'bmo');
+  const amc = dayEvents.filter((e) => e.hour === 'amc');
+  const unknown = dayEvents.filter((e) => e.hour !== 'bmo' && e.hour !== 'amc');
+  const label = new Date(`${day}T12:00:00`).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
+  return (
+    <div className="mt-8">
+      <h2 className="text-2xl font-bold text-white/95">Upcoming earnings</h2>
+      {mine.length > 0 && (
+        <div className="mt-3">
+          <p className="mb-1 text-xs font-bold uppercase tracking-wider text-white/40">Your watchlist reports this week</p>
+          <div className="border-t border-white/10">
+            {mine.map((e) => (
+              <EarnRow key={`mine-${e.date}-${e.symbol}`} event={e} onSelect={onSelect} />
+            ))}
+          </div>
+        </div>
+      )}
+      <div className="mt-3 grid grid-cols-5 gap-1.5" aria-label="Trading days">
+        {dates.map((d) => {
+          const list = byDay.get(d) ?? [];
+          const active = d === day;
+          const dt = new Date(`${d}T12:00:00`);
+          const heads = rankDay(list).slice(0, 3);
+          const dayLine = `${dt.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase()} ${dt.getDate()}`;
+          return (
+            <button
+              key={d}
+              type="button"
+              aria-current={active ? 'date' : undefined}
+              aria-label={`${dayLine}, ${list.length} reports`}
+              onClick={() => setSelected(d)}
+              className={`flex min-h-20 flex-col items-center justify-center rounded-xl border px-1 py-1.5 transition-colors ${
+                active ? 'border-yellow-300/60 bg-yellow-300/10' : 'border-white/10 bg-white/[0.04] hover:bg-white/[0.08]'
+              }`}
+            >
+              <span className="font-sans text-[13px] font-bold tracking-wide text-white/85 tabular-nums">{dayLine}</span>
+              <span className="font-sans text-[11px] text-white/45 tabular-nums">{list.length} reports</span>
+              <span className="mt-1 flex -space-x-1" aria-hidden>
+                {heads.map((e) => (
+                  <EarnLogo key={e.symbol} event={e} px={16} />
+                ))}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+      <p className="mt-4 text-sm font-semibold text-white/80">
+        {label} <span className="font-normal text-white/45">· {dayEvents.length} companies</span>
+      </p>
+      <div className="mt-2 grid grid-cols-1 gap-6 md:grid-cols-2">
+        <EarnColumn
+          title="☀️ Before the open"
+          events={bmo}
+          onSelect={onSelect}
+          action={bmo.length > 0 ? <ShareLineupButton date={day} events={bmo} half="bmo" /> : undefined}
+        />
+        <EarnColumn
+          title="🌙 After the close"
+          events={amc}
+          onSelect={onSelect}
+          action={amc.length > 0 ? <ShareLineupButton date={day} events={amc} half="amc" /> : undefined}
+        />
+      </div>
+      {unknown.length > 0 && (
+        <div className="mt-6">
+          <EarnColumn title={`Time not announced (${unknown.length})`} events={unknown} onSelect={onSelect} />
+        </div>
       )}
     </div>
   );

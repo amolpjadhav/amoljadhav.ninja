@@ -2534,7 +2534,10 @@ interface StripDef {
 
 // NDX is a real index quote; the rest are the most liquid ETF trackers,
 // labeled through `via` so the strip never misrepresents a proxy as the
-// index itself. No VIX / 10-yr / futures: nothing keyless quotes them.
+// index itself. VIX is the exception that proves the rule: ^VIX exists on
+// neither Nasdaq's API nor CBOE's public feed, and VIXY (VIX futures)
+// regularly moves several points away from the index — so it is labeled
+// "VIX futures", never "VIX".
 const MARKET_STRIP_DEFS: StripDef[] = [
   { label: 'S&P 500', symbol: 'SPY', via: 'SPY', assetClasses: ['etf'] },
   { label: 'Nasdaq 100', symbol: 'NDX', via: null, assetClasses: ['index'] },
@@ -2542,9 +2545,7 @@ const MARKET_STRIP_DEFS: StripDef[] = [
   { label: 'Russell 2000', symbol: 'IWM', via: 'IWM', assetClasses: ['etf'] },
   { label: 'Gold', symbol: 'GLD', via: 'GLD', assetClasses: ['etf'] },
   { label: 'Crude Oil', symbol: 'USO', via: 'USO', assetClasses: ['etf'] },
-  // The fear gauge itself isn't quotable keyless; VIXY is its liquid
-  // tracker, labeled like every other proxy.
-  { label: 'VIX', symbol: 'VIXY', via: 'VIXY', assetClasses: ['etf'] },
+  { label: 'VIX futures', symbol: 'VIXY', via: 'VIXY', assetClasses: ['etf'] },
 ];
 
 const MAG7 = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'NVDA', 'META', 'TSLA'];

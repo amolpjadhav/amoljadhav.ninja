@@ -234,6 +234,10 @@ export default async function BlogPostPage({
   const isPodcast = slug === PODCAST_SLUG;
   const lookupTicker = isLookup ? normalizeTicker(query?.ticker ?? '') : '';
   const lookupCoin = isLookup && !lookupTicker ? normalizeCoinId(query?.coin ?? '') : '';
+  // Ticker pages read as an app, not an article: the category tag, tag row
+  // and share/like row stay on the lookup home page only. The SEO snapshot
+  // below goes visually-hidden (crawlers still read it).
+  const isTickerPage = isLookup && (lookupTicker !== '' || lookupCoin !== '');
 
   return (
     <>
@@ -256,8 +260,8 @@ export default async function BlogPostPage({
               <TapeBar />
             </div>
           )}
-          <div className="mb-10 animate-fadeIn">
-            {post.category && !isPodcast && (
+          <div className={`${isTickerPage ? '' : 'mb-10'} animate-fadeIn`}>
+            {post.category && !isPodcast && !isTickerPage && (
               <span
                 className="inline-block text-xs font-bold uppercase tracking-wide px-2.5 py-1 rounded mb-3"
                 style={{
@@ -269,7 +273,7 @@ export default async function BlogPostPage({
               </span>
             )}
 
-            {post.tags.length > 0 && (
+            {post.tags.length > 0 && !isTickerPage && (
               <div className="flex flex-wrap gap-2 mb-4">
                 {post.tags.map((tag: string) => (
                   <span
@@ -304,7 +308,7 @@ export default async function BlogPostPage({
               </div>
             )}
 
-            {!isPodcast && (
+            {!isPodcast && !isTickerPage && (
               <div className="flex items-center gap-3 mt-5">
                 <ShareButtons title={post.title} slug={post.slug} />
                 <LikeButton slug={post.slug} initialLikes={post.likes} />
@@ -313,10 +317,10 @@ export default async function BlogPostPage({
             )}
           </div>
 
-          <TableOfContents headings={headings} accent={categoryColor(post.category)} />
+          {!isTickerPage && <TableOfContents headings={headings} accent={categoryColor(post.category)} />}
 
           {isLookup && (
-            <div className="mb-8">
+            <div className={isTickerPage ? 'sr-only' : 'mb-8'}>
               <LookupSeo ticker={lookupTicker} coin={lookupCoin} />
             </div>
           )}

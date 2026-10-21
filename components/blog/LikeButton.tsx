@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Heart } from 'lucide-react';
 
 const STORAGE_KEY = 'liked_posts';
@@ -24,13 +24,9 @@ export default function LikeButton({
   slug: string;
   initialLikes: number;
 }) {
-  const [liked, setLiked] = useState(false);
+  const [liked, setLiked] = useState(() => (typeof window === 'undefined' ? false : getLikedSlugs().includes(slug)));
   const [likes, setLikes] = useState(initialLikes);
   const [pending, setPending] = useState(false);
-
-  useEffect(() => {
-    setLiked(getLikedSlugs().includes(slug));
-  }, [slug]);
 
   async function toggleLike() {
     if (pending) return;
