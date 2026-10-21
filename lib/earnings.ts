@@ -471,7 +471,10 @@ export function formatMoneyShort(value: number | null): string | null {
  *  "$6.55B vs $6.62B est (−1%)", never "$6.6B vs $6.6B est" hiding a real
  *  miss. The signed % always shows, so narrow misses stay visible. Pure;
  *  exported for tests. */
-export function revenueResultLine(actual: number | null, estimate: number | null): string | null {
+/** Formatted revenue actual/estimate pair with the same collision rule as
+ *  revenueResultLine (2 decimals when 1 would print two different numbers
+ *  identically). Tiles need the parts separately. Pure; tested. */
+export function formatRevenuePair(actual: number | null, estimate: number | null): { a: string; e: string } | null {
   if (actual === null || !Number.isFinite(actual)) return null;
   let a = formatMoneyShort(actual)!;
   const hasEst = estimate !== null && Number.isFinite(estimate) && estimate !== 0;
@@ -480,9 +483,16 @@ export function revenueResultLine(actual: number | null, estimate: number | null
     a = `$${(actual / 1e9).toFixed(2)}B`;
     e = `$${(estimate! / 1e9).toFixed(2)}B`;
   }
-  if (e === null) return `Revenue ${a}`;
+  if (e === null) return null;
+  return { a, e };
+}
+
+export function revenueResultLine(actual: number | null, estimate: number | null): string | null {
+  if (actual === null || !Number.isFinite(actual)) return null;
+  const pair = formatRevenuePair(actual, estimate);
+  if (!pair) return `Revenue ${formatMoneyShort(actual)!}`;
   const pct = ((actual - estimate!) / Math.abs(estimate!)) * 100;
-  return `Revenue ${a} vs ${e} est (${pct >= 0 ? '+' : ''}${pct.toFixed(0)}%)`;
+  return `Revenue ${pair.a} vs ${pair.e} est (${pct >= 0 ? '+' : ''}${pct.toFixed(0)}%)`;
 }
 
 /** $1.43 / −$0.22. Pure; exported for tests. */
@@ -566,8 +576,29 @@ export function reportDateLabel(date: string, hour: 'bmo' | 'amc' | ''): string 
   return `${day} ${half}`;
 }
 
-/** "$TSLA reports tonight: EPS est $0.44, rev est $28.4B. Beat 2/4 last
- *  quarters." Cashtagged for X ticker search. Pure; exported for tests. */
+/** Pill day word for share cards, read in America/New_York at render:
+ *  TONIGHT / THIS MORNING / TOMORROW / WED OCT 28. Takes the ET date
+ *  explicitly so server renders stay honest. Pure; exported for tests. */
+export function previewPillDay(
+  date: string,
+  hour: 'bmo' | 'amc' | '',
+  etTodayStr: string,
+): { day: string; timing: string } {
+  const timing = hour === 'bmo' ? 'BEFORE THE OPEN' : hour === 'amc' ? 'AFTER THE CLOSE' : 'TIME TBA';
+  if (date === etTodayStr) return { day: hour === 'bmo' ? 'THIS MORNING' : 'TONIGHT', timing };
+  const tomorrow = new Date(`${etTodayStr}T12:00:00Z`).getTime() + 86400000;
+  if (date === new Date(tomorrow).toISOString().slice(0, 10)) return { day: 'TOMORROW', timing };
+  const day = new Date(`${date}T12:00:00`)
+    .toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
+    .replace(',', '')
+    .toUpperCase();
+  return { day, timing };
+}
+
+/** "$TSLA reports tonight after the close. EPS est $0.44 · Rev est $28.4B ·
+ *  Beat 2 of last 4." Cashtagged for X ticker search. The period after the
+ *  timing keeps the sentence from running into the beat tail. Pure;
+ *  exported for tests. */
 export function previewShareText(e: {
   symbol: string;
   date: string;
@@ -576,13 +607,13 @@ export function previewShareText(e: {
   revenueEstimate: number | null;
   beats: Beats | null;
 }): string {
-  const bits = [`$${e.symbol} reports ${reportTimingLabel(e.date, e.hour)}`];
+  const head = `$${e.symbol} reports ${reportTimingLabel(e.date, e.hour)}.`;
   const eps = formatEps(e.epsEstimate);
   const rev = formatMoneyShort(e.revenueEstimate);
-  if (eps || rev) bits.push(`: ${[eps ? `EPS est ${eps}` : null, rev ? `rev est ${rev}` : null].filter(Boolean).join(', ')}`);
-  else bits.push('');
-  const tail = e.beats ? ` Beat ${e.beats.wins} of last ${e.beats.total}.` : '';
-  return `${bits.join('')}${tail}`;
+  const mid = [eps ? `EPS est ${eps}` : null, rev ? `Rev est ${rev}` : null].filter(Boolean).join(' · ');
+  const tail = e.beats ? `Beat ${e.beats.wins} of last ${e.beats.total}.` : '';
+  const body = [mid, tail].filter(Boolean).join(' · ');
+  return body ? `${head} ${body}` : head;
 }
 
 /** "$TSLA beats: EPS $0.52 vs $0.44 est (+18%), stock +6.2% after hours."

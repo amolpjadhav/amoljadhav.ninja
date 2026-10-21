@@ -2844,6 +2844,58 @@ export async function getMarketOverview(opts?: { timeoutMs?: number }): Promise<
 // so ask Google Fonts with an ancient UA, which is served truetype.
 // Anything failing falls back to system sans — layouts never depend on
 // the webfont.
+/** Pick weight → ttf URL out of a Google Fonts css2 response, latin subset
+ *  only (the response lists every subset; non-latin first would silently
+ *  swap the alphabet). Pure; exported for tests. */
+export function parseInterFontCss(css: string, weights: number[]): Map<number, string> {
+  const out = new Map<number, string>();
+  const latin = css.split('/* latin */')[1]?.split('/*')[0] ?? '';
+  for (const w of weights) {
+    const m = latin.match(new RegExp(`font-weight:\\s*${w};[^}]*?url\\((https://[^)]+\\.ttf)\\)`));
+    if (m) out.set(w, m[1]);
+  }
+  return out;
+}
+
+// Inter in several weights for card headlines AND dim labels — one 900
+// makes everything shout. Cached per instance; anything failing falls back
+// to the single-weight loader, then system sans.
+const CARD_FONT_WEIGHTS = [500, 700, 800, 900];
+let cardFontsPromise: Promise<Map<number, ArrayBuffer> | null> | null = null;
+export function loadCardFontsCached(): Promise<Map<number, ArrayBuffer> | null> {
+  if (!cardFontsPromise) {
+    cardFontsPromise = (async () => {
+      try {
+        const css = await fetch(
+          `https://fonts.googleapis.com/css2?family=Inter:wght@${CARD_FONT_WEIGHTS.join(';')}&display=swap`,
+          {
+            headers: { 'User-Agent': 'Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.1)' },
+            signal: AbortSignal.timeout(4000),
+          },
+        ).then((r) => {
+          if (!r.ok) throw new Error('font css');
+          return r.text();
+        });
+        const urls = parseInterFontCss(css, CARD_FONT_WEIGHTS);
+        if (urls.size === 0) return null;
+        const entries = await Promise.all(
+          [...urls.entries()].map(async ([w, u]) => {
+            const buf = await fetch(u, { signal: AbortSignal.timeout(4000) }).then((r) => {
+              if (!r.ok) throw new Error('font file');
+              return r.arrayBuffer();
+            });
+            return [w, buf] as const;
+          }),
+        );
+        return new Map(entries);
+      } catch {
+        return null;
+      }
+    })();
+  }
+  return cardFontsPromise;
+}
+
 let cardFontPromise: Promise<ArrayBuffer | null> | null = null;
 export function loadCardFontCached(): Promise<ArrayBuffer | null> {
   if (!cardFontPromise) {
