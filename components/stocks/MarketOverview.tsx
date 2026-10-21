@@ -5,7 +5,7 @@ import type { MarketQuote } from '@/lib/stocks';
 import { formatCompact, formatPct, formatPrice } from '@/lib/stocks';
 import { marketPhase, marketStatus } from '@/lib/market-hours';
 import { newsAge, type NewsItem } from '@/lib/news';
-import { nextEarningsFor as findNextEarnings, rankDay, visibleRows, beatVerdict, cleanTickers, etTimeLabel, formatEps, formatMoneyShort, logoUrl, pickMove, previewShareText, quarterTip, reportTimingLabel, resultShareText, shortName, toggleInList, WATCHLIST_KEY, type EnrichedEvent, type QuarterDetail } from '@/lib/earnings';
+import { nextEarningsFor as findNextEarnings, rankDay, visibleRows, beatVerdict, cleanTickers, earningsXIntentUrl, etTimeLabel, formatEps, formatMoneyShort, logoUrl, pickMove, previewShareText, quarterTip, reportTimingLabel, resultShareText, shortName, toggleInList, WATCHLIST_KEY, type EarningsCardType, type EnrichedEvent, type QuarterDetail } from '@/lib/earnings';
 import { ChevronDown, Share2 } from 'lucide-react';
 
 // Same red as the homepage and profile tables: a down day is red
@@ -664,20 +664,15 @@ function QuarterDots({ quarters }: { quarters: QuarterDetail[] }) {
   );
 }
 
-// One quiet share pill: native sheet where available, X intent otherwise.
-// The card image URL rides along in both paths.
-function CardShareButton({ type, text, extra, label }: { type: 'preview' | 'result'; text: string; extra: Record<string, string>; label: string }) {
-  const nav = typeof navigator !== 'undefined' ? (navigator as Navigator & { share?: (d: { text?: string; url?: string }) => Promise<void> }) : null;
-  const native = nav && typeof nav.share === 'function' ? nav.share.bind(nav) : null;
-  const cardUrl = () =>
-    `${window.location.origin}/api/og/earnings?${new URLSearchParams({ type, v: Date.now().toString(36), ...extra }).toString()}`;
+// One quiet share pill: always X, like the chess score cards. The native
+// sheet (AirDrop/Messages/…) shares a bare link with no card preview, so it
+// is never used here — the X intent carries the landing page whose meta
+// renders the large card image.
+function CardShareButton({ type, text, extra, label }: { type: EarningsCardType; text: string; extra: Record<string, string>; label: string }) {
   return (
     <button
       type="button"
-      onClick={() => {
-        if (native) native({ text, url: cardUrl() }).catch(() => {});
-        else openCardShare(type, text, extra);
-      }}
+      onClick={() => openCardShare(type, text, extra)}
       className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full bg-white/[0.08] px-3 font-sans text-[13px] font-semibold text-white/85 transition-colors hover:bg-white/[0.14] hover:text-white"
     >
       <Share2 size={13} aria-hidden /> {label}
@@ -806,16 +801,10 @@ function localDayShift(deltaDays: number): string {
 }
 
 // One share path for every earnings surface: X intent carrying the
-// cashtagged text plus the rendered card image URL (cache-busted, since X
-// caches images per URL for days).
-function openCardShare(type: 'preview' | 'result' | 'tonight' | 'morning', text: string, extra?: Record<string, string>) {
-  const params = new URLSearchParams({ type, v: Date.now().toString(36), ...extra });
-  const cardUrl = `${window.location.origin}/api/og/earnings?${params.toString()}`;
-  window.open(
-    `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(cardUrl)}`,
-    '_blank',
-    'noopener,width=550,height=420',
-  );
+// cashtagged text plus the share landing page (stable, no cache-buster — X
+// caches the card per URL, and re-shares should reuse it, not refetch).
+function openCardShare(type: EarningsCardType, text: string, extra?: Record<string, string>) {
+  window.open(earningsXIntentUrl(type, text, extra), '_blank', 'noopener,width=550,height=420');
 }
 
 function EarnLogo({ event, px = 32 }: { event: EnrichedEvent; px?: number }) {

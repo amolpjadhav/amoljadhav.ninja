@@ -558,6 +558,32 @@ export function resultShareText(e: {
   return `${line}.`;
 }
 
+export type EarningsCardType = 'preview' | 'result' | 'tonight' | 'morning';
+
+// Earnings share links ride on a landing page, not the raw image: X (and
+// iMessage/WhatsApp) only render a large card for an HTML page carrying
+// twitter:card + og:image meta (same convention as the chess score cards).
+// The image URL inside that metadata stays stable (no cache-buster) so
+// re-shares reuse the cached card instead of refetching.
+const EARNINGS_SITE = 'https://amoljadhav.ai';
+
+/** Absolute card image URL (stable — crawlers cache per URL). */
+export function earningsCardImageUrl(type: EarningsCardType, extra?: Record<string, string>): string {
+  const params = new URLSearchParams({ type, ...extra });
+  return `${EARNINGS_SITE}/api/og/earnings?${params.toString()}`;
+}
+
+/** Absolute share landing URL: crawlers read the card meta, humans bounce. */
+export function earningsSharePageUrl(type: EarningsCardType, extra?: Record<string, string>): string {
+  const params = new URLSearchParams({ type, ...extra });
+  return `${EARNINGS_SITE}/share/earnings?${params.toString()}`;
+}
+
+/** X intent carrying the cashtagged text plus the share landing page. */
+export function earningsXIntentUrl(type: EarningsCardType, text: string, extra?: Record<string, string>): string {
+  return `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(earningsSharePageUrl(type, extra))}`;
+}
+
 /** ET calendar date (YYYY-MM-DD) for "tonight" math. Pure; exported for tests. */
 export function etToday(nowMs: number = Date.now()): string {
   const parts = new Intl.DateTimeFormat('en-CA', {
