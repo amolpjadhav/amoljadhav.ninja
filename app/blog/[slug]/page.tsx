@@ -15,6 +15,16 @@ import {
   quoteDayParam,
 } from '@/lib/stocks';
 import { getCoinCard, normalizeCoinId } from '@/lib/crypto';
+import {
+  beatVerdict,
+  etToday,
+  fetchEarningsWeek,
+  fetchQuarterDetails,
+  formatEps,
+  formatMoneyShort,
+  pickEarningsTarget,
+  reportDateLabel,
+} from '@/lib/earnings';
 import ShareButtons from '@/components/blog/ShareButtons';
 import TapeBar from '@/components/stocks/TickerTape';
 import MarketHeadlines from '@/components/stocks/MarketHeadlines';
@@ -151,17 +161,46 @@ export async function generateMetadata({
   }
 }
 
+// One earnings line for a ticker page: the next scheduled report (or a
+// just-reported result) with estimates and beat history, all server-side so
+// crawlers and no-JS readers see it in the HTML. Absolute dates only —
+// never "tonight". Null when the calendar is unreachable or empty.
+async function getEarningsSnippet(symbol: string): Promise<string | null> {
+  const week = await fetchEarningsWeek().catch(() => null);
+  if (!week || week.events.length === 0) return null;
+  const { target } = pickEarningsTarget(week.events, symbol, etToday());
+  if (!target) return null;
+  const details = await fetchQuarterDetails(symbol).catch(() => []);
+  const scored = details.filter((d) => d.beat !== null);
+  const beats =
+    scored.length > 0 ? ` · Beat ${scored.filter((d) => d.beat).length} of last ${scored.length}` : '';
+  if (target.epsActual !== null) {
+    const verdict = beatVerdict(target.epsActual, target.epsEstimate);
+    const verb = verdict === 'BEAT' ? 'Beat' : verdict === 'MISS' ? 'Miss' : verdict === 'INLINE' ? 'Inline' : 'Reported';
+    const a = formatEps(target.epsActual);
+    const est = formatEps(target.epsEstimate);
+    const line = a && est && verdict !== 'REPORTED' ? `EPS ${a} vs ${est} est` : a ? `EPS ${a} reported` : 'Results announced';
+    return `Latest results ${reportDateLabel(target.date, target.hour)}: ${verb} · ${line}${beats}.`;
+  }
+  const eps = formatEps(target.epsEstimate);
+  const rev = formatMoneyShort(target.revenueEstimate);
+  const estLine = eps || rev ? ` · ${[eps ? `EPS est ${eps}` : null, rev ? `Revenue est ${rev}` : null].filter(Boolean).join(' · ')}` : '';
+  return `Next earnings ${reportDateLabel(target.date, target.hour)}${estLine}${beats}.`;
+}
+
 // The lookup article's body is only the interactive widget placeholder —
 // the tool itself mounts in the browser — so crawlers and no-JS readers
 // saw an empty article. This server block gives them the quoted company
-// when a ?ticker= / ?coin= link is shared; the markets grid itself lives
-// in the widget between search and movers (client-fetched, skeletoned
-// like movers always were). Prose is serif at reading width; monospace
-// is reserved for tickers and numbers, matching the rest of the page.
+// plus its earnings line when a ?ticker= / ?coin= link is shared; the
+// markets grid itself lives in the widget between search and movers
+// (client-fetched, skeletoned like movers always were). Prose is serif at
+// reading width; monospace is reserved for tickers and numbers, matching
+// the rest of the page.
 async function LookupSeo({ ticker, coin }: { ticker: string; coin: string }) {
-  const [card, coinCard] = await Promise.all([
+  const [card, coinCard, earn] = await Promise.all([
     ticker ? getStockCardData(ticker).catch(() => null) : Promise.resolve(null),
     !ticker && coin ? getCoinCard(coin).catch(() => null) : Promise.resolve(null),
+    ticker ? getEarningsSnippet(ticker).catch(() => null) : Promise.resolve(null),
   ]);
 
   const cardName = card ? displayCompanyName(card.companyName) : null;
@@ -187,6 +226,7 @@ async function LookupSeo({ ticker, coin }: { ticker: string; coin: string }) {
             )}{' '}
             Use the lookup below for {cardName}&rsquo;s business breakdown, financials, and filings.
           </p>
+          {earn && <p className="font-sans text-white/60">{earn}</p>}
         </div>
       )}
 
@@ -337,7 +377,7 @@ export default async function BlogPostPage({
 
           {isLookup && (
             <Suspense fallback={null}>
-              <MarketHeadlines />
+              <MarketHeadlines ticker={isTickerPage ? lookupTicker || undefined : undefined} />
             </Suspense>
           )}
 

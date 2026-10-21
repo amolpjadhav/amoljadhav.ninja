@@ -10,6 +10,7 @@ import {
   logoUrl,
   rankDay,
   reportDateLabel,
+  revenueResultLine,
   shortName,
   type EnrichedEvent,
 } from '@/lib/earnings';
@@ -221,9 +222,7 @@ function resultBody(e: EnrichedEvent, logo: string | null, asOf: string) {
       : a
         ? `EPS ${a} reported`
         : 'Results announced';
-  const ra = e.revenueActual !== null ? formatMoneyShort(e.revenueActual) : null;
-  const re = formatMoneyShort(e.revenueEstimate);
-  const revLine = ra && re ? `Revenue ${ra} vs ${re} est` : ra ? `Revenue ${ra}` : null;
+  const revLine = revenueResultLine(e.revenueActual, e.revenueEstimate);
   const ah = e.ahChangePct;
   const move = ah !== null && Number.isFinite(ah) ? { v: ah, label: 'after hours' } : null;
   const day = e.priceChangePct !== null && Number.isFinite(e.priceChangePct) ? { v: e.priceChangePct, label: 'today' } : null;

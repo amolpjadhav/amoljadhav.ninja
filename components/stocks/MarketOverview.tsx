@@ -5,7 +5,7 @@ import type { MarketQuote } from '@/lib/stocks';
 import { formatCompact, formatPct, formatPrice } from '@/lib/stocks';
 import { marketPhase, marketStatus } from '@/lib/market-hours';
 import { newsAge, type NewsItem } from '@/lib/news';
-import { nextEarningsFor as findNextEarnings, rankDay, visibleRows, beatVerdict, cleanTickers, earningsXIntentUrl, etTimeLabel, formatEps, formatMoneyShort, logoUrl, pickMove, previewShareText, quarterTip, reportTimingLabel, resultShareText, shortName, toggleInList, WATCHLIST_KEY, type EarningsCardType, type EnrichedEvent, type QuarterDetail } from '@/lib/earnings';
+import { nextEarningsFor as findNextEarnings, rankDay, visibleRows, beatVerdict, cleanTickers, earningsXIntentUrl, etTimeLabel, formatEps, formatMoneyShort, logoUrl, pickMove, previewShareText, quarterTip, reportTimingLabel, resultShareText, revenueResultLine, shortName, toggleInList, WATCHLIST_KEY, type EarningsCardType, type EnrichedEvent, type QuarterDetail } from '@/lib/earnings';
 import { ChevronDown, Share2 } from 'lucide-react';
 
 // Same red as the homepage and profile tables: a down day is red
@@ -426,10 +426,12 @@ export function MoverTiles({
   data,
   loaded,
   onSelect,
+  onHover,
 }: {
   data: MoversData | null;
   loaded: boolean;
   onSelect: (ticker: string) => void;
+  onHover?: (ticker: string) => void;
 }) {
   // "Why it's moving": latest ≤24h headline per mover, fetched once per
   // movers payload. Silence when a name has nothing fresh — never an
@@ -548,6 +550,8 @@ export function MoverTiles({
               key={q.symbol}
               type="button"
               onClick={() => onSelect(q.symbol)}
+              onMouseEnter={() => onHover?.(q.symbol)}
+              onFocus={() => onHover?.(q.symbol)}
               aria-label={`${q.symbol}, ${formatPrice(shownPrice)}, ${formatPct(shownPct)}${isAh ? ' after hours' : ''}. Look up.`}
               className={`${ROW_GRID} w-full text-left py-3 sm:py-2.5 border-b border-white/5 last:border-b-0 hover:bg-white/[0.03] transition-colors`}
             >
@@ -758,8 +762,7 @@ function EarningsCardResult({ event, name, dataFetchedAt, text }: { event: Enric
   const a = formatEps(event.epsActual);
   const est = formatEps(event.epsEstimate);
   const pct = event.epsActual !== null && event.epsEstimate ? ((event.epsActual - event.epsEstimate) / Math.abs(event.epsEstimate)) * 100 : null;
-  const ra = event.revenueActual !== null ? formatMoneyShort(event.revenueActual) : null;
-  const re = formatMoneyShort(event.revenueEstimate);
+  const revLine = revenueResultLine(event.revenueActual, event.revenueEstimate);
   const color = verdict === 'BEAT' ? 'text-green-300' : verdict === 'MISS' ? 'text-red-300' : 'text-white/70';
   return (
     <div>
@@ -776,7 +779,7 @@ function EarningsCardResult({ event, name, dataFetchedAt, text }: { event: Enric
           : a
             ? `EPS ${a} reported`
             : 'Results announced'}
-        {ra && re ? ` · Revenue ${ra} vs ${re} est` : ra ? ` · Revenue ${ra}` : ''}
+        {revLine ? ` · ${revLine}` : ''}
       </p>
       <p className="mt-1 font-sans text-xs tabular-nums text-white/45">
         {m ? `Stock ${m.v >= 0 ? '+' : ''}${(m.v * 100).toFixed(1)}% ${m.label}` : 'Stock move unavailable'}
@@ -890,7 +893,7 @@ export function WatchStar({ ticker }: { ticker: string }) {
   );
 }
 
-function EarnRow({ event, onSelect }: { event: EnrichedEvent; onSelect: (ticker: string) => void }) {
+function EarnRow({ event, onSelect, onHover }: { event: EnrichedEvent; onSelect: (ticker: string) => void; onHover?: (ticker: string) => void }) {
   const reported = event.epsActual !== null;
   const eps = formatEps(event.epsEstimate);
   const rev = event.revenueEstimate !== null ? formatMoneyShort(event.revenueEstimate) : null;
@@ -917,6 +920,8 @@ function EarnRow({ event, onSelect }: { event: EnrichedEvent; onSelect: (ticker:
       <button
         type="button"
         onClick={() => onSelect(event.symbol)}
+        onMouseEnter={() => onHover?.(event.symbol)}
+        onFocus={() => onHover?.(event.symbol)}
         aria-label={`${name} (${event.symbol}) earnings`}
         className="flex min-w-0 flex-1 items-center gap-3 text-left"
       >
@@ -1010,7 +1015,7 @@ function ShareLineupButton({ date, events, half }: { date: string; events: Enric
   );
 }
 
-function EarnColumn({ title, events, onSelect, action }: { title: string; events: EnrichedEvent[]; onSelect: (ticker: string) => void; action?: React.ReactNode }) {
+function EarnColumn({ title, events, onSelect, onHover, action }: { title: string; events: EnrichedEvent[]; onSelect: (ticker: string) => void; onHover?: (ticker: string) => void; action?: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   if (events.length === 0) return null;
@@ -1026,7 +1031,7 @@ function EarnColumn({ title, events, onSelect, action }: { title: string; events
       </div>
       <div className="border-t border-white/10">
         {shown.map((e) => (
-          <EarnRow key={`${e.date}-${e.symbol}`} event={e} onSelect={onSelect} />
+          <EarnRow key={`${e.date}-${e.symbol}`} event={e} onSelect={onSelect} onHover={onHover} />
         ))}
       </div>
       {hidden > 0 && !open && (
@@ -1054,7 +1059,7 @@ function EarnColumn({ title, events, onSelect, action }: { title: string; events
   );
 }
 
-export function EarningsWeek({ data, loaded, onSelect }: { data: EarningsWeekData | null; loaded: boolean; onSelect: (ticker: string) => void }) {
+export function EarningsWeek({ data, loaded, onSelect, onHover }: { data: EarningsWeekData | null; loaded: boolean; onSelect: (ticker: string) => void; onHover?: (ticker: string) => void }) {
   const [selected, setSelected] = useState<string | null>(null);
   const [watchlist, setWatchlist] = useState<string[]>(() => (typeof window === 'undefined' ? [] : loadWatchlist()));
   useEffect(() => {
@@ -1098,7 +1103,7 @@ export function EarningsWeek({ data, loaded, onSelect }: { data: EarningsWeekDat
           <p className="mb-1 text-xs font-bold uppercase tracking-wider text-white/40">Your watchlist reports this week</p>
           <div className="border-t border-white/10">
             {mine.map((e) => (
-              <EarnRow key={`mine-${e.date}-${e.symbol}`} event={e} onSelect={onSelect} />
+              <EarnRow key={`mine-${e.date}-${e.symbol}`} event={e} onSelect={onSelect} onHover={onHover} />
             ))}
           </div>
         </div>
@@ -1140,18 +1145,20 @@ export function EarningsWeek({ data, loaded, onSelect }: { data: EarningsWeekDat
           title="☀️ Before the open"
           events={bmo}
           onSelect={onSelect}
+          onHover={onHover}
           action={bmo.length > 0 ? <ShareLineupButton date={day} events={bmo} half="bmo" /> : undefined}
         />
         <EarnColumn
           title="🌙 After the close"
           events={amc}
           onSelect={onSelect}
+          onHover={onHover}
           action={amc.length > 0 ? <ShareLineupButton date={day} events={amc} half="amc" /> : undefined}
         />
       </div>
       {unknown.length > 0 && (
         <div className="mt-6">
-          <EarnColumn title={`Time not announced (${unknown.length})`} events={unknown} onSelect={onSelect} />
+          <EarnColumn title={`Time not announced (${unknown.length})`} events={unknown} onSelect={onSelect} onHover={onHover} />
         </div>
       )}
     </div>

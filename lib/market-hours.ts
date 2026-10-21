@@ -190,6 +190,13 @@ export interface MarketStatus {
   endLabel: string;
 }
 
+// Quote edge TTL: live intraday numbers go stale in seconds; a closed
+// market's numbers are frozen until the next session, so cache them hard.
+// Pure; exported for tests and the fast-quote route.
+export function quoteTtlSeconds(nowMs: number = Date.now()): number {
+  return marketPhase(new Date(nowMs)) === 'open' ? 15 : 3600;
+}
+
 export function marketStatus(date: Date): MarketStatus {
   if (marketPhase(date) === 'open') return { live: true, text: 'Live · 15 min delay', endLabel: 'now' };
   const session = lastSession(date);

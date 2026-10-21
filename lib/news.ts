@@ -155,7 +155,10 @@ export function dedupeNear(items: NewsItem[], limit: number): NewsItem[] {
 }
 
 // Tickers a headline is about: the provider's related tags first, then
-// case-sensitive symbol matches in the headline itself. Max two.
+// case-sensitive symbol matches in the headline itself. Max two. Callers
+// showing the general feed should clear untrusted `related` first (it
+// misattributes — a SpaceX story tagged MSFT); per-symbol company news
+// keeps its tags, correct by construction.
 export function extractTickers(item: NewsItem, universe: string[]): string[] {
   const set = new Set(universe.map((s) => s.toUpperCase()));
   const out: string[] = [];
@@ -187,6 +190,13 @@ function dedupeSort(items: NewsItem[], limit: number): NewsItem[] {
   return out;
 }
 
+// General-feed `related` tags misattribute (a SpaceX story tagged MSFT):
+// clear them so only tickers named in the headline stick. Per-symbol
+// company news keeps its tags (correct by construction). Pure for tests.
+export function stripGeneralRelated(items: NewsItem[]): NewsItem[] {
+  return items.map((x) => (x.related ? { ...x, related: '' } : x));
+}
+
 // "What's moving markets": fresh headlines on the names that move the
 // market (the general feed carries world news with no ticker tags).
 // Cleaned, near-deduped, primary publishers first, five at most.
@@ -201,10 +211,12 @@ export async function getMarketNews(limit = 5): Promise<NewsItem[]> {
     if (raw) {
       pool = [
         ...pool,
-        ...raw
-          .filter((r) => (r as Record<string, unknown>)?.category === 'business')
-          .map(toItem)
-          .filter((x): x is NewsItem => x !== null)
+        ...stripGeneralRelated(
+          raw
+            .filter((r) => (r as Record<string, unknown>)?.category === 'business')
+            .map(toItem)
+            .filter((x): x is NewsItem => x !== null),
+        )
           .map(cleanItem)
           .filter((x): x is NewsItem => x !== null),
       ];

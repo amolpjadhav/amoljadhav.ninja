@@ -1,12 +1,13 @@
-import { extractTickers, getMarketNews, newsAge, type NewsItem } from '@/lib/news';
+import { extractTickers, getCompanyNews, getMarketNews, newsAge, type NewsItem } from '@/lib/news';
 import { formatPct, getStockCardData, NEWS_TICKER_UNIVERSE } from '@/lib/stocks';
 
 const LOOKUP_PATH = '/blog/look-up-stock-and-company-details';
 
-// "What's moving markets": cleaned headlines (clickbait filtered,
-// primary publishers first), each tied to the market with ticker chips
-// showing today's move — clicking a chip opens that company's lookup.
-// Server-rendered below the movers; silent when the feed is down.
+// Headlines with ticker chips showing today's move — clicking a chip opens
+// that company's lookup. Without a ticker it is "What's moving markets"
+// (cleaned general headlines); with one it is that company's own news,
+// used below the company sections on ticker pages instead of the general
+// list. Server-rendered; silent when the feed is down.
 function favicon(url: string): string | null {
   try {
     return `https://www.google.com/s2/favicons?domain=${new URL(url).hostname}&sz=32`;
@@ -45,9 +46,13 @@ function Meta({ n }: { n: NewsItem }) {
   );
 }
 
-export default async function MarketHeadlines() {
-  const items = await getMarketNews(5).catch(() => [] as NewsItem[]);
+export default async function MarketHeadlines({ ticker }: { ticker?: string }) {
+  const sym = (ticker ?? '').trim().toUpperCase();
+  const items = sym
+    ? await getCompanyNews(sym, 7, 5).catch(() => [] as NewsItem[])
+    : await getMarketNews(5).catch(() => [] as NewsItem[]);
   if (items.length === 0) return null;
+  const heading = sym ? `${sym} news` : "What's moving markets";
 
   const withTickers = items.map((n) => ({ n, tickers: extractTickers(n, NEWS_TICKER_UNIVERSE) }));
   const unique = [...new Set(withTickers.flatMap(({ tickers }) => tickers))];
@@ -63,9 +68,9 @@ export default async function MarketHeadlines() {
   const leadFav = favicon(lead.n.url);
 
   return (
-    <section aria-label="What's moving markets" className="mt-10 font-sans">
+    <section aria-label={heading} className="mt-10 font-sans">
       <h2 className="mb-3 text-[11px] font-bold uppercase tracking-widest text-white/40">
-        What&apos;s moving markets
+        {heading}
       </h2>
 
       <div className="group mb-2 flex gap-4 rounded-xl bg-white/[0.03] p-3.5 transition-colors hover:bg-white/[0.05]">

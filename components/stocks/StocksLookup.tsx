@@ -3,11 +3,12 @@
 import { useEffect, useRef, useState, type RefObject } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Link as LinkIcon, Check, Search } from 'lucide-react';
-import type { Filing, FinancialSeries, PricePoint, SegmentSeries, StockResponse } from '@/lib/stocks';
+import type { Filing, FinancialSeries, PricePoint, SegmentSeries, StockFast, StockResponse } from '@/lib/stocks';
 import { FILING_LABELS, cagr, cagrDetails, displayCompanyName, edgarCompanyUrl, fiscalYearEndMonth, fiscalYearSpan, formatCompact, formatEps, formatFilingDate, formatHeadquarters, formatInt, formatLastTrade, formatMoney, formatPct, formatPrice, formatQuoteChange, isMarketOpen, isOtherSegment, latestValue, marginLine, normalizeTicker, peHistoryNote, periodReturn, pickLede, positionInRangeLabel, revenueLine, shareCacheBuster, stockShareLinks, stockShareText, tableYears, yoyGrowth } from '@/lib/stocks';
 import { categoryColor } from '@/lib/blog-content';
 import { EarningsCard, EarningsWeek, MarketStrip, Monogram, MoverTiles, WatchStar, useEarnings, useMarketMovers, useMarketStrip } from './MarketOverview';
 import { logoUrl } from '@/lib/earnings';
+import { createStockCache, stockFastUrl } from '@/lib/stock-cache';
 import LikeButton from '@/components/blog/LikeButton';
 import { newsAge, type NewsItem } from '@/lib/news';
 import {
@@ -41,6 +42,27 @@ function loadRecent(): string[] {
   }
 }
 
+// Session SWR store: tickers looked up (or hover-prefetched) paint instantly
+// from cache while a quiet revalidation refreshes them. Module scope so it
+// survives ticker switches within the visit.
+const stockCache = createStockCache<StockFast, StockResponse>();
+const prefetchInflight = new Set<string>();
+
+// Hover/focus prefetch: fast quote only (the hero's first paint). Full
+// payloads are 20s+ cold — they warm on actual lookup, never on hover.
+function prefetchStock(raw: string) {
+  const symbol = normalizeTicker(raw);
+  if (!symbol || stockCache.get(symbol)?.fast || prefetchInflight.has(symbol)) return;
+  prefetchInflight.add(symbol);
+  fetch(stockFastUrl(symbol))
+    .then((r) => (r.ok ? r.json() : null))
+    .then((j) => {
+      if (j && typeof (j as StockFast).ticker === 'string') stockCache.setFast(symbol, j as StockFast);
+    })
+    .catch(() => {})
+    .finally(() => prefetchInflight.delete(symbol));
+}
+
 // Real logo with monogram fallback, shared by the hero.
 function CompanyLogo({ ticker }: { ticker: string }) {
   const [failed, setFailed] = useState(false);
@@ -55,6 +77,62 @@ function CompanyLogo({ ticker }: { ticker: string }) {
       onError={() => setFailed(true)}
       className="h-11 w-11 shrink-0 rounded-full bg-white/10 object-contain"
     />
+  );
+}
+
+// Loading bones: fixed-height stand-ins in the exact final layout, so each
+// section paints without shifting the page (CLS ≈ 0). One per slow region:
+// hero (~160), earnings card (~96), stat tiles (~112), lower sections (240+).
+function Bone({ className = '' }: { className?: string }) {
+  return <div aria-hidden className={`animate-pulse rounded-lg bg-white/[0.07] ${className}`} />;
+}
+
+function HeroSkeleton() {
+  return (
+    <div className="mt-4 space-y-10" aria-label="Loading">
+      <div>
+        <div className="flex items-center gap-3">
+          <Bone className="h-11 w-11 shrink-0 rounded-full" />
+          <div className="min-w-0">
+            <Bone className="h-8 w-64 max-w-full" />
+            <Bone className="mt-2 h-4 w-40" />
+          </div>
+        </div>
+        <Bone className="mt-3 h-[52px] w-56 max-w-full" />
+        <Bone className="mt-2 h-4 w-52" />
+      </div>
+    </div>
+  );
+}
+
+function TilesSkeleton() {
+  return (
+    <div className="grid gap-3 md:grid-cols-3" aria-label="Loading stats">
+      <Bone className="h-[112px]" />
+      <Bone className="h-[112px]" />
+      <Bone className="h-[112px]" />
+    </div>
+  );
+}
+
+function SectionsSkeleton() {
+  return (
+    <div className="space-y-10" aria-label="Loading sections">
+      <Bone className="h-60" />
+      <Bone className="h-60" />
+      <Bone className="h-60" />
+    </div>
+  );
+}
+
+function SectionRetry({ label, onRetry }: { label: string; onRetry: () => void }) {
+  return (
+    <div className="rounded border border-white/10 p-4 text-sm text-white/60">
+      {label}{' '}
+      <button type="button" onClick={onRetry} className="font-semibold text-white/90 underline underline-offset-2 hover:text-white">
+        Retry
+      </button>
+    </div>
   );
 }
 
@@ -422,6 +500,13 @@ export default function StocksLookup({
   const [data, setData] = useState<StockResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Staged loading: the fast endpoint (identity + quote) paints the hero in
+  // ~100ms; the full payload (filings, financials, history) fills each
+  // section as it arrives. Each stage fails independently with its own
+  // retry — there is no global spinner anymore.
+  const [fast, setFast] = useState<StockFast | null>(null);
+  const [fastLoading, setFastLoading] = useState(false);
+  const [fastError, setFastError] = useState<string | null>(null);
   const [recent, setRecent] = useState<string[]>(() => (typeof window === 'undefined' ? [] : loadRecent()));
   const [copied, setCopied] = useState(false);
   // Per-share cache buster (?v=...): X caches cards per page URL for days,
@@ -456,15 +541,46 @@ export default function StocksLookup({
     return `No data for "${raw.trim()}". Did you mean ${suggestions.map((s) => s.ticker).join(', ')}?`;
   }
 
+  // Latest lookup wins: rapid ticker switches must not let a stale fetch
+  // overwrite the new one. Every stage checks the id before writing.
+  const reqId = useRef(0);
+  // Symbol with a fetch in flight while older data stays on screen
+  // (keepPreviousData) — the status line shows Updating… meanwhile.
+  const [pendingSymbol, setPendingSymbol] = useState<string | null>(null);
+
+  // Fast stage: identity + quote. Fired without awaiting so the hero
+  // paints while the full payload is still in flight.
+  async function fetchFast(symbol: string, id: number): Promise<void> {
+    setFastLoading(true);
+    setFastError(null);
+    try {
+      const res = await fetch(`/api/stocks/${encodeURIComponent(symbol)}/fast`);
+      const json = await res.json();
+      if (!res.ok) throw new Error(json?.error || 'Quote unavailable.');
+      if (reqId.current !== id) return;
+      stockCache.setFast(symbol, json as StockFast);
+      setFast(json as StockFast);
+    } catch (e) {
+      if (reqId.current !== id) return;
+      setFastError(e instanceof Error ? e.message : 'Quote unavailable.');
+    } finally {
+      if (reqId.current === id) setFastLoading(false);
+    }
+  }
+
   async function lookup(raw: string, retried = false): Promise<void> {
     const trimmed = raw.trim();
     if (!trimmed) {
       setError('Enter a company name or ticker — e.g. Costco or COST.');
       return;
     }
+    const id = ++reqId.current;
+    // Loading flags go up before name resolution so the landing never
+    // flashes mid-search; previous data stays until the new paint.
     setLoading(true);
+    setFastLoading(true);
     setError(null);
-    setData(null);
+    setFastError(null);
     setCopied(false);
     try {
       const ticker = normalizeTicker(trimmed);
@@ -478,8 +594,25 @@ export default function StocksLookup({
         else if (r?.suggestions?.length) throw new Error(suggestionError(trimmed, r.suggestions));
         else if (!ticker) throw new Error('Enter a company name or ticker — e.g. Costco or COST.');
       }
+      // SWR paint: cache first (instant, possibly stale), then revalidate
+      // quietly. Skeletons only on a cold miss — switching tickers keeps
+      // the old company on screen with an Updating note.
+      const cached = stockCache.get(symbol);
+      if (cached?.fast) {
+        setFast(cached.fast);
+        setFastError(null);
+        setFastLoading(false);
+      }
+      if (cached?.full) {
+        setData(cached.full);
+        setError(null);
+        setLoading(false);
+      }
+      setPendingSymbol(symbol);
+      void fetchFast(symbol, id);
       const res = await fetch(`/api/stocks/${encodeURIComponent(symbol)}`);
       const json = await res.json();
+      if (reqId.current !== id) return;
       if (!res.ok) {
         // Ticker-shaped but unknown ("COSTCO"): one resolution retry before
         // surfacing the error. The ticker guard below stops retry loops.
@@ -502,6 +635,14 @@ export default function StocksLookup({
                   ? cRes.suggestions[0].id
                   : null;
             if (id) {
+              // Leaving for the crypto view: invalidate the in-flight
+              // stock stages so nothing flashes behind it.
+              reqId.current += 1;
+              setFast(null);
+              setFastError(null);
+              setFastLoading(false);
+              setLoading(false);
+              setPendingSymbol(null);
               onPickCoin(id);
               return;
             }
@@ -511,6 +652,7 @@ export default function StocksLookup({
         }
         throw new Error(json?.error || 'Lookup failed.');
       }
+      stockCache.setFull(symbol, json as StockResponse);
       setData(json as StockResponse);
       // Fresh share URL per lookup: X caches cards per page URL for days.
       setShareToken(shareCacheBuster());
@@ -525,9 +667,13 @@ export default function StocksLookup({
       });
       router.replace(`${pathname}?ticker=${symbol}`, { scroll: false });
     } catch (e) {
+      if (reqId.current !== id) return;
       setError(e instanceof Error ? e.message : 'Lookup failed.');
     } finally {
-      setLoading(false);
+      if (reqId.current === id) {
+        setLoading(false);
+        setPendingSymbol(null);
+      }
     }
   }
 
@@ -610,10 +756,28 @@ export default function StocksLookup({
     };
   }, [data?.ticker]);
 
-  const q = data?.quote;
+  // The fast quote wins: it revalidates in seconds while the full payload
+  // caches for an hour. Falls back to the full payload's quote when the
+  // fast leg failed but fundamentals loaded — and never shows another
+  // company's stale fast quote mid-switch (identity follows the full
+  // payload while it is on screen).
+  const q = fast && data && fast.ticker !== data.ticker ? data.quote : (fast?.quote ?? data?.quote);
   const up = (q?.change ?? 0) >= 0;
+  // Hero identity: full payload when it arrives, fast identity meanwhile.
+  const heroTicker = data?.ticker ?? fast?.ticker ?? '';
+  const heroName = data?.companyName ?? fast?.companyName ?? '';
+  const heroExchange = data?.exchange ?? fast?.exchange ?? null;
+  const heroSector = data?.stats.sector ?? fast?.sector ?? null;
+  // Freshness: the newest fetch stamp across stages ("Updated 2m ago").
+  // Stale paint is fine — the stamp says so, quietly.
+  const updatedAgo = (() => {
+    const stamped = [fast?.fetchedAt, data?.fetchedAt].filter((x): x is string => !!x).sort().pop() ?? null;
+    if (!stamped) return null;
+    const ms = Date.parse(stamped);
+    return Number.isFinite(ms) ? newsAge(Math.floor(ms / 1000)) : null;
+  })();
   // Nothing looked up yet: the search block centers like a search homepage.
-  const idle = !data && !loading && !error;
+  const idle = !data && !fast && !loading && !fastLoading && !error && !fastError;
   // Markets grid sits between search and movers (the page's tape rides
   // above the article); both halves fetch client-side behind skeletons.
   const { data: movers, loaded: moversLoaded } = useMarketMovers();
@@ -709,9 +873,14 @@ export default function StocksLookup({
   // Back to the lookup landing (tape, search, markets, movers): clear the
   // result, drop the ?ticker= share param, and return to the top.
   const backHome = () => {
+    reqId.current += 1;
     setData(null);
     setError(null);
     setLoading(false);
+    setFast(null);
+    setFastError(null);
+    setFastLoading(false);
+    setPendingSymbol(null);
     setInput('');
     setShareToken('');
     router.replace(pathname, { scroll: false });
@@ -994,7 +1163,11 @@ export default function StocksLookup({
                       id={`lookup-option-${i}`}
                       role="option"
                       aria-selected={i === sugActive}
-                      onMouseEnter={() => setSugActive(i)}
+                      onMouseEnter={() => {
+                        setSugActive(i);
+                        prefetchStock(r.ticker);
+                      }}
+                      onFocus={() => prefetchStock(r.ticker)}
                       onMouseDown={(e) => e.preventDefault()}
                       onClick={() => {
                         closeSug();
@@ -1063,8 +1236,8 @@ export default function StocksLookup({
           <div className="mt-8">
             <MarketStrip data={stripData} loaded={stripLoaded} />
           </div>
-          <MoverTiles data={movers} loaded={moversLoaded} onSelect={selectTile} />
-          <EarningsWeek data={earnings} loaded={earningsLoaded} onSelect={selectTile} />
+          <MoverTiles data={movers} loaded={moversLoaded} onSelect={selectTile} onHover={prefetchStock} />
+          <EarningsWeek data={earnings} loaded={earningsLoaded} onSelect={selectTile} onHover={prefetchStock} />
         </>
       ) : (
         <>
@@ -1115,6 +1288,8 @@ export default function StocksLookup({
                     setInput(t);
                     lookup(t);
                   }}
+                  onMouseEnter={() => prefetchStock(t)}
+                  onFocus={() => prefetchStock(t)}
                   className="h-6 rounded-full border border-white/10 px-2.5 font-mono text-xs text-white/55 transition-colors hover:border-white/25 hover:text-white"
                 >
                   {t}
@@ -1125,15 +1300,26 @@ export default function StocksLookup({
         </>
       )}
 
-      {loading && <p className="text-sm text-white/50 mt-6 animate-pulse">Fetching quote and SEC filings…</p>}
+      {fastLoading && !fast && !data && !fastError && <HeroSkeleton />}
 
-      {error && (
-        <div className="mt-6 border border-red-500/50 rounded p-4 text-sm text-red-300 bg-red-950/20">{error}</div>
+      {fastError && !fast && !data && (
+        <div className="mt-6">
+          <SectionRetry label={`Couldn't load the quote (${fastError}). The fundamentals below never started.`} onRetry={() => lookup(input)} />
+        </div>
       )}
 
-      {data && (
+      {error && (
+        <div className="mt-6 border border-red-500/50 rounded p-4 text-sm text-red-300 bg-red-950/20">
+          {error}{' '}
+          <button type="button" onClick={() => lookup(input)} className="font-semibold underline underline-offset-2 hover:text-red-200">
+            Retry
+          </button>
+        </div>
+      )}
+
+      {(data || fast) && (
         <div className="mt-4 space-y-10 animate-fadeInUp">
-          {data.warnings.length > 0 && (
+          {data && data.warnings.length > 0 && (
             <div className="border border-yellow-500/40 rounded p-3 text-xs text-yellow-200/80 bg-yellow-950/10 space-y-1">
               {data.warnings.map((w, i) => (
                 <p key={i}>! {w}</p>
@@ -1149,23 +1335,26 @@ export default function StocksLookup({
           >
             <div className="flex items-start justify-between gap-3 mt-1">
               <div className="flex items-center gap-3 min-w-0">
-                <CompanyLogo ticker={data.ticker} />
+                <CompanyLogo ticker={heroTicker} />
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                    <h1 className="text-[32px] leading-tight font-bold text-white/95 font-sans">{displayCompanyName(data.companyName)}</h1>
+                    <h1 className="text-[32px] leading-tight font-bold text-white/95 font-sans">{displayCompanyName(heroName)}</h1>
                     <span className="font-sans text-sm text-white/45">
-                      {[data.ticker, data.exchange, data.stats.sector].filter((x): x is string => x !== null).join(' · ')}
+                      {[heroTicker, heroExchange, heroSector].filter((x): x is string => x !== null && x !== '').join(' · ')}
                     </span>
                   </div>
                 </div>
               </div>
-              <div className="pt-2 sm:hidden">{shareRow}</div>
+              <div className="flex items-center gap-2 pt-2 sm:hidden">{shareRow}</div>
             </div>
             {heroLede && <p className="text-sm text-white/70 leading-relaxed mt-2 font-sans">{heroLede}</p>}
             {q ? (
               <div className="mt-3">
                 <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
-                  <span className="text-[52px] leading-none font-bold text-white/95 tabular-nums font-sans">
+                  <span
+                    key={q?.price ?? 'na'}
+                    className="text-[52px] leading-none font-bold text-white/95 tabular-nums font-sans paint-flash"
+                  >
                     {formatPrice(q.price)}
                   </span>
                   {(q.change !== null || q.changePct !== null) && (
@@ -1180,6 +1369,8 @@ export default function StocksLookup({
                       <span className={`inline-block w-1.5 h-1.5 rounded-full ${isMarketOpen(q.marketStatus) ? 'bg-green-400' : 'bg-white/25'}`} />
                     )}
                     {q.marketStatus ? `${q.marketStatus} · ` : ''}{formatLastTrade(q.lastTrade, q.marketStatus)} · delayed
+                    {updatedAgo ? ` · Updated ${updatedAgo} ago` : ''}
+                    {pendingSymbol ? ' · Updating…' : ''}
                   </span>
                   {offAth !== null && histSpanYears >= 1 && (
                     <span className="font-sans text-xs text-white/35 tabular-nums">
@@ -1193,7 +1384,8 @@ export default function StocksLookup({
             ) : (
               <p className="text-sm text-white/40 mt-3">Quote unavailable for this ticker.</p>
             )}
-            <EarningsCard ticker={data.ticker} />
+            <EarningsCard ticker={heroTicker} />
+            {data ? (
             <div className="grid md:grid-cols-3 gap-3 mt-3">
               <StatRow
                 label="Market cap"
@@ -1226,11 +1418,16 @@ export default function StocksLookup({
                 sub={peHistoryNote(pe, peRange) ?? undefined}
               />
             </div>
-            {data.stats.marketCapEstimated && (
+            ) : loading ? (
+              <div className="mt-3"><TilesSkeleton /></div>
+            ) : null}
+            {data?.stats.marketCapEstimated && (
               <p className="text-xs text-white/30 mt-1">* estimated from share price × latest reported shares outstanding</p>
             )}
           </ProfileSection>
 
+          {data ? (
+          <>
           <div className="border border-white/10 rounded p-4 text-sm">
             <p className="font-bold text-white/90 mb-2">In 4 lines</p>
             <div className="space-y-1.5 leading-relaxed">
@@ -1278,7 +1475,12 @@ export default function StocksLookup({
               question={`What does ${shortName} do?`}
               note="If you can't say what they sell and who pays for it in one sentence after reading this, you don't understand the company yet — keep that sentence in mind while you read the numbers."
             >
-              <p className="text-sm text-white/75 leading-relaxed whitespace-pre-line font-sans">{data.description.extract}</p>
+              <p className="text-sm text-white/75 leading-relaxed whitespace-pre-line font-sans">
+              {data.description.aiRewrite ?? data.description.extract}
+            </p>
+            {data.description.aiRewrite && (
+              <p className="mt-1 text-xs text-white/35">AI summary of the filing — the company&rsquo;s own words are quoted below.</p>
+            )}
               {data.filingInsights && data.filingInsights.segments.length > 0 && (
                 <dl className="mt-3">
                   <div className="grid grid-cols-[6.5rem_1fr] gap-x-3">
@@ -1754,6 +1956,11 @@ export default function StocksLookup({
               </p>
             </div>
           )}
+
+          </>
+          ) : loading ? (
+            <SectionsSkeleton />
+          ) : null}
 
           <div className="text-xs text-white/30 leading-relaxed border-t border-white/10 pt-4 space-y-1">
             <p className="font-bold text-white/50">Sources and limits</p>

@@ -113,6 +113,31 @@ export function nextEarningsFor(
   return best;
 }
 
+/** Server-snippet target for a ticker page: a just-reported result (within
+ *  the last 2 days) wins over the next upcoming report, mirroring the
+ *  client card. Takes an explicit YYYY-MM-DD day — callers pass the
+ *  market's date (ET), never a relative word, so SSR HTML stays honest for
+ *  readers in any timezone. Pure; exported for tests. */
+export function pickEarningsTarget(
+  events: EarningsEvent[],
+  symbol: string,
+  today: string,
+): { recent: EarningsEvent | null; upcoming: EarningsEvent | null; target: EarningsEvent | null } {
+  const want = symbol.trim().toUpperCase();
+  const cutoff = new Date(`${today}T12:00:00Z`).getTime() - 2 * 86400000;
+  const floor = new Date(cutoff).toISOString().slice(0, 10);
+  let recent: EarningsEvent | null = null;
+  let upcoming: EarningsEvent | null = null;
+  for (const e of events) {
+    if (e.symbol !== want) continue;
+    if (e.epsActual !== null && e.date <= today && e.date >= floor) {
+      if (!recent || e.date > recent.date) recent = e;
+    }
+    if (e.date >= today && (!upcoming || e.date < upcoming.date)) upcoming = e;
+  }
+  return { recent, upcoming, target: recent ?? upcoming };
+}
+
 // --- Enrichment ------------------------------------------------------------
 // Calendar rows are tickers + estimates. Company names, market caps, logos
 // and beat histories come from two more Finnhub endpoints, cached hard:
@@ -439,6 +464,25 @@ export function formatMoneyShort(value: number | null): string | null {
   if (abs >= 1e6) return `$${(value / 1e6).toFixed(0)}M`;
   if (abs >= 1e3) return `$${(value / 1e3).toFixed(1)}K`;
   return `$${Math.round(value).toLocaleString('en-US')}`;
+}
+
+/** Revenue actual vs estimate for result surfaces: 1 decimal normally, but
+ *  2 decimals when both would otherwise print identically while differing —
+ *  "$6.55B vs $6.62B est (−1%)", never "$6.6B vs $6.6B est" hiding a real
+ *  miss. The signed % always shows, so narrow misses stay visible. Pure;
+ *  exported for tests. */
+export function revenueResultLine(actual: number | null, estimate: number | null): string | null {
+  if (actual === null || !Number.isFinite(actual)) return null;
+  let a = formatMoneyShort(actual)!;
+  const hasEst = estimate !== null && Number.isFinite(estimate) && estimate !== 0;
+  let e = hasEst ? formatMoneyShort(estimate)! : null;
+  if (e !== null && a === e && actual !== estimate && Math.abs(actual) >= 1e9 && Math.abs(estimate!) >= 1e9) {
+    a = `$${(actual / 1e9).toFixed(2)}B`;
+    e = `$${(estimate! / 1e9).toFixed(2)}B`;
+  }
+  if (e === null) return `Revenue ${a}`;
+  const pct = ((actual - estimate!) / Math.abs(estimate!)) * 100;
+  return `Revenue ${a} vs ${e} est (${pct >= 0 ? '+' : ''}${pct.toFixed(0)}%)`;
 }
 
 /** $1.43 / −$0.22. Pure; exported for tests. */

@@ -76,6 +76,10 @@ export interface StockDescription {
   url: string;
   title: string;
   source: 'wikidata' | 'wikipedia' | 'sec';
+  // AI rewrite of the extract for this exact filing (see lib/stock-llm.ts),
+  // cached forever per accession number. Null until the nightly job writes
+  // one — the UI falls back to the extract and labels rewrites as AI.
+  aiRewrite: string | null;
   // Company facts (inception, HQ, CEO). Always null on the 10-K path — the
   // filing has no reliable tags for them; the UI falls back to the SEC
   // address for HQ. Non-null only from the legacy Wikipedia helpers below.
@@ -1282,13 +1286,20 @@ export interface FilingInsights {
   sourceUrl: string;
 }
 
+// Annual reports whose business sections feed overviews and AI rewrites —
+// exactly the set findAnnualFiling resolves, so cache keys and extracts
+// always agree on which filing they describe.
+export function isAnnualForm(form: string): boolean {
+  return form === '10-K' || form === '20-F' || form === '40-F';
+}
+
 // Latest annual filing (10-K/20-F/40-F) anywhere in the recent window. Unlike
 // the 12-item display list, this scans everything — frequent Form 4 filers
 // (NVDA's 10-K sits past index 100) still resolve their annual report.
 export function findAnnualFiling(
   recent: FilingsRecent | null | undefined,
   cikPadded: string,
-): { form: string; url: string; filingDate: string | null } | null {
+): { form: string; url: string; filingDate: string | null; accession: string } | null {
   const n = Math.min(recent?.form?.length ?? 0, recent?.accessionNumber?.length ?? 0, recent?.primaryDocument?.length ?? 0);
   for (let i = 0; i < n; i++) {
     const form = recent!.form![i];
@@ -1297,6 +1308,9 @@ export function findAnnualFiling(
       form,
       url: edgarFilingUrl(cikPadded, recent!.accessionNumber![i], recent!.primaryDocument![i]),
       filingDate: recent!.filingDate?.[i] ?? null,
+      // Dashed accession as filed — the AI summary cache key (see
+      // lib/stock-llm.ts). Additive: callers that ignore it keep working.
+      accession: recent!.accessionNumber![i],
     };
   }
   return null;
@@ -1365,6 +1379,7 @@ export function buildOverviewDescription(
       url: sourceUrl,
       title: companyName,
       source: 'sec',
+      aiRewrite: null,
       founded: facts?.founded ?? null,
       headquarters: facts?.headquarters ?? null,
       ceo: facts?.ceo ?? null,
@@ -1376,6 +1391,7 @@ export function buildOverviewDescription(
       url: edgarCompanyUrl(cikPadded),
       title: companyName,
       source: 'sec',
+      aiRewrite: null,
       founded: facts?.founded ?? null,
       headquarters: facts?.headquarters ?? null,
       ceo: facts?.ceo ?? null,
@@ -2548,7 +2564,7 @@ const MARKET_STRIP_DEFS: StripDef[] = [
   { label: 'VIX futures', symbol: 'VIXY', via: 'VIXY', assetClasses: ['etf'] },
 ];
 
-const MAG7 = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'NVDA', 'META', 'TSLA'];
+export const MAG7 = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'NVDA', 'META', 'TSLA'];
 
 // Movers rank within this fixed watchlist of large, liquid names: Nasdaq's
 // screener exposes no sort API, and paging 3,000+ rows per load is not
@@ -2896,6 +2912,8 @@ export async function fetchWikipediaSummary(
     url: summary.content_urls?.desktop?.page ?? `https://en.wikipedia.org/wiki/${encodeURIComponent(slug)}`,
     title: summary.title ?? title,
     source,
+    // AI rewrites cover SEC filings only — never Wikipedia text.
+    aiRewrite: null,
     founded: null,
     headquarters: null,
     ceo: null,
@@ -3493,6 +3511,42 @@ function formatAddress(b?: SecSubmissions['addresses']): string | null {
 
 // Combines SEC + Nasdaq + Wikipedia. Never throws for a found ticker: missing
 // pieces become nulls with warnings, so the page degrades honestly.
+// Fast first paint: identity + quote only (SEC directory + one Nasdaq
+// call). Everything slow — submissions, companyfacts, filing text, price
+// history — stays in getStockData. Never throws: null when the symbol
+// resolves to nothing, quote null when the quote leg fails but identity
+// resolved (the hero still renders with a "quote unavailable" note).
+export interface StockFast {
+  ticker: string;
+  companyName: string;
+  exchange: string | null;
+  sector: string | null;
+  quote: StockQuote | null;
+  fetchedAt: string;
+}
+
+export async function getStockFast(rawTicker: string): Promise<StockFast | null> {
+  const ticker = normalizeTicker(rawTicker);
+  if (!ticker) return null;
+  const variants = tickerVariants(ticker);
+  const [mapResult, nasdaqResult] = await Promise.allSettled([fetchSecTickerMap(), fetchNasdaq(variants[0])]);
+  const map = mapResult.status === 'fulfilled' ? mapResult.value : null;
+  const nasdaq = nasdaqResult.status === 'fulfilled' ? nasdaqResult.value : null;
+  const entry = map ? variants.map((v) => map.get(v)).find(Boolean) : undefined;
+  const q = nasdaq?.quote;
+  const hasQuote = !!q?.symbol && variants.includes(q.symbol.toUpperCase()) && nasdaqUsable(q);
+  if (!entry && !hasQuote) return null;
+  const s = nasdaq?.summary?.summaryData ?? {};
+  return {
+    ticker,
+    companyName: pickCompanyName(undefined, q?.companyName, entry?.title, ticker),
+    exchange: q?.exchange ?? null,
+    sector: s.Sector?.value && s.Sector.value !== 'N/A' ? s.Sector.value : null,
+    quote: hasQuote ? extractQuote(q) : null,
+    fetchedAt: new Date().toISOString(),
+  };
+}
+
 export async function getStockData(rawTicker: string): Promise<StockResponse | null> {
   const ticker = normalizeTicker(rawTicker);
   if (!ticker) return null;
