@@ -509,6 +509,19 @@ export function reportTimingLabel(date: string, hour: 'bmo' | 'amc' | '', nowMs:
   return `${md} ${half}`;
 }
 
+/** Absolute report timing for share cards: "Wed Oct 21 after the close".
+ *  Relative words ("tonight") depend on whose clock reads them — the card
+ *  renders on a UTC server for readers in every timezone — so cards print
+ *  the date. (Post text stays relative: it is composed on the reader's own
+ *  device.) Pure; exported for tests. */
+export function reportDateLabel(date: string, hour: 'bmo' | 'amc' | ''): string {
+  const day = new Date(`${date}T12:00:00`)
+    .toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
+    .replace(',', '');
+  const half = hour === 'bmo' ? 'before the open' : hour === 'amc' ? 'after the close' : 'time not announced';
+  return `${day} ${half}`;
+}
+
 /** "$TSLA reports tonight: EPS est $0.44, rev est $28.4B. Beat 2/4 last
  *  quarters." Cashtagged for X ticker search. Pure; exported for tests. */
 export function previewShareText(e: {
@@ -563,11 +576,14 @@ export type EarningsCardType = 'preview' | 'result' | 'tonight' | 'morning';
 // Earnings share links ride on a landing page, not the raw image: X (and
 // iMessage/WhatsApp) only render a large card for an HTML page carrying
 // twitter:card + og:image meta (same convention as the chess score cards).
-// The image URL inside that metadata stays stable (no cache-buster) so
-// re-shares reuse the cached card instead of refetching.
+// Every share mints a fresh URL via a caller-supplied `v` nonce (chess gets
+// uniqueness from per-game scores; earnings params would otherwise be
+// identical every time and X would serve its first cached image forever).
+// Fresh URL = freshly rendered card, so new shares never show stale data.
 const EARNINGS_SITE = 'https://amoljadhav.ai';
 
-/** Absolute card image URL (stable — crawlers cache per URL). */
+/** Absolute card image URL. Pass the share's `v` through so the image is as
+ *  fresh as the page. */
 export function earningsCardImageUrl(type: EarningsCardType, extra?: Record<string, string>): string {
   const params = new URLSearchParams({ type, ...extra });
   return `${EARNINGS_SITE}/api/og/earnings?${params.toString()}`;

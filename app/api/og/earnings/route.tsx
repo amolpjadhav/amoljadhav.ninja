@@ -9,7 +9,7 @@ import {
   formatMoneyShort,
   logoUrl,
   rankDay,
-  reportTimingLabel,
+  reportDateLabel,
   shortName,
   type EnrichedEvent,
 } from '@/lib/earnings';
@@ -192,7 +192,7 @@ function previewBodyWithLogo(e: EnrichedEvent, dots: boolean[], logo: string | n
         <LogoMark symbol={e.symbol} url={logo} px={150} />
         <div style={{ display: 'flex', flexDirection: 'column', marginLeft: 44 }}>
           <span style={{ fontSize: 58, fontWeight: 900, lineHeight: 1.05 }}>{truncateLine(name, 26)}</span>
-          <span style={{ fontSize: 34, color: MUTED, marginTop: 8 }}>reports {reportTimingLabel(e.date, e.hour)}</span>
+          <span style={{ fontSize: 34, color: MUTED, marginTop: 8 }}>reports {reportDateLabel(e.date, e.hour)}</span>
           <span style={{ fontSize: 42, fontWeight: 800, marginTop: 20 }}>{estLine}</span>
           <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginTop: 22 }}>
             {dots.map((beat, i) => (

@@ -9,7 +9,7 @@ import {
   formatEps,
   previewShareText,
   rankDay,
-  reportTimingLabel,
+  reportDateLabel,
   resultShareText,
   type EarningsCardType,
 } from '@/lib/earnings';
@@ -81,7 +81,7 @@ export async function generateMetadata({
         .sort((a, b) => (a.date < b.date ? -1 : 1))
         .find((e) => e.date >= week.fetchedAt.slice(0, 10));
       if (next) {
-        title = `$${ticker} reports ${reportTimingLabel(next.date, next.hour)}`;
+        title = `$${ticker} reports ${reportDateLabel(next.date, next.hour)}`;
         description = previewShareText({
           symbol: ticker,
           date: next.date,
@@ -121,8 +121,15 @@ export async function generateMetadata({
     }
   }
 
-  const cardUrl = earningsCardImageUrl(type, extra);
-  const pageUrl = earningsSharePageUrl(type, extra);
+  // Per-share nonce: the client mints a fresh `v` per share so X fetches a
+  // freshly rendered card instead of its first cached image (chess cards
+  // are unique per game; earnings params need the nonce). It rides into
+  // both URLs — a fresh page pointing at a reused image URL would still
+  // show the stale image. The og route ignores unknown params.
+  const v = first(sp.v);
+  const withNonce = v && /^[A-Za-z0-9]{1,12}$/.test(v) ? { ...extra, v } : extra;
+  const cardUrl = earningsCardImageUrl(type, withNonce);
+  const pageUrl = earningsSharePageUrl(type, withNonce);
   return {
     title,
     description,

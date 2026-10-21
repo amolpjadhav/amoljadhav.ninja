@@ -801,10 +801,11 @@ function localDayShift(deltaDays: number): string {
 }
 
 // One share path for every earnings surface: X intent carrying the
-// cashtagged text plus the share landing page (stable, no cache-buster — X
-// caches the card per URL, and re-shares should reuse it, not refetch).
+// cashtagged text plus the share landing page. A per-share `v` nonce keeps
+// each share URL unique, so X always fetches a freshly rendered card
+// instead of its first cached image (same reason chess cards are unique).
 function openCardShare(type: EarningsCardType, text: string, extra?: Record<string, string>) {
-  window.open(earningsXIntentUrl(type, text, extra), '_blank', 'noopener,width=550,height=420');
+  window.open(earningsXIntentUrl(type, text, { ...extra, v: Date.now().toString(36) }), '_blank', 'noopener,width=550,height=420');
 }
 
 function EarnLogo({ event, px = 32 }: { event: EnrichedEvent; px?: number }) {
