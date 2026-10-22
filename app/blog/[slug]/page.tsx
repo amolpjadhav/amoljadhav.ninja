@@ -26,7 +26,6 @@ import {
   reportDateLabel,
 } from '@/lib/earnings';
 import ShareButtons from '@/components/blog/ShareButtons';
-import TapeBar from '@/components/stocks/TickerTape';
 import MarketHeadlines from '@/components/stocks/MarketHeadlines';
 import LikeButton from '@/components/blog/LikeButton';
 import ViewCounter from '@/components/blog/ViewCounter';
@@ -210,14 +209,14 @@ async function LookupSeo({ ticker, coin }: { ticker: string; coin: string }) {
       {card && cardName && (
         <div className="space-y-1 max-w-[70ch]">
           <h2 className="text-lg font-bold text-white/90">
-            {cardName} (<span className="font-mono">{card.ticker}</span>)
+            {cardName} (<span>{card.ticker}</span>)
           </h2>
           <p>
             {card.quote && card.quote.price !== null ? (
               <>
-                Last <span className="font-mono tabular-nums">{formatPrice(card.quote.price)}</span>
+                Last <span className="tabular-nums">{formatPrice(card.quote.price)}</span>
                 {card.quote.changePct !== null && (
-                  <> (<span className="font-mono tabular-nums">{formatPct(card.quote.changePct)}</span>)</>
+                  <> (<span className="tabular-nums">{formatPct(card.quote.changePct)}</span>)</>
                 )}{' '}
                 · {formatLastTrade(card.quote.lastTrade, card.quote.marketStatus)}
               </>
@@ -233,14 +232,14 @@ async function LookupSeo({ ticker, coin }: { ticker: string; coin: string }) {
       {coinCard && (
         <div className="space-y-1">
           <h2 className="text-lg font-bold text-white/90">
-            {coinCard.name} (<span className="font-mono">{coinCard.symbol}</span>)
+            {coinCard.name} (<span>{coinCard.symbol}</span>)
           </h2>
           <p>
             {coinCard.price !== null ? (
               <>
-                Last <span className="font-mono tabular-nums">{formatPrice(coinCard.price)}</span>
+                Last <span className="tabular-nums">{formatPrice(coinCard.price)}</span>
                 {coinCard.changePct24h !== null && (
-                  <> (<span className="font-mono tabular-nums">{formatPct(coinCard.changePct24h, 1)}</span> / 24h)</>
+                  <> (<span className="tabular-nums">{formatPct(coinCard.changePct24h, 1)}</span> / 24h)</>
                 )}
               </>
             ) : (
@@ -291,17 +290,13 @@ export default async function BlogPostPage({
         <article
           className={`container mx-auto max-w-3xl lg:w-[80vw] lg:max-w-5xl border-y sm:border sm:rounded-lg p-4 sm:p-6 md:p-10 ${
             // Podcast tool page sits on pure black like Apple's apps; every
-            // other article keeps the gray card.
+            // other article — lookup included — keeps the gray panel so the
+            // page still reads as part of the site.
             isPodcast ? 'bg-black border-transparent' : 'bg-[#1c1d20] border-white/10'
           }`}
         >
-          {isLookup && (
-            <div className="mb-6 empty:hidden">
-              <TapeBar />
-            </div>
-          )}
           <div className={`${isTickerPage ? '' : 'mb-10'} animate-fadeIn`}>
-            {post.category && !isPodcast && !isTickerPage && (
+            {post.category && !isPodcast && !isTickerPage && !isLookup && (
               <span
                 className="inline-block text-xs font-bold uppercase tracking-wide px-2.5 py-1 rounded mb-3"
                 style={{
@@ -313,7 +308,7 @@ export default async function BlogPostPage({
               </span>
             )}
 
-            {post.tags.length > 0 && !isTickerPage && (
+            {post.tags.length > 0 && !isTickerPage && !isLookup && (
               <div className="flex flex-wrap gap-2 mb-4">
                 {post.tags.map((tag: string) => (
                   <span
@@ -348,7 +343,7 @@ export default async function BlogPostPage({
               </div>
             )}
 
-            {!isPodcast && !isTickerPage && (
+            {!isPodcast && !isTickerPage && !isLookup && (
               <div className="flex items-center gap-3 mt-5">
                 <ShareButtons title={post.title} slug={post.slug} />
                 <LikeButton slug={post.slug} initialLikes={post.likes} />

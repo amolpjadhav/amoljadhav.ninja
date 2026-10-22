@@ -5,7 +5,7 @@ import type { MarketQuote } from '@/lib/stocks';
 import { formatCompact, formatPct, formatPrice } from '@/lib/stocks';
 import { marketPhase, marketStatus } from '@/lib/market-hours';
 import { newsAge, type NewsItem } from '@/lib/news';
-import { nextEarningsFor as findNextEarnings, rankDay, visibleRows, beatVerdict, cleanTickers, earningsXIntentUrl, etTimeLabel, formatEps, formatMoneyShort, logoUrl, pickMove, previewShareText, quarterTip, reportTimingLabel, resultShareText, revenueResultLine, shortName, toggleInList, WATCHLIST_KEY, type EarningsCardType, type EnrichedEvent, type QuarterDetail } from '@/lib/earnings';
+import { nextEarningsFor as findNextEarnings, rankDay, visibleRows, beatVerdict, cleanTickers, earningsXIntentUrl, etTimeLabel, formatEps, formatMoneyShort, proxyLogoUrl, pickMove, previewShareText, quarterTip, reportTimingLabel, resultShareText, revenueResultLine, shortName, toggleInList, WATCHLIST_KEY, type EarningsCardType, type EnrichedEvent, type QuarterDetail } from '@/lib/earnings';
 import { ChevronDown, Share2 } from 'lucide-react';
 
 // Same red as the homepage and profile tables: a down day is red
@@ -213,7 +213,7 @@ function SparkWithRef({
       {hov !== null && (
         <span
           aria-hidden
-          className="pointer-events-none absolute -top-1 -translate-y-full whitespace-nowrap rounded border border-white/15 bg-black/85 px-1.5 py-0.5 font-mono text-[10px] tabular-nums text-white/85"
+          className="pointer-events-none absolute -top-1 -translate-y-full whitespace-nowrap rounded border border-white/15 bg-black/85 px-1.5 py-0.5 text-[10px] tabular-nums text-white/85"
           style={{ left: `${(x(hov) / width) * 100}%`, transform: 'translate(-50%, -100%)' }}
         >
           {hovTime ? `${hovTime} · ` : ''}
@@ -221,37 +221,6 @@ function SparkWithRef({
         </span>
       )}
     </span>
-  );
-}
-
-// Thin full-width ticker tape: indexes + movers, one line, continuous
-// scroll. The second copy is aria-hidden so readers hear it once. Motion
-// (and only motion) is gated in CSS: reduced-motion gets a static row.
-export function TickerTape({ items }: { items: MarketQuote[] }) {
-  if (items.length === 0) return null;
-  const row = (hidden: boolean) => (
-    <div aria-hidden={hidden || undefined} className="flex shrink-0 items-center">
-      {items.map((q) => {
-        const v = q.changePct ?? q.change ?? 0;
-        const color = moveColor(q.changePct, q.change);
-        return (
-          <span key={q.symbol} className="flex items-center gap-1.5 px-4 font-mono text-xs tabular-nums">
-            <span className="font-bold text-white/80">{q.symbol}</span>
-            <span style={{ color }}>
-              {v > 0 ? '▲' : v < 0 ? '▼' : '•'} {formatPct(q.changePct)}
-            </span>
-          </span>
-        );
-      })}
-    </div>
-  );
-  return (
-    <div className="tape overflow-hidden border-y border-white/10 bg-black/60" role="marquee" aria-label="Market snapshot">
-      <div className="tape-track flex h-8 items-center">
-        {row(false)}
-        {row(true)}
-      </div>
-    </div>
   );
 }
 
@@ -293,7 +262,7 @@ export function MarketStrip({ data, loaded }: { data: StripData | null; loaded: 
   return (
     <div className="mb-6">
       <div className="flex items-baseline justify-between gap-3 mb-2">
-        <h2 className="shrink-0 text-[11px] font-bold uppercase tracking-widest text-white/40">Markets today</h2>
+        <h2 className="shrink-0 text-2xl font-bold text-white/95">Markets today</h2>
         {line ? (
           <p className="text-[11px] text-white/30 truncate">
             {line} · dashed = prev close
@@ -311,7 +280,12 @@ export function MarketStrip({ data, loaded }: { data: StripData | null; loaded: 
             via/price line lives in the hover tooltip and the tap-to-open
             detail bar below, so nothing permanent competes with the number. */}
         {data.strip.map((q, i) => {
-          const color = moveColor(q.changePct, q.change);
+          // Fear reads backwards: VIX futures up is bad news, so its color
+          // flips (the number itself never changes).
+          const inverse = q.symbol === 'VIXY';
+          const color = inverse
+            ? moveColor(q.changePct === null ? null : -q.changePct, null)
+            : moveColor(q.changePct, q.change);
           const tip = `${q.label} · ${stripMeta(q)}`;
           const open = active === q.symbol;
           return (
@@ -327,7 +301,7 @@ export function MarketStrip({ data, loaded }: { data: StripData | null; loaded: 
                   setActive(open ? null : q.symbol);
                 }
               }}
-              className="group relative w-[42vw] max-w-[200px] shrink-0 cursor-pointer snap-start rounded-xl bg-white/[0.04] p-2 stagger-in focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/60 lg:w-auto lg:max-w-none"
+              className="group relative w-[42vw] max-w-[200px] shrink-0 cursor-pointer snap-start rounded-xl bg-[#25262B] p-2.5 stagger-in focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/60 lg:w-auto lg:max-w-none"
               style={{ animationDelay: `${Math.min(i, 7) * 40}ms` }}
             >
               <p className="flex items-center gap-1 font-sans text-xs font-semibold text-white/55">
@@ -338,15 +312,19 @@ export function MarketStrip({ data, loaded }: { data: StripData | null; loaded: 
                   </span>
                 )}
               </p>
-              <p className="mt-0.5 text-lg font-bold tabular-nums font-mono paint-flash" style={{ color }}>
+              <p className="mt-0.5 text-lg font-bold tabular-nums paint-flash" style={{ color }}>
                 {formatPct(q.changePct)}
               </p>
+              {/* The level, always naming its source: "via SPY · $769.05",
+                  index points, or the BTC venue price. Never a bare number
+                  under an index name. */}
+              <p className="truncate text-[11px] tabular-nums text-white/40">{stripMeta(q)}</p>
               <div className="mt-1">
                 <SparkWithRef values={q.spark} reference={q.prevClose} color={color} height={24} times={q.sparkT} />
               </div>
               <span
                 aria-hidden
-                className={`pointer-events-none absolute -top-1 z-10 hidden -translate-y-full whitespace-nowrap rounded border border-white/15 bg-black/90 px-2 py-1 font-mono text-[11px] tabular-nums text-white/85 group-hover:block group-focus-within:block ${
+                className={`pointer-events-none absolute -top-1 z-10 hidden -translate-y-full whitespace-nowrap rounded border border-white/15 bg-black/90 px-2 py-1 text-[11px] tabular-nums text-white/85 group-hover:block group-focus-within:block ${
                   i === 0
                     ? 'left-0'
                     : i === data.strip.length - 1
@@ -361,7 +339,7 @@ export function MarketStrip({ data, loaded }: { data: StripData | null; loaded: 
         })}
       </div>
       {activeQuote && (
-        <p className="mt-2 truncate rounded-lg bg-white/[0.04] px-3 py-1.5 font-mono text-xs tabular-nums text-white/70">
+        <p className="mt-2 truncate rounded-lg bg-white/[0.04] px-3 py-1.5 text-xs tabular-nums text-white/70">
           {activeQuote.label} · {stripMeta(activeQuote)}
         </p>
       )}
@@ -439,12 +417,20 @@ export function MoverTiles({
   const [reasons, setReasons] = useState<Record<string, NewsItem | null>>({});
   useEffect(() => {
     if (!loaded || !data) return;
-    const symbols = [...data.trending, ...data.gainers, ...data.losers, ...data.mag7].map((q) => q.symbol);
+    const quotes = [...data.trending, ...data.gainers, ...data.losers, ...data.mag7];
+    const symbols = quotes.map((q) => q.symbol);
     if (symbols.length === 0) return;
+    // Caller-known company names so the server only attaches headlines
+    // that actually name the mover — never a borrowed story.
+    const named = [...new Map(quotes.map((q) => [q.symbol, q.name ?? q.label] as const)).entries()]
+      .map(([s, n]) => `${s}:${n}`)
+      .join('|');
     let cancelled = false;
     const timer = setTimeout(async () => {
       try {
-        const res = await fetch(`/api/news?reasons=${encodeURIComponent(symbols.join(','))}`);
+        const res = await fetch(
+          `/api/news?reasons=${encodeURIComponent(symbols.join(','))}&names=${encodeURIComponent(named)}`,
+        );
         const json = res.ok ? await res.json() : null;
         if (!cancelled && json?.reasons) setReasons(json.reasons);
       } catch {
@@ -491,15 +477,16 @@ export function MoverTiles({
   const mag7Move = mag7Moves.length > 0 ? mag7Moves.reduce((a, b) => a + b, 0) / mag7Moves.length : null;
   return (
     <div className="mt-10">
+      <h2 className="text-2xl font-bold text-white/95">Today&apos;s movers</h2>
+      {loaded ? (
+      <div className="mt-3 rounded-2xl bg-[#25262B] p-5">
       {/* Breakpoint-driven, never flex-wrap: content-based wrapping made
           the tab bar jump when switching tabs near the breakpoint. */}
-      <div className="flex flex-col gap-3 mb-1 md:flex-row md:items-end md:justify-between">
-        <h2 className="text-2xl font-bold text-white/95">Today&apos;s movers</h2>
+      <div className="flex flex-col gap-3 mb-1 md:flex-row md:items-center md:justify-between">
         {/* nowrap + shrink-0: "Mag 7" is the only label with a space and
             used to wrap under squeeze, resizing the whole bar per tab. */}
-        {loaded ? (
         <div
-          className="flex gap-1 bg-white/5 rounded-full p-1 max-w-full overflow-x-auto"
+          className="flex gap-1 bg-[#2E3036] rounded-full p-1 max-w-full overflow-x-auto"
           role="tablist"
           aria-label="Movers"
         >
@@ -518,14 +505,9 @@ export function MoverTiles({
             </button>
           ))}
         </div>
-        ) : (
-          <TabsSkeleton />
-        )}
       </div>
-      {loaded ? (
-      <>
       {active === 'mag7' && mag7Move !== null && (
-        <p className="font-mono text-xs text-white/50 pt-1">
+        <p className="text-sm text-white/65 pt-1">
           Mag 7 <span className="font-bold tabular-nums" style={{ color: moveColor(mag7Move, null) }}>{formatPct(mag7Move)}</span> today
         </p>
       )}
@@ -556,15 +538,15 @@ export function MoverTiles({
               className={`${ROW_GRID} w-full text-left py-3 sm:py-2.5 border-b border-white/5 last:border-b-0 hover:bg-white/[0.03] transition-colors`}
             >
               <span className="flex items-start gap-2 min-w-0">
-                <Monogram symbol={q.symbol} />
+                <StockLogo symbol={q.symbol} />
                 <span className="flex min-w-0 flex-col gap-0.5">
                   <span className="flex min-w-0 items-baseline gap-3">
-                    <span className="sm:w-16 shrink-0 font-mono text-sm font-bold text-white/95">{q.symbol}</span>
-                    <span className="text-sm text-white/45 truncate">{q.name ?? q.label}</span>
+                    <span className="sm:w-16 shrink-0 text-sm font-bold text-white/95">{q.symbol}</span>
+                    <span className="text-base font-semibold text-white/80 truncate">{q.name ?? q.label}</span>
                   </span>
                   {reasons[q.symbol] && (
                     <span
-                      className="truncate text-[11px] text-white/35"
+                      className="truncate text-sm text-white/65"
                       title={`${reasons[q.symbol]!.headline} · ${reasons[q.symbol]!.source}`}
                     >
                       ↳ {reasons[q.symbol]!.headline.slice(0, 80)}
@@ -577,15 +559,15 @@ export function MoverTiles({
               <span className="hidden sm:block">
                 <SparkWithRef values={q.spark} reference={q.prevClose} color={color} width={130} height={30} times={q.sparkT} />
               </span>
-              <span className="hidden sm:block font-mono text-sm text-white/50 tabular-nums">
+              <span className="hidden sm:block text-sm text-white/50 tabular-nums">
                 {q.volume !== null && q.volume !== undefined ? formatCompact(q.volume) : '—'}
               </span>
               <span className="flex flex-col items-end gap-1 sm:contents">
-                <span className="text-sm font-semibold text-white/95 tabular-nums font-mono sm:text-right">
+                <span className="text-base font-semibold text-white/95 tabular-nums sm:text-right">
                   {formatPrice(shownPrice)}
                 </span>
                 <span
-                  className="w-[76px] shrink-0 text-right font-mono text-xs font-bold tabular-nums px-2 py-1 rounded-md sm:justify-self-end paint-flash"
+                  className="w-[84px] shrink-0 text-right text-sm font-bold tabular-nums px-2 py-1 rounded-md sm:justify-self-end paint-flash"
                   style={{ color, background: `${color}26` }}
                 >
                   {formatPct(shownPct)}
@@ -596,9 +578,12 @@ export function MoverTiles({
           );
         })}
       </div>
-      </>
+      </div>
       ) : (
-        <RowsSkeleton />
+        <div className="mt-3 rounded-2xl bg-[#25262B] p-5">
+          <TabsSkeleton />
+          <RowsSkeleton />
+        </div>
       )}
     </div>
   );
@@ -635,11 +620,11 @@ export function NextEarningsLine({ ticker }: { ticker: string }) {
   if (!next) return <span className="text-white/40">No scheduled earnings date</span>;
   return (
     <span className="text-white/60">
-      Next earnings <span className="font-mono font-semibold text-white/85 tabular-nums">{fmtEarningsDate(next.date)}</span>
+      Next earnings <span className="font-semibold text-white/85 tabular-nums">{fmtEarningsDate(next.date)}</span>
       {next.hour === 'bmo' && ' · before open'}
       {next.hour === 'amc' && ' · after close'}
       {next.epsEstimate !== null && (
-        <span className="font-mono tabular-nums"> · {epsLabel(next.epsEstimate)}</span>
+        <span className="tabular-nums"> · {epsLabel(next.epsEstimate)}</span>
       )}
     </span>
   );
@@ -811,15 +796,15 @@ function openCardShare(type: EarningsCardType, text: string, extra?: Record<stri
   window.open(earningsXIntentUrl(type, text, { ...extra, v: Date.now().toString(36) }), '_blank', 'noopener,width=550,height=420');
 }
 
-function EarnLogo({ event, px = 32 }: { event: EnrichedEvent; px?: number }) {
-  // Logos come straight from Finnhub's keyless logo endpoint (verified PNG,
-  // no profile fetch needed); unknown tickers fall back to a monogram.
+export function StockLogo({ symbol, px = 24 }: { symbol: string; px?: number }) {
+  // Real logo through our 30d edge cache; unknown tickers fall back to
+  // the letter monogram. Shared by movers rows and earnings rows.
   const [failed, setFailed] = useState(false);
-  if (failed) return <Monogram symbol={event.symbol} size={px <= 16 ? '2xs' : px <= 20 ? 'xs' : 'sm'} />;
+  if (failed) return <Monogram symbol={symbol} size={px <= 16 ? '2xs' : px <= 20 ? 'xs' : 'sm'} />;
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
-      src={logoUrl(event.symbol)}
+      src={proxyLogoUrl(symbol)}
       alt=""
       aria-hidden
       loading="lazy"
@@ -830,6 +815,10 @@ function EarnLogo({ event, px = 32 }: { event: EnrichedEvent; px?: number }) {
       className="shrink-0 rounded-full bg-white/10 object-contain"
     />
   );
+}
+
+function EarnLogo({ event, px = 32 }: { event: EnrichedEvent; px?: number }) {
+  return <StockLogo symbol={event.symbol} px={px} />;
 }
 
 function BeatBadge({ beats }: { beats: EnrichedEvent['beats'] }) {
@@ -927,19 +916,19 @@ function EarnRow({ event, onSelect, onHover }: { event: EnrichedEvent; onSelect:
       >
         <EarnLogo event={event} />
         <span className="min-w-0 flex-1">
-          <span className="block truncate font-sans text-[15px] font-semibold text-white/90">
+          <span className="block truncate font-sans text-base font-semibold text-white/90">
             {name}{' '}
-            <span className="font-mono text-[13px] font-normal text-white/45">{event.symbol}</span>
+            <span className="text-[13px] font-normal text-white/45">{event.symbol}</span>
           </span>
           {reported ? (
             eps === null ? (
-              <span className="block truncate font-sans text-[13px] text-white/60 tabular-nums">
+              <span className="block truncate font-sans text-sm text-white/65 tabular-nums">
                 EPS {formatEps(event.epsActual)} reported
               </span>
             ) : (
               <span
-                className={`block truncate font-sans text-[13px] tabular-nums ${
-                  verdict === 'BEAT' ? 'text-green-300' : verdict === 'MISS' ? 'text-red-300' : 'text-white/60'
+                className={`block truncate font-sans text-sm tabular-nums ${
+                  verdict === 'BEAT' ? 'text-green-300' : verdict === 'MISS' ? 'text-red-300' : 'text-white/65'
                 }`}
               >
                 EPS {formatEps(event.epsActual)} vs {eps} est{' '}
@@ -947,7 +936,7 @@ function EarnRow({ event, onSelect, onHover }: { event: EnrichedEvent; onSelect:
               </span>
             )
           ) : (
-            <span className="block truncate font-sans text-[13px] text-white/50 tabular-nums">
+            <span className="block truncate font-sans text-sm text-white/65 tabular-nums">
               {eps ? `EPS est ${eps}` : 'EPS est —'}
               {rev ? ` · Rev est ${rev}` : ''}
             </span>
@@ -957,14 +946,14 @@ function EarnRow({ event, onSelect, onHover }: { event: EnrichedEvent; onSelect:
           {reported && move !== null ? (
             <span
               title="Today's session move"
-              className={`shrink-0 rounded-md px-1.5 py-0.5 font-mono text-[11px] font-bold tabular-nums ${
+              className={`shrink-0 rounded-md px-1.5 py-0.5 text-[11px] font-bold tabular-nums ${
                 flat ? 'bg-white/10 text-white/60' : move > 0 ? 'bg-green-400/15 text-green-300' : 'bg-red-400/15 text-red-300'
               }`}
             >
               {flat ? '•' : move > 0 ? '▲' : '▼'} {formatPct(move)}
             </span>
           ) : (
-            mcap && <span className="font-sans text-[13px] text-white/50 tabular-nums">{mcap}</span>
+            mcap && <span className="font-sans text-sm text-white/65 tabular-nums">{mcap}</span>
           )}
           <BeatBadge beats={event.beats} />
           {reported && (
@@ -1072,11 +1061,7 @@ export function EarningsWeek({ data, loaded, onSelect, onHover }: { data: Earnin
     return (
       <div className="mt-8" aria-label="Loading earnings">
         <div className="h-6 w-40 rounded bg-white/10 animate-pulse" />
-        <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
-          {[0, 1, 2, 3].map((i) => (
-            <div key={i} className="h-16 rounded-xl border border-white/10 bg-white/[0.06] animate-pulse" />
-          ))}
-        </div>
+        <div className="mt-3 h-11 rounded-full bg-white/[0.06] animate-pulse" />
       </div>
     );
   }
@@ -1108,59 +1093,59 @@ export function EarningsWeek({ data, loaded, onSelect, onHover }: { data: Earnin
           </div>
         </div>
       )}
-      <div className="mt-3 grid grid-cols-5 gap-1.5" aria-label="Trading days">
+      <div
+        className="mt-3 flex gap-1 overflow-x-auto rounded-full bg-[#2E3036] p-1"
+        role="tablist"
+        aria-label="Trading days"
+      >
         {dates.map((d) => {
           const list = byDay.get(d) ?? [];
           const active = d === day;
           const dt = new Date(`${d}T12:00:00`);
-          const heads = rankDay(list).slice(0, 3);
-          const dayLine = `${dt.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase()} ${dt.getDate()}`;
+          const dayLine = `${dt.toLocaleDateString('en-US', { weekday: 'short' })} ${dt.getDate()}`;
           return (
             <button
               key={d}
               type="button"
-              aria-current={active ? 'date' : undefined}
+              role="tab"
+              aria-selected={active}
               aria-label={`${dayLine}, ${list.length} reports`}
               onClick={() => setSelected(d)}
-              className={`flex min-h-20 flex-col items-center justify-center rounded-xl border px-1 py-1.5 transition-colors ${
-                active ? 'border-yellow-300/60 bg-yellow-300/10' : 'border-white/10 bg-white/[0.04] hover:bg-white/[0.08]'
+              className={`h-9 shrink-0 whitespace-nowrap rounded-full px-3.5 font-sans text-[13px] tabular-nums transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/60 ${
+                active ? 'bg-[#ece7db] font-bold text-black' : 'text-white/55 hover:text-white'
               }`}
             >
-              <span className="font-sans text-[13px] font-bold tracking-wide text-white/85 tabular-nums">{dayLine}</span>
-              <span className="font-sans text-[11px] text-white/45 tabular-nums">{list.length} reports</span>
-              <span className="mt-1 flex -space-x-1" aria-hidden>
-                {heads.map((e) => (
-                  <EarnLogo key={e.symbol} event={e} px={16} />
-                ))}
-              </span>
+              {dayLine} <span className={active ? 'font-semibold opacity-70' : 'opacity-60'}>· {list.length}</span>
             </button>
           );
         })}
       </div>
       <p className="mt-4 text-sm font-semibold text-white/80">
-        {label} <span className="font-normal text-white/45">· {dayEvents.length} companies</span>
+        {label} <span className="font-normal text-white/65">· {dayEvents.length} companies</span>
       </p>
-      <div className="mt-2 grid grid-cols-1 gap-6 md:grid-cols-2">
-        <EarnColumn
-          title="☀️ Before the open"
-          events={bmo}
-          onSelect={onSelect}
-          onHover={onHover}
-          action={bmo.length > 0 ? <ShareLineupButton date={day} events={bmo} half="bmo" /> : undefined}
-        />
-        <EarnColumn
-          title="🌙 After the close"
-          events={amc}
-          onSelect={onSelect}
-          onHover={onHover}
-          action={amc.length > 0 ? <ShareLineupButton date={day} events={amc} half="amc" /> : undefined}
-        />
-      </div>
-      {unknown.length > 0 && (
-        <div className="mt-6">
-          <EarnColumn title={`Time not announced (${unknown.length})`} events={unknown} onSelect={onSelect} onHover={onHover} />
+      <div className="mt-2 rounded-2xl bg-[#25262B] p-5">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+          <EarnColumn
+            title="☀️ Before the open"
+            events={bmo}
+            onSelect={onSelect}
+            onHover={onHover}
+            action={bmo.length > 0 ? <ShareLineupButton date={day} events={bmo} half="bmo" /> : undefined}
+          />
+          <EarnColumn
+            title="🌙 After the close"
+            events={amc}
+            onSelect={onSelect}
+            onHover={onHover}
+            action={amc.length > 0 ? <ShareLineupButton date={day} events={amc} half="amc" /> : undefined}
+          />
         </div>
-      )}
+        {unknown.length > 0 && (
+          <div className="mt-6">
+            <EarnColumn title={`Time not announced (${unknown.length})`} events={unknown} onSelect={onSelect} onHover={onHover} />
+          </div>
+        )}
+      </div>
     </div>
   );
 }

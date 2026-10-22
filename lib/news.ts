@@ -11,6 +11,8 @@ export interface NewsItem {
   datetime: number;
   related: string;
   image: string | null;
+  /** Finnhub summary: kept for ticker matching, stripped before JSON. */
+  summary: string;
 }
 
 const BASE = 'https://finnhub.io/api/v1';
@@ -52,6 +54,7 @@ function toItem(raw: unknown): NewsItem | null {
     datetime,
     related: typeof r.related === 'string' ? r.related : '',
     image: typeof r.image === 'string' && r.image ? r.image : null,
+    summary: typeof r.summary === 'string' ? r.summary : '',
   };
 }
 
@@ -96,9 +99,67 @@ export function sentenceCase(title: string): string {
   return fixed.charAt(0).toUpperCase() + fixed.slice(1);
 }
 
+// Aggregators append the real outlet to the title ("…insider
+// concerns - Reuters") while the source field says "Yahoo". Believe the
+// byline: strip it from the title and credit the outlet. Allowlisted so a
+// headline ending in "- Live updates" never becomes the outlet "Live".
+const OUTLET_CREDIT: Record<string, string> = {
+  reuters: 'Reuters',
+  bloomberg: 'Bloomberg',
+  cnbc: 'CNBC',
+  'wall street journal': 'Wall Street Journal',
+  wsj: 'WSJ',
+  marketwatch: 'MarketWatch',
+  "barron's": "Barron's",
+  'barron’s': 'Barron’s',
+  barrons: "Barron's",
+  ap: 'AP',
+  'associated press': 'Associated Press',
+  'financial times': 'Financial Times',
+  ft: 'FT',
+  forbes: 'Forbes',
+  fortune: 'Fortune',
+  'business insider': 'Business Insider',
+  techcrunch: 'TechCrunch',
+  'the verge': 'The Verge',
+  engadget: 'Engadget',
+  'ars technica': 'Ars Technica',
+  'motley fool': 'Motley Fool',
+  benzinga: 'Benzinga',
+  tipranks: 'TipRanks',
+  investopedia: 'Investopedia',
+  morningstar: 'Morningstar',
+  'seeking alpha': 'Seeking Alpha',
+  zacks: 'Zacks',
+  thestreet: 'TheStreet',
+  quartz: 'Quartz',
+  axios: 'Axios',
+  'fox business': 'Fox Business',
+  cnn: 'CNN',
+  bbc: 'BBC',
+  npr: 'NPR',
+  'yahoo finance': 'Yahoo Finance',
+  "investor's business daily": "Investor's Business Daily",
+};
+
+export function splitTrailingSource(headline: string): { headline: string; source: string } | null {
+  const m = headline.match(/\s+[-–—|:]\s+([^–—|:]+?)\s*$/);
+  if (!m) return null;
+  const canonical = OUTLET_CREDIT[m[1].trim().toLowerCase()];
+  if (!canonical) return null;
+  const clean = headline.slice(0, m.index).trim();
+  if (!clean) return null;
+  return { headline: clean, source: canonical };
+}
+
 function cleanItem(item: NewsItem): NewsItem | null {
   if (isClickbait(item.headline)) return null;
-  return { ...item, headline: sentenceCase(item.headline) };
+  const split = splitTrailingSource(item.headline);
+  return {
+    ...item,
+    headline: sentenceCase((split?.headline ?? item.headline).trim()),
+    source: split?.source ?? item.source,
+  };
 }
 
 const SOURCE_RANK: Record<string, number> = {
@@ -154,27 +215,141 @@ export function dedupeNear(items: NewsItem[], limit: number): NewsItem[] {
   return kept.map(({ item }) => item);
 }
 
-// Tickers a headline is about: the provider's related tags first, then
-// case-sensitive symbol matches in the headline itself. Max two. Callers
-// showing the general feed should clear untrusted `related` first (it
-// misattributes — a SpaceX story tagged MSFT); per-symbol company news
-// keeps its tags, correct by construction.
-export function extractTickers(item: NewsItem, universe: string[]): string[] {
-  const set = new Set(universe.map((s) => s.toUpperCase()));
-  const out: string[] = [];
-  const push = (s: string) => {
-    const sym = s.toUpperCase();
-    if (set.has(sym) && !out.includes(sym)) out.push(sym);
+// Headlines name companies ("Meta lifts ad outlook"), not tickers
+// ("META"). Provider `related` tags misattribute — a Corning story shows
+// up in META's company-news feed — so pills match on headline + summary
+// text only: the bare symbol or the company name with common aliases.
+// Max two, headline hits before summary-only hits. Pure for tests.
+const COMPANY_ALIASES: Record<string, string[]> = {
+  AAPL: ['Apple'],
+  MSFT: ['Microsoft'],
+  GOOGL: ['Google', 'Alphabet', 'YouTube'],
+  GOOG: ['Google', 'Alphabet', 'YouTube'],
+  AMZN: ['Amazon'],
+  NVDA: ['Nvidia'],
+  META: ['Meta', 'Facebook', 'Instagram', 'WhatsApp'],
+  TSLA: ['Tesla'],
+  AVGO: ['Broadcom'],
+  LLY: ['Eli Lilly'],
+  JPM: ['JPMorgan', 'J.P. Morgan'],
+  XOM: ['Exxon'],
+  WMT: ['Walmart'],
+  MA: ['Mastercard'],
+  V: ['Visa'],
+  ORCL: ['Oracle'],
+  NFLX: ['Netflix'],
+  CRM: ['Salesforce'],
+  AMD: ['Advanced Micro Devices'],
+  ADBE: ['Adobe'],
+  COST: ['Costco'],
+  UNH: ['UnitedHealth'],
+  JNJ: ['Johnson & Johnson'],
+  BAC: ['Bank of America'],
+  KO: ['Coca-Cola'],
+  PEP: ['Pepsi', 'PepsiCo'],
+  DIS: ['Disney'],
+  QCOM: ['Qualcomm'],
+  INTC: ['Intel'],
+  NKE: ['Nike'],
+  MRK: ['Merck'],
+  ABBV: ['AbbVie'],
+  GS: ['Goldman Sachs'],
+  HD: ['Home Depot'],
+  TXN: ['Texas Instruments'],
+  AMGN: ['Amgen'],
+  COIN: ['Coinbase'],
+  PLTR: ['Palantir'],
+  UBER: ['Uber'],
+  SHOP: ['Shopify'],
+  ABNB: ['Airbnb'],
+  TSM: ['TSMC', 'Taiwan Semiconductor'],
+  MRVL: ['Marvell'],
+  SPY: ['S&P 500'],
+  QQQ: ['Nasdaq 100'],
+  F: ['Ford'],
+  GM: ['General Motors'],
+  GE: ['General Electric'],
+  IBM: ['IBM'],
+  T: ['AT&T'],
+  C: ['Citigroup', 'Citi'],
+  X: ['U.S. Steel'],
+};
+
+function escRe(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+// Legal tail words headlines never use ("Physicians Realty Trust" is
+// "Physicians Realty" in print). Stripped for a second match attempt.
+const NAME_SUFFIX = new Set([
+  'inc', 'incorporated', 'corp', 'corporation', 'ltd', 'limited', 'plc',
+  'holdings', 'holding', 'co', 'company', 'trust', 'reit', 'group',
+  'partners', 'properties', 'industries', 'international', 'systems',
+  'technologies', 'technology', 'communications', 'financial', 'capital',
+  'bancorp', 'bancshares', 'lp', 'llc', 'sa', 'ag', 'nv',
+]);
+
+export function companyCore(name: string): string {
+  const toks = name.replace(/[.,]/g, ' ').split(/\s+/).filter(Boolean);
+  while (toks.length > 1 && NAME_SUFFIX.has(toks[toks.length - 1].toLowerCase())) toks.pop();
+  return toks.join(' ');
+}
+
+/** Earliest match position of a symbol or its names in text, else null. */
+function matchPos(text: unknown, symbol: string, extraNames: string[]): number | null {
+  const t = typeof text === 'string' ? text : '';
+  if (!t) return null;
+  const sym = symbol.trim().toUpperCase();
+  if (!sym) return null;
+  let best: number | null = null;
+  const consider = (re: RegExp) => {
+    const m = re.exec(t);
+    if (m && (best === null || m.index < best)) best = m.index;
   };
-  for (const tok of item.related.split(/[,\s]+/)) if (tok) push(tok);
-  const byPos: { sym: string; pos: number }[] = [];
-  for (const sym of set) {
-    const m = new RegExp(`\\b${sym}\\b`).exec(item.headline);
-    if (m) byPos.push({ sym, pos: m.index });
+  // Single-letter tickers (V, F, T…) match names only — a bare "V" in
+  // prose is never the ticker.
+  if (sym.length >= 2) consider(new RegExp(`\\b${escRe(sym)}\\b`));
+  for (const n of [...(COMPANY_ALIASES[sym] ?? []), ...extraNames]) {
+    const name = n.trim();
+    if (name.length < 3) continue;
+    consider(new RegExp(`\\b${escRe(name)}\\b`, 'i'));
+    const core = companyCore(name);
+    if (core.length >= 3 && core !== name) consider(new RegExp(`\\b${escRe(core)}\\b`, 'i'));
   }
-  byPos.sort((a, b) => a.pos - b.pos);
-  for (const { sym } of byPos) push(sym);
-  return out.slice(0, 2);
+  return best;
+}
+
+/** True when the headline or summary is actually about the symbol. */
+export function mentionsTicker(
+  item: { headline: string; summary?: string | null },
+  symbol: string,
+  extraNames: string[] = [],
+): boolean {
+  return (
+    matchPos(item.headline, symbol, extraNames) !== null ||
+    matchPos(item.summary, symbol, extraNames) !== null
+  );
+}
+
+export function extractTickers(
+  item: NewsItem,
+  universe: string[],
+  names: Record<string, string[] | string> = {},
+): string[] {
+  const set = [...new Set(universe.map((s) => s.trim().toUpperCase()).filter(Boolean))];
+  const extra = (sym: string): string[] => {
+    const v = names[sym];
+    return v === undefined ? [] : Array.isArray(v) ? v : [v];
+  };
+  const head: { sym: string; pos: number }[] = [];
+  const tail: string[] = [];
+  for (const sym of set) {
+    const p = matchPos(item.headline, sym, extra(sym));
+    if (p !== null) head.push({ sym, pos: p });
+    else if (matchPos(item.summary, sym, extra(sym)) !== null) tail.push(sym);
+  }
+  head.sort((a, b) => a.pos - b.pos);
+  return [...head.map((h) => h.sym), ...tail].slice(0, 2);
 }
 
 function dedupeSort(items: NewsItem[], limit: number): NewsItem[] {
@@ -190,9 +365,9 @@ function dedupeSort(items: NewsItem[], limit: number): NewsItem[] {
   return out;
 }
 
-// General-feed `related` tags misattribute (a SpaceX story tagged MSFT):
-// clear them so only tickers named in the headline stick. Per-symbol
-// company news keeps its tags (correct by construction). Pure for tests.
+// Provider `related` tags misattribute (a SpaceX story tagged MSFT, a
+// Corning story in META's own feed), and matching ignores them entirely —
+// this clears them at the source so no caller can lean on them. Pure.
 export function stripGeneralRelated(items: NewsItem[]): NewsItem[] {
   return items.map((x) => (x.related ? { ...x, related: '' } : x));
 }
@@ -245,26 +420,34 @@ export async function getCompanyNews(symbol: string, days = 7, limit = 6): Promi
   const cleaned = raw
     .map(toItem)
     .filter((x): x is NewsItem => x !== null)
-    .map((x) => (x.related ? x : { ...x, related: sym }))
     .map(cleanItem)
     .filter((x): x is NewsItem => x !== null);
   return dedupeSort(cleaned, limit);
 }
 
 // Latest headline (≤24h) per symbol, for mover reason lines. One cached
-// company-news call per symbol; a symbol with nothing fresh maps to null
-// so the UI can fall back to silence instead of inventing a reason.
+// company-news call per symbol — but a feed for SYM carries other
+// companies' stories, so a headline only counts when it names the symbol
+// or company. `names` carries caller-known company names ("SNAP:
+// Snapchat"); the static alias map covers the large caps. A symbol with
+// nothing fresh maps to null so the UI hides the line instead of
+// misattributing (a Snap story under AAPL).
 export async function getNewsReasons(
   symbols: string[],
   limitSymbols = 25,
+  names: Record<string, string[] | string> = {},
 ): Promise<Record<string, NewsItem | null>> {
   const out: Record<string, NewsItem | null> = {};
   const list = [...new Set(symbols.map((s) => s.trim().toUpperCase()).filter(Boolean))].slice(0, limitSymbols);
   const cutoff = Date.now() / 1000 - 24 * 3600;
+  const extra = (sym: string): string[] => {
+    const v = names[sym];
+    return v === undefined ? [] : Array.isArray(v) ? v : [v];
+  };
   await Promise.all(
     list.map(async (sym) => {
       const items = await getCompanyNews(sym, 2, 3).catch(() => []);
-      out[sym] = items.find((i) => i.datetime >= cutoff) ?? null;
+      out[sym] = items.find((i) => i.datetime >= cutoff && mentionsTicker(i, sym, extra(sym))) ?? null;
     }),
   );
   return out;

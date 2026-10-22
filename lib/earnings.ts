@@ -455,6 +455,12 @@ export function logoUrl(symbol: string): string {
   return `https://finnhub.io/api/logo?symbol=${encodeURIComponent(symbol.trim().toUpperCase())}`;
 }
 
+/** Same logo through our edge cache (30d per symbol). Client surfaces
+ *  use this; server/OG rendering keeps the absolute upstream URL. */
+export function proxyLogoUrl(symbol: string): string {
+  return `/api/logo?symbol=${encodeURIComponent(symbol.trim().toUpperCase())}`;
+}
+
 /** $1.1T / $230B / $450M / $12K. Pure; exported for tests. */
 export function formatMoneyShort(value: number | null): string | null {
   if (value === null || !Number.isFinite(value)) return null;

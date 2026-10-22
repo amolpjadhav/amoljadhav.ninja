@@ -7,7 +7,7 @@ import type { Filing, FinancialSeries, PricePoint, SegmentSeries, StockFast, Sto
 import { FILING_LABELS, cagr, cagrDetails, displayCompanyName, edgarCompanyUrl, fiscalYearEndMonth, fiscalYearSpan, formatCompact, formatEps, formatFilingDate, formatHeadquarters, formatInt, formatLastTrade, formatMoney, formatPct, formatPrice, formatQuoteChange, isMarketOpen, isOtherSegment, latestValue, marginLine, normalizeTicker, peHistoryNote, periodReturn, pickLede, positionInRangeLabel, revenueLine, shareCacheBuster, stockShareLinks, stockShareText, tableYears, yoyGrowth } from '@/lib/stocks';
 import { categoryColor } from '@/lib/blog-content';
 import { EarningsCard, EarningsWeek, MarketStrip, Monogram, MoverTiles, WatchStar, useEarnings, useMarketMovers, useMarketStrip } from './MarketOverview';
-import { logoUrl } from '@/lib/earnings';
+import { proxyLogoUrl } from '@/lib/earnings';
 import { createStockCache, stockFastUrl } from '@/lib/stock-cache';
 import LikeButton from '@/components/blog/LikeButton';
 import { newsAge, type NewsItem } from '@/lib/news';
@@ -70,7 +70,7 @@ function CompanyLogo({ ticker }: { ticker: string }) {
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
-      src={logoUrl(ticker)}
+      src={proxyLogoUrl(ticker)}
       alt=""
       aria-hidden
       loading="lazy"
@@ -1084,8 +1084,8 @@ export default function StocksLookup({
       {idle ? (
         <>
           {/* The article header above carries the title, so the widget
-              starts straight at the search. */}
-          <div className="stocks-glass p-4 sm:p-5">
+              starts straight at the search — no panel boxes, the field
+              sits directly on the page. */}
           <form
             className="mb-3"
             onSubmit={(e) => {
@@ -1122,7 +1122,7 @@ export default function StocksLookup({
                 aria-autocomplete="list"
                 aria-activedescendant={sugActive >= 0 ? `lookup-option-${sugActive}` : undefined}
                 autoComplete="off"
-                className="h-14 w-full rounded-[14px] border border-white/15 bg-black/40 pl-11 pr-24 text-[15px] text-white/90 placeholder:text-white/30 transition-colors focus:border-[#facc15]/80 focus:outline-none sm:pr-44"
+                className="h-[52px] w-full rounded-[14px] border border-white/15 bg-black/40 pl-11 pr-24 text-[15px] text-white/90 placeholder:text-white/30 transition-colors focus:border-[#facc15]/80 focus:outline-none sm:pr-44"
               />
               {!searchFocused && input.trim() === '' && (
                 <kbd
@@ -1177,7 +1177,7 @@ export default function StocksLookup({
                       className={`flex cursor-pointer items-center gap-2 px-3.5 py-2.5 ${i === sugActive ? 'bg-white/10' : ''}`}
                     >
                       <Monogram symbol={r.ticker} />
-                      <span className="font-mono text-sm font-bold text-white/90">{r.ticker}</span>
+                      <span className="text-sm font-bold text-white/90">{r.ticker}</span>
                       <span className="truncate text-[13px] text-white/45">{r.title}</span>
                       <span className="ml-auto shrink-0 rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white/50">
                         Stock
@@ -1198,7 +1198,7 @@ export default function StocksLookup({
                         className={`flex cursor-pointer items-center gap-2 px-3.5 py-2.5 ${i === sugActive ? 'bg-white/10' : ''}`}
                       >
                         <Monogram symbol={c.symbol || c.id} />
-                        <span className="font-mono text-sm font-bold text-white/90">
+                        <span className="text-sm font-bold text-white/90">
                           {c.symbol || c.name}
                         </span>
                         <span className="truncate text-[13px] text-white/45">
@@ -1231,7 +1231,6 @@ export default function StocksLookup({
               </button>
             ))}
           </div>
-          </div>
 
           <div className="mt-8">
             <MarketStrip data={stripData} loaded={stripLoaded} />
@@ -1253,7 +1252,7 @@ export default function StocksLookup({
               <span aria-hidden className="mx-1.5 text-white/25">
                 ›
               </span>
-              <span className="font-mono font-bold text-white/85">{data?.ticker || input.trim().toUpperCase() || '…'}</span>
+              <span className="font-bold text-white/85">{data?.ticker || input.trim().toUpperCase() || '…'}</span>
             </nav>
             <div className="flex shrink-0 items-center gap-2">
               {compactSearch('ticker-compact', inputRef, 'relative hidden w-60 sm:block')}
@@ -1290,7 +1289,7 @@ export default function StocksLookup({
                   }}
                   onMouseEnter={() => prefetchStock(t)}
                   onFocus={() => prefetchStock(t)}
-                  className="h-6 rounded-full border border-white/10 px-2.5 font-mono text-xs text-white/55 transition-colors hover:border-white/25 hover:text-white"
+                  className="h-6 rounded-full border border-white/10 px-2.5 text-xs text-white/55 transition-colors hover:border-white/25 hover:text-white"
                 >
                   {t}
                 </button>
@@ -1916,7 +1915,7 @@ export default function StocksLookup({
                       >
                         {row.news.headline}
                       </a>
-                      <span className="shrink-0 font-mono text-[11px] tabular-nums text-white/35">
+                      <span className="shrink-0 text-[11px] tabular-nums text-white/35">
                         {row.news.source} · {newsAge(row.news.datetime)}
                       </span>
                     </li>
