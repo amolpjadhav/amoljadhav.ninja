@@ -63,7 +63,7 @@ export async function GET(req: Request) {
 
   const origin = url.origin;
   const failed: string[] = [];
-  const warmed = { global: 0, fast: 0, dots: 0, news: 0, full: 0 };
+  const warmed = { global: 0, fast: 0, dots: 0, news: 0, full: 0, logos: 0 };
   const get = async (path: string): Promise<boolean> => {
     try {
       const res = await fetch(`${origin}${path}`, { signal: AbortSignal.timeout(TIMEOUT_MS) });
@@ -108,6 +108,23 @@ export async function GET(req: Request) {
       if (n) warmed.news += 1;
       if (f) warmed.full += 1;
       return d && n && f;
+    },
+    failed,
+  );
+  await eachLimit(
+    plan.light,
+    CONCURRENCY,
+    async (t) => {
+      // Warms the logo edge cache for the movers universe. A 404 (no logo
+      // on file, e.g. TSLA) still settles edge state, so only a fetch
+      // exception counts as a failure.
+      try {
+        const res = await fetch(`${origin}/api/logo?symbol=${t}`, { signal: AbortSignal.timeout(TIMEOUT_MS) });
+        if (res.ok) warmed.logos += 1;
+        return true;
+      } catch {
+        return false;
+      }
     },
     failed,
   );

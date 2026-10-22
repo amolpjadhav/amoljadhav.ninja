@@ -797,23 +797,26 @@ function openCardShare(type: EarningsCardType, text: string, extra?: Record<stri
 }
 
 export function StockLogo({ symbol, px = 24 }: { symbol: string; px?: number }) {
-  // Real logo through our 30d edge cache; unknown tickers fall back to
-  // the letter monogram. Shared by movers rows and earnings rows.
+  // Real logo through our 30d edge cache layered over the letter
+  // monogram. The monogram is always underneath: while the image loads,
+  // if it fails, or if a blocker hides it, the letter still shows —
+  // a blank avatar is the one outcome this stacking cannot produce.
   const [failed, setFailed] = useState(false);
-  if (failed) return <Monogram symbol={symbol} size={px <= 16 ? '2xs' : px <= 20 ? 'xs' : 'sm'} />;
   return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      src={proxyLogoUrl(symbol)}
-      alt=""
-      aria-hidden
-      loading="lazy"
-      onError={() => setFailed(true)}
-      width={px}
-      height={px}
-      style={{ width: px, height: px }}
-      className="shrink-0 rounded-full bg-white/10 object-contain"
-    />
+    <span aria-hidden className="relative inline-flex shrink-0 items-center justify-center" style={{ width: px, height: px }}>
+      <Monogram symbol={symbol} size={px <= 16 ? '2xs' : px <= 20 ? 'xs' : 'sm'} />
+      {!failed && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={proxyLogoUrl(symbol)}
+          alt=""
+          aria-hidden
+          loading="lazy"
+          onError={() => setFailed(true)}
+          className="absolute inset-0 h-full w-full rounded-full bg-[#25262B] object-contain"
+        />
+      )}
+    </span>
   );
 }
 
