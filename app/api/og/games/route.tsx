@@ -1,5 +1,5 @@
 import { ImageResponse } from 'next/og';
-import { ARTICLE_TITLE, parseCardParams } from '@/lib/games/share';
+import { parseCardParams } from '@/lib/games/share';
 import type { Mark } from '@/lib/games/five-letters';
 
 // Personalized score card for the classic-games article, sibling of
@@ -14,6 +14,24 @@ const PANEL = '#14171a';
 const INK = '#f3ecd9';
 const MUTED = '#9aa3a8';
 const GREEN = '#0aee3c';
+
+// Per-game accent (spec §2 tokens); the query-param API is unchanged —
+// the accent is derived from the existing `g` param.
+const ACCENT: Record<string, string> = {
+  'five-letters': '#64D2FF',
+  minesweeper: '#BF5AF2',
+  sudoku: '#FF9F0A',
+  'code-breaker': '#FF6FB5',
+  'game-2048': '#30D158',
+};
+
+const PLAY_SLUG: Record<string, string> = {
+  'five-letters': 'five-letters',
+  minesweeper: 'minesweeper',
+  sudoku: 'sudoku',
+  'code-breaker': 'code-breaker',
+  'game-2048': '2048',
+};
 const TILE: Record<Mark, string> = { correct: '#0d9488', present: '#E0A33A', absent: '#2b3136' };
 
 async function loadFont(): Promise<ArrayBuffer | null> {
@@ -47,6 +65,8 @@ export async function GET(req: Request) {
     grid: [] as Mark[][],
   };
   const font = await loadFont();
+  const accent = ACCENT[card.game] ?? GREEN;
+  const playSlug = PLAY_SLUG[card.game] ?? card.game;
 
   return new ImageResponse(
     (
@@ -61,10 +81,10 @@ export async function GET(req: Request) {
           padding: 64,
         }}
       >
-        <div style={{ width: 10, background: GREEN, borderRadius: 5, marginRight: 56 }} />
+        <div style={{ width: 10, background: accent, borderRadius: 5, marginRight: 56 }} />
 
         <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', flex: 1 }}>
-          <span style={{ color: GREEN, fontSize: 26, fontWeight: 800, letterSpacing: 3 }}>
+          <span style={{ color: accent, fontSize: 26, fontWeight: 800, letterSpacing: 3 }}>
             {card.label.toUpperCase()}
           </span>
           {card.big === '—' && card.stats.length === 0 ? (
@@ -108,7 +128,7 @@ export async function GET(req: Request) {
           ) : null}
 
           <div style={{ fontSize: 26, color: MUTED, marginTop: 32 }}>
-            amoljadhav.ai · {ARTICLE_TITLE} · can you beat it?
+            amoljadhav.ai/games/{playSlug}
           </div>
         </div>
 
