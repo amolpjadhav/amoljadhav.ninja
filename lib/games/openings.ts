@@ -107,6 +107,72 @@ export function bookChildStats(data: OpeningsData, fen: string): BookChildStat[]
   }));
 }
 
+export interface ChildLabel {
+  eco: string;
+  name: string;
+  /** True when no name exists at the child and this is the most popular
+   *  named descendant ("usually …"). */
+  usually: boolean;
+}
+
+/**
+ * Name a book child: its own opening entry when named, else the most
+ * popular named descendant within maxPlies ("usually …"). Null when the
+ * subtree stays nameless (or the UCI is illegal here).
+ */
+export function labelChild(data: OpeningsData, fen: string, uci: string, maxPlies = 6): ChildLabel | null {
+  let cur: Chess;
+  try {
+    cur = new Chess(fen);
+    cur.move({ from: uci.slice(0, 2), to: uci.slice(2, 4), promotion: (uci.slice(4) as 'q' | undefined) || undefined });
+  } catch {
+    return null;
+  }
+  for (let i = 0; i <= maxPlies; i += 1) {
+    const hit = lookupOpening(data, epdOf(cur.fen()));
+    if (hit) return { eco: hit.eco, name: hit.name, usually: i > 0 };
+    const kids = bookChildren(data, epdOf(cur.fen()));
+    if (kids.length === 0) return null;
+    try {
+      const next = kids[0] as { uci: string };
+      cur.move({
+        from: next.uci.slice(0, 2),
+        to: next.uci.slice(2, 4),
+        promotion: (next.uci.slice(4) as 'q' | undefined) || undefined,
+      });
+    } catch {
+      return null;
+    }
+  }
+  return null;
+}
+
+export type OpeningStyle = 'solid' | 'sharp' | 'positional' | 'gambit';
+
+let stylesCache: Record<string, OpeningStyle> | null = null;
+let stylesFailed = false;
+
+/** Lazy fetch of the generated style tags (small file); null when offline. */
+export async function loadOpeningStyles(): Promise<Record<string, OpeningStyle> | null> {
+  if (stylesCache) return stylesCache;
+  if (stylesFailed) return null;
+  try {
+    const res = await fetch('/data/opening-styles.json');
+    if (!res.ok) throw new Error(`styles ${res.status}`);
+    stylesCache = (await res.json()) as Record<string, OpeningStyle>;
+    return stylesCache;
+  } catch {
+    stylesFailed = true;
+    return null;
+  }
+}
+
+/** Style tag for an ECO|name pair; null when untagged (UI hides the tag). */
+export function styleFor(styles: Record<string, OpeningStyle> | null, eco: string, name: string): OpeningStyle | null {
+  if (!styles) return null;
+  return styles[`${eco}|${name}`] ?? null;
+}
+
 /** Opening plies the bot plays from book before Stockfish takes over. */
 export function bookPliesForLevel(levelId: string): number {
   if (levelId === 'pawn') return 4;

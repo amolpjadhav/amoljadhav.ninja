@@ -163,6 +163,7 @@ async function chess(browser, width) {
     // DOM (panel + mobile details), so two plies means four buttons.
     await page.waitForFunction(
       () => document.querySelectorAll('[aria-label="Move list"] button').length >= 4,
+      undefined,
       { timeout: 90000 },
     );
     // Book pipeline end to end: our move flagged 📖, opening card on Book
@@ -223,6 +224,8 @@ async function coachFlow(browser, width) {
       min,
       { timeout: 30000 },
     );
+  // NOTE: waitForFunction takes (fn, arg, options) — options must be
+  // third with an explicit arg, or the timeout silently stays default.
   const waitBlackPly = () =>
     page.waitForFunction(
       () => {
@@ -234,6 +237,7 @@ async function coachFlow(browser, width) {
           return btns.length > 1 && (btns[1].textContent ?? '').replace('📖', '').trim().length > 0;
         });
       },
+      undefined,
       { timeout: 90000 },
     );
   const startGuided = async () => {
@@ -244,15 +248,39 @@ async function coachFlow(browser, width) {
     await setup.getByRole('button', { name: 'Start game' }).click();
     await page.getByRole('button', { name: 'Resign' }).waitFor();
   };
+  const step = (m) => console.log(`[${label}] ${m}`);
   try {
     await page.goto(`${BASE}/games/chess`, { waitUntil: 'load' });
     await startGuided();
+    step('started');
     // Fresh node at the root: green main arrow + blue alternatives, even
     // though the starting position has no opening name of its own.
     await waitArrows(2);
+    step('arrows>=2');
     await settle(page);
     await shot(page, `coach-guide-${width}`);
     await contrast(page, `${label}-guide`);
+    step('guide shot');
+    // Option rows label every arrow: tapping one isolates it, tapping again
+    // restores the full set. Scope to the desktop panel (on mobile the same
+    // card lives inside a closed <details>, so open it first).
+    const scope = width >= 1024 ? page.locator('aside') : page.locator('details');
+    // The sticky dock can cover the summary row: open programmatically.
+    if (width < 1024) await page.locator('details').evaluate((d) => { d.open = true; });
+    const tapRow = async () => {
+      const row = scope.getByRole('button', { name: /^Option d4,/ });
+      await row.evaluate((el) => el.scrollIntoView({ block: 'center' }));
+      await row.click();
+    };
+    await tapRow();
+    step('row tapped');
+    await page.waitForFunction(
+      () => document.querySelector('[aria-label="Chess board"]')?.getAttribute('data-guide-arrows') === '1',
+      undefined,
+      { timeout: 30000 },
+    );
+    await tapRow();
+    await waitArrows(2);
     // 1.e4, bot answers from the book (main line).
     await clickSq(4, 6);
     await settle(page);
@@ -264,12 +292,20 @@ async function coachFlow(browser, width) {
     }
     // Off-book: a dataset-verified non-book reply. Banner shows, arrows
     // disappear, the engine (not the book) takes over.
+    const pliesBefore = await page.evaluate(
+      () => document.querySelectorAll('[aria-label="Move list"] li').length,
+    );
     const mv = offbookMove();
     await clickSq(mv.fromFile, mv.fromRow);
     await settle(page);
     await clickSq(mv.toFile, mv.toRow);
     await page.getByText(/left the book|middlegame starts now/).waitFor({ timeout: 30000 });
     if ((await arrows()) !== 0) throw new Error('guide arrows survived leaving the book');
+    await page.waitForFunction(
+      (before) => document.querySelectorAll('[aria-label="Move list"] li').length > before,
+      pliesBefore,
+      { timeout: 90000 },
+    );
     await settle(page);
     await shot(page, `coach-offbook-${width}`);
     await contrast(page, `${label}-offbook`);

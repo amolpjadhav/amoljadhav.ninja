@@ -85,6 +85,11 @@ export default function GamesHubPage() {
       </Suspense>
 
       <section aria-labelledby="games-h1">
+        <p className="mb-4">
+          <Link href="/" className="games-type-callout no-underline" aria-label="Back home">
+            <span aria-hidden>← </span>Home
+          </Link>
+        </p>
         <div className="flex items-baseline justify-between gap-4">
           <p
             className="games-type-micro"

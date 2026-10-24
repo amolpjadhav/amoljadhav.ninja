@@ -61,15 +61,20 @@ import {
   saveStore,
   shareText,
 } from '@/lib/games/arcade';
+import GuideArrows, { hoverUciAt } from './GuideArrows';
+import type { GuideArrowSpec } from './GuideArrows';
 import {
   analyzeBook,
   bookChildStats,
   epdOf,
+  labelChild,
   loadOpenings,
+  loadOpeningStyles,
   lookupOpening,
   pickBookMove,
+  styleFor,
 } from '@/lib/games/openings';
-import type { BookAnalysis, BookChildStat, OpeningsData } from '@/lib/games/openings';
+import type { BookAnalysis, BookChildStat, OpeningsData, OpeningStyle } from '@/lib/games/openings';
 import {
   NODES_KEY,
   decideUserMove,
@@ -96,9 +101,8 @@ const CLASSIC_DARK = '#B58863';
 const GRAPHITE_LIGHT = '#3A3D46';
 const GRAPHITE_DARK = '#23252B';
 const RING = 'inset 0 0 0 4px rgba(10,10,12,.45)';
-// Guide arrows: green main line, blue alternatives (opacity ∝ popularity —
-// the board library's arrows carry color but no width or head labels).
-const GUIDE_GREEN = '#30D158D9';
+// Alternative arrows render blue (green = main line); widths, heads, and
+// labels live in the GuideArrows SVG overlay, not the board library.
 const GUIDE_BLUE = '#0A84FF';
 const PRACTICE_HINT_MS = 5000;
 const REVIEW_STEP_MS = 300;
@@ -589,6 +593,7 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
   const [shaking, setShaking] = useState(false);
   const [flipped, setFlipped] = useState(false);
   const [openings, setOpenings] = useState<OpeningsData | null>(null);
+  const [styles, setStyles] = useState<Record<string, OpeningStyle> | null>(null);
   const [toast, setToast] = useState<{ message: string | null; key: number }>({ message: null, key: 0 });
   // Opening coach: coached games are casual (no W/L record, opening
   // progress instead). Mid-game Coach switch needs a casual confirm.
@@ -603,7 +608,9 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
   const [nodes, setNodes] = useState<NodeStore>(() => readJSON<NodeStore>(NODES_KEY) ?? {});
   const [hintRevealed, setHintRevealed] = useState(false);
   const [hintUsed, setHintUsed] = useState(false);
-  const [previewUci, setPreviewUci] = useState<string | null>(null);
+  const [hotUci, setHotUci] = useState<string | null>(null);
+  const [soloUci, setSoloUci] = useState<string | null>(null);
+  const [hoverUci, setHoverUci] = useState<string | null>(null);
   const [confirmCoach, setConfirmCoach] = useState(false);
   const [pendingReview, setPendingReview] = useState(false);
   const [review, setReview] = useState<{ queue: string[]; index: number; auto: boolean } | null>(null);
@@ -666,6 +673,9 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
     void loadOpenings().then((data) => {
       if (live) setOpenings(data);
     });
+    void loadOpeningStyles().then((s) => {
+      if (live) setStyles(s);
+    });
     return () => {
       live = false;
     };
@@ -687,8 +697,7 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
   const exitAssist = useCallback(
     (exit: AssistExit, mainSan: string | null, entryName: string | null) => {
       setExited(true);
-      setPreviewUci(null);
-      const moveNo = Math.floor(chess.history().length / 2) + 1;
+        const moveNo = Math.floor(chess.history().length / 2) + 1;
       flashBanner(exitBanner(exit, entryName, moveNo, mainSan));
     },
     [chess, flashBanner],
@@ -701,7 +710,9 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
   const resetTurnHints = useCallback(() => {
     setHintRevealed(false);
     setHintUsed(false);
-    setPreviewUci(null);
+    setHotUci(null);
+    setSoloUci(null);
+    setHoverUci(null);
   }, []);
 
   const recordNodes = useCallback((next: NodeStore) => {
@@ -1304,8 +1315,7 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
     const live = liveRef.current;
     if (live.coachOn) {
       setCoachOn(false);
-      setPreviewUci(null);
-      return;
+        return;
     }
     // Turning coaching on mid-game makes a rated game casual.
     if (live.status === 'playing' && !casualRef.current) {
@@ -1805,33 +1815,42 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
       : 'learn'
     : 'learn';
 
-  const guideArrows = useMemo<Arrow[]>(() => {
-    if (!coachNode || !turnIsPlayer || viewPly !== null) return [];
+  // Guide-arrow descriptors for the SVG overlay (which owns widths, heads,
+  // labels, and hover). The library keeps only the gold hint arrow.
+  const guideSpecs = useMemo<GuideArrowSpec[]>(() => {
+    if (!coachNode || !openings || !turnIsPlayer || viewPly !== null) return [];
     if (!(coachStage === 'learn' || hintRevealed)) return [];
-    if (previewUci) {
-      return [{ startSquare: previewUci.slice(0, 2), endSquare: previewUci.slice(2, 4), color: '#E5C07B' }];
-    }
-    const out: Arrow[] = [];
+    const specFor = (k: BookChildStat, main: boolean): GuideArrowSpec | null => {
+      if (k.uci.length < 4 || !k.san) return null;
+      const label = labelChild(openings, fen, k.uci);
+      return {
+        uci: k.uci,
+        from: k.uci.slice(0, 2),
+        to: k.uci.slice(2, 4),
+        color: main ? '#30D158' : GUIDE_BLUE,
+        main,
+        pct: k.pct,
+        name: label ? (label.usually ? `usually ${label.name}` : label.name) : 'Book move',
+      };
+    };
+    const out: GuideArrowSpec[] = [];
     const [main, ...alts] = coachNode.kids;
-    if (main && main.uci.length >= 4) {
-      out.push({ startSquare: main.uci.slice(0, 2), endSquare: main.uci.slice(2, 4), color: GUIDE_GREEN });
+    if (main) {
+      const spec = specFor(main, true);
+      if (spec) out.push(spec);
     }
     for (const alt of alts.slice(0, 2)) {
-      if (alt.uci.length < 4) continue;
-      // No width prop on arrows: popularity rides on blue opacity.
-      const alpha = Math.round((0.45 + 0.35 * (alt.pct / 100)) * 255)
-        .toString(16)
-        .padStart(2, '0');
-      out.push({
-        startSquare: alt.uci.slice(0, 2),
-        endSquare: alt.uci.slice(2, 4),
-        color: `${GUIDE_BLUE}${alpha}`,
-      });
+      const spec = specFor(alt, false);
+      if (spec) out.push(spec);
+    }
+    if (soloUci && !out.some((s) => s.uci === soloUci)) {
+      // A tapped 4th-row option has no standing arrow: draw it solo.
+      const k = coachNode.kids.find((c) => c.uci === soloUci);
+      const spec = k ? specFor(k, k.uci === main?.uci) : null;
+      if (spec) return [spec];
     }
     return out;
-  }, [coachNode, coachStage, hintRevealed, previewUci, turnIsPlayer, viewPly]);
-
-  const allArrows = useMemo<Arrow[]>(() => [...arrows, ...guideArrows], [arrows, guideArrows]);
+  }, [coachNode, coachStage, fen, hintRevealed, openings, soloUci, turnIsPlayer, viewPly]);
 
   // Recall Practice stage: arrows surface after 5 idle seconds (or H).
   useEffect(() => {
@@ -1917,6 +1936,65 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
       : endInfo.outcome === 'loss'
         ? `${level.name} wins`
         : 'Draw';
+
+  // Shared by the desktop Opening card and the mobile details: names every
+  // book option (SAN · name · popularity · style), row tap isolates its arrow.
+  const optionsList =
+    coachNode && coachNode.kids.length > 0 ? (
+      <div className="mt-3">
+        <p className="games-type-micro mb-1.5" style={{ color: 'var(--text-3)' }}>
+          Your options
+        </p>
+        <ul className="flex flex-col gap-1">
+          {coachNode.kids.slice(0, 4).map((k, i) => {
+            const label = openings ? labelChild(openings, fen, k.uci) : null;
+            const name = label ? (label.usually ? `usually ${label.name}` : label.name) : 'Book move';
+            const style = label ? styleFor(styles, label.eco, label.name) : null;
+            const solo = soloUci === k.uci;
+            return (
+              <li key={k.uci}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSoloUci((s) => (s === k.uci ? null : k.uci));
+                  }}
+                  onMouseEnter={() => setHotUci(k.uci)}
+                  onMouseLeave={() => setHotUci(null)}
+                  aria-pressed={solo}
+                  aria-label={`Option ${k.san}, ${name}, ${k.pct} percent`}
+                  className="games-press w-full flex items-center gap-2 rounded-[10px] px-2.5 py-1.5 text-left"
+                  style={{
+                    background: solo ? 'rgba(229,192,123,.14)' : 'var(--surface-2)',
+                    border: '1px solid var(--hairline)',
+                  }}
+                >
+                  <span
+                    aria-hidden
+                    className="inline-block w-2.5 h-2.5 rounded-full shrink-0"
+                    style={{ background: i === 0 ? '#30D158' : GUIDE_BLUE }}
+                  />
+                  <span className="games-type-callout tabular-nums font-semibold">{k.san}</span>
+                  <span className="games-type-caption flex-1 truncate" style={{ color: 'var(--text-2)' }}>
+                    {name}
+                  </span>
+                  {style && (
+                    <span
+                      className="games-type-micro px-1.5 py-0.5 rounded-full shrink-0"
+                      style={{ background: 'var(--surface-3)', color: 'var(--text-3)' }}
+                    >
+                      {style}
+                    </span>
+                  )}
+                  <span className="games-type-caption tabular-nums shrink-0" style={{ color: 'var(--text-2)' }}>
+                    {k.pct}%
+                  </span>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+    ) : null;
 
   return (
     <>
@@ -2048,9 +2126,18 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
               </div>
             )}
             <div
-              className={`my-1 games-board-lock${shaking ? ' games-shake' : ''}`}
+              className={`relative my-1 games-board-lock${shaking ? ' games-shake' : ''}`}
               aria-label="Chess board"
-              data-guide-arrows={guideArrows.length}
+              data-guide-arrows={soloUci ? 1 : guideSpecs.length}
+              onMouseMove={(e) => {
+                if (guideSpecs.length === 0) return;
+                const rect = e.currentTarget.getBoundingClientRect();
+                const x = ((e.clientX - rect.left) / rect.width) * 800;
+                const y = ((e.clientY - rect.top) / rect.height) * 800;
+                const hit = hoverUciAt(guideSpecs, orientation, x, y);
+                setHoverUci((h) => (h === hit ? h : hit));
+              }}
+              onMouseLeave={() => setHoverUci(null)}
             >
               <Chessboard
                 options={{
@@ -2064,12 +2151,21 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
                   darkSquareNotationStyle: notationProps,
                   lightSquareNotationStyle: notationProps,
                   squareStyles,
-                  arrows: allArrows,
+                  arrows,
                   pieces,
                   onPieceDrop: onDrop,
                   onSquareClick,
                 }}
               />
+              {guideSpecs.length > 0 && (
+                <GuideArrows
+                  orientation={orientation}
+                  arrows={guideSpecs}
+                  highlightUci={hotUci ?? hoverUci}
+                  soloUci={soloUci}
+                  hoverUci={hoverUci}
+                />
+              )}
             </div>
             {renderBar(flipped ? engineColor : playerColor, false)}
             <details className="lg:hidden mt-3 games-card p-4">
@@ -2088,6 +2184,7 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
                   {coachNode.kids[0]?.san} (main line · {coachNode.kids[0]?.pct}%)
                 </p>
               )}
+              {optionsList}
               <div className="mt-2">{moveList}</div>
             </details>
             <p className="games-type-caption mt-3 text-center" style={{ color: 'var(--text-3)' }}>
@@ -2184,27 +2281,7 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
                     {chess.turn() === 'w' ? '.' : '…'}
                     {coachNode.kids[0]?.san} (main line · {coachNode.kids[0]?.pct}%)
                   </p>
-                  {coachNode.kids.slice(1, 4).length > 0 && (
-                    <ul className="flex flex-wrap gap-1.5 mt-2">
-                      {coachNode.kids.slice(1, 4).map((k) => (
-                        <li key={k.uci}>
-                          <button
-                            type="button"
-                            onClick={() => setPreviewUci((p) => (p === k.uci ? null : k.uci))}
-                            aria-pressed={previewUci === k.uci}
-                            className="games-type-caption tabular-nums rounded-full px-2.5 py-1"
-                            style={{
-                              background: previewUci === k.uci ? 'rgba(229,192,123,.2)' : 'var(--surface-2)',
-                              color: 'var(--text-1)',
-                              border: '1px solid var(--hairline)',
-                            }}
-                          >
-                            {k.san} {k.pct}%
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
+                  {optionsList}
                   <div className="flex flex-wrap gap-2 mt-3">
                     <button
                       type="button"
