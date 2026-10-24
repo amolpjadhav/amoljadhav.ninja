@@ -4,13 +4,22 @@ import { useCallback, useState } from 'react';
 import {
   CODE_BREAKER_KEY,
   EMPTY_FL_STATS,
+  EMPTY_SUDOKU_BESTS,
   FIVE_LETTERS_KEY,
   G2048_KEY,
   MINESWEEPER_KEY,
+  SUDOKU_KEY,
   readJSON,
   type FiveLettersStats,
+  type SudokuBests,
 } from '@/lib/games/records';
-import { buildScorecardLine } from '@/lib/games/scorecard';
+import { buildScorecardLine, formatClock } from '@/lib/games/scorecard';
+import {
+  GAME_LABEL,
+  buildGameChallenge,
+  buildGameChallengeXUrl,
+  type GameId,
+} from '@/lib/games/share';
 
 // End-of-article scorecard: best results per game, read from the same
 // localStorage records each widget writes. Only games you have played
@@ -20,13 +29,26 @@ export default function GameScorecard() {
   const [g2048Best] = useState(() => readJSON<number>(G2048_KEY, 0));
   const [code] = useState<number | null>(() => readJSON(CODE_BREAKER_KEY, null));
   const [sweep] = useState<number | null>(() => readJSON(MINESWEEPER_KEY, null));
+  const [sudoku] = useState<SudokuBests>(() => readJSON(SUDOKU_KEY, EMPTY_SUDOKU_BESTS));
   const [copied, setCopied] = useState(false);
 
+  // Hardest difficulty solved, so the row brags about the best win.
+  const sudokuBest =
+    sudoku.hard !== null
+      ? { difficulty: 'hard', seconds: sudoku.hard }
+      : sudoku.medium !== null
+        ? { difficulty: 'medium', seconds: sudoku.medium }
+        : sudoku.easy !== null
+          ? { difficulty: 'easy', seconds: sudoku.easy }
+          : null;
   const rows: [string, string][] = [
     ...(fl.played > 0 ? ([['Five Letters', `${fl.won}/${fl.played} won${fl.best !== null ? ` · best ${fl.best} guesses` : ''}`]] as [string, string][]) : []),
     ...(sweep !== null ? ([['Minesweeper', `cleared in ${sweep}s`]] as [string, string][]) : []),
     ...(code !== null ? ([['Code Breaker', `cracked in ${code}`]] as [string, string][]) : []),
     ...(g2048Best > 0 ? ([['2048', `best ${g2048Best.toLocaleString()}`]] as [string, string][]) : []),
+    ...(sudokuBest !== null
+      ? ([['Sudoku', `${sudokuBest.difficulty} in ${formatClock(sudokuBest.seconds)}`]] as [string, string][])
+      : []),
   ];
   const played = rows.length > 0;
   const shareLine = buildScorecardLine({
@@ -34,6 +56,7 @@ export default function GameScorecard() {
     codeBreakerBest: code,
     minesweeperBest: sweep,
     g2048Best,
+    sudokuBest,
   });
 
   const share = useCallback(async () => {
@@ -86,6 +109,61 @@ export default function GameScorecard() {
           Nothing yet — play a round above and your bests will land here.
         </p>
       )}
+      <ChallengeList />
+    </div>
+  );
+}
+
+// One row per game: challenge a friend straight at that widget. The X
+// link unfurls the game's OG card; the copy link drops them on the
+// widget itself via its #anchor.
+function ChallengeList() {
+  const [copiedGame, setCopiedGame] = useState<string | null>(null);
+
+  const copyAnchor = useCallback(async (game: GameId) => {
+    try {
+      await navigator.clipboard.writeText(buildGameChallenge(game).anchorUrl);
+      setCopiedGame(game);
+      window.setTimeout(() => setCopiedGame((g) => (g === game ? null : g)), 2000);
+    } catch {
+      // Clipboard denied: the X link still works.
+    }
+  }, []);
+
+  return (
+    <div className="mt-4">
+      <p className="mb-2 text-[11px] font-bold uppercase tracking-widest text-white/40">
+        Challenge a friend to one game
+      </p>
+      <ul className="flex flex-col gap-1.5">
+        {(Object.keys(GAME_LABEL) as GameId[]).map((game) => (
+          <li
+            key={game}
+            className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-[#24262b] px-4 py-2.5"
+          >
+            <span className="text-[15px] font-medium text-white/85">{GAME_LABEL[game]}</span>
+            <span className="flex shrink-0 items-center gap-2">
+              <a
+                href={buildGameChallengeXUrl(game)}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={`Challenge a friend at ${GAME_LABEL[game]} on X`}
+                className="flex h-8 w-8 touch-manipulation items-center justify-center rounded-full bg-white/10 text-sm font-bold text-white/85 transition-all hover:bg-white/20 active:scale-95"
+              >
+                𝕏
+              </a>
+              <button
+                type="button"
+                onClick={() => copyAnchor(game)}
+                aria-label={`Copy link to ${GAME_LABEL[game]}`}
+                className="flex h-8 touch-manipulation items-center rounded-full bg-white/10 px-3 text-xs font-bold text-white/85 transition-all hover:bg-white/20 active:scale-95"
+              >
+                {copiedGame === game ? 'Copied ✓' : 'Copy link'}
+              </button>
+            </span>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

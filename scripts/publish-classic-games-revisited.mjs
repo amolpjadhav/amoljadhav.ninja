@@ -32,8 +32,8 @@ const TITLE = 'Classic Games, Revisited';
 const SLUG = 'classic-games-revisited';
 const CATEGORY = 'Gaming';
 const EXCERPT =
-  'Wordle, 2048, Mastermind, Minesweeper — four games you know, playable right here. Underneath them: three ideas from math and computer science.';
-const READ_TIME = 3;
+  'Wordle, 2048, Mastermind, Minesweeper, Sudoku — five games you know, playable right here. Underneath them: three ideas from math and computer science.';
+const READ_TIME = 4;
 
 const CONTENT = `<h3>Five Letters</h3>
 <p>Guess the hidden five-letter word in six tries. A new daily word drops every midnight, Pacific time — or drill practice words below.</p>
@@ -49,6 +49,14 @@ const CONTENT = `<h3>Five Letters</h3>
 <details>
 <summary style="font-size:16px;font-weight:400;color:rgba(255,255,255,0.55);cursor:pointer">Why it works: you are doing probability by hand</summary>
 <p>Every number is a local constraint — “exactly 2 of my 8 neighbors” — and solving well means combining overlapping constraints, which is informal probabilistic reasoning. Richard Kaye proved in 2000 that deciding whether a Minesweeper board is even consistent is NP-complete: in the worst case, no shortcut exists, and some boards genuinely force a guess. So when you stare at a 50/50 and shrug, that is not failure — that is computer science.</p>
+</details>
+
+<h3>Sudoku</h3>
+<p>Fill every row, column, and 3×3 box with 1–9. Three difficulties, pencil notes, three hints — wrong digits bounce, they never stick.</p>
+<div data-widget="sudoku" id="sudoku"></div>
+<details>
+<summary style="font-size:16px;font-weight:400;color:rgba(255,255,255,0.55);cursor:pointer">Why it works: propagate, don't guess</summary>
+<p>Strong Sudoku players rarely backtrack. They scan for naked singles — cells whose row, column, and box leave exactly one candidate — fill them, and let each fill create the next single. That is constraint propagation, the same idea behind type inference and scheduling algorithms: pin down what is forced, propagate the consequences, and the board solves itself. Guessing is what you do when propagation stalls; noticing that distinction is the skill.</p>
 </details>
 
 <h3>Code Breaker</h3>
@@ -70,7 +78,7 @@ const CONTENT = `<h3>Five Letters</h3>
 <h3>What you just practiced</h3>
 <ul>
 <li><strong>Splitting possibilities</strong> — every Five Letters and Code Breaker guess divided what was left into buckets and eliminated most of them.</li>
-<li><strong>Chaining constraints</strong> — every Minesweeper number was one small fact, and solving meant combining overlapping facts until the next safe square was forced.</li>
+<li><strong>Chaining constraints</strong> — every Minesweeper number was one small fact, and solving meant combining overlapping facts until the next safe square was forced. Sudoku ran the same play: naked singles, propagated until the board gave way.</li>
 <li><strong>Planning ahead</strong> — 2048 punished random moves and rewarded keeping your biggest tile pinned while you built toward it.</li>
 </ul>
 

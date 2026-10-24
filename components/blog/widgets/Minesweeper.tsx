@@ -6,6 +6,7 @@ import { MINESWEEPER_KEY, readJSON, writeJSON } from '@/lib/games/records';
 import { buildXUrl } from '@/lib/games/share';
 import HowToPlay from './HowToPlay';
 import XShare from './XShare';
+import WidgetShareBar from './WidgetShareBar';
 
 // Minesweeper: 9×9, 10 mines. Mines drop after the first click so the
 // opener is always safe. Right-click, long-press, or flag mode to flag.
@@ -255,6 +256,7 @@ export default function Minesweeper() {
               </button>
             </div>
           )}
+          <WidgetShareBar game="minesweeper" />
           <HowToPlay
             rows={[
               ['Tap / click', 'Open a cell.'],

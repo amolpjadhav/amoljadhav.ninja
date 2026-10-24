@@ -67,9 +67,15 @@ export async function GET(req: Request) {
           <span style={{ color: GREEN, fontSize: 26, fontWeight: 800, letterSpacing: 3 }}>
             {card.label.toUpperCase()}
           </span>
-          <div style={{ display: 'flex', alignItems: 'baseline', marginTop: 12 }}>
-            <span style={{ fontSize: 170, fontWeight: 900, lineHeight: 1 }}>{card.big}</span>
-          </div>
+          {card.big === '—' && card.stats.length === 0 ? (
+            <div style={{ display: 'flex', alignItems: 'baseline', marginTop: 12 }}>
+              <span style={{ fontSize: 110, fontWeight: 900, lineHeight: 1.05 }}>CAN YOU BEAT IT?</span>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', alignItems: 'baseline', marginTop: 12 }}>
+              <span style={{ fontSize: 170, fontWeight: 900, lineHeight: 1 }}>{card.big}</span>
+            </div>
+          )}
           {card.line ? (
             <div style={{ fontSize: 30, color: MUTED, fontWeight: 700, letterSpacing: 2, marginTop: 4 }}>
               {card.line.toUpperCase()}

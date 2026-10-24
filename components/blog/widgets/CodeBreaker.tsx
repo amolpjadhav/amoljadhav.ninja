@@ -6,6 +6,7 @@ import { CODE_BREAKER_KEY, readJSON, writeJSON } from '@/lib/games/records';
 import { buildXUrl } from '@/lib/games/share';
 import HowToPlay from './HowToPlay';
 import XShare from './XShare';
+import WidgetShareBar from './WidgetShareBar';
 
 // Code Breaker: crack the secret 4-peg code in 10 tries. Black peg = right
 // color in the right slot, white peg = right color, wrong slot. Colors are
@@ -245,6 +246,7 @@ export default function CodeBreaker() {
               </div>
             </div>
           )}
+          <WidgetShareBar game="code-breaker" />
           <HowToPlay
             rows={[
               ['Tap colors', 'Tap colors to fill the row, then press Check to score it. Undo removes the last peg.'],

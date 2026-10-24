@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import ShareRedirect from '@/components/blog/ShareRedirect';
-import { ARTICLE_SLUG, ARTICLE_TITLE, buildCardParams, encodeMarks, parseCardParams } from '@/lib/games/share';
+import { ARTICLE_SLUG, ARTICLE_TITLE, GAME_ANCHOR, buildCardParams, encodeMarks, isGameId, parseCardParams } from '@/lib/games/share';
 
 // Share landing: /share/chess-notation?score=16&total=20&acc=89&avg=1.8&best=1
 // Crawlers read the score-card metadata below (that's the snapshot embedded in
@@ -38,7 +38,31 @@ export async function generateMetadata({
   // Same convention as the chess card below, via lib/games/share.
   if (slug === ARTICLE_SLUG) {
     const card = parseCardParams((k) => first(sp[k]) ?? null);
+    if (!card) {
+      // Unknown or missing game id: a generic challenge card for the
+      // article. A chess score with defaulted zeros must never stand in
+      // for a game link we don't understand.
+      const cardUrl = `${SITE}/api/og/games`;
+      const title = ARTICLE_TITLE;
+      const description = 'Five games you know, playable right here. Can you beat them?';
+      return {
+        title,
+        description,
+        alternates: { canonical: `${SITE}/blog/${slug}` },
+        openGraph: {
+          title,
+          description,
+          type: 'website',
+          url: `${SITE}/share/${slug}`,
+          images: [{ url: cardUrl, width: 1200, height: 630, alt: title }],
+        },
+        twitter: { card: 'summary_large_image', title, description, images: [cardUrl] },
+      };
+    }
     if (card) {
+      // Scoreless challenge links (?g=sudoku) carry no result: title
+      // them as a challenge, never "Sudoku: —".
+      const challenged = card.big === '—' && card.stats.length === 0;
       const cardParams = buildCardParams({
         game: card.game,
         big: card.big,
@@ -48,8 +72,12 @@ export async function generateMetadata({
         grid: card.grid.length > 0 ? encodeMarks(card.grid) : undefined,
       });
       const cardUrl = `${SITE}/api/og/games?${cardParams.toString()}`;
-      const title = `${card.label}: ${card.big}${card.line ? ` — ${card.line}` : ''} · ${ARTICLE_TITLE}`;
-      const description = `My ${card.label} result from ${ARTICLE_TITLE}. Can you beat it?`;
+      const title = challenged
+        ? `${card.label} challenge · ${ARTICLE_TITLE}`
+        : `${card.label}: ${card.big}${card.line ? ` — ${card.line}` : ''} · ${ARTICLE_TITLE}`;
+      const description = challenged
+        ? `Can you beat me at ${card.label}? Play it right here.`
+        : `My ${card.label} result from ${ARTICLE_TITLE}. Can you beat it?`;
       return {
         title,
         description,
@@ -117,12 +145,23 @@ export async function generateMetadata({
 
 export default async function SharePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { slug } = await params;
   // The games article may still be a draft: its share links should bounce
   // to the article slug regardless of publish state.
   if (slug !== ARTICLE_SLUG && (await getTitle(slug)) === null) notFound();
-  return <ShareRedirect to={`/blog/${slug}`} />;
+  // Game links (?g=sudoku) land humans on that exact widget; crawlers
+  // never run this JS and keep the OG card metadata above.
+  const sp = await searchParams;
+  const g = Array.isArray(sp.g) ? sp.g[0] : sp.g;
+  const anchor = slug === ARTICLE_SLUG && isGameId(g) ? `#${GAME_ANCHOR[g]}` : '';
+  return anchor ? (
+    <ShareRedirect to={`/blog/${slug}${anchor}`} note="Taking you to the game…" />
+  ) : (
+    <ShareRedirect to={`/blog/${slug}`} />
+  );
 }

@@ -4,6 +4,25 @@ export const FIVE_LETTERS_KEY = 'five-letters:stats:v1';
 export const G2048_KEY = 'game-2048:best:v1';
 export const CODE_BREAKER_KEY = 'code-breaker:best:v1';
 export const MINESWEEPER_KEY = 'minesweeper:best:v1';
+export const SUDOKU_KEY = 'sudoku:best:v1';
+
+/** Best solve seconds per difficulty, null until first win. Daily
+ *  tracks the last solved date plus the consecutive-day streak. */
+export interface SudokuBests {
+  easy: number | null;
+  medium: number | null;
+  hard: number | null;
+  dailyLast: string | null;
+  dailyStreak: number;
+}
+
+export const EMPTY_SUDOKU_BESTS: SudokuBests = {
+  easy: null,
+  medium: null,
+  hard: null,
+  dailyLast: null,
+  dailyStreak: 0,
+};
 
 export interface FiveLettersStats {
   played: number;

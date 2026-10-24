@@ -6,6 +6,7 @@ import { G2048_KEY, readJSON, writeJSON } from '@/lib/games/records';
 import { buildXUrl } from '@/lib/games/share';
 import HowToPlay from './HowToPlay';
 import XShare from './XShare';
+import WidgetShareBar from './WidgetShareBar';
 
 // 2048: slide and merge to 2048. Arrows/WASD plus swipe, one undo per
 // game, best score in localStorage. Instant moves, no animation —
@@ -215,6 +216,7 @@ export default function Game2048() {
               </button>
             </div>
           )}
+          <WidgetShareBar game="game-2048" />
           <HowToPlay
             rows={[
               ['Arrow keys / WASD', 'Slide every tile.'],

@@ -10,16 +10,48 @@ export const ARTICLE_SLUG = 'classic-games-revisited';
 export const ARTICLE_TITLE = 'Classic Games, Revisited';
 const SITE = 'https://amoljadhav.ai';
 
-export type GameId = 'five-letters' | 'game-2048' | 'code-breaker' | 'minesweeper';
+export type GameId = 'five-letters' | 'game-2048' | 'code-breaker' | 'minesweeper' | 'sudoku';
 
 export const GAME_LABEL: Record<GameId, string> = {
   'five-letters': 'Five Letters',
   'game-2048': '2048',
   'code-breaker': 'Code Breaker',
   minesweeper: 'Minesweeper',
+  sudoku: 'Sudoku',
 };
 
 const GAME_IDS = Object.keys(GAME_LABEL) as GameId[];
+
+// Deep-link anchors: each game widget's placeholder id in the article.
+// A shared game link bounces humans to /blog/<slug>#<anchor> so they
+// land on that exact widget.
+export const GAME_ANCHOR: Record<GameId, string> = {
+  'five-letters': 'five-letters',
+  'game-2048': 'game-2048',
+  'code-breaker': 'code-breaker',
+  minesweeper: 'minesweeper',
+  sudoku: 'sudoku',
+};
+
+export function isGameId(v: unknown): v is GameId {
+  return typeof v === 'string' && (GAME_IDS as string[]).includes(v);
+}
+
+/** Scoreless challenge: no result yet, just "play this game". */
+export function buildGameChallenge(game: GameId): { shareUrl: string; anchorUrl: string; text: string } {
+  const label = GAME_LABEL[game];
+  const shareUrl = `${SITE}/share/${ARTICLE_SLUG}?g=${game}`;
+  return {
+    shareUrl,
+    anchorUrl: `${SITE}/blog/${ARTICLE_SLUG}#${GAME_ANCHOR[game]}`,
+    text: `Can you beat me at ${label}?`,
+  };
+}
+
+export function buildGameChallengeXUrl(game: GameId): string {
+  const { text, shareUrl } = buildGameChallenge(game);
+  return `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(shareUrl)}`;
+}
 
 export interface GameShareInput {
   game: GameId;

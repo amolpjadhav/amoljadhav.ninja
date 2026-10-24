@@ -25,6 +25,14 @@ const CONTENT = `<h3>Five Letters</h3>
 <p>Every number is a local constraint — “exactly 2 of my 8 neighbors” — and solving well means combining overlapping constraints, which is informal probabilistic reasoning. Richard Kaye proved in 2000 that deciding whether a Minesweeper board is even consistent is NP-complete: in the worst case, no shortcut exists, and some boards genuinely force a guess. So when you stare at a 50/50 and shrug, that is not failure — that is computer science.</p>
 </details>
 
+<h3>Sudoku</h3>
+<p>Fill every row, column, and 3×3 box with 1–9. Three difficulties, pencil notes, three hints — wrong digits bounce, they never stick.</p>
+<div data-widget="sudoku" id="sudoku"></div>
+<details>
+<summary style="font-size:16px;font-weight:400;color:rgba(255,255,255,0.55);cursor:pointer">Why it works: propagate, don't guess</summary>
+<p>Strong Sudoku players rarely backtrack. They scan for naked singles — cells whose row, column, and box leave exactly one candidate — fill them, and let each fill create the next single. That is constraint propagation, the same idea behind type inference and scheduling algorithms: pin down what is forced, propagate the consequences, and the board solves itself. Guessing is what you do when propagation stalls; noticing that distinction is the skill.</p>
+</details>
+
 <h3>Code Breaker</h3>
 <p>Crack the secret 4-peg code in ten tries. A black peg means a color in the right slot; a white peg means a right color in the wrong slot.</p>
 <div data-widget="code-breaker" id="code-breaker"></div>
@@ -44,7 +52,7 @@ const CONTENT = `<h3>Five Letters</h3>
 <h3>What you just practiced</h3>
 <ul>
 <li><strong>Splitting possibilities</strong> — every Five Letters and Code Breaker guess divided what was left into buckets and eliminated most of them.</li>
-<li><strong>Chaining constraints</strong> — every Minesweeper number was one small fact, and solving meant combining overlapping facts until the next safe square was forced.</li>
+<li><strong>Chaining constraints</strong> — every Minesweeper number was one small fact, and solving meant combining overlapping facts until the next safe square was forced. Sudoku ran the same play: naked singles, propagated until the board gave way.</li>
 <li><strong>Planning ahead</strong> — 2048 punished random moves and rewarded keeping your biggest tile pinned while you built toward it.</li>
 </ul>
 
@@ -55,6 +63,7 @@ const CONTENT = `<h3>Five Letters</h3>
 const GAMES: [string, string][] = [
   ['Five Letters', '#five-letters'],
   ['Minesweeper', '#minesweeper'],
+  ['Sudoku', '#sudoku'],
   ['Code Breaker', '#code-breaker'],
   ['2048', '#game-2048'],
 ];
@@ -77,7 +86,7 @@ export default function PreviewFamousPuzzleGames() {
               {TITLE}
             </h1>
             <p className="max-w-2xl text-base leading-relaxed text-white/60 md:text-lg">
-              Wordle, 2048, Mastermind, Minesweeper — four games you know. Underneath them: three ideas from
+              Wordle, 2048, Mastermind, Minesweeper, Sudoku — five games you know. Underneath them: three ideas from
               math and computer science.
             </p>
             <div className="mt-5 flex flex-wrap items-center gap-2">

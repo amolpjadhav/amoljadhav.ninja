@@ -14,6 +14,7 @@ import {
 import { buildXUrl, encodeMarks } from '@/lib/games/share';
 import HowToPlay from './HowToPlay';
 import XShare from './XShare';
+import WidgetShareBar from './WidgetShareBar';
 
 // Five Letters: guess the 5-letter word in 6 tries. Daily word (same for
 // everyone, seeded by date) plus practice mode and an optional hard mode
@@ -580,6 +581,7 @@ export default function FiveLetters() {
           ))}
         </div>
       )}
+          <WidgetShareBar game="five-letters" />
           <HowToPlay
             rows={[
               ['Type a guess', 'Type or tap letters to build a five-letter word, then press Enter.'],
