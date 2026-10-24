@@ -69,13 +69,8 @@ import CodeBreaker from './CodeBreaker';
 import Minesweeper from './Minesweeper';
 import Sudoku from './Sudoku';
 import GameScorecard from './GameScorecard';
-import MixingBox from './MixingBox';
-import TheoryScorecard from './TheoryScorecard';
-import BatteryParkingLot from './BatteryParkingLot';
-import BatteryChargeFlow from './BatteryChargeFlow';
 import TftItemCombinator from './TftItemCombinator';
 import TftItemsSheet from './TftItemsSheet';
-import TreasureHunt from './TreasureHunt';
 import NewtonPlayground from './NewtonPlayground';
 import StocksLookupWidget from './StocksLookupWidget';
 import TransitLookup from './TransitLookup';
@@ -157,13 +152,8 @@ export const WIDGET_REGISTRY: Record<string, ComponentType> = {
   'minesweeper': Minesweeper,
   'sudoku': Sudoku,
   'game-scorecard': GameScorecard,
-  'mixing-box': MixingBox,
-  'theory-scorecard': TheoryScorecard,
-  'battery-parking-lot': BatteryParkingLot,
-  'battery-charge-flow': BatteryChargeFlow,
   'tft-item-combinator': TftItemCombinator,
   'tft-items-sheet': TftItemsSheet,
-  'treasure-hunt': TreasureHunt,
   'newton-playground': NewtonPlayground,
   'stocks-lookup': StocksLookupWidget,
   'transit-lookup': TransitLookup,
