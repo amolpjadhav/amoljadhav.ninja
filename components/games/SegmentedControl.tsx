@@ -6,18 +6,20 @@ export default function SegmentedControl({
   value,
   onChange,
   ariaLabel,
+  fullWidth,
 }: {
   options: string[];
   value: string;
   onChange: (v: string) => void;
   ariaLabel: string;
+  fullWidth?: boolean;
 }) {
   return (
     <div
       role="tablist"
       aria-label={ariaLabel}
       className="inline-flex items-center gap-0.5 p-1 rounded-full overflow-x-auto max-w-full"
-      style={{ background: 'var(--surface-2)' }}
+      style={{ background: 'var(--surface-2)', width: fullWidth ? '100%' : undefined }}
     >
       {options.map((opt) => {
         const active = opt === value;
@@ -31,8 +33,8 @@ export default function SegmentedControl({
             className="games-touch games-press games-type-callout rounded-full px-4 whitespace-nowrap"
             style={
               active
-                ? { background: '#fff', color: '#000' }
-                : { background: 'transparent', color: 'var(--text-2)' }
+                ? { background: '#fff', color: '#000', flex: fullWidth ? 1 : undefined }
+                : { background: 'transparent', color: 'var(--text-2)', flex: fullWidth ? 1 : undefined }
             }
           >
             {opt}

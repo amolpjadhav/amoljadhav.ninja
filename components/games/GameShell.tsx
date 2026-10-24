@@ -17,6 +17,8 @@ export default function GameShell({
   dock,
   sidePanel,
   howToPlay,
+  wide,
+  squareBoard = true,
 }: {
   game: GameMeta;
   mode: string;
@@ -27,6 +29,11 @@ export default function GameShell({
   dock: ReactNode;
   sidePanel: ReactNode;
   howToPlay: ReactNode;
+  /** Wider centered group (chess): 1200px cap, 32px gutters. */
+  wide?: boolean;
+  /** Square locked board slot (default). Chess opts out: its board column
+   *  holds player bars + footer, so it owns its own sizing. */
+  squareBoard?: boolean;
 }) {
   return (
     <div
@@ -40,9 +47,11 @@ export default function GameShell({
         stats={stats}
         menu={menu}
       />
-      <div className="flex-1 w-full max-w-6xl mx-auto px-4 md:px-6 pb-8 grid gap-6 lg:grid-cols-[1fr_320px]">
+      <div
+        className={`flex-1 w-full mx-auto px-4 md:px-6 pb-8 grid gap-6 lg:grid-cols-[1fr_320px] ${wide ? 'max-w-[1200px] lg:gap-8' : 'max-w-6xl'}`}
+      >
         <main className="flex flex-col gap-4 min-w-0">
-          <div className="games-board-slot games-board-lock">{board}</div>
+          <div className={squareBoard ? 'games-board-slot games-board-lock' : 'min-w-0'}>{board}</div>
           {dock}
         </main>
         <aside className="hidden lg:flex flex-col gap-4 min-w-0">{sidePanel}</aside>

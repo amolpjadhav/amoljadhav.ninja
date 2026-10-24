@@ -1,18 +1,20 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import IconButton from './IconButton';
 import Sheet from './Sheet';
 
-// ⋯ menu: How to play, Reset stats. Sound/haptics toggles arrive with polish.
+// ⋯ menu: How to play, Reset stats, plus per-game extras (sound/theme).
 export default function GameMenu({
   gameName,
   onHowToPlay,
   onResetStats,
+  extra,
 }: {
   gameName: string;
   onHowToPlay: () => void;
   onResetStats: () => void;
+  extra?: ReactNode;
 }) {
   const [open, setOpen] = useState(false);
   const [confirming, setConfirming] = useState(false);
@@ -73,6 +75,7 @@ export default function GameMenu({
             >
               Reset stats
             </button>
+            {extra}
           </div>
         )}
       </Sheet>

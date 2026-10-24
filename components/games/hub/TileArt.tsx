@@ -276,6 +276,36 @@ function G2048Art() {
   );
 }
 
+function ChessArt() {
+  // 6x4 endgame patch on the classic palette, last move tinted gold.
+  const last = new Set(['2,1', '3,1']);
+  return (
+    <Frame>
+      {Array.from({ length: 4 }).map((_, r) =>
+        Array.from({ length: 6 }).map((__, c) => (
+          <rect
+            key={`${r}-${c}`}
+            x={14 + c * 28}
+            y={6 + r * 28}
+            width={28}
+            height={28}
+            fill={last.has(`${r},${c}`) ? 'rgba(229,192,123,.5)' : (r + c) % 2 === 0 ? '#E8DCC4' : '#B58863'}
+          />
+        )),
+      )}
+      <text x={42} y={52} textAnchor="middle" fontSize={26} aria-hidden>
+        ♞
+      </text>
+      <text x={126} y={80} textAnchor="middle" fontSize={26} aria-hidden>
+        ♜
+      </text>
+      <text x={98} y={52} textAnchor="middle" fontSize={26} aria-hidden>
+        ♚
+      </text>
+    </Frame>
+  );
+}
+
 export default function TileArt({ slug }: { slug: GameSlug }) {
   switch (slug) {
     case 'five-letters':
@@ -288,5 +318,7 @@ export default function TileArt({ slug }: { slug: GameSlug }) {
       return <CodeBreakerArt />;
     case '2048':
       return <G2048Art />;
+    case 'chess':
+      return <ChessArt />;
   }
 }

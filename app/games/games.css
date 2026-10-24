@@ -10,7 +10,9 @@
   --hairline: rgba(255, 255, 255, 0.08);
   --text-1: #ffffff;
   --text-2: rgba(235, 235, 245, 0.64);
-  --text-3: rgba(235, 235, 245, 0.38);
+  /* Tertiary text: the dimmest alpha that still clears 4.5:1 on every
+     arcade surface (axe color-contrast gate in scripts/qa-games.mjs). */
+  --text-3: rgba(235, 235, 245, 0.58);
   --success: #30d158;
   --warning: #ffd60a;
   --danger: #ff453a;
@@ -19,6 +21,7 @@
   --five-letters: #64d2ff;
   --minesweeper: #bf5af2;
   --sudoku: #ff9f0a;
+  --chess: #e5c07b;
   --code-breaker: #ff6fb5;
   --g2048: #30d158;
 

@@ -23,6 +23,7 @@ const ACCENT: Record<string, string> = {
   sudoku: '#FF9F0A',
   'code-breaker': '#FF6FB5',
   'game-2048': '#30D158',
+  chess: '#E5C07B',
 };
 
 const PLAY_SLUG: Record<string, string> = {
@@ -65,8 +66,11 @@ export async function GET(req: Request) {
     grid: [] as Mark[][],
   };
   const font = await loadFont();
-  const accent = ACCENT[card.game] ?? GREEN;
-  const playSlug = PLAY_SLUG[card.game] ?? card.game;
+  // Unknown `g` values (e.g. chess, which has no article card) render the
+  // generic card but keep their own play URL in the footer.
+  const rawGame = q.get('g');
+  const accent = ACCENT[card.game] ?? (rawGame && ACCENT[rawGame] ? (ACCENT[rawGame] as string) : GREEN);
+  const playSlug = PLAY_SLUG[card.game] ?? rawGame ?? card.game;
 
   return new ImageResponse(
     (

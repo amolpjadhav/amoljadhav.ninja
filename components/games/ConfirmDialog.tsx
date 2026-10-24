@@ -37,7 +37,9 @@ export default function ConfirmDialog({
           type="button"
           onClick={onConfirm}
           className="games-touch games-press games-type-callout flex-1 rounded-[14px] px-4"
-          style={{ background: 'var(--danger)', color: '#fff' }}
+          // Deep destructive red: white text clears 4.5:1 here, while it
+          // fails on the brighter --danger (≈3.4:1).
+          style={{ background: '#d70015', color: '#fff' }}
         >
           {confirmLabel}
         </button>

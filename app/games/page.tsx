@@ -18,11 +18,11 @@ import { DAILY_GAMES } from '@/components/games/hub/hub-stats';
 export const metadata: Metadata = {
   title: 'Classic Games, Revisited | Amol Jadhav',
   description:
-    'Five classics, rebuilt. One new daily set every midnight PT — free, no ads, daily puzzle.',
+    'Six classics, rebuilt. One new daily set every midnight PT — free, no ads, daily puzzle.',
   alternates: { canonical: 'https://amoljadhav.ai/games' },
   openGraph: {
     title: 'Classic Games, Revisited',
-    description: 'Five classics, rebuilt. One new daily set every midnight PT.',
+    description: 'Six classics, rebuilt. One new daily set every midnight PT.',
     type: 'website',
     url: 'https://amoljadhav.ai/games',
   },
@@ -61,7 +61,7 @@ const JSON_LD = {
   '@type': 'Article',
   headline: 'Classic Games, Revisited',
   description:
-    'Five classics, rebuilt. One new daily set every midnight PT — free, no ads.',
+    'Six classics, rebuilt. One new daily set every midnight PT — free, no ads.',
   author: { '@type': 'Person', name: 'Amol Jadhav' },
   mainEntityOfPage: 'https://amoljadhav.ai/games',
   about: GAMES.map((g) => ({
@@ -103,7 +103,7 @@ export default function GamesHubPage() {
           className="games-type-body mt-2 max-w-[60ch]"
           style={{ color: 'var(--text-2)' }}
         >
-          Five classics, rebuilt. One new daily set every midnight PT — free,
+          Six classics, rebuilt. One new daily set every midnight PT — free,
           no ads.
         </p>
       </section>
@@ -160,7 +160,9 @@ export default function GamesHubPage() {
                         className="games-type-micro px-2 py-0.5 rounded-full"
                         style={{
                           background: `color-mix(in srgb, var(${g.accentVar}) 18%, transparent)`,
-                          color: `var(${g.accentVar})`,
+                          // Badge text stays near-white: saturated accents
+                          // (e.g. minesweeper purple) fail 4.5:1 on the tint.
+                          color: 'var(--text-1)',
                         }}
                       >
                         Daily
@@ -238,7 +240,8 @@ export default function GamesHubPage() {
         <p className="games-type-caption" style={{ color: 'var(--text-3)' }}>
           2048 original by Gabriele Cirulli (MIT). Five Letters, Minesweeper,
           Sudoku and Code Breaker are classic public-domain rules, rebuilt
-          here. New sets and scores are announced on{' '}
+          here. Chess plays against the Stockfish engine (GPL-3, unmodified).
+          New sets and scores are announced on{' '}
           <Link href="/blog" className="underline underline-offset-2">
             the blog — subscribe there
           </Link>

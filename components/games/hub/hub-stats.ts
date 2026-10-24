@@ -106,6 +106,7 @@ const SAVE_KEYS: Record<string, string> = {
   sudoku: 'games:v1:sudoku',
   'code-breaker': 'games:v1:code-breaker',
   '2048': 'games:v1:2048',
+  chess: 'games:v1:chess',
 };
 
 /** True when an autosave payload holds actual play (not a fresh deal). */
@@ -132,6 +133,9 @@ export function saveHasProgress(slug: string, save: unknown): boolean {
   if (slug === '2048') {
     return (typeof save.score === 'number' && save.score > 0) ||
       (Array.isArray(save.board) && save.board.some((v: unknown) => v !== 0));
+  }
+  if (slug === 'chess') {
+    return Array.isArray(save.moves) && save.moves.length > 0;
   }
   return true;
 }

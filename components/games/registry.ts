@@ -2,7 +2,7 @@
 // canonical deep links (/games/sudoku); OLD_ANCHORS maps the legacy
 // article anchors (#game-2048) to the new slugs so old links keep working.
 
-export type GameSlug = 'five-letters' | 'minesweeper' | 'sudoku' | 'code-breaker' | '2048';
+export type GameSlug = 'five-letters' | 'minesweeper' | 'sudoku' | 'code-breaker' | '2048' | 'chess';
 
 export interface GameMeta {
   slug: GameSlug;
@@ -15,6 +15,16 @@ export interface GameMeta {
 }
 
 export const GAMES: GameMeta[] = [
+  {
+    slug: 'chess',
+    name: 'Chess',
+    pitch: 'Outplay the computer, from Pawn to King.',
+    accentVar: '--chess',
+    accent: '#E5C07B',
+    modes: ['Play'],
+    description:
+      'Play chess online vs the computer — free, no ads. Six levels from total beginner to full strength.',
+  },
   {
     slug: 'five-letters',
     name: 'Five Letters',
@@ -83,7 +93,7 @@ export const OLD_ANCHORS: Record<string, GameSlug> = {
   'game-2048': '2048',
 };
 
-export const GAME_ORDER: GameSlug[] = ['five-letters', 'minesweeper', 'sudoku', 'code-breaker', '2048'];
+export const GAME_ORDER: GameSlug[] = ['chess', 'five-letters', 'minesweeper', 'sudoku', 'code-breaker', '2048'];
 
 export function nextGame(slug: GameSlug): GameMeta {
   const i = GAME_ORDER.indexOf(slug);

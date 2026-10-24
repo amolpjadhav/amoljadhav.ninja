@@ -49,6 +49,8 @@ describe('saveHasProgress', () => {
     assert.equal(saveHasProgress('sudoku', { puzzle, grid: [...puzzle], secs: 0 }), false);
     assert.equal(saveHasProgress('sudoku', { puzzle, grid: [...puzzle], secs: 7 }), true);
     assert.equal(saveHasProgress('2048', { board: [2, 2], score: 0 }), true);
+    assert.equal(saveHasProgress('chess', { moves: [] }), false);
+    assert.equal(saveHasProgress('chess', { moves: ['e4'] }), true);
   });
 });
 

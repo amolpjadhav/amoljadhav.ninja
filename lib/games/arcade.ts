@@ -8,7 +8,7 @@
 // and left in place (read-only fallback, never written again).
 export const ARCADE_KEY = 'games:v1';
 
-export const GAME_SLUGS = ['five-letters', 'minesweeper', 'sudoku', 'code-breaker', '2048'] as const;
+export const GAME_SLUGS = ['five-letters', 'minesweeper', 'sudoku', 'code-breaker', '2048', 'chess'] as const;
 export type ArcadeSlug = (typeof GAME_SLUGS)[number];
 
 export interface ArcadeGameState {

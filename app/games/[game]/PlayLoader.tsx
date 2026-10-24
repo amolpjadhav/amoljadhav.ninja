@@ -1,7 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import type { GameSlug } from '@/components/games/registry';
+import { GAME_BY_SLUG, type GameSlug } from '@/components/games/registry';
 
 // Each game's JS loads only when its route opens — the hub stays lean.
 // ssr:false: engines deal randomness on mount, so prerendering would
@@ -26,6 +26,10 @@ const G2048Play = dynamic(() => import('@/components/games/play/G2048Play'), {
   ssr: false,
   loading: () => <BoardSkeleton label="Loading 2048…" />,
 });
+const ChessPlay = dynamic(() => import('@/components/games/play/ChessPlay'), {
+  ssr: false,
+  loading: () => <BoardSkeleton label="Loading Chess…" />,
+});
 
 function BoardSkeleton({ label }: { label: string }) {
   return (
@@ -36,16 +40,31 @@ function BoardSkeleton({ label }: { label: string }) {
 }
 
 export default function PlayLoader({ slug, initialMode }: { slug: GameSlug; initialMode: string }) {
+  // --game-accent must cover the whole play tree INCLUDING the sheets:
+  // ResultSheet/HowToPlaySheet/ConfirmDialog render as GameShell siblings,
+  // so a token set only on GameShell's root never reaches them (black
+  // text on a transparent background). One wrapper here fixes all games.
+  const accent = GAME_BY_SLUG[slug].accent;
+  let play: React.ReactNode;
   switch (slug) {
     case 'five-letters':
-      return <FiveLettersPlay initialMode={initialMode} />;
+      play = <FiveLettersPlay initialMode={initialMode} />;
+      break;
     case 'minesweeper':
-      return <MinesweeperPlay initialMode={initialMode} />;
+      play = <MinesweeperPlay initialMode={initialMode} />;
+      break;
     case 'sudoku':
-      return <SudokuPlay initialMode={initialMode} />;
+      play = <SudokuPlay initialMode={initialMode} />;
+      break;
     case 'code-breaker':
-      return <CodeBreakerPlay initialMode={initialMode} />;
+      play = <CodeBreakerPlay initialMode={initialMode} />;
+      break;
     case '2048':
-      return <G2048Play initialMode={initialMode} />;
+      play = <G2048Play initialMode={initialMode} />;
+      break;
+    case 'chess':
+      play = <ChessPlay initialMode={initialMode} />;
+      break;
   }
+  return <div style={{ ['--game-accent' as string]: accent }}>{play}</div>;
 }

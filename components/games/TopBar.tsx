@@ -42,12 +42,14 @@ export default function TopBar({
           <span className="md:hidden flex items-center gap-1.5">{menu}</span>
         </div>
         <div className="flex items-center gap-2 md:gap-3 md:flex-1 md:justify-center min-w-0">
-          <SegmentedControl
-            options={game.modes}
-            value={mode}
-            onChange={onModeChange}
-            ariaLabel={`${game.name} mode`}
-          />
+          {game.modes.length > 1 && (
+            <SegmentedControl
+              options={game.modes}
+              value={mode}
+              onChange={onModeChange}
+              ariaLabel={`${game.name} mode`}
+            />
+          )}
         </div>
         <div className="hidden md:flex items-center gap-1.5">
           {stats}
