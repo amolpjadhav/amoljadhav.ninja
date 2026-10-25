@@ -1,6 +1,7 @@
 'use client';
 
-import { markRings, nudgeLabels } from '@/lib/games/guide-geometry';
+import type { ReactNode } from 'react';
+import { groupByTarget, markRings, nudgeLabels } from '@/lib/games/guide-geometry';
 
 // Guide-arrow overlay for the chess coach. The board library's arrows
 // carry color only (no width, caps, heads, or labels), so guided arrows
@@ -21,8 +22,11 @@ export interface GuideArrowSpec {
   to: string;
   color: string;
   main: boolean;
-  pct: number;
+  /** Null when no real counts exist — the % pill hides instead of guessing. */
+  pct: number | null;
   name: string;
+  /** Knight L corner: 'hv' = across then up, 'vh' = up then across. */
+  via?: 'hv' | 'vh';
   /** Demoted from arrow to destination ring (collinear overlap). */
   ring?: boolean;
 }
@@ -38,8 +42,10 @@ const TAIL_OFFSET = 30;
 const HEAD_RATIO = 2.2;
 const LABEL_FONT = 12;
 
-export function shaftWidth(main: boolean, pct: number): number {
-  return main ? 16 : 9 + 4 * (pct / 100);
+export function shaftWidth(main: boolean, pct: number | null): number {
+  if (main) return 16;
+  if (pct === null) return 11;
+  return 9 + 4 * (pct / 100);
 }
 
 /** Pill width for a % label: 8px side padding + ~7px per character. */
@@ -111,8 +117,9 @@ export function hoverUciAt(
       continue;
     }
     const w = shaftWidth(a.main, a.pct);
+    const corner: [number, number] = a.via === 'vh' ? [A[0], B[1]] : [B[0], A[1]];
     const legs: [[number, number], [number, number]][] = isKnight(a.from, a.to)
-      ? [[A, [B[0], A[1]]], [[B[0], A[1]], B]]
+      ? [[A, corner], [corner, B]]
       : [[A, B]];
     for (const [p, q] of legs) {
       const d = distToSeg([x, y], p, q);
@@ -140,27 +147,40 @@ export default function GuideArrows({
 }) {
   const visible = soloUci ? arrows.filter((a) => a.uci === soloUci) : arrows;
   const ordered = [...visible].sort((a, b) => Number(a.main) - Number(b.main));
-  // % pills live inside their target square; nudge stacked pills apart.
-  const labels = nudgeLabels(
-    ordered.map((a) => {
-      const B = center(a.to, orientation);
-      const text = `${a.pct}%`;
-      const w = labelWidth(text);
+  // Options sharing a target square share one pill ("50% · 17%", split by
+  // color dots); nudging keeps pills apart without clipping. No real
+  // counts → no pill at all.
+  interface GroupPill {
+    segs: { text: string; color: string }[];
+    x: number;
+    y: number;
+    w: number;
+    h: number;
+  }
+  const pills = nudgeLabels(
+    groupByTarget(ordered.map((a) => a)).flatMap((g) => {
+      const segs = g
+        .filter((m) => m.pct !== null)
+        .map((m) => ({ text: `${m.pct}%`, color: m.color }));
+      if (segs.length === 0) return [];
+      const w = 16 + segs.reduce((n, s) => n + 10 + 7 * s.text.length, 0) + (segs.length - 1) * 8;
       const h = 20;
-      if (a.ring) return { x: B[0] - w / 2, y: B[1] - h / 2, w, h };
-      const A = center(a.from, orientation);
+      const first = g[0] as GuideArrowSpec;
+      const B = center(first.to, orientation);
+      if (first.ring) return [{ segs, x: B[0] - w / 2, y: B[1] - h / 2, w, h }];
+      const A = center(first.from, orientation);
       const toward = norm(sub(B, A));
       const anchor = add(B, scale(toward, -14));
-      return { x: anchor[0] - w / 2, y: anchor[1] - h / 2, w, h };
+      return [{ segs, x: anchor[0] - w / 2, y: anchor[1] - h / 2, w, h }];
     }),
-  );
+  ) as GroupPill[];
   return (
     <svg
       viewBox="0 0 800 800"
       aria-hidden
       style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }}
     >
-      {ordered.map((a, i) => {
+      {ordered.map((a) => {
         const A = center(a.from, orientation);
         const B = center(a.to, orientation);
         const w = shaftWidth(a.main, a.pct);
@@ -169,7 +189,7 @@ export default function GuideArrows({
         let d: [number, number];
         let path: string;
         if (isKnight(a.from, a.to)) {
-          const C: [number, number] = [B[0], A[1]];
+          const C: [number, number] = a.via === 'vh' ? [A[0], B[1]] : [B[0], A[1]];
           const d0 = norm(sub(C, A));
           const P0 = add(A, scale(d0, TAIL_OFFSET));
           d = norm(sub(B, C));
@@ -193,7 +213,6 @@ export default function GuideArrows({
               : 0.3
             : baseOpacity;
         const hovered = hoverUci === a.uci;
-        const label = labels[i] as { x: number; y: number; w: number; h: number };
         const nameAt = add(add(tip, scale(d, -(headLen + 44))), scale(pv, -(headHalf + 40)));
         return (
           <g key={a.uci} opacity={opacity}>
@@ -220,28 +239,6 @@ export default function GuideArrows({
                 <polygon points={`${tip[0]},${tip[1]} ${p1[0]},${p1[1]} ${p2[0]},${p2[1]}`} fill={a.color} />
               </>
             )}
-            <g>
-              <rect
-                x={label.x}
-                y={label.y}
-                width={label.w}
-                height={label.h}
-                rx={10}
-                fill="rgba(0,0,0,.65)"
-              />
-              <text
-                x={label.x + label.w / 2}
-                y={label.y + label.h / 2}
-                textAnchor="middle"
-                dominantBaseline="central"
-                fontSize={LABEL_FONT}
-                fontWeight={700}
-                fill="#fff"
-                style={{ fontVariantNumeric: 'tabular-nums' }}
-              >
-                {a.pct}%
-              </text>
-            </g>
             {hovered && (
               <g>
                 <rect
@@ -265,6 +262,54 @@ export default function GuideArrows({
                 </text>
               </g>
             )}
+          </g>
+        );
+      })}
+      {pills.map((p, i) => {
+        let cx = p.x + 8;
+        const midY = p.y + p.h / 2;
+        const kids: ReactNode[] = [];
+        p.segs.forEach((s, j) => {
+          if (j > 0) {
+            kids.push(
+              <text
+                key={`sep-${j}`}
+                x={cx + 2}
+                y={midY}
+                textAnchor="middle"
+                dominantBaseline="central"
+                fontSize={LABEL_FONT}
+                fill="rgba(255,255,255,.6)"
+              >
+                ·
+              </text>,
+            );
+            cx += 8;
+          }
+          const dotCx = cx + 4;
+          const tx = cx + 10;
+          cx += 10 + 7 * s.text.length;
+          kids.push(
+            <g key={`seg-${j}`}>
+              <circle cx={dotCx} cy={midY} r={3.5} fill={s.color} />
+              <text
+                x={tx}
+                y={midY}
+                dominantBaseline="central"
+                fontSize={LABEL_FONT}
+                fontWeight={700}
+                fill="#fff"
+                style={{ fontVariantNumeric: 'tabular-nums' }}
+              >
+                {s.text}
+              </text>
+            </g>,
+          );
+        });
+        return (
+          <g key={`pill-${i}`}>
+            <rect x={p.x} y={p.y} width={p.w} height={p.h} rx={10} fill="rgba(0,0,0,.65)" />
+            {kids}
           </g>
         );
       })}

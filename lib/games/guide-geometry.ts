@@ -67,6 +67,53 @@ export function markRings(paths: GuidePath[]): boolean[] {
   });
 }
 
+/**
+ * Knight L orientation: current play draws A→(B.x,A.y)→B (horizontal
+ * first). Pick the corner whose square is empty and whose legs pass
+ * over fewer pieces (b8→d7 goes up-then-across past an empty b6, not
+ * through the back rank). Origin and destination never count.
+ */
+export function knightCorner(from: string, to: string, occupied: Set<string>): 'hv' | 'vh' {
+  const sq = (f: number, r: number) => `${String.fromCharCode(97 + f)}${r + 1}`;
+  const [fx, fy] = [from.charCodeAt(0) - 97, Number(from[1]) - 1];
+  const [tx, ty] = [to.charCodeAt(0) - 97, Number(to[1]) - 1];
+  const near = (ax: number, ay: number, bx: number, by: number) => {
+    let hits = 0;
+    for (const t of [0.25, 0.5, 0.75]) {
+      const hit = sq(Math.round(ax + (bx - ax) * t), Math.round(ay + (by - ay) * t));
+      if (hit !== from && hit !== to && occupied.has(hit)) hits += 1;
+    }
+    return hits;
+  };
+  const cornerHv: [number, number] = [tx, fy];
+  const cornerVh: [number, number] = [fx, ty];
+  const scoreHv =
+    (occupied.has(sq(...cornerHv)) ? 2 : 0) +
+    near(fx, fy, ...cornerHv) +
+    near(...cornerHv, tx, ty);
+  const scoreVh =
+    (occupied.has(sq(...cornerVh)) ? 2 : 0) +
+    near(fx, fy, ...cornerVh) +
+    near(...cornerVh, tx, ty);
+  return scoreVh < scoreHv ? 'vh' : 'hv';
+}
+
+/** Group specs sharing a target square so their % pills render as one. */
+export function groupByTarget<T extends { to: string }>(items: T[]): T[][] {
+  const groups: T[][] = [];
+  const at = new Map<string, T[]>();
+  for (const item of items) {
+    const g = at.get(item.to);
+    if (g) g.push(item);
+    else {
+      const next: T[] = [item];
+      at.set(item.to, next);
+      groups.push(next);
+    }
+  }
+  return groups;
+}
+
 export interface LabelBox {
   x: number;
   y: number;

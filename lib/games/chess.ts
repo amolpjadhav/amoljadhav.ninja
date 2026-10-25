@@ -216,6 +216,28 @@ export function evalWhiteShare(cp: number): number {
   return 100 / (1 + Math.exp(-0.004 * cp));
 }
 
+export type EvalTone = 'best' | 'even' | 'loose' | 'bad';
+
+/**
+ * Option-row delta vs the best known eval, from the side to move:
+ * best → "Best", the rest as "−0.4" pawns worse. Sort stays popularity —
+ * this only re-labels. Null when either eval is unknown.
+ */
+export function deltaEvalText(
+  cp: number | null,
+  bestCp: number | null,
+  side: 'w' | 'b',
+  isBest: boolean,
+): { text: string; tone: EvalTone } | null {
+  if (cp === null || bestCp === null || !Number.isFinite(cp) || !Number.isFinite(bestCp)) return null;
+  if (isBest) return { text: 'Best', tone: 'best' };
+  const behind = ((bestCp - cp) * (side === 'w' ? 1 : -1)) / 100;
+  if (behind === 0) return { text: '0.0', tone: 'even' };
+  const text = `-${Math.abs(behind).toFixed(1)}`;
+  const tone: EvalTone = behind <= 0.3 ? 'even' : behind <= 1.0 ? 'loose' : 'bad';
+  return { text, tone };
+}
+
 export function chessShareText(opts: {
   outcome: 'win' | 'loss' | 'draw';
   level: ChessLevel;

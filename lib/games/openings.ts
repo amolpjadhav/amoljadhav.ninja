@@ -179,6 +179,87 @@ export function shortOpeningName(eco: string, name: string): string {
   return tail.replace(/\s+(defense|defence|opening|game|variation|deferred|declined)$/i, '');
 }
 
+/**
+ * Header name for the CURRENT position. Dataset entries often carry a
+ * deeper subline after a comma ("Rubinstein Variation, Ellis Gambit");
+ * that tail describes continuations, so the header drops it — it names
+ * where you are, never where you might go.
+ */
+export function headerOpeningName(name: string): string {
+  return name.split(',')[0]?.trim() || name;
+}
+
+/**
+ * Distinguishing row label: the child name minus the current header
+ * ("Rubinstein Variation, Ellis Gambit" → "Ellis Gambit"). A child that
+ * adds nothing is the "Main line" when most popular, else "—".
+ */
+export function rowDistinguishingName(
+  childFull: string,
+  header: string,
+  eco: string,
+  isMostPopular: boolean,
+): string {
+  if (childFull === header) return isMostPopular ? 'Main line' : '—';
+  const prefix = `${header}, `;
+  if (childFull.startsWith(prefix)) {
+    const tail = childFull.slice(prefix.length).trim();
+    return tail ? shortOpeningName(eco, tail) : isMostPopular ? 'Main line' : '—';
+  }
+  return shortOpeningName(eco, childFull);
+}
+
+export interface ExplorerMove {
+  uci: string;
+  games: number;
+}
+
+export interface MergedKid {
+  uci: string;
+  san: string;
+  weight: number;
+  /** Share 0–100 when real counts exist (explorer, else dataset); null hides % everywhere. */
+  pct: number | null;
+  games: number | null;
+}
+
+/**
+ * Options = dataset tree children ∪ explorer moves (≥1% share or ≥50
+ * games), ranked by real games first, dataset weight after. Explorer
+ * pct wins when it has data; dataset weights stay as the fallback; a
+ * row with neither hides its % instead of inventing one.
+ */
+export function mergeExplorerKids(
+  base: BookChildStat[],
+  explorer: ExplorerMove[] | null,
+  fen: string,
+): MergedKid[] {
+  const expTotal = (explorer ?? []).reduce((n, m) => n + m.games, 0);
+  const expByUci = new Map((explorer ?? []).map((m) => [m.uci, m.games]));
+  const out: MergedKid[] = base.map((k) => {
+    const games = expByUci.get(k.uci) ?? null;
+    return {
+      uci: k.uci,
+      san: k.san ?? k.uci,
+      weight: k.weight,
+      pct: games !== null && expTotal > 0 ? Math.round((100 * games) / expTotal) : k.weight > 0 ? k.pct : null,
+      games,
+    };
+  });
+  if (explorer && expTotal > 0) {
+    const have = new Set(out.map((k) => k.uci));
+    for (const m of explorer) {
+      if (have.has(m.uci)) continue;
+      const share = (100 * m.games) / expTotal;
+      if (share < 1 && m.games < 50) continue;
+      const san = uciToSan(fen, m.uci);
+      if (!san) continue;
+      out.push({ uci: m.uci, san, weight: 0, pct: Math.round(share), games: m.games });
+    }
+  }
+  return out.sort((a, b) => (b.games ?? -1) - (a.games ?? -1) || b.weight - a.weight);
+}
+
 /** Style tag for an ECO|name pair; null when untagged (UI hides the tag). */
 export function styleFor(styles: Record<string, OpeningStyle> | null, eco: string, name: string): OpeningStyle | null {
   if (!styles) return null;

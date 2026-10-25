@@ -21,8 +21,16 @@ function readViews(): Promise<Record<string, number>> {
 // Card footer (outside the tile link — buttons can't nest in anchors):
 // lifetime views plus share-out for that game. Views count play-page
 // visits only; hub impressions never increment.
-export default function TileFooter({ slug, name }: { slug: GameSlug; name: string }) {
-  const [views, setViews] = useState<number | null>(null);
+export default function TileFooter({
+  slug,
+  name,
+  initialViews,
+}: {
+  slug: GameSlug;
+  name: string;
+  initialViews?: number;
+}) {
+  const [views, setViews] = useState<number | null>(initialViews ?? null);
   const [copied, setCopied] = useState(false);
   const links = gameShareLinks(slug, name);
 

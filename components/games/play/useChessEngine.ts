@@ -25,8 +25,8 @@ export interface EngineReply {
 const ENGINE_URL = '/vendor/stockfish/stockfish-19-lite-single.js';
 const BOOT_TIMEOUT_MS = 20000;
 const MOVE_TIMEOUT_MS = 15000;
-const ANALYSIS_MOVE_MS = 400;
-const ANALYSIS_TIMEOUT_MS = 2500;
+const ANALYSIS_DEPTH = 12;
+const ANALYSIS_TIMEOUT_MS = 3000;
 
 export function useChessEngine(onReply: (reply: EngineReply) => void) {
   const [ready, setReady] = useState(false);
@@ -210,9 +210,12 @@ export function useChessEngine(onReply: (reply: EngineReply) => void) {
   }, [cancelAnalysis]);
 
   /**
-   * Shallow background eval of one position (coach option rows + eval
-   * bar). False when the engine is busy or missing — callers back off.
-   * requestMove preempts a running analysis; only one runs at a time.
+   * Background eval of one position (coach option rows + eval bar):
+   * single-PV Stockfish at fixed depth, so numbers stay comparable
+   * across devices. False when the engine is busy or missing — callers
+   * back off. requestMove preempts a running analysis; only one runs
+   * at a time. A timeout resolves null (shallow read) without touching
+   * the real search path.
    */
   const analyze = useCallback(
     (fen: string, turn: 'w' | 'b', done: (cp: number | null) => void): boolean => {
@@ -226,7 +229,7 @@ export function useChessEngine(onReply: (reply: EngineReply) => void) {
       try {
         w.postMessage('stop');
         w.postMessage(`position fen ${fen}`);
-        w.postMessage(`go movetime ${ANALYSIS_MOVE_MS}`);
+        w.postMessage(`go depth ${ANALYSIS_DEPTH}`);
       } catch {
         clearTimeout(timeout);
         analysisRef.current = null;

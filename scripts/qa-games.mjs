@@ -488,6 +488,10 @@ async function coachFlow(browser, width) {
 // tags, and cached evals. Fails on any page error.
 async function coachRings(browser, width) {
   const { ctx, page } = await freshPage(browser, width);
+  // No-stats path, deterministically: without real counts the bot follows
+  // dataset weights and rows/arrows hide their %. (Live-count merging is
+  // unit-tested; verify it manually post-deploy.)
+  await ctx.route('**/api/chess/explorer**', (r) => r.abort());
   const label = `rings@${width}`;
   const errors = [];
   page.on('pageerror', (e) => errors.push(`pageerror: ${String(e && e.message ? e.message : e).split('\n')[0]}`));
@@ -522,13 +526,17 @@ async function coachRings(browser, width) {
     await page.locator('[title="To move"]').waitFor();
     const scope = width >= 1024 ? page.locator('aside') : page.locator('details');
     if (width < 1024) await page.locator('details').evaluate((d) => { d.open = true; });
-    for (const nm of ['Open Game', 'Sicilian', 'French', 'Caro-Kann']) {
+    // e5 shares the header's name, so its row reads "Main line".
+    for (const nm of ['Main line', 'Sicilian', 'French', 'Caro-Kann']) {
       await scope.getByText(nm, { exact: true }).first().waitFor();
     }
     if ((await scope.getByText(/Book: \d/).count()) !== 0) throw new Error('Book: line survived');
+    // No explorer stats in this flow: no invented % anywhere on rows/arrows.
+    if ((await scope.getByText(/^\d+%$/).count()) !== 0) throw new Error('invented % shown without stats');
     // Cached engine evals fill the bar and the rows in the background.
+    // Rows show delta-vs-best from Black's view ("Best", "−0.4", …).
     await page.getByRole('img', { name: /^Evaluation / }).waitFor({ timeout: 60000 });
-    await scope.getByText(/[+-]\d+\.\d/).first().waitFor({ timeout: 60000 });
+    await scope.getByText('Best', { exact: true }).first().waitFor({ timeout: 60000 });
     await settle(page);
     await shot(page, `coach-rings-${width}`);
     await contrast(page, `${label}-rings`);
@@ -547,6 +555,52 @@ async function coachRings(browser, width) {
     await settle(page);
     await shot(page, `coach-ring-solo-${width}`);
     await contrast(page, `${label}-ring-solo`);
+    // French line: 1…e6 2…d5 (bot answers 2.d4 3.Nc3 from the book;
+    // Black orientation mirrors files and ranks, so e7 is (3, 6)).
+    // The header must name the CURRENT position
+    // ("French Defense: Paulsen Variation") — never a deeper subline —
+    // and 3…Nf6 must appear among the options.
+    const clickSq = async (f, row) => {
+      const r = await page.evaluate(() => {
+        const b = document.querySelector('[aria-label="Chess board"]').getBoundingClientRect();
+        return { x: b.x, y: b.y, w: b.width, h: b.height };
+      });
+      await page.mouse.click(r.x + (r.w * (f + 0.5)) / 8, r.y + (r.h * (row + 0.5)) / 8);
+    };
+    // The desktop panel and the mobile details each carry a move list;
+    // watch the fullest single list so the count means real plies.
+    const waitRows = (n) =>
+      page.waitForFunction(
+        (count) => {
+          const lists = [...document.querySelectorAll('[aria-label="Move list"]')];
+          return lists.length > 0 && Math.max(...lists.map((l) => l.querySelectorAll('li').length)) >= count;
+        },
+        n,
+        { timeout: 90000 },
+      );
+    const fstep = (m) => console.log(`[${label}] ${m}`);
+    await clickSq(3, 6);
+    await settle(page);
+    await clickSq(3, 5);
+    await waitRows(2);
+    fstep('french e6 answered');
+    await clickSq(4, 6);
+    await settle(page);
+    await clickSq(4, 4);
+    await waitRows(3);
+    fstep('french d5 answered');
+    // Scope to the visible panel: the mobile details (hidden on desktop)
+    // comes first in DOM order and would shadow the aside header.
+    await scope.getByText('French Defense: Paulsen Variation').first().waitFor({ timeout: 15000 });
+    fstep('french header ok');
+    if ((await scope.getByText(/Ellis Gambit|Rubinstein Variation,/).count()) !== 0) {
+      throw new Error('header names a deeper subline');
+    }
+    await scope.getByRole('button', { name: /^Option Nf6,/ }).waitFor({ timeout: 15000 });
+    fstep('french Nf6 ok');
+    await settle(page);
+    await shot(page, `coach-french-${width}`);
+    await contrast(page, `${label}-french`);
     if (errors.length > 0) throw new Error(errors[0]);
   } catch (e) {
     failures.push(`${label}: ${(e && e.message ? String(e.message) : e).split('\n')[0]}`);

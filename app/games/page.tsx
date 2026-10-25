@@ -4,6 +4,7 @@ import { Suspense } from 'react';
 import { HubShell } from '@/components/games/GameShell';
 import AnchorRedirect from './AnchorRedirect';
 import { GAMES } from '@/components/games/registry';
+import { readGameViews } from '@/lib/game-views';
 import TileArt from '@/components/games/hub/TileArt';
 import TileStatus from '@/components/games/hub/TileStatus';
 import TileFooter from '@/components/games/hub/TileFooter';
@@ -83,7 +84,15 @@ const JSON_LD = {
   })),
 };
 
-export default function GamesHubPage() {
+export default async function GamesHubPage() {
+  // Server-rendered counts so footers paint numbers on first paint;
+  // each footer still refreshes client-side for exactness.
+  let initialViews: Record<string, number> = {};
+  try {
+    initialViews = await readGameViews();
+  } catch {
+    initialViews = {};
+  }
   return (
     <HubShell>
       <script
@@ -217,7 +226,7 @@ export default function GamesHubPage() {
                   />
                 </span>
                 </Link>
-                <TileFooter slug={g.slug} name={g.name} />
+                <TileFooter slug={g.slug} name={g.name} initialViews={initialViews[g.slug]} />
               </div>
             </li>
           ))}

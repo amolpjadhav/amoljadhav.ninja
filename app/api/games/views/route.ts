@@ -1,15 +1,11 @@
 import { NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase';
+import { readGameViews } from '@/lib/game-views';
 
 // Public view counts for the arcade hub cards. Service key stays server
-// side; the response is cacheable for a minute to keep the hub cheap.
+// side. Never cached: a cached empty map is how fresh counts hide.
 export async function GET() {
   try {
-    const { data, error } = await supabaseAdmin.from('game_views').select('slug, views');
-    if (error) throw error;
-    const views: Record<string, number> = {};
-    for (const row of data ?? []) views[row.slug] = row.views;
-    // Never cache: a cached empty map is exactly how fresh counts hide.
+    const views = await readGameViews();
     return NextResponse.json({ views }, { headers: { 'Cache-Control': 'no-store' } });
   } catch (error) {
     console.error('Game views API error:', error);

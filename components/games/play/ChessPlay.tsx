@@ -27,6 +27,7 @@ import {
   CHESS_SAVE_KEY,
   CHESS_STATS_KEY,
   chessShareText,
+  deltaEvalText,
   evalWhiteShare,
   fmtEvalCp,
   recordOpeningGame,
@@ -68,15 +69,24 @@ import {
   analyzeBook,
   bookChildStats,
   epdOf,
+  headerOpeningName,
   labelChild,
   loadOpenings,
   loadOpeningStyles,
   lookupOpening,
+  mergeExplorerKids,
   pickBookMove,
-  shortOpeningName,
+  rowDistinguishingName,
   styleFor,
 } from '@/lib/games/openings';
-import type { BookAnalysis, BookChildStat, OpeningsData, OpeningStyle } from '@/lib/games/openings';
+import type {
+  BookAnalysis,
+  ExplorerMove,
+  MergedKid,
+  OpeningsData,
+  OpeningStyle,
+} from '@/lib/games/openings';
+import { knightCorner } from '@/lib/games/guide-geometry';
 import {
   NODES_KEY,
   decideUserMove,
@@ -89,6 +99,7 @@ import {
   stageOf,
 } from '@/lib/games/trainer';
 import type { AssistExit, NodeStore } from '@/lib/games/trainer';
+import type { EvalTone } from '@/lib/games/chess';
 
 const META = GAME_BY_SLUG['chess'];
 const SETUP_KEY = 'games:v1:chess:setup';
@@ -672,6 +683,40 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
   useEffect(() => {
     openingsRef.current = openings;
   });
+  // Real popularity from the Lichess explorer (masters, lichess-DB
+  // fallback), EPD-keyed. An empty array means "no stats" — rows and
+  // arrows hide their % instead of inventing one.
+  const [explorerCache, setExplorerCache] = useState<Record<string, ExplorerMove[]>>({});
+  const explorerRef = useRef<Record<string, ExplorerMove[]>>({});
+  useEffect(() => {
+    if (!openings || !coachOn || status !== 'playing') return undefined;
+    const epd = epdOf(fen);
+    if (explorerRef.current[epd] !== undefined) return undefined;
+    let cancelled = false;
+    fetch(`/api/chess/explorer?fen=${encodeURIComponent(fen)}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((body) => {
+        if (cancelled) return;
+        const moves: ExplorerMove[] = Array.isArray(body?.moves)
+          ? body.moves
+              .filter(
+                (m: { uci?: unknown; games?: unknown }): m is { uci: string; games: number } =>
+                  typeof m?.uci === 'string' && typeof m?.games === 'number' && m.games > 0,
+              )
+              .map((m) => ({ uci: m.uci, games: m.games }))
+          : [];
+        explorerRef.current[epd] = moves;
+        setExplorerCache((prev) => (prev[epd] !== undefined ? prev : { ...prev, [epd]: moves }));
+      })
+      .catch(() => {
+        if (cancelled) return;
+        explorerRef.current[epd] = [];
+        setExplorerCache((prev) => (prev[epd] !== undefined ? prev : { ...prev, [epd]: [] }));
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [coachOn, fen, openings, status]);
 
   // Opening book loads once with the route (~1.5MB, browser-cached after).
   useEffect(() => {
@@ -950,13 +995,19 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
       // over. Uncoached games go straight to the engine.
       const book = openingsRef.current;
       if (now.coachOn && !now.exited && book) {
-        const kids = bookChildStats(book, chess.fen()).filter((k) => k.san);
+        const botFen = chess.fen();
+        const kids = mergeExplorerKids(
+          bookChildStats(book, botFen).filter((k) => k.san),
+          explorerRef.current[epdOf(botFen)] ?? null,
+          botFen,
+        );
         if (kids.length > 0) {
           const s = setupRef.current;
+          const first = kids[0] as MergedKid;
           const uci =
             s.bookMode === 'varied'
-              ? (pickBookMove(kids) ?? (kids[0] as BookChildStat).uci)
-              : (kids[0] as BookChildStat).uci;
+              ? (pickBookMove(kids.map((k) => ({ uci: k.uci, weight: k.games ?? k.weight }))) ?? first.uci)
+              : first.uci;
           setThinking(false);
           if (replyTimer.current) clearTimeout(replyTimer.current);
           replyTimer.current = setTimeout(() => {
@@ -967,7 +1018,7 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
         }
         // No book reply: the line ends here, engine takes over.
         const entry = lookupOpening(book, epdOf(chess.fen()));
-        exitAssistRef.current?.('line-ended', null, entry?.name ?? null);
+        exitAssistRef.current?.('line-ended', null, entry ? headerOpeningName(entry.name) : null);
       }
       const ok = requestMove(chess.fen(), chess.turn(), now.level);
       if (!ok) {
@@ -986,7 +1037,15 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
       const s = setupRef.current;
       const data = openingsRef.current;
       // Classify against the book before mutating (Test snapbacks undo).
-      const kids = data ? bookChildStats(data, chess.fen()).filter((k) => k.san) : [];
+      // Explorer-only continuations count as book too.
+      const playerFen = chess.fen();
+      const kids = data
+        ? mergeExplorerKids(
+            bookChildStats(data, playerFen).filter((k) => k.san),
+            explorerRef.current[epdOf(playerFen)] ?? null,
+            playerFen,
+          )
+        : [];
       const guided = live.coachOn && !live.exited && kids.length > 0;
       const epd = epdOf(chess.fen());
       const path = chess.history();
@@ -997,7 +1056,7 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
         return false;
       }
       const playedUci = `${mv.from}${mv.to}${mv.promotion ?? ''}`;
-      const main = kids[0] as BookChildStat | undefined;
+      const main = kids[0] as MergedKid | undefined;
       const fullPath = [...path, mv.san];
       if (live.review && main) {
         // Review is strict recall: only correct advances, the rest snaps back.
@@ -1029,7 +1088,7 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
         }
         if (verdict === 'offbook') {
           const entryNow = data ? lookupOpening(data, epd) : null;
-          exitAssistRef.current?.('user-left', main.san, entryNow?.name ?? null);
+          exitAssistRef.current?.('user-left', main.san, entryNow ? headerOpeningName(entryNow.name) : null);
         } else if (verdict === 'correct') {
           recordAttempt(epd, fullPath, hintUsedRef.current ? 'ungraded' : 'correct');
         } else {
@@ -1320,7 +1379,7 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
     if (!live.coachOn) return;
     const data = openingsRef.current;
     const entry = data ? lookupOpening(data, epdOf(chess.fen())) : null;
-    exitAssistRef.current?.('playout', null, entry?.name ?? null);
+    exitAssistRef.current?.('playout', null, entry ? headerOpeningName(entry.name) : null);
   }, [chess]);
 
   const toggleCoach = useCallback(() => {
@@ -1824,14 +1883,47 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
   );
 
   // Guide arrows key off book CHILDREN, never the opening name — the root
-  // and unnamed theory positions guide exactly like named ones.
+  // and unnamed theory positions guide exactly like named ones. Options are
+  // the dataset tree ∪ explorer moves; % shows only with real counts.
   const coachNode = useMemo(() => {
     if (!openings || !coachOn || exited || status !== 'playing' || review) return null;
-    const kids = bookChildStats(openings, fen).filter((k) => k.san);
-    if (kids.length === 0) return null;
     const epd = epdOf(fen);
+    const exp = explorerCache[epd];
+    const kids = mergeExplorerKids(
+      bookChildStats(openings, fen).filter((k) => k.san),
+      exp ?? null,
+      fen,
+    ).map((k) => ({ ...k, pct: exp && exp.length > 0 ? k.pct : null }));
+    if (kids.length === 0) return null;
     return { epd, kids, rec: nodes[epd], entry: lookupOpening(openings, epd) };
-  }, [exited, fen, coachOn, nodes, openings, review, status]);
+  }, [exited, explorerCache, fen, coachOn, nodes, openings, review, status]);
+
+  // Squares occupied in the current position — knight arrows pick the L
+  // corner that crosses fewer pieces.
+  const occupiedSquares = useMemo(() => {
+    const set = new Set<string>();
+    try {
+      new Chess(fen)
+        .board()
+        .forEach((row, ri) =>
+          row.forEach((sq, fi) => {
+            if (sq) set.add(`${'abcdefgh'[fi]}${8 - ri}`);
+          }),
+        );
+    } catch {
+      /* illegal fen — empty set */
+    }
+    return set;
+  }, [fen]);
+
+  // Side to move in the current position (delta evals read from its view).
+  const sideToMove = useMemo(() => {
+    try {
+      return new Chess(fen).turn();
+    } catch {
+      return 'w' as const;
+    }
+  }, [fen]);
 
   const coachStage = coachNode
     ? coachKind === 'recall'
@@ -1844,17 +1936,22 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
   const guideSpecs = useMemo<GuideArrowSpec[]>(() => {
     if (!coachNode || !openings || !turnIsPlayer || viewPly !== null) return [];
     if (!(coachStage === 'learn' || hintRevealed)) return [];
-    const specFor = (k: BookChildStat, main: boolean): GuideArrowSpec | null => {
+    const specFor = (k: MergedKid, main: boolean): GuideArrowSpec | null => {
       if (k.uci.length < 4 || !k.san) return null;
+      const from = k.uci.slice(0, 2);
+      const to = k.uci.slice(2, 4);
+      const knight =
+        Math.abs(from.charCodeAt(0) - to.charCodeAt(0)) * Math.abs(Number(from[1]) - Number(to[1])) === 2;
       const label = labelChild(openings, fen, k.uci);
       return {
         uci: k.uci,
-        from: k.uci.slice(0, 2),
-        to: k.uci.slice(2, 4),
+        from,
+        to,
         color: main ? '#30D158' : GUIDE_BLUE,
         main,
         pct: k.pct,
         name: label ? (label.usually ? `usually ${label.name}` : label.name) : 'Book move',
+        via: knight ? knightCorner(from, to, occupiedSquares) : undefined,
       };
     };
     const out: GuideArrowSpec[] = [];
@@ -1873,7 +1970,7 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
     const resolved = resolveGuideRings(out);
     if (soloUci) return resolved.filter((s) => s.uci === soloUci);
     return resolved;
-  }, [coachNode, coachStage, fen, hintRevealed, openings, soloUci, turnIsPlayer, viewPly]);
+  }, [coachNode, coachStage, fen, hintRevealed, occupiedSquares, openings, soloUci, turnIsPlayer, viewPly]);
 
   // Cached option evals (White perspective, EPD-keyed). Shallow
   // background analysis fills them while the engine idles on the player's
@@ -1943,12 +2040,14 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
     (async () => {
       for (const t of targets) {
         if (cancelled) return;
+        let started = false;
         const cp = await new Promise<number | null>((resolve) => {
-          if (!analyze(t.pos, new Chess(t.pos).turn(), resolve)) resolve(null);
+          started = analyze(t.pos, new Chess(t.pos).turn(), resolve);
+          if (!started) resolve(null);
         });
-        if (cancelled) return;
-        if (cp === null) return; // engine busy or gone — back off
-        rememberEval(t.epd, cp);
+        if (cancelled || !started) return; // engine busy — back off
+        if (cp !== null) rememberEval(t.epd, cp);
+        // A timed-out read simply stays uncached; siblings still run.
       }
     })();
     return () => {
@@ -2048,6 +2147,14 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
   );
 
   const currentEvalCp = evalMap[epdOf(fen)] ?? null;
+  // The bar holds its last reading while the new position analyzes.
+  // Render-phase adjust (no effect cascade): adopt fresh evals as they
+  // land; the fill dims while the shown number is one move old.
+  const [displayEvalCp, setDisplayEvalCp] = useState<number | null>(null);
+  if (currentEvalCp !== null && currentEvalCp !== displayEvalCp) {
+    setDisplayEvalCp(currentEvalCp);
+  }
+  const evalStale = displayEvalCp !== null && currentEvalCp === null;
 
   const outcomeTitle = !endInfo
     ? 'Game over'
@@ -2058,32 +2165,54 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
         : 'Draw';
 
   // Shared by the desktop Opening card and the mobile details: names every
-  // book option (SAN · name · popularity · style), row tap isolates its arrow.
+  // book option (SAN · distinguishing name · delta-vs-best · style · real
+  // popularity), row tap isolates its arrow. Rows stay in popularity order.
+  const DELTA_TONE_COLOR: Record<EvalTone, string> = {
+    best: '#30D158',
+    even: 'var(--text-2)',
+    loose: '#E5B43C',
+    bad: '#FF7A7A',
+  };
+  const headerFull = coachNode?.entry ? headerOpeningName(coachNode.entry.name) : '';
+  const optionRows = (coachNode?.kids ?? []).slice(0, 4).map((k) => {
+    const label = openings ? labelChild(openings, fen, k.uci) : null;
+    const full = label ? (label.usually ? `usually ${label.name}` : label.name) : 'Book move';
+    const name = label
+      ? rowDistinguishingName(label.name, headerFull, label.eco, k.uci === coachNode?.kids[0]?.uci)
+      : 'Book move';
+    const style = label ? styleFor(styles, label.eco, label.name) : null;
+    let childEval: number | null = null;
+    try {
+      const d = new Chess(fen);
+      d.move({
+        from: k.uci.slice(0, 2),
+        to: k.uci.slice(2, 4),
+        promotion: (k.uci.slice(4) as 'q' | 'r' | 'b' | 'n' | undefined) || undefined,
+      });
+      childEval = evalMap[epdOf(d.fen())] ?? null;
+    } catch {
+      /* illegal child — no eval */
+    }
+    return { k, full, name, style, childEval };
+  });
+  const knownEvals = optionRows.map((r) => r.childEval).filter((cp): cp is number => cp !== null);
+  const bestCp =
+    knownEvals.length === 0
+      ? null
+      : sideToMove === 'w'
+        ? Math.max(...knownEvals)
+        : Math.min(...knownEvals);
+  const bestIdx = bestCp === null ? -1 : optionRows.findIndex((r) => r.childEval === bestCp);
   const optionsList =
-    coachNode && coachNode.kids.length > 0 ? (
+    coachNode && optionRows.length > 0 ? (
       <div className="mt-3">
         <p className="games-type-micro mb-1.5" style={{ color: 'var(--text-3)' }}>
           Your options
         </p>
         <ul className="flex flex-col gap-1">
-          {coachNode.kids.slice(0, 4).map((k, i) => {
-            const label = openings ? labelChild(openings, fen, k.uci) : null;
-            const full = label ? (label.usually ? `usually ${label.name}` : label.name) : 'Book move';
-            const name = label ? (label.usually ? `usually ${shortOpeningName(label.eco, label.name)}` : shortOpeningName(label.eco, label.name)) : 'Book move';
-            const style = label ? styleFor(styles, label.eco, label.name) : null;
-            let childEval: number | null = null;
-            try {
-              const d = new Chess(fen);
-              d.move({
-                from: k.uci.slice(0, 2),
-                to: k.uci.slice(2, 4),
-                promotion: (k.uci.slice(4) as 'q' | 'r' | 'b' | 'n' | undefined) || undefined,
-              });
-              childEval = evalMap[epdOf(d.fen())] ?? null;
-            } catch {
-              /* illegal child — no eval */
-            }
-            const evalText = fmtEvalCp(childEval);
+          {optionRows.map(({ k, full, name, style, childEval }, i) => {
+            const isBest = i === bestIdx;
+            const delta = deltaEvalText(childEval, bestCp, sideToMove, isBest);
             const solo = soloUci === k.uci;
             return (
               <li key={k.uci}>
@@ -2095,7 +2224,16 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
                   onMouseEnter={() => setHotUci(k.uci)}
                   onMouseLeave={() => setHotUci(null)}
                   aria-pressed={solo}
-                  aria-label={`Option ${k.san}, ${full}, ${k.pct} percent`}
+                  aria-label={
+                    k.pct !== null ? `Option ${k.san}, ${full}, ${k.pct} percent` : `Option ${k.san}, ${full}`
+                  }
+                  title={
+                    k.pct !== null
+                      ? childEval !== null
+                        ? `Engine ${fmtEvalCp(childEval)}`
+                        : undefined
+                      : 'No stats'
+                  }
                   className="games-press w-full flex items-center gap-2 rounded-[10px] px-2.5 py-1.5 text-left"
                   style={{
                     background: solo ? 'rgba(229,192,123,.14)' : 'var(--surface-2)',
@@ -2109,7 +2247,7 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
                   />
                   <span className="games-type-callout tabular-nums font-semibold">{k.san}</span>
                   <span
-                    className="games-type-caption flex-1 min-w-0 line-clamp-2"
+                    className="games-type-caption flex-1 min-w-[120px] line-clamp-2"
                     style={{ color: 'var(--text-2)' }}
                   >
                     {name}
@@ -2122,17 +2260,22 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
                       {style}
                     </span>
                   )}
-                  {evalText && (
+                  {delta && (
                     <span
                       className="games-type-caption tabular-nums shrink-0 w-11 text-right"
-                      style={{ color: 'var(--text-2)' }}
+                      style={{ color: DELTA_TONE_COLOR[delta.tone] }}
                     >
-                      {evalText}
+                      {delta.text}
                     </span>
                   )}
-                  <span className="games-type-caption tabular-nums shrink-0" style={{ color: 'var(--text-2)' }}>
-                    {k.pct}%
-                  </span>
+                  {k.pct !== null && (
+                    <span
+                      className="games-type-caption tabular-nums shrink-0"
+                      style={{ color: 'var(--text-2)' }}
+                    >
+                      {k.pct}%
+                    </span>
+                  )}
                 </button>
               </li>
             );
@@ -2274,22 +2417,25 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
                 <div className="flex w-6 flex-col items-center py-1">
                   <div
                     className="relative flex-1 w-[10px] rounded-full overflow-hidden"
-                    style={{ background: currentEvalCp !== null ? '#141518' : 'transparent' }}
+                    style={{ background: displayEvalCp !== null ? '#141518' : 'transparent' }}
                   >
-                    {currentEvalCp !== null && (
+                    {displayEvalCp !== null && (
                       <div
-                        className="absolute bottom-0 left-0 w-full bg-white"
-                        style={{ height: `${evalWhiteShare(currentEvalCp)}%` }}
+                        className={`absolute left-0 w-full bg-white ${orientation === 'black' ? 'top-0' : 'bottom-0'}`}
+                        style={{
+                          height: `${evalWhiteShare(displayEvalCp)}%`,
+                          opacity: evalStale ? 0.45 : 1,
+                        }}
                       />
                     )}
                   </div>
                   <span
                     className="games-type-micro tabular-nums mt-1 min-h-[1em]"
                     style={{ color: 'var(--text-2)' }}
-                    role={currentEvalCp !== null ? 'img' : undefined}
-                    aria-label={currentEvalCp !== null ? `Evaluation ${fmtEvalCp(currentEvalCp) ?? 'unknown'}` : undefined}
+                    role={displayEvalCp !== null ? 'img' : undefined}
+                    aria-label={displayEvalCp !== null ? `Evaluation ${fmtEvalCp(displayEvalCp) ?? 'unknown'}` : undefined}
                   >
-                    {currentEvalCp !== null ? fmtEvalCp(currentEvalCp) : ''}
+                    {displayEvalCp !== null ? fmtEvalCp(displayEvalCp) : ''}
                   </span>
                 </div>
               )}
@@ -2343,7 +2489,7 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
               {book.name && (
                 <p className="games-type-caption mt-1" style={{ color: 'var(--text-2)' }}>
                   <span aria-hidden>📖 </span>
-                  {book.eco} · {book.name}
+                  {book.eco} · {headerOpeningName(book.name)}
                   {book.outAtMove ? ` · out at move ${book.outAtMove}` : ''}
                 </p>
               )}
@@ -2439,7 +2585,9 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
               {coachNode && coachNode.kids[0]?.san ? (
                 <>
                   <p className="games-type-body mt-1">
-                    {coachNode.entry ? `${coachNode.entry.eco} · ${coachNode.entry.name}` : 'Starting position'}
+                    {coachNode.entry
+                      ? `${coachNode.entry.eco} · ${headerOpeningName(coachNode.entry.name)}`
+                      : 'Starting position'}
                   </p>
                   {optionsList}
                   <div className="flex flex-wrap gap-2 mt-3">
@@ -2468,7 +2616,7 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
                 <>
                   <p className="games-type-body mt-1">
                     <span aria-hidden>📖 </span>
-                    {book.eco} · {book.name}
+                    {book.eco} · {headerOpeningName(book.name)}
                   </p>
                   {book.outAtMove !== null ? (
                     <p className="games-type-caption mt-1" style={{ color: 'var(--text-2)' }}>
