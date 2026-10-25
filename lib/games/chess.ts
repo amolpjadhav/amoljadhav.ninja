@@ -204,6 +204,18 @@ export function whitePerspective(score: EngineScore, turn: 'w' | 'b'): number | 
   return turn === 'w' ? score.value : -score.value;
 }
 
+/** Option-row eval from White's perspective ("+0.3"); null stays null. */
+export function fmtEvalCp(cp: number | null): string | null {
+  if (cp === null || !Number.isFinite(cp)) return null;
+  const v = cp / 100;
+  return `${v < 0 ? '-' : '+'}${Math.abs(v).toFixed(1)}`;
+}
+
+/** White's share of a logistic eval bar, 0–100 (50 = level). */
+export function evalWhiteShare(cp: number): number {
+  return 100 / (1 + Math.exp(-0.004 * cp));
+}
+
 export function chessShareText(opts: {
   outcome: 'win' | 'loss' | 'draw';
   level: ChessLevel;

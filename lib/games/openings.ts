@@ -147,7 +147,7 @@ export function labelChild(data: OpeningsData, fen: string, uci: string, maxPlie
   return null;
 }
 
-export type OpeningStyle = 'solid' | 'sharp' | 'positional' | 'gambit';
+export type OpeningStyle = 'solid' | 'sharp' | 'positional' | 'gambit' | 'open';
 
 let stylesCache: Record<string, OpeningStyle> | null = null;
 let stylesFailed = false;
@@ -165,6 +165,18 @@ export async function loadOpeningStyles(): Promise<Record<string, OpeningStyle> 
     stylesFailed = true;
     return null;
   }
+}
+
+/**
+ * Compact row label for "Your options": "Sicilian Defense" → "Sicilian",
+ * "Ruy Lopez: Morphy Defense" → "Morphy". The 1…e5 reply (C20 King's
+ * Pawn Game) reads "Open Game"; the header keeps the full name once the
+ * move is played.
+ */
+export function shortOpeningName(eco: string, name: string): string {
+  if (/king's pawn/i.test(name) && /^C\d\d/i.test(eco)) return 'Open Game';
+  const tail = name.includes(':') ? name.slice(name.lastIndexOf(':') + 1).trim() : name;
+  return tail.replace(/\s+(defense|defence|opening|game|variation|deferred|declined)$/i, '');
 }
 
 /** Style tag for an ECO|name pair; null when untagged (UI hides the tag). */

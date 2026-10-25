@@ -25,6 +25,8 @@ export interface EngineReply {
 const ENGINE_URL = '/vendor/stockfish/stockfish-19-lite-single.js';
 const BOOT_TIMEOUT_MS = 20000;
 const MOVE_TIMEOUT_MS = 15000;
+const ANALYSIS_MOVE_MS = 400;
+const ANALYSIS_TIMEOUT_MS = 2500;
 
 export function useChessEngine(onReply: (reply: EngineReply) => void) {
   const [ready, setReady] = useState(false);
@@ -33,6 +35,14 @@ export function useChessEngine(onReply: (reply: EngineReply) => void) {
   const onReplyRef = useRef(onReply);
   const pendingRef = useRef<{ turn: 'w' | 'b'; scoreCp: number | null; timeout: ReturnType<typeof setTimeout> } | null>(null);
   const queuedRef = useRef<(() => void)[]>([]);
+  // Background option analysis (coach evals). Never runs alongside a real
+  // search: requestMove/stop preempt it, and analyze refuses while busy.
+  const analysisRef = useRef<{
+    turn: 'w' | 'b';
+    scoreCp: number | null;
+    timeout: ReturnType<typeof setTimeout>;
+    done: (cp: number | null) => void;
+  } | null>(null);
 
   // Latest callback without touching the ref during render.
   useEffect(() => {
@@ -93,11 +103,22 @@ export function useChessEngine(onReply: (reply: EngineReply) => void) {
         onReplyRef.current({ move: bm, scoreCp: p.scoreCp });
         return;
       }
+      if (bm && analysisRef.current) {
+        const a = analysisRef.current;
+        clearTimeout(a.timeout);
+        analysisRef.current = null;
+        a.done(a.scoreCp);
+        return;
+      }
       const score = parseEngineScore(line);
       if (score && pendingRef.current) {
         const cp = whitePerspective(score, pendingRef.current.turn);
         // Mate scores dwarf centipawns; keep them out of the draw-offer math.
         pendingRef.current.scoreCp = Math.abs(cp) > 10000 ? null : cp;
+      }
+      if (score && analysisRef.current && score.type === 'cp') {
+        const cp = whitePerspective(score, analysisRef.current.turn);
+        analysisRef.current.scoreCp = Math.abs(cp) > 10000 ? null : cp;
       }
     };
     w.onerror = () => failNow();
@@ -126,7 +147,15 @@ export function useChessEngine(onReply: (reply: EngineReply) => void) {
   const requestMove = useCallback(
     (fen: string, turn: 'w' | 'b', level: ChessLevel): boolean => {
       const run = () => {
+        // A real search always wins over background analysis.
+        if (analysisRef.current) clearTimeout(analysisRef.current.timeout);
+        analysisRef.current = null;
         const w = workerRef.current;
+        try {
+          w?.postMessage('stop');
+        } catch {
+          /* ignore */
+        }
         if (!w) {
           setFailed(true);
           return;
@@ -164,9 +193,9 @@ export function useChessEngine(onReply: (reply: EngineReply) => void) {
     [ready],
   );
 
-  const stop = useCallback(() => {
-    if (pendingRef.current) clearTimeout(pendingRef.current.timeout);
-    pendingRef.current = null;
+  const cancelAnalysis = useCallback(() => {
+    if (analysisRef.current) clearTimeout(analysisRef.current.timeout);
+    analysisRef.current = null;
     try {
       workerRef.current?.postMessage('stop');
     } catch {
@@ -174,5 +203,39 @@ export function useChessEngine(onReply: (reply: EngineReply) => void) {
     }
   }, []);
 
-  return { status, requestMove, stop };
+  const stop = useCallback(() => {
+    if (pendingRef.current) clearTimeout(pendingRef.current.timeout);
+    pendingRef.current = null;
+    cancelAnalysis();
+  }, [cancelAnalysis]);
+
+  /**
+   * Shallow background eval of one position (coach option rows + eval
+   * bar). False when the engine is busy or missing — callers back off.
+   * requestMove preempts a running analysis; only one runs at a time.
+   */
+  const analyze = useCallback(
+    (fen: string, turn: 'w' | 'b', done: (cp: number | null) => void): boolean => {
+      const w = workerRef.current;
+      if (!w || !ready || pendingRef.current || analysisRef.current) return false;
+      const timeout = setTimeout(() => {
+        analysisRef.current = null;
+        done(null);
+      }, ANALYSIS_TIMEOUT_MS);
+      analysisRef.current = { turn, scoreCp: null, timeout, done };
+      try {
+        w.postMessage('stop');
+        w.postMessage(`position fen ${fen}`);
+        w.postMessage(`go movetime ${ANALYSIS_MOVE_MS}`);
+      } catch {
+        clearTimeout(timeout);
+        analysisRef.current = null;
+        return false;
+      }
+      return true;
+    },
+    [ready],
+  );
+
+  return { status, requestMove, stop, analyze, cancelAnalysis };
 }

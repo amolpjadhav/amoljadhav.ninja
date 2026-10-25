@@ -9,23 +9,40 @@ export default function Toast({
   message,
   toastKey,
   onDone,
+  inline,
 }: {
   message: string | null;
   toastKey: number;
   onDone: () => void;
+  /** Render in flow (inside a reserved slot) instead of fixed top-center. */
+  inline?: boolean;
 }) {
   if (!message) return null;
-  return <ToastPill key={toastKey} message={message} onDone={onDone} />;
+  return <ToastPill key={toastKey} message={message} onDone={onDone} inline={inline} />;
 }
 
-function ToastPill({ message, onDone }: { message: string; onDone: () => void }) {
+function ToastPill({
+  message,
+  onDone,
+  inline,
+}: {
+  message: string;
+  onDone: () => void;
+  inline?: boolean;
+}) {
   useEffect(() => {
     const t = setTimeout(onDone, 2200);
     return () => clearTimeout(t);
   }, [onDone]);
 
   return (
-    <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[60] pointer-events-none">
+    <div
+      className={
+        inline
+          ? 'pointer-events-none'
+          : 'fixed top-4 left-1/2 -translate-x-1/2 z-[60] pointer-events-none'
+      }
+    >
       <p
         role="status"
         aria-live="polite"

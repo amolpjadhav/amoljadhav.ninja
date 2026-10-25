@@ -14,10 +14,12 @@ export default function GameShell({
   stats,
   menu,
   board,
+  tray,
   dock,
   sidePanel,
   howToPlay,
   wide,
+  narrow,
   squareBoard = true,
 }: {
   game: GameMeta;
@@ -26,11 +28,15 @@ export default function GameShell({
   stats: ReactNode;
   menu: ReactNode;
   board: ReactNode;
+  /** Optional strip between board and dock (five-letters keyboard). */
+  tray?: ReactNode;
   dock: ReactNode;
   sidePanel: ReactNode;
   howToPlay: ReactNode;
   /** Wider centered group (chess): 1200px cap, 32px gutters. */
   wide?: boolean;
+  /** Single centered column (five letters): 520px cap, no side panel. */
+  narrow?: boolean;
   /** Square locked board slot (default). Chess opts out: its board column
    *  holds player bars + footer, so it owns its own sizing. */
   squareBoard?: boolean;
@@ -48,13 +54,22 @@ export default function GameShell({
         menu={menu}
       />
       <div
-        className={`flex-1 w-full mx-auto px-4 md:px-6 pb-8 grid gap-6 lg:grid-cols-[1fr_320px] ${wide ? 'max-w-[1200px] lg:gap-8' : 'max-w-6xl'}`}
+        className={
+          narrow
+            ? 'flex-1 w-full mx-auto px-4 pb-8 flex flex-col max-w-[520px]'
+            : `flex-1 w-full mx-auto px-4 md:px-6 pb-8 grid gap-6 lg:grid-cols-[1fr_320px] ${wide ? 'max-w-[1200px] lg:gap-8' : 'max-w-6xl'}`
+        }
       >
         <main className="flex flex-col gap-4 min-w-0">
-          <div className={squareBoard ? 'games-board-slot games-board-lock' : 'min-w-0'}>{board}</div>
+          <div className={squareBoard && !narrow ? 'games-board-slot games-board-lock' : 'min-w-0'}>
+            {board}
+          </div>
+          {tray}
           {dock}
         </main>
-        <aside className="hidden lg:flex flex-col gap-4 min-w-0">{sidePanel}</aside>
+        {!narrow && (
+          <aside className="hidden lg:flex flex-col gap-4 min-w-0">{sidePanel}</aside>
+        )}
         {/* Mobile: how-to-play and stats surface through the ⋯ menu sheets. */}
         <div className="lg:hidden">{howToPlay}</div>
       </div>

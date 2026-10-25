@@ -1,4 +1,4 @@
-// Build public/data/opening-styles.json: ECO|name -> solid|sharp|positional|gambit.
+// Build public/data/opening-styles.json: ECO|name -> solid|sharp|positional|gambit|open.
 // Conservative by design: high-confidence family/name rules only. Anything
 // unsure is left UNTAGGED (the UI hides the tag) — a wrong style tag would
 // teach the wrong repertoire lesson. Review the printed counts after running.
@@ -37,6 +37,10 @@ function tag(eco, name) {
     if (pat.test(name)) return 'sharp';
   }
   if (/winawer/i.test(name)) return 'sharp';
+  if (/alekhine/i.test(name)) return 'sharp';
+  if (/benoni/i.test(name)) return 'sharp';
+  if (/king's knight/i.test(name)) return 'open';
+  if (/three knights/i.test(name)) return 'open';
   // Solid families.
   if (/^B1\d/.test(eco)) return 'solid'; // Caro-Kann
   if (/^C00|^C01|^C02|^C1\d/.test(eco) && !/winawer/i.test(name)) return 'solid'; // French
@@ -44,7 +48,22 @@ function tag(eco, name) {
   if (/london/i.test(name)) return 'solid';
   if (/berlin/i.test(name) && !/berlin gambit/i.test(name)) return 'solid';
   if (/exchange/i.test(name) && /ruy|spanish|french|caro|slav/i.test(name)) return 'solid';
+  // Open games (1.e4 e5 family). After the exchange rule so reviewed
+  // exchange tags (Exchange Spanish et al.) keep their solid stamp.
+  if (
+    /italian|spanish|ruy lopez|scotch|giuoco|vienna|bishop's opening|king's pawn game|ponziani|four knights/i.test(
+      name,
+    )
+  ) {
+    return 'open';
+  }
   if (/petrov/i.test(name)) return 'solid';
+  if (/scandinavian/i.test(name)) return 'solid';
+  if (/philidor/i.test(name)) return 'solid';
+  if (/queen's pawn game/i.test(name)) return 'solid';
+  if (/modern defense/i.test(name)) return 'positional';
+  if (/indian defense|east indian/i.test(name)) return 'positional';
+  if (/zukertort/i.test(name)) return 'positional';
   // Positional picks.
   if (/catalan/i.test(name)) return 'positional';
   if (/english/i.test(name) && !/gambit/i.test(name)) return 'positional';
@@ -54,7 +73,7 @@ function tag(eco, name) {
 }
 
 const out = {};
-const counts = { solid: 0, sharp: 0, positional: 0, gambit: 0 };
+const counts = { solid: 0, sharp: 0, positional: 0, gambit: 0, open: 0 };
 let untagged = 0;
 for (const k of seen.keys()) {
   const [eco, name] = k.split('|');

@@ -3,18 +3,26 @@
 import Sheet from './Sheet';
 
 // 3 short steps + "Why it works" (moved here from the article).
+export interface HowToExample {
+  label: string;
+  tiles: { ch: string; bg: string; fg: string }[];
+}
+
 export default function HowToPlaySheet({
   open,
   onClose,
   gameName,
   steps,
   whyItWorks,
+  examples,
 }: {
   open: boolean;
   onClose: () => void;
   gameName: string;
   steps: { title: string; body: string }[];
   whyItWorks: string;
+  /** Teach-by-showing rows (e.g. scored WEARY tiles) between steps and Why. */
+  examples?: HowToExample[];
 }) {
   return (
     <Sheet open={open} onClose={onClose} label={`How to play ${gameName}`}>
@@ -42,6 +50,28 @@ export default function HowToPlaySheet({
           </li>
         ))}
       </ol>
+      {examples && examples.length > 0 && (
+        <div className="flex flex-col gap-2 mt-5" role="group" aria-label="Example guesses">
+          {examples.map((ex) => (
+            <div key={ex.label} className="flex items-center gap-3">
+              <div className="flex gap-1" aria-hidden>
+                {ex.tiles.map((t, i) => (
+                  <span
+                    key={i}
+                    className="inline-flex items-center justify-center w-8 h-8 rounded-[8px] games-type-callout"
+                    style={{ background: t.bg, color: t.fg }}
+                  >
+                    {t.ch}
+                  </span>
+                ))}
+              </div>
+              <p className="games-type-caption" style={{ color: 'var(--text-2)' }}>
+                {ex.label}
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
       <h3 className="games-type-headline mt-5 mb-2">Why it works</h3>
       <p className="games-type-body" style={{ color: 'var(--text-2)' }}>
         {whyItWorks}

@@ -124,6 +124,136 @@ async function gameHowto(browser, game, width) {
   }
 }
 
+// Five Letters: how-to → board, then the device-keyboard flow on mobile
+// (hidden input → tracker → submit → invalid-word toast) and the on-screen
+// keyboard flow on desktop. Fails on any page error.
+async function fiveLetters(browser, game, width) {
+  const deviceFirst = width < 1024;
+  const ctx = await browser.newContext({ viewport: { width, height: HEIGHT } });
+  const page = await ctx.newPage();
+  page.setDefaultTimeout(45000);
+  const label = `${game.slug}@${width}`;
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(`pageerror: ${String(e && e.message ? e.message : e).split('\n')[0]}`));
+  try {
+    if (deviceFirst) {
+      await page.addInitScript(() => {
+        try {
+          localStorage.setItem('games:v1:five-letters:keyboard', 'device');
+        } catch {
+          /* ignore */
+        }
+      });
+    }
+    await page.goto(`${BASE}/games/${game.slug}`, { waitUntil: 'load' });
+    const howto = page.getByRole('dialog', { name: `How to play ${game.name}` });
+    await howto.waitFor();
+    await settle(page);
+    await shot(page, `${game.slug}-howto-${width}`);
+    await contrast(page, `${label}-howto`);
+    await howto.getByRole('group', { name: 'Example guesses' }).waitFor();
+    await howto.getByRole('button', { name: 'Play' }).click();
+    await page.getByRole('button', { name: `${game.name} settings` }).waitFor();
+    // Subtitle: Daily · date · #n · Guess k of 6. Streak pill + stats in TopBar.
+    await page.getByRole('status', { name: /Daily .* #\d+ · Guess 1 of 6/ }).waitFor();
+    await page.getByRole('status', { name: /Streak \d+/ }).waitFor();
+    if ((await page.getByRole('button', { name: 'New word' }).count()) !== 0) {
+      throw new Error('Daily shows a New word button');
+    }
+    // Stats sheet opens from the TopBar icon.
+    await page.getByRole('button', { name: `${game.name} stats` }).click();
+    const stats = page.getByRole('dialog', { name: `${game.name} stats` });
+    await stats.getByText('Played').waitFor();
+    await settle(page);
+    await shot(page, `${game.slug}-stats-${width}`);
+    await contrast(page, `${label}-stats`);
+    await page.keyboard.press('Escape');
+    if (deviceFirst) {
+      const input = page.locator('input[aria-label="Type your guess"]');
+      await input.waitFor();
+      const attrs = await input.evaluate((el) => ({
+        type: el.type,
+        inputmode: el.inputMode,
+        autocapitalize: el.autocapitalize,
+        autocomplete: el.autocomplete,
+        maxlength: el.maxLength,
+        enterkeyhint: el.enterKeyHint,
+      }));
+      if (attrs.inputmode !== 'text' || attrs.maxlength !== 5 || attrs.enterkeyhint !== 'go') {
+        throw new Error(`hidden input attrs wrong: ${JSON.stringify(attrs)}`);
+      }
+      await page.getByText('Tap to type').waitFor();
+      const chips = page.locator('[aria-label="Used letters"] span');
+      if ((await chips.count()) !== 26) throw new Error(`tracker has ${await chips.count()} chips, want 26`);
+      await settle(page);
+      await shot(page, `${game.slug}-device-${width}`);
+      await contrast(page, `${label}-device`);
+      // Valid guess through the hidden input value (IME-safe path).
+      await input.fill('CRANE');
+      const row1 = page.locator('[aria-label="Row 1, active"]');
+      if (!((await row1.textContent()) ?? '').replace(/\s/g, '').includes('CRANE')) {
+        throw new Error('active row did not render CRANE from input value');
+      }
+      await input.press('Enter');
+      await page.locator('[aria-label="Row 2, active"]').waitFor();
+      await page.getByRole('status', { name: /Guess 2 of 6/ }).waitFor();
+      await page.waitForFunction(
+        () =>
+          document
+            .querySelector('[aria-label="Used letters"] [aria-label^="C, "]')
+            ?.getAttribute('aria-label') !== 'C, unused',
+        undefined,
+        { timeout: 30000 },
+      );
+      // Invalid word: shake + toast, letters stay in the row.
+      await input.fill('QQQQQ');
+      await input.press('Enter');
+      await page.getByText('Not in word list').waitFor();
+      const row2 = page.locator('[aria-label="Row 2, active"]');
+      if (!((await row2.textContent()) ?? '').replace(/\s/g, '').includes('QQQQQ')) {
+        throw new Error('invalid word did not keep its letters');
+      }
+      // Delete clears; Submit stays disabled until 5 letters.
+      const del = page.getByRole('button', { name: /Delete letter/ });
+      for (let i = 0; i < 5; i += 1) await del.click();
+      if (await page.getByRole('button', { name: 'Submit guess' }).isEnabled()) {
+        throw new Error('Submit enabled with an empty row');
+      }
+      await settle(page);
+      await shot(page, `${game.slug}-invalid-${width}`);
+      await contrast(page, `${label}-invalid`);
+      // Setting flips to the on-screen keyboard (tracker + input go away).
+      await page.getByRole('button', { name: `${game.name} settings` }).click();
+      const menu = page.getByRole('dialog', { name: `${game.name} menu` });
+      await menu.getByRole('button', { name: 'Keyboard: Device' }).click();
+      await page.keyboard.press('Escape');
+      await page.locator('[aria-label="Keyboard"]').waitFor();
+      if ((await page.locator('input[aria-label="Type your guess"]').count()) !== 0) {
+        throw new Error('hidden input survived the switch to on-screen');
+      }
+      await settle(page);
+      await shot(page, `${game.slug}-onscreen-${width}`);
+      await contrast(page, `${label}-onscreen`);
+    } else {
+      // Desktop: on-screen keyboard clicks drive the same submit path.
+      const kb = page.locator('[aria-label="Keyboard"]');
+      await kb.waitFor();
+      for (const ch of ['C', 'R', 'A', 'N', 'E']) await kb.getByRole('button', { name: ch, exact: true }).click();
+      await kb.getByRole('button', { name: 'Enter', exact: true }).click();
+      await page.locator('[aria-label="Row 2, active"]').waitFor();
+      await page.getByRole('status', { name: /Guess 2 of 6/ }).waitFor();
+      await settle(page);
+      await shot(page, `${game.slug}-board-${width}`);
+      await contrast(page, `${label}-board`);
+    }
+    if (errors.length > 0) throw new Error(errors[0]);
+  } catch (e) {
+    failures.push(`${label}: ${(e && e.message ? String(e.message) : e).split('\n')[0]}`);
+  } finally {
+    await ctx.close();
+  }
+}
+
 // Chess: setup sheet (auto-opens) → start → resign → confirm dialog → result.
 async function chess(browser, width) {
   const { ctx, page } = await freshPage(browser, width);
@@ -288,7 +418,7 @@ async function coachFlow(browser, width) {
     await waitBlackPly();
     await waitArrows(1);
     if (width >= 1024) {
-      await page.locator('aside').getByText(/Book: \d/).waitFor();
+      await page.locator('aside').getByText('Your options', { exact: true }).waitFor();
     }
     // Off-book: a dataset-verified non-book reply. Banner shows, arrows
     // disappear, the engine (not the book) takes over.
@@ -325,7 +455,7 @@ async function coachFlow(browser, width) {
     await waitBlackPly();
     await waitArrows(1);
     if (width >= 1024) {
-      await page.locator('aside').getByText(/Book: \d/).waitFor();
+      await page.locator('aside').getByText('Your options', { exact: true }).waitFor();
     }
     await settle(page);
     await shot(page, `coach-line-${width}`);
@@ -338,13 +468,90 @@ async function coachFlow(browser, width) {
   }
 }
 
+// Guided as Black: after the bot's 1.e4, e7→e5 hides e7→e6 (and c7→c5
+// hides c7→c6), so e6 and c6 demote to target rings (2 arrows + 2
+// rings). Row taps isolate each mark; rows show short names, style
+// tags, and cached evals. Fails on any page error.
+async function coachRings(browser, width) {
+  const { ctx, page } = await freshPage(browser, width);
+  const label = `rings@${width}`;
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(`pageerror: ${String(e && e.message ? e.message : e).split('\n')[0]}`));
+  const waitMarks = (a, r) =>
+    page.waitForFunction(
+      ([x, y]) => {
+        const b = document.querySelector('[aria-label="Chess board"]');
+        return (
+          Number(b?.getAttribute('data-guide-arrows')) === x &&
+          Number(b?.getAttribute('data-guide-rings')) === y
+        );
+      },
+      [a, r],
+      { timeout: 30000 },
+    );
+  try {
+    await page.goto(`${BASE}/games/chess`, { waitUntil: 'load' });
+    const setup = page.getByRole('dialog', { name: 'New chess game' });
+    await setup.waitFor();
+    const howto = page.getByRole('dialog', { name: 'How to play Chess' });
+    if (await howto.isVisible().catch(() => false)) {
+      await howto.getByRole('button', { name: 'Play' }).click();
+    }
+    await setup.getByRole('tab', { name: 'Guided' }).click();
+    await setup.getByRole('tab', { name: 'Black' }).click();
+    await setup.getByRole('button', { name: 'Start game' }).click();
+    await page.getByRole('button', { name: 'Resign' }).waitFor();
+    // Bot (White) opens 1.e4 from the book; Black to move with e6 AND c6
+    // ringed (both hide inside the e5/c5 shafts).
+    await waitMarks(2, 2);
+    // Side to move carries the indicator dot.
+    await page.locator('[title="To move"]').waitFor();
+    const scope = width >= 1024 ? page.locator('aside') : page.locator('details');
+    if (width < 1024) await page.locator('details').evaluate((d) => { d.open = true; });
+    for (const nm of ['Open Game', 'Sicilian', 'French', 'Caro-Kann']) {
+      await scope.getByText(nm, { exact: true }).first().waitFor();
+    }
+    if ((await scope.getByText(/Book: \d/).count()) !== 0) throw new Error('Book: line survived');
+    // Cached engine evals fill the bar and the rows in the background.
+    await page.getByRole('img', { name: /^Evaluation / }).waitFor({ timeout: 60000 });
+    await scope.getByText(/[+-]\d+\.\d/).first().waitFor({ timeout: 60000 });
+    await settle(page);
+    await shot(page, `coach-rings-${width}`);
+    await contrast(page, `${label}-rings`);
+    const tapRow = async (re) => {
+      const row = scope.getByRole('button', { name: re });
+      await row.evaluate((el) => el.scrollIntoView({ block: 'center' }));
+      await row.click();
+    };
+    // Sicilian row isolates its arrow; French row isolates the e6 ring.
+    await tapRow(/^Option c5,/);
+    await waitMarks(1, 0);
+    await tapRow(/^Option c5,/);
+    await waitMarks(2, 2);
+    await tapRow(/^Option e6,/);
+    await waitMarks(0, 1);
+    await settle(page);
+    await shot(page, `coach-ring-solo-${width}`);
+    await contrast(page, `${label}-ring-solo`);
+    if (errors.length > 0) throw new Error(errors[0]);
+  } catch (e) {
+    failures.push(`${label}: ${(e && e.message ? String(e.message) : e).split('\n')[0]}`);
+  } finally {
+    await ctx.close();
+  }
+}
+
 const browser = await chromium.launch();
 try {
   for (const width of WIDTHS) {
     await hub(browser, width);
-    for (const g of GAMES.filter((g) => g.slug !== 'chess')) await gameHowto(browser, g, width);
+    for (const g of GAMES.filter((g) => g.slug !== 'chess')) {
+      if (g.slug === 'five-letters') await fiveLetters(browser, g, width);
+      else await gameHowto(browser, g, width);
+    }
     await chess(browser, width);
     await coachFlow(browser, width);
+    await coachRings(browser, width);
   }
 } finally {
   await browser.close();

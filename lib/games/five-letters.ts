@@ -80,6 +80,38 @@ export function revealedAnswer(status: 'playing' | 'won' | 'lost', word: string)
   return status === 'lost' ? word.toUpperCase() : null;
 }
 
+/**
+ * Raw device-keyboard text → guess prefix. Uppercase A–Z only, capped at
+ * WORD_LEN. Driven from the input VALUE (not keydown): Android IMEs often
+ * send keyCode 229, and autocorrect/compose through `value`.
+ */
+export function sanitizeGuessInput(value: string): string {
+  return value.toUpperCase().replace(/[^A-Z]/g, '').slice(0, WORD_LEN);
+}
+
+/** Milliseconds until the next PT midnight (the next daily word). */
+export function msUntilPTMidnight(at: Date = new Date()): number {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: DAILY_TZ,
+    hour: 'numeric',
+    minute: 'numeric',
+    second: 'numeric',
+    hour12: false,
+  }).formatToParts(at);
+  const get = (t: string) => Number(parts.find((p) => p.type === t)?.value ?? 0);
+  const elapsed = (get('hour') % 24) * 3_600_000 + get('minute') * 60_000 + get('second') * 1000;
+  return 86_400_000 - elapsed;
+}
+
+/** 6:22:10 style countdown. */
+export function formatCountdown(ms: number): string {
+  const s = Math.max(0, Math.floor(ms / 1000));
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const sec = s % 60;
+  return `${h}:${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+}
+
 export function dailyWord(answers: string[], at: Date = new Date()): { word: string; num: number; key: string } {
   const key = dayKey(at);
   const epoch = Date.UTC(2026, 9, 12); // day-number era start

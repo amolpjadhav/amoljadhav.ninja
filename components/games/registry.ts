@@ -30,7 +30,7 @@ export const GAMES: GameMeta[] = [
     name: 'Five Letters',
     pitch: 'Six tries to find the five-letter word.',
     accentVar: '--five-letters',
-    accent: '#64D2FF',
+    accent: '#2BA39A',
     modes: ['Daily', 'Practice'],
     description:
       'Play Five Letters online — free, no ads, daily puzzle. Six tries to find the five-letter word.',

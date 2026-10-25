@@ -17,6 +17,7 @@ export default function ResultSheet({
   onShare,
   onPlayAgain,
   onClose,
+  note,
 }: {
   open: boolean;
   game: GameMeta;
@@ -29,6 +30,8 @@ export default function ResultSheet({
   onShare: () => void;
   onPlayAgain: () => void;
   onClose: () => void;
+  /** Optional extra line under the stats (e.g. a daily countdown). */
+  note?: React.ReactNode;
 }) {
   return (
     <Sheet open={open} onClose={onClose} label={`${game.name} result`}>
@@ -66,6 +69,11 @@ export default function ResultSheet({
           🔥 Streak {streak}
         </p>
       )}
+      {note ? (
+        <p className="games-type-callout mt-3 text-center tabular-nums" style={{ color: 'var(--text-2)' }}>
+          {note}
+        </p>
+      ) : null}
       <div className="flex flex-col gap-2 mt-5">
         <button
           type="button"

@@ -1,16 +1,20 @@
 'use client';
 
+import { markRings, nudgeLabels } from '@/lib/games/guide-geometry';
+
 // Guide-arrow overlay for the chess coach. The board library's arrows
 // carry color only (no width, caps, heads, or labels), so guided arrows
 // render here as SVG over the board: offset starts (no tail under the
 // piece), butt caps, uniform triangle heads, knight L-paths, and % labels
-// at each head. Percentage geometry keeps arrows correct across resizes
-// and board flips.
+// inside each target square. Percentage geometry keeps arrows correct
+// across resizes and board flips.
 //
-// The overlay NEVER intercepts pointer events (pointerEvents: none): board
-// taps and drags work natively everywhere, including on arrow pixels.
-// Arrow hover is passive mousemove hit-testing from the wrapping board
-// div via hoverUciAt, which mirrors the drawn geometry.
+// Collinear options (e7→e5 hiding e7→e6) demote to target rings so every
+// listed option has a board mark. The overlay NEVER intercepts pointer
+// events (pointerEvents: none): board taps and drags work natively
+// everywhere, including on arrow pixels. Arrow hover is passive mousemove
+// hit-testing from the wrapping board div via hoverUciAt, which mirrors
+// the drawn geometry (rings included).
 export interface GuideArrowSpec {
   uci: string;
   from: string;
@@ -19,14 +23,28 @@ export interface GuideArrowSpec {
   main: boolean;
   pct: number;
   name: string;
+  /** Demoted from arrow to destination ring (collinear overlap). */
+  ring?: boolean;
+}
+
+/** Mark ring-demotions on popularity-ordered specs (most popular keeps the arrow). */
+export function resolveGuideRings(specs: GuideArrowSpec[]): GuideArrowSpec[] {
+  const rings = markRings(specs.map((s) => ({ from: s.from, to: s.to })));
+  return specs.map((s, i) => ({ ...s, ring: rings[i] }));
 }
 
 const CELL = 100;
 const TAIL_OFFSET = 30;
 const HEAD_RATIO = 2.2;
+const LABEL_FONT = 12;
 
 export function shaftWidth(main: boolean, pct: number): number {
   return main ? 16 : 9 + 4 * (pct / 100);
+}
+
+/** Pill width for a % label: 8px side padding + ~7px per character. */
+export function labelWidth(text: string): number {
+  return 16 + 7 * text.length;
 }
 
 function center(sq: string, orientation: 'white' | 'black'): [number, number] {
@@ -84,6 +102,14 @@ export function hoverUciAt(
   for (const a of arrows) {
     const A = center(a.from, orientation);
     const B = center(a.to, orientation);
+    if (a.ring) {
+      const d = Math.hypot(x - B[0], y - B[1]);
+      if (d < 42 && d < bestD) {
+        bestD = d;
+        best = a.uci;
+      }
+      continue;
+    }
     const w = shaftWidth(a.main, a.pct);
     const legs: [[number, number], [number, number]][] = isKnight(a.from, a.to)
       ? [[A, [B[0], A[1]]], [[B[0], A[1]], B]]
@@ -114,13 +140,27 @@ export default function GuideArrows({
 }) {
   const visible = soloUci ? arrows.filter((a) => a.uci === soloUci) : arrows;
   const ordered = [...visible].sort((a, b) => Number(a.main) - Number(b.main));
+  // % pills live inside their target square; nudge stacked pills apart.
+  const labels = nudgeLabels(
+    ordered.map((a) => {
+      const B = center(a.to, orientation);
+      const text = `${a.pct}%`;
+      const w = labelWidth(text);
+      const h = 20;
+      if (a.ring) return { x: B[0] - w / 2, y: B[1] - h / 2, w, h };
+      const A = center(a.from, orientation);
+      const toward = norm(sub(B, A));
+      const anchor = add(B, scale(toward, -14));
+      return { x: anchor[0] - w / 2, y: anchor[1] - h / 2, w, h };
+    }),
+  );
   return (
     <svg
       viewBox="0 0 800 800"
       aria-hidden
       style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }}
     >
-      {ordered.map((a) => {
+      {ordered.map((a, i) => {
         const A = center(a.from, orientation);
         const B = center(a.to, orientation);
         const w = shaftWidth(a.main, a.pct);
@@ -153,31 +193,51 @@ export default function GuideArrows({
               : 0.3
             : baseOpacity;
         const hovered = hoverUci === a.uci;
-        // % label sits past the head, offset perpendicular so it never
-        // covers the destination square.
-        const labelAt = add(add(tip, scale(d, headHalf + 26)), scale(pv, headHalf + 30));
+        const label = labels[i] as { x: number; y: number; w: number; h: number };
         const nameAt = add(add(tip, scale(d, -(headLen + 44))), scale(pv, -(headHalf + 40)));
         return (
           <g key={a.uci} opacity={opacity}>
-            <path
-              d={path}
-              fill="none"
-              stroke={a.color}
-              strokeWidth={w}
-              strokeLinecap="butt"
-              strokeLinejoin="round"
-            />
-            <polygon points={`${tip[0]},${tip[1]} ${p1[0]},${p1[1]} ${p2[0]},${p2[1]}`} fill={a.color} />
+            {a.ring ? (
+              <circle
+                cx={B[0]}
+                cy={B[1]}
+                r={35}
+                fill="none"
+                stroke={a.color}
+                strokeWidth={4}
+                opacity={0.9}
+              />
+            ) : (
+              <>
+                <path
+                  d={path}
+                  fill="none"
+                  stroke={a.color}
+                  strokeWidth={w}
+                  strokeLinecap="butt"
+                  strokeLinejoin="round"
+                />
+                <polygon points={`${tip[0]},${tip[1]} ${p1[0]},${p1[1]} ${p2[0]},${p2[1]}`} fill={a.color} />
+              </>
+            )}
             <g>
-              <rect x={labelAt[0] - 30} y={labelAt[1] - 21} width={60} height={42} rx={21} fill="rgba(10,10,12,.85)" />
+              <rect
+                x={label.x}
+                y={label.y}
+                width={label.w}
+                height={label.h}
+                rx={10}
+                fill="rgba(0,0,0,.65)"
+              />
               <text
-                x={labelAt[0]}
-                y={labelAt[1]}
+                x={label.x + label.w / 2}
+                y={label.y + label.h / 2}
                 textAnchor="middle"
                 dominantBaseline="central"
-                fontSize={28}
+                fontSize={LABEL_FONT}
                 fontWeight={700}
                 fill="#fff"
+                style={{ fontVariantNumeric: 'tabular-nums' }}
               >
                 {a.pct}%
               </text>

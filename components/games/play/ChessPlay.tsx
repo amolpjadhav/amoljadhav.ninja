@@ -6,7 +6,6 @@ import type { Move, Square } from 'chess.js';
 import { Chessboard, defaultPieces } from 'react-chessboard';
 import type { Arrow, PieceRenderObject } from 'react-chessboard';
 import GameShell from '../GameShell';
-import StatChip from '../StatChip';
 import { DockButton } from '../ControlDock';
 import ControlDock from '../ControlDock';
 import HowToPlaySheet from '../HowToPlaySheet';
@@ -28,6 +27,8 @@ import {
   CHESS_SAVE_KEY,
   CHESS_STATS_KEY,
   chessShareText,
+  evalWhiteShare,
+  fmtEvalCp,
   recordOpeningGame,
   repertoireTop,
   reviewHeadline,
@@ -61,7 +62,7 @@ import {
   saveStore,
   shareText,
 } from '@/lib/games/arcade';
-import GuideArrows, { hoverUciAt } from './GuideArrows';
+import GuideArrows, { hoverUciAt, resolveGuideRings } from './GuideArrows';
 import type { GuideArrowSpec } from './GuideArrows';
 import {
   analyzeBook,
@@ -72,6 +73,7 @@ import {
   loadOpeningStyles,
   lookupOpening,
   pickBookMove,
+  shortOpeningName,
   styleFor,
 } from '@/lib/games/openings';
 import type { BookAnalysis, BookChildStat, OpeningsData, OpeningStyle } from '@/lib/games/openings';
@@ -95,6 +97,8 @@ const SOUND_KEY = 'games:v1:chess:sound';
 const THEME_KEY = 'games:v1:chess:theme';
 const MAX_PGNS = 50;
 const HINTS_PER_GAME = 3;
+const EVAL_CACHE_KEY = 'games:v1:chess:evalcache';
+const EVAL_CACHE_MAX = 300;
 
 const CLASSIC_LIGHT = '#E8DCC4';
 const CLASSIC_DARK = '#B58863';
@@ -612,6 +616,8 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
   const [soloUci, setSoloUci] = useState<string | null>(null);
   const [hoverUci, setHoverUci] = useState<string | null>(null);
   const [confirmCoach, setConfirmCoach] = useState(false);
+  // Record card starts collapsed mid-game (panel space is precious).
+  const [recordForced, setRecordForced] = useState<boolean | null>(null);
   const [pendingReview, setPendingReview] = useState(false);
   const [review, setReview] = useState<{ queue: string[]; index: number; auto: boolean } | null>(null);
   const sanRef = useRef<HTMLInputElement | null>(null);
@@ -898,7 +904,13 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
     [applyEngineMove, hintMode],
   );
 
-  const { status: engineStatus, requestMove, stop: stopEngine } = useChessEngine(onEngineReply);
+  const {
+    status: engineStatus,
+    requestMove,
+    stop: stopEngine,
+    analyze,
+    cancelAnalysis,
+  } = useChessEngine(onEngineReply);
 
   useEffect(() => {
     if (engineStatus === 'failed' && !engineNote.current) {
@@ -1012,7 +1024,7 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
           chess.undo();
           setShaking(true);
           setTimeout(() => setShaking(false), 350);
-          say('Not book — try again, or press Show');
+          say('Not book — try again, or press Show hint');
           return false;
         }
         if (verdict === 'offbook') {
@@ -1436,16 +1448,28 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
     const caps = color === 'white' ? liveSummary.capturedByWhite : liveSummary.capturedByBlack;
     const ahead = color === 'white' ? liveSummary.balance : -liveSummary.balance;
     const ms = color === 'white' ? clocks?.w : clocks?.b;
+    const toMove = status === 'playing' && viewPly === null && (chess.turn() === 'w') === (color === 'white');
     return (
-      <div className="flex items-center gap-2 min-h-[44px]" aria-live="polite">
+      <div
+        className="flex items-center gap-2 min-h-[44px] max-h-[44px] overflow-hidden whitespace-nowrap"
+        aria-live="polite"
+      >
+        {toMove && (
+          <span
+            aria-hidden
+            title="To move"
+            className="inline-block w-2 h-2 rounded-full shrink-0"
+            style={{ background: 'var(--game-accent)' }}
+          />
+        )}
         {mine ? (
-          <span className="games-type-callout font-semibold">
+          <span className="games-type-callout font-semibold truncate shrink-0">
             You · {color === 'white' ? 'White' : 'Black'}
           </span>
         ) : (
-          <span className="flex items-center gap-1.5">
+          <span className="flex items-center gap-1.5 min-w-0 shrink-0">
             <LevelIcon levelId={level.id} size={20} />
-            <span className="games-type-callout font-semibold">Stockfish · {level.name}</span>
+            <span className="games-type-callout font-semibold truncate">Stockfish · {level.name}</span>
           </span>
         )}
         {!mine && thinking && (
@@ -1454,7 +1478,7 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
           </span>
         )}
         <span
-          className="flex items-center gap-0.5"
+          className="flex items-center gap-0.5 overflow-hidden shrink"
           aria-label={mine ? 'Pieces you captured' : 'Pieces Stockfish captured'}
         >
           {caps.map((t, i) => (
@@ -1839,18 +1863,112 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
       const spec = specFor(main, true);
       if (spec) out.push(spec);
     }
-    for (const alt of alts.slice(0, 2)) {
+    for (const alt of alts.slice(0, 3)) {
       const spec = specFor(alt, false);
       if (spec) out.push(spec);
     }
-    if (soloUci && !out.some((s) => s.uci === soloUci)) {
-      // A tapped 4th-row option has no standing arrow: draw it solo.
-      const k = coachNode.kids.find((c) => c.uci === soloUci);
-      const spec = k ? specFor(k, k.uci === main?.uci) : null;
-      if (spec) return [spec];
-    }
-    return out;
+    // Collinear overlaps demote to target rings (most popular keeps the
+    // arrow) so every listed option owns a board mark. Solo taps isolate
+    // after resolution, so a tapped ring stays a ring.
+    const resolved = resolveGuideRings(out);
+    if (soloUci) return resolved.filter((s) => s.uci === soloUci);
+    return resolved;
   }, [coachNode, coachStage, fen, hintRevealed, openings, soloUci, turnIsPlayer, viewPly]);
+
+  // Cached option evals (White perspective, EPD-keyed). Shallow
+  // background analysis fills them while the engine idles on the player's
+  // turn — never during a real search. Render reads state; the analysis
+  // effect consults the ref mirror (refs stay out of render).
+  const [evalMap, setEvalMap] = useState<Record<string, number>>(() => readJSON(EVAL_CACHE_KEY) ?? {});
+  const evalCache = useRef<Map<string, number> | null>(null);
+  if (evalCache.current === null) {
+    evalCache.current = new Map(Object.entries(readJSON<Record<string, number>>(EVAL_CACHE_KEY) ?? {}));
+  }
+  const rememberEval = useCallback((epd: string, cp: number | null) => {
+    if (cp === null || !Number.isFinite(cp)) return;
+    const cache = evalCache.current as Map<string, number>;
+    if (cache.get(epd) === cp) return;
+    cache.set(epd, cp);
+    while (cache.size > EVAL_CACHE_MAX) {
+      const oldest = cache.keys().next();
+      if (oldest.done) break;
+      cache.delete(oldest.value);
+    }
+    setEvalMap(Object.fromEntries(cache));
+  }, []);
+  // Persist separately so the updater stays pure.
+  useEffect(() => {
+    writeJSON(EVAL_CACHE_KEY, evalMap);
+  }, [evalMap]);
+
+  useEffect(() => {
+    // The current position is always analyzed (the eval bar stays live
+    // all game); book children join in while the coach shows options.
+    if (
+      !coachOn ||
+      engineStatus !== 'ready' ||
+      thinking ||
+      status !== 'playing' ||
+      review ||
+      viewPly !== null
+    ) {
+      return undefined;
+    }
+    const seen = new Set<string>();
+    const targets: { epd: string; pos: string }[] = [];
+    const push = (posFen: string) => {
+      const epd = epdOf(posFen);
+      if (seen.has(epd) || evalCache.current?.has(epd)) return;
+      seen.add(epd);
+      targets.push({ epd, pos: posFen });
+    };
+    push(fen);
+    if (coachNode && turnIsPlayer) {
+      for (const k of coachNode.kids.slice(0, 4)) {
+        try {
+          const d = new Chess(fen);
+          d.move({
+            from: k.uci.slice(0, 2),
+            to: k.uci.slice(2, 4),
+            promotion: (k.uci.slice(4) as 'q' | 'r' | 'b' | 'n' | undefined) || undefined,
+          });
+          push(d.fen());
+        } catch {
+          /* illegal child — skip */
+        }
+      }
+    }
+    if (targets.length === 0) return undefined;
+    let cancelled = false;
+    (async () => {
+      for (const t of targets) {
+        if (cancelled) return;
+        const cp = await new Promise<number | null>((resolve) => {
+          if (!analyze(t.pos, new Chess(t.pos).turn(), resolve)) resolve(null);
+        });
+        if (cancelled) return;
+        if (cp === null) return; // engine busy or gone — back off
+        rememberEval(t.epd, cp);
+      }
+    })();
+    return () => {
+      cancelled = true;
+      cancelAnalysis();
+    };
+  }, [
+    coachNode,
+    coachOn,
+    engineStatus,
+    thinking,
+    turnIsPlayer,
+    status,
+    review,
+    viewPly,
+    fen,
+    analyze,
+    cancelAnalysis,
+    rememberEval,
+  ]);
 
   // Recall Practice stage: arrows surface after 5 idle seconds (or H).
   useEffect(() => {
@@ -1929,6 +2047,8 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
     </ol>
   );
 
+  const currentEvalCp = evalMap[epdOf(fen)] ?? null;
+
   const outcomeTitle = !endInfo
     ? 'Game over'
     : endInfo.outcome === 'win'
@@ -1948,8 +2068,22 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
         <ul className="flex flex-col gap-1">
           {coachNode.kids.slice(0, 4).map((k, i) => {
             const label = openings ? labelChild(openings, fen, k.uci) : null;
-            const name = label ? (label.usually ? `usually ${label.name}` : label.name) : 'Book move';
+            const full = label ? (label.usually ? `usually ${label.name}` : label.name) : 'Book move';
+            const name = label ? (label.usually ? `usually ${shortOpeningName(label.eco, label.name)}` : shortOpeningName(label.eco, label.name)) : 'Book move';
             const style = label ? styleFor(styles, label.eco, label.name) : null;
+            let childEval: number | null = null;
+            try {
+              const d = new Chess(fen);
+              d.move({
+                from: k.uci.slice(0, 2),
+                to: k.uci.slice(2, 4),
+                promotion: (k.uci.slice(4) as 'q' | 'r' | 'b' | 'n' | undefined) || undefined,
+              });
+              childEval = evalMap[epdOf(d.fen())] ?? null;
+            } catch {
+              /* illegal child — no eval */
+            }
+            const evalText = fmtEvalCp(childEval);
             const solo = soloUci === k.uci;
             return (
               <li key={k.uci}>
@@ -1961,7 +2095,7 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
                   onMouseEnter={() => setHotUci(k.uci)}
                   onMouseLeave={() => setHotUci(null)}
                   aria-pressed={solo}
-                  aria-label={`Option ${k.san}, ${name}, ${k.pct} percent`}
+                  aria-label={`Option ${k.san}, ${full}, ${k.pct} percent`}
                   className="games-press w-full flex items-center gap-2 rounded-[10px] px-2.5 py-1.5 text-left"
                   style={{
                     background: solo ? 'rgba(229,192,123,.14)' : 'var(--surface-2)',
@@ -1974,15 +2108,26 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
                     style={{ background: i === 0 ? '#30D158' : GUIDE_BLUE }}
                   />
                   <span className="games-type-callout tabular-nums font-semibold">{k.san}</span>
-                  <span className="games-type-caption flex-1 truncate" style={{ color: 'var(--text-2)' }}>
+                  <span
+                    className="games-type-caption flex-1 min-w-0 line-clamp-2"
+                    style={{ color: 'var(--text-2)' }}
+                  >
                     {name}
                   </span>
                   {style && (
                     <span
-                      className="games-type-micro px-1.5 py-0.5 rounded-full shrink-0"
+                      className="games-type-micro px-1.5 py-0.5 rounded-full shrink-0 uppercase"
                       style={{ background: 'var(--surface-3)', color: 'var(--text-3)' }}
                     >
                       {style}
+                    </span>
+                  )}
+                  {evalText && (
+                    <span
+                      className="games-type-caption tabular-nums shrink-0 w-11 text-right"
+                      style={{ color: 'var(--text-2)' }}
+                    >
+                      {evalText}
                     </span>
                   )}
                   <span className="games-type-caption tabular-nums shrink-0" style={{ color: 'var(--text-2)' }}>
@@ -2027,16 +2172,15 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
                 <span className="games-type-headline tabular-nums leading-tight">{dueCount(nodes)}</span>
               </button>
             )}
-            <StatChip label="Move" value={String(Math.max(1, fullMoves))} />
-            <StatChip label="Level" value={level.name} />
-            {casual && (
-              <span
-                className="games-type-micro px-2 py-0.5 rounded-full self-center"
-                style={{ background: 'rgba(229,192,123,.16)', color: '#E5C07B' }}
-              >
-                Casual
-              </span>
-            )}
+            <span
+              role="status"
+              aria-label={`Level ${level.name}${casual ? ', casual' : ''}`}
+              className="games-type-callout px-3 py-2 rounded-[10px] shrink-0 tabular-nums"
+              style={{ background: 'var(--surface-2)' }}
+            >
+              {level.name}
+              {casual && <span style={{ color: '#E5C07B' }}> · Casual</span>}
+            </span>
           </>
         }
         menu={
@@ -2125,10 +2269,35 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
                 </button>
               </div>
             )}
+            <div className="flex items-stretch gap-2 my-1">
+              {coachOn && coachKind === 'guided' && (
+                <div className="flex w-6 flex-col items-center py-1">
+                  <div
+                    className="relative flex-1 w-[10px] rounded-full overflow-hidden"
+                    style={{ background: currentEvalCp !== null ? '#141518' : 'transparent' }}
+                  >
+                    {currentEvalCp !== null && (
+                      <div
+                        className="absolute bottom-0 left-0 w-full bg-white"
+                        style={{ height: `${evalWhiteShare(currentEvalCp)}%` }}
+                      />
+                    )}
+                  </div>
+                  <span
+                    className="games-type-micro tabular-nums mt-1 min-h-[1em]"
+                    style={{ color: 'var(--text-2)' }}
+                    role={currentEvalCp !== null ? 'img' : undefined}
+                    aria-label={currentEvalCp !== null ? `Evaluation ${fmtEvalCp(currentEvalCp) ?? 'unknown'}` : undefined}
+                  >
+                    {currentEvalCp !== null ? fmtEvalCp(currentEvalCp) : ''}
+                  </span>
+                </div>
+              )}
             <div
-              className={`relative my-1 games-board-lock${shaking ? ' games-shake' : ''}`}
+              className={`relative flex-1 games-board-lock${shaking ? ' games-shake' : ''}`}
               aria-label="Chess board"
-              data-guide-arrows={soloUci ? 1 : guideSpecs.length}
+              data-guide-arrows={guideSpecs.filter((s) => !s.ring).length}
+              data-guide-rings={guideSpecs.filter((s) => s.ring).length}
               onMouseMove={(e) => {
                 if (guideSpecs.length === 0) return;
                 const rect = e.currentTarget.getBoundingClientRect();
@@ -2167,6 +2336,7 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
                 />
               )}
             </div>
+            </div>
             {renderBar(flipped ? engineColor : playerColor, false)}
             <details className="lg:hidden mt-3 games-card p-4">
               <summary className="games-type-callout cursor-pointer">Moves · {fullMoves}</summary>
@@ -2177,31 +2347,26 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
                   {book.outAtMove ? ` · out at move ${book.outAtMove}` : ''}
                 </p>
               )}
-              {coachNode && coachNode.kids[0]?.san && (
-                <p className="games-type-caption mt-1 tabular-nums" style={{ color: 'var(--text-2)' }}>
-                  Book: {Math.floor(sans.length / 2) + 1}
-                  {chess.turn() === 'w' ? '.' : '…'}
-                  {coachNode.kids[0]?.san} (main line · {coachNode.kids[0]?.pct}%)
-                </p>
-              )}
               {optionsList}
               <div className="mt-2">{moveList}</div>
             </details>
-            <p className="games-type-caption mt-3 text-center" style={{ color: 'var(--text-3)' }}>
-              Engine: Stockfish 19 Lite (GPL-3, unmodified) ·{' '}
+            <p
+              className="games-type-caption mt-3 text-center lg:whitespace-nowrap"
+              style={{ color: 'var(--text-3)' }}
+            >
               <a
                 href="https://github.com/nmrugg/stockfish.js"
                 target="_blank"
                 rel="noreferrer"
                 className="underline underline-offset-2"
               >
-                source
+                Stockfish
               </a>{' '}
-              ·{' '}
+              (
               <a href="/vendor/stockfish/Copying.txt" target="_blank" rel="noreferrer" className="underline underline-offset-2">
-                Copying.txt
-              </a>{' '}
-              · Opening names: Lichess (CC0)
+                GPL-3
+              </a>
+              ) · Opening names: Lichess (CC0)
             </p>
           </div>
         }
@@ -2242,7 +2407,7 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
           </ControlDock>
         }
         sidePanel={
-          <>
+          <div className="flex min-h-0 flex-col gap-4 lg:sticky lg:top-20 lg:max-h-[calc(100dvh-6.5rem)] lg:overflow-y-auto lg:pb-1">
             <div className="games-card p-5" aria-live="polite">
               <div className="flex items-center justify-between gap-2">
                 <h2 className="games-type-headline">Opening</h2>
@@ -2276,22 +2441,19 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
                   <p className="games-type-body mt-1">
                     {coachNode.entry ? `${coachNode.entry.eco} · ${coachNode.entry.name}` : 'Starting position'}
                   </p>
-                  <p className="games-type-caption mt-1 tabular-nums" style={{ color: 'var(--text-2)' }}>
-                    Book: {Math.floor(sans.length / 2) + 1}
-                    {chess.turn() === 'w' ? '.' : '…'}
-                    {coachNode.kids[0]?.san} (main line · {coachNode.kids[0]?.pct}%)
-                  </p>
                   {optionsList}
                   <div className="flex flex-wrap gap-2 mt-3">
-                    <button
-                      type="button"
-                      onClick={showAnswer}
-                      disabled={!turnIsPlayer}
-                      className="games-press games-type-callout rounded-[10px] px-4 py-2"
-                      style={{ background: 'var(--surface-2)', color: 'var(--text-1)' }}
-                    >
-                      Reveal
-                    </button>
+                    {coachKind === 'recall' && (coachStage === 'practice' || coachStage === 'test') && (
+                      <button
+                        type="button"
+                        onClick={coachStage === 'practice' ? revealHint : showAnswer}
+                        disabled={!turnIsPlayer}
+                        className="games-press games-type-callout rounded-[10px] px-4 py-2"
+                        style={{ background: 'var(--surface-2)', color: 'var(--text-1)' }}
+                      >
+                        Show hint (H)
+                      </button>
+                    )}
                     <button
                       type="button"
                       onClick={playOut}
@@ -2353,7 +2515,7 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
                   ref={sanRef}
                   value={sanInput}
                   onChange={(e) => setSanInput(e.target.value)}
-                  placeholder="SAN move — press / to focus"
+                  placeholder="Type a move  /"
                   aria-label="Move in SAN notation"
                   autoComplete="off"
                   spellCheck={false}
@@ -2371,36 +2533,50 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
               </form>
             </div>
             <div className="games-card p-5">
-              <h2 className="games-type-headline">Record vs {level.name}</h2>
-              <p className="games-type-body mt-1 tabular-nums" style={{ color: 'var(--text-2)' }}>
-                {levelStats ? `${levelStats.wins}W · ${levelStats.losses}L · ${levelStats.draws}D` : 'No games yet'}
-                {usedUndo && ' · unrated (undo used)'}
-              </p>
-              {casualGames > 0 && (
-                <p className="games-type-caption mt-1 tabular-nums" style={{ color: 'var(--text-3)' }}>
-                  Casual games: {casualGames} (coached — rated record untouched)
-                </p>
-              )}
-              {repertoireTop(openStats).length > 0 && (
+              <button
+                type="button"
+                onClick={() => setRecordForced((v) => !(v ?? status !== 'playing'))}
+                aria-expanded={recordForced ?? status !== 'playing'}
+                className="games-press w-full flex items-center justify-between gap-2 text-left"
+              >
+                <h2 className="games-type-headline">Record vs {level.name}</h2>
+                <span aria-hidden className="games-type-callout" style={{ color: 'var(--text-3)' }}>
+                  {(recordForced ?? status !== 'playing') ? '▾' : '▸'}
+                </span>
+              </button>
+              {(recordForced ?? status !== 'playing') && (
                 <>
-                  <h3 className="games-type-micro mt-4 mb-1" style={{ color: 'var(--text-3)' }}>
-                    Your repertoire
-                  </h3>
-                  <ul className="flex flex-col gap-1">
-                    {repertoireTop(openStats).map((r) => (
-                      <li
-                        key={r.eco}
-                        className="games-type-caption tabular-nums"
-                        style={{ color: 'var(--text-2)' }}
-                      >
-                        {r.eco} · {r.name} — {r.games} {r.games === 1 ? 'game' : 'games'} · {r.winPct}% · book to {r.avgDepth}
-                      </li>
-                    ))}
-                  </ul>
+                  <p className="games-type-body mt-1 tabular-nums" style={{ color: 'var(--text-2)' }}>
+                    {levelStats ? `${levelStats.wins}W · ${levelStats.losses}L · ${levelStats.draws}D` : 'No games yet'}
+                    {usedUndo && ' · unrated (undo used)'}
+                  </p>
+                  {casualGames > 0 && (
+                    <p className="games-type-caption mt-1 tabular-nums" style={{ color: 'var(--text-3)' }}>
+                      Casual games: {casualGames} (coached — rated record untouched)
+                    </p>
+                  )}
+                  {repertoireTop(openStats).length > 0 && (
+                    <>
+                      <h3 className="games-type-micro mt-4 mb-1" style={{ color: 'var(--text-3)' }}>
+                        Your repertoire
+                      </h3>
+                      <ul className="flex flex-col gap-1">
+                        {repertoireTop(openStats).map((r) => (
+                          <li
+                            key={r.eco}
+                            className="games-type-caption tabular-nums"
+                            style={{ color: 'var(--text-2)' }}
+                          >
+                            {r.eco} · {r.name} — {r.games} {r.games === 1 ? 'game' : 'games'} · {r.winPct}% · book to {r.avgDepth}
+                          </li>
+                        ))}
+                      </ul>
+                    </>
+                  )}
                 </>
               )}
             </div>
-          </>
+          </div>
         }
         howToPlay={null}
       />
