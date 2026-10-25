@@ -2,7 +2,18 @@
 
 import { useState } from 'react';
 
-const DATA = [
+interface Point {
+  label: string;
+  revenue: number;
+  margin: number;
+}
+
+// Default data is the original Meta Q2 2026 trend — kept as a fallback so
+// the already-published article (which embeds this widget with no data
+// prop) keeps rendering unchanged. New articles should pass
+// data-points='[{"label":...,"revenue":...,"margin":...}, ...]' as JSON,
+// with revenue in millions and margin as a whole-number percentage.
+const DEFAULT_DATA: Point[] = [
   { label: "Q2'24", revenue: 39071, margin: 38 },
   { label: "Q3'24", revenue: 40589, margin: 43 },
   { label: "Q4'24", revenue: 48385, margin: 48 },
@@ -13,6 +24,9 @@ const DATA = [
   { label: "Q1'26", revenue: 56311, margin: 41 },
   { label: "Q2'26", revenue: 60801, margin: 31 },
 ];
+const DEFAULT_EYEBROW = 'Nine quarters';
+const DEFAULT_CAPTION =
+  "Revenue (bars) has climbed almost every quarter. Operating margin (line) held in a steady 38–48% band for two years — until Q2 2026, when it dropped further in one quarter than in any other quarter shown here.";
 
 const VIEW_W = 600;
 const VIEW_H = 260;
@@ -20,46 +34,53 @@ const PLOT_LEFT = 40;
 const PLOT_RIGHT = 580;
 const PLOT_TOP = 30;
 const PLOT_BOTTOM = 210;
-const MAX_REVENUE = 65000;
-const MAX_MARGIN = 50;
 
-const slotWidth = (PLOT_RIGHT - PLOT_LEFT) / DATA.length;
-const barWidth = slotWidth * 0.55;
-
-function barX(i: number) {
-  return PLOT_LEFT + i * slotWidth + (slotWidth - barWidth) / 2;
-}
-
-function pointX(i: number) {
-  return PLOT_LEFT + i * slotWidth + slotWidth / 2;
-}
-
-function revenueY(revenue: number) {
-  return PLOT_BOTTOM - (revenue / MAX_REVENUE) * (PLOT_BOTTOM - PLOT_TOP);
-}
-
-function marginY(margin: number) {
-  return PLOT_BOTTOM - (margin / MAX_MARGIN) * (PLOT_BOTTOM - PLOT_TOP);
-}
-
-const linePath = DATA.map((d, i) => `${i === 0 ? 'M' : 'L'} ${pointX(i)} ${marginY(d.margin)}`).join(' ');
-
-export default function GrowthVsMarginTrend() {
+export default function GrowthVsMarginTrend({
+  points,
+  eyebrow,
+  caption,
+  highlightColor,
+}: {
+  points?: string;
+  eyebrow?: string;
+  caption?: string;
+  highlightColor?: string;
+}) {
+  const data: Point[] = points ? JSON.parse(points) : DEFAULT_DATA;
   const [hoverIdx, setHoverIdx] = useState<number | null>(null);
-  const active = hoverIdx !== null ? DATA[hoverIdx] : DATA[DATA.length - 1];
+  const active = hoverIdx !== null ? data[hoverIdx] : data[data.length - 1];
+  const accent = highlightColor || '#ef4444';
+
+  const maxRevenue = Math.ceil((Math.max(...data.map((d) => d.revenue)) * 1.08) / 1000) * 1000;
+  const maxMargin = Math.max(50, Math.ceil(Math.max(...data.map((d) => d.margin)) / 10) * 10);
+
+  const slotWidth = (PLOT_RIGHT - PLOT_LEFT) / data.length;
+  const barWidth = slotWidth * 0.55;
+
+  function barX(i: number) {
+    return PLOT_LEFT + i * slotWidth + (slotWidth - barWidth) / 2;
+  }
+  function pointX(i: number) {
+    return PLOT_LEFT + i * slotWidth + slotWidth / 2;
+  }
+  function revenueY(revenue: number) {
+    return PLOT_BOTTOM - (revenue / maxRevenue) * (PLOT_BOTTOM - PLOT_TOP);
+  }
+  function marginY(margin: number) {
+    return PLOT_BOTTOM - (margin / maxMargin) * (PLOT_BOTTOM - PLOT_TOP);
+  }
+
+  const linePath = data.map((d, i) => `${i === 0 ? 'M' : 'L'} ${pointX(i)} ${marginY(d.margin)}`).join(' ');
+  const marginTicks = Array.from({ length: 5 }, (_, i) => (maxMargin / 4) * i);
 
   return (
     <div className="not-prose bg-[#1c1d20] border border-white/10 rounded-lg p-6 my-6">
-      <p className="text-xs uppercase tracking-wide text-white/40 mb-1">Nine quarters</p>
-      <p className="text-white/70 text-sm mb-4">
-        Revenue (bars) has climbed almost every quarter. Operating margin (line) held in a steady 38&ndash;48% band
-        for two years &mdash; until Q2 2026, when it dropped further in one quarter than in any other quarter shown
-        here.
-      </p>
+      <p className="text-xs uppercase tracking-wide text-white/40 mb-1">{eyebrow || DEFAULT_EYEBROW}</p>
+      <p className="text-white/70 text-sm mb-4">{caption || DEFAULT_CAPTION}</p>
 
       <div className="bg-black/30 rounded-lg mb-4 overflow-hidden">
         <svg viewBox={`0 0 ${VIEW_W} ${VIEW_H}`} className="w-full h-auto">
-          {[0, 12.5, 25, 37.5, 50].map((tick) => (
+          {marginTicks.map((tick) => (
             <line
               key={tick}
               x1={PLOT_LEFT}
@@ -71,8 +92,8 @@ export default function GrowthVsMarginTrend() {
             />
           ))}
 
-          {DATA.map((d, i) => {
-            const isLast = i === DATA.length - 1;
+          {data.map((d, i) => {
+            const isLast = i === data.length - 1;
             const isActive = hoverIdx === i;
             return (
               <g
@@ -98,18 +119,14 @@ export default function GrowthVsMarginTrend() {
                 >
                   {d.label}
                 </text>
-                {isLast && (
-                  <circle cx={pointX(i)} cy={marginY(d.margin)} r={5} fill="#ef4444" stroke="#1c1d20" strokeWidth={1.5} />
-                )}
+                {isLast && <circle cx={pointX(i)} cy={marginY(d.margin)} r={5} fill={accent} stroke="#1c1d20" strokeWidth={1.5} />}
               </g>
             );
           })}
 
           <path d={linePath} fill="none" stroke="#facc15" strokeWidth={2} />
-          {DATA.map((d, i) =>
-            i === DATA.length - 1 ? null : (
-              <circle key={d.label} cx={pointX(i)} cy={marginY(d.margin)} r={3} fill="#facc15" />
-            )
+          {data.map((d, i) =>
+            i === data.length - 1 ? null : <circle key={d.label} cx={pointX(i)} cy={marginY(d.margin)} r={3} fill="#facc15" />
           )}
         </svg>
       </div>
@@ -119,10 +136,10 @@ export default function GrowthVsMarginTrend() {
           <span className="w-2.5 h-2.5 rounded-sm bg-[#5b9bf5]/60 inline-block" /> revenue (bars, left scale)
         </span>
         <span className="flex items-center gap-1">
-          <span className="w-2.5 h-1 rounded-full bg-[#facc15] inline-block" /> operating margin (line, right scale, 0&ndash;50%)
+          <span className="w-2.5 h-1 rounded-full bg-[#facc15] inline-block" /> operating margin (line, right scale, 0&ndash;{maxMargin}%)
         </span>
         <span className="flex items-center gap-1">
-          <span className="w-2.5 h-2.5 rounded-full bg-[#ef4444] inline-block" /> Q2&rsquo;26 margin
+          <span className="w-2.5 h-2.5 rounded-full inline-block" style={{ background: accent }} /> {data[data.length - 1].label} margin
         </span>
       </p>
 

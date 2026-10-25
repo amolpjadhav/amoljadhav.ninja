@@ -2,7 +2,7 @@
 
 *Also available on [Medium](https://medium.com/@amoljadhav_48655/pocket-laws-101-the-mental-models-worth-carrying-around-55c92aa32fd0).*
 
-An observation someone made decades ago can save you from a bad decision. This is a field guide to fourteen pocket laws: simple mental models worth carrying around and reaching for, whenever life throws a familiar situation your way.
+An observation someone made decades ago can save you from a bad decision. This is a field guide to sixteen pocket laws: simple mental models worth carrying around and reaching for, whenever life throws a familiar situation your way.
 
 They're less like laws and more like patterns — simple enough to remember, sharp enough that once you've noticed one, you start seeing it everywhere: at work, with friends, in your own decisions.
 
@@ -74,6 +74,14 @@ New people cost time to train, and more people cost more time to coordinate. Her
 
 The fix isn't more people — it's fewer people with more focus, or just accepting the deadline needs to move.
 
+### Occam's Razor: the simplest explanation is usually the right one
+
+When several stories could explain what happened, bet on the one that needs the fewest assumptions. Think about your car not starting in the morning. One story: the battery died overnight — one tired old battery, done. Another story: someone tampered with the engine, the fuel went bad at the station, and there's a recall nobody told you about — three unlikely things, all at once. The battery story isn't guaranteed. It's just the better first bet, because every extra assumption is another chance to be wrong. Or think about hearing hoofbeats outside your window. Horses is one assumption: horses exist nearby. Zebras is two: zebras exist nearby, and they escaped. Start with horses. This is Occam's Razor: don't multiply explanations beyond what you need. Try the simple story first, and only add complications when the simple story fails to fit the facts.
+
+### Hanlon's Razor: don't blame meanness for what carelessness explains
+
+Occam's Razor has a sibling, just for dealing with people: never assume bad intentions when plain clumsiness fits the facts. Think about a coworker who didn't copy you on an important email. One story: she's freezing you out, building a case against you, playing politics. Another story: she forgot — she was rushing, your name slipped her mind. Forgetting needs one tired human. Plotting needs a villain with a plan and a motive. Or think about the driver who cut you off this morning. It feels personal. It almost never is — he didn't check his mirror, he was late, he made a sloppy lane change. This is Hanlon's Razor: assume clumsiness first. It saves your relationships, and it saves your energy — outrage is expensive, and it's embarrassing to spend it on someone who just made an ordinary mistake. The two razors work as a pair: Occam picks the simplest story, and Hanlon reminds you that the simplest story about people is almost never a conspiracy.
+
 ### Loss Aversion: losing something hurts more than gaining the same thing feels good
 
 Losing something feels a lot worse than gaining the same thing feels good. Not just a little worse — researchers have found it's close to twice as bad. Think about finding $20 on the street versus losing $20 out of your pocket. Finding it feels nice for a minute. Losing it can ruin your whole day. Same amount of money, completely different weight. Or think about selling something you own, like an old phone or a game console. You'll often ask for more money than a stranger would actually pay for it — because giving it up feels like a loss to you, even though you weren't planning to use it again anyway. This is Loss Aversion, first described by the psychologist Daniel Kahneman: people feel losses roughly twice as strongly as they feel equivalent gains. It's why people hold on to a falling stock instead of selling, stay in situations they should leave, and fight harder to avoid losing something than they would to gain that same thing. If you catch yourself fighting hard to avoid a loss, ask whether you'd put in that same effort to gain the equivalent amount. If not, the fear of losing is doing more work than the actual stakes deserve.
@@ -99,6 +107,8 @@ Here's the set, in one place:
 | **Chesterton's Fence** | don't remove a rule until you understand why it exists |
 | **Bikeshedding** | groups argue longest about the least important decision |
 | **Brooks's Law** | adding people to a late project makes it later |
+| **Occam's Razor** | the explanation needing the fewest assumptions is usually right |
+| **Hanlon's Razor** | assume clumsiness before malice |
 | **Loss Aversion** | losing something hurts about twice as much as gaining the same thing feels good |
 
 None of these are predictions — they're pattern-matchers. You don't use Brooks's Law to calculate an exact date; you use it to notice, in the moment someone suggests "let's just add two more people," that the instinct is probably wrong. That's what a pocket law is for: not precision, but a fast, cheap check against a mistake you've probably lived through before, even if you couldn't have named it at the time.

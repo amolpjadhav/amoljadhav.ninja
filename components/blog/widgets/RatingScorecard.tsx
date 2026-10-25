@@ -1,6 +1,10 @@
 'use client';
 
-const DIMENSIONS = [
+// Default data is the original Meta Q2 2026 scorecard — kept as a fallback
+// so that article already published with a bare <div data-widget="rating-scorecard">
+// (no data prop) keeps rendering unchanged. New articles should pass
+// data-dimensions='[{"label":...,"score":...,"why":...}, ...]' as a JSON string.
+const DEFAULT_DIMENSIONS = [
   {
     label: 'Growth',
     score: 5,
@@ -28,8 +32,6 @@ const DIMENSIONS = [
   },
 ];
 
-const OVERALL = DIMENSIONS.reduce((sum, d) => sum + d.score, 0) / DIMENSIONS.length;
-
 function scoreColor(score: number) {
   if (score >= 4) return '#0aee3c';
   if (score >= 3) return '#facc15';
@@ -37,13 +39,31 @@ function scoreColor(score: number) {
   return '#ef4444';
 }
 
-export default function RatingScorecard() {
+// Standard 12-notch scale over the 1-5 rubric, documented in the earnings
+// framework memory so every article's letter grade is computed the same way.
+function letterGrade(score: number) {
+  if (score >= 4.5) return 'A';
+  if (score >= 4.0) return 'A-';
+  if (score >= 3.7) return 'B+';
+  if (score >= 3.4) return 'B';
+  if (score >= 3.0) return 'B-';
+  if (score >= 2.7) return 'C+';
+  if (score >= 2.4) return 'C';
+  if (score >= 2.0) return 'C-';
+  if (score >= 1.5) return 'D';
+  return 'F';
+}
+
+export default function RatingScorecard({ dimensions }: { dimensions?: string }) {
+  const data: typeof DEFAULT_DIMENSIONS = dimensions ? JSON.parse(dimensions) : DEFAULT_DIMENSIONS;
+  const overall = data.reduce((sum, d) => sum + d.score, 0) / data.length;
+
   return (
     <div className="not-prose bg-[#1c1d20] border border-white/10 rounded-lg p-6 my-6">
       <p className="text-xs uppercase tracking-wide text-white/40 mb-4">The rating, scored</p>
 
       <div className="space-y-4 mb-6">
-        {DIMENSIONS.map((d) => (
+        {data.map((d) => (
           <div key={d.label}>
             <div className="flex items-center justify-between mb-1">
               <span className="text-white/85 text-sm font-semibold">{d.label}</span>
@@ -63,13 +83,13 @@ export default function RatingScorecard() {
       <div className="border-t border-white/10 pt-4 flex items-center justify-between">
         <div>
           <p className="text-[10px] uppercase tracking-wide text-white/40 mb-1">Overall</p>
-          <p className="text-white/90 text-sm">{OVERALL.toFixed(2)} / 5</p>
+          <p className="text-white/90 text-sm">{overall.toFixed(2)} / 5</p>
         </div>
         <div
           className="text-2xl font-bold px-4 py-2 rounded-lg"
-          style={{ color: scoreColor(OVERALL), background: `${scoreColor(OVERALL)}1a` }}
+          style={{ color: scoreColor(overall), background: `${scoreColor(overall)}1a` }}
         >
-          B-
+          {letterGrade(overall)}
         </div>
       </div>
     </div>

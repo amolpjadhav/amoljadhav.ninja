@@ -1,0 +1,59 @@
+{
+  "_comment": "Hosts per YouTube channel id (matches CHANNELS in lib/podcasts.ts). Passed to the episode summarizer so transcripts' 'Speaker N' voices resolve to real names. Use a name only when listed here or spoken aloud in the transcript.",
+  "UCzQUP1qoWDoEbmsQxvdjxgQ": [{ "name": "Joe Rogan", "role": "host" }],
+  "UCSHZKyawb77ixDdsGog4iWA": [{ "name": "Lex Fridman", "role": "host" }],
+  "UC2D2CMWXMOVWx7giW1n3LIg": [{ "name": "Andrew Huberman", "role": "host" }],
+  "UC-W8Qu2Zb407kjVhW-5U-SA": [
+    { "name": "Jason Bateman", "role": "co-host" },
+    { "name": "Sean Hayes", "role": "co-host" },
+    { "name": "Will Arnett", "role": "co-host" }
+  ],
+  "UC5AQEUAwCh1sGDvkQtkDWUQ": [{ "name": "Theo Von", "role": "host" }],
+  "UC5PstSsGrRwj2o6asQpC4Rg": [
+    { "name": "Andrew Schulz", "role": "host" },
+    { "name": "Akaash Singh", "role": "co-host" }
+  ],
+  "UC4woSp8ITBoYDmjkukhEhxg": [{ "name": "Tim Dillon", "role": "host" }],
+  "UCGq-a57w-aPwyi3pW7XLiHw": [{ "name": "Steven Bartlett", "role": "host" }],
+  "UCIaH-gZIVC432YRjNVvnyCA": [{ "name": "Chris Williamson", "role": "host" }],
+  "UCyaN6mg5u8Cjy2ZI4ikWaug": [
+    { "name": "Sam Parr", "role": "co-host" },
+    { "name": "Shaan Puri", "role": "co-host" }
+  ],
+  "UCESLZhusAkFfsNsApnjF_Cg": [
+    { "name": "Chamath Palihapitiya", "role": "co-host" },
+    { "name": "Jason Calacanis", "role": "co-host" },
+    { "name": "David Sacks", "role": "co-host" },
+    { "name": "David Friedberg", "role": "co-host" }
+  ],
+  "UCkoujZQZatbqy4KGcgjpVxQ": [{ "name": "Shawn Ryan", "role": "host" }],
+  "UClKP53RewJWK5s5WtLSg7Dg": [
+    { "name": "Dax Shepard", "role": "co-host" },
+    { "name": "Monica Padman", "role": "co-host" }
+  ],
+  "UCyGi3eCuxko37WB6uUr7LjA": [{ "name": "Alex Cooper", "role": "host" }],
+  "UCnYMOamNKLGVlJgRUbamveA": [{ "name": "Tom Bilyeu", "role": "host" }],
+  "UCDRIjKy6eZOvKtOELtTdeUA": [
+    { "name": "Krystal Ball", "role": "co-host" },
+    { "name": "Saagar Enjeti", "role": "co-host" }
+  ],
+  "UCKRoXz3hHAu2XL_k3Ef4vJQ": [
+    { "name": "Jon Favreau", "role": "co-host" },
+    { "name": "Jon Lovett", "role": "co-host" },
+    { "name": "Tommy Vietor", "role": "co-host" },
+    { "name": "Dan Pfeiffer", "role": "co-host" }
+  ],
+  "UCZcR2SVWaGWNlMqPxvQS3vw": [
+    { "name": "Kevin Roose", "role": "co-host" },
+    { "name": "Casey Newton", "role": "co-host" }
+  ],
+  "UC6t1O76G0jYXOAoYCm153dA": [{ "name": "Lenny Rachitsky", "role": "host" }],
+  "UCyFqFYfTW2VoIQKylJ04Rtw": [
+    { "name": "Ben Gilbert", "role": "co-host" },
+    { "name": "David Rosenthal", "role": "co-host" }
+  ],
+  "UCwzCMiicL-hBUzyjWiJaseg": [
+    { "name": "Tony Hinchcliffe", "role": "host" },
+    { "name": "Brian Redban", "role": "co-host" }
+  ]
+}
