@@ -93,6 +93,20 @@ async function hub(browser, width) {
   try {
     await page.goto(`${BASE}/games`, { waitUntil: 'load' });
     await page.getByRole('heading', { name: 'Classic Games, Revisited' }).waitFor();
+    // Every card carries a share-out (views footer never blocks render).
+    const shareBtns = page.getByRole('button', { name: /^Share / });
+    if ((await shareBtns.count()) !== 6) {
+      throw new Error(`hub has ${await shareBtns.count()} share buttons, want 6`);
+    }
+    await shareBtns.first().waitFor();
+    // OG images unfurl per surface: hub article, chess play page.
+    for (const u of ['/api/og/games?g=hub', '/api/og/games?g=chess']) {
+      const res = await page.request.get(`${BASE}${u}`);
+      if (res.status() !== 200) throw new Error(`OG ${u} status ${res.status()}`);
+      if (!(res.headers()['content-type'] || '').startsWith('image/')) {
+        throw new Error(`OG ${u} is not an image`);
+      }
+    }
     await shot(page, `hub-${width}`);
     await contrast(page, label);
   } catch (e) {

@@ -67,10 +67,12 @@ export async function GET(req: Request) {
   };
   const font = await loadFont();
   // Unknown `g` values (e.g. chess, which has no article card) render the
-  // generic card but keep their own play URL in the footer.
+  // generic card but keep their own play URL and accent in the footer.
+  // `g=hub` is the arcade article itself: footer points at /games.
   const rawGame = q.get('g');
-  const accent = ACCENT[card.game] ?? (rawGame && ACCENT[rawGame] ? (ACCENT[rawGame] as string) : GREEN);
-  const playSlug = PLAY_SLUG[card.game] ?? rawGame ?? card.game;
+  const accent =
+    (rawGame && ACCENT[rawGame] ? (ACCENT[rawGame] as string) : null) ?? ACCENT[card.game] ?? GREEN;
+  const playSlug = rawGame === 'hub' ? '' : (PLAY_SLUG[card.game] ?? rawGame ?? card.game);
 
   return new ImageResponse(
     (
@@ -132,7 +134,7 @@ export async function GET(req: Request) {
           ) : null}
 
           <div style={{ fontSize: 26, color: MUTED, marginTop: 32 }}>
-            amoljadhav.ai/games/{playSlug}
+            {playSlug ? `amoljadhav.ai/games/${playSlug}` : 'amoljadhav.ai/games'}
           </div>
         </div>
 

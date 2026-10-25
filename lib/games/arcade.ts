@@ -188,6 +188,17 @@ export function playUrl(slug: string): string {
   return `amoljadhav.ai/games/${slug}`;
 }
 
+/** Hub-card share: play URL (per-game OG unfurls), text, and X intent. */
+export function gameShareLinks(slug: string, name: string): { url: string; text: string; xUrl: string } {
+  const url = `https://amoljadhav.ai/games/${slug}`;
+  const text = `Play ${name} — free, no ads`;
+  return {
+    url,
+    text,
+    xUrl: `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`,
+  };
+}
+
 /** Copy text, preferring navigator.share on mobile; returns true on success. */
 export async function shareText(text: string, say: (m: string) => void): Promise<void> {
   try {

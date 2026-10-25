@@ -1,7 +1,9 @@
 'use client';
 
 import dynamic from 'next/dynamic';
+import { useEffect } from 'react';
 import { GAME_BY_SLUG, type GameSlug } from '@/components/games/registry';
+import { dayString, isCountedToday, normalizeStored, withCounted } from '@/lib/view-dedup';
 
 // Each game's JS loads only when its route opens — the hub stays lean.
 // ssr:false: engines deal randomness on mount, so prerendering would
@@ -45,6 +47,23 @@ export default function PlayLoader({ slug, initialMode }: { slug: GameSlug; init
   // so a token set only on GameShell's root never reaches them (black
   // text on a transparent background). One wrapper here fixes all games.
   const accent = GAME_BY_SLUG[slug].accent;
+  // One play counts once per day per browser (same rule as article and
+  // blog views); hub card footers display the totals.
+  useEffect(() => {
+    let stored: ReturnType<typeof normalizeStored> = {};
+    try {
+      stored = normalizeStored(JSON.parse(localStorage.getItem('viewed_games') || '{}'), dayString(-1));
+    } catch {
+      return;
+    }
+    if (isCountedToday(stored, slug, dayString())) return;
+    try {
+      localStorage.setItem('viewed_games', JSON.stringify(withCounted(stored, slug, dayString())));
+    } catch {
+      return;
+    }
+    fetch(`/api/games/${slug}/view`, { method: 'POST' }).catch(() => {});
+  }, [slug]);
   let play: React.ReactNode;
   switch (slug) {
     case 'five-letters':

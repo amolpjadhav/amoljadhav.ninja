@@ -6,9 +6,11 @@ import AnchorRedirect from './AnchorRedirect';
 import { GAMES } from '@/components/games/registry';
 import TileArt from '@/components/games/hub/TileArt';
 import TileStatus from '@/components/games/hub/TileStatus';
+import TileFooter from '@/components/games/hub/TileFooter';
 import {
   ContinueRowIsland as ContinueRow,
   DailyStripIsland as DailyStrip,
+  HubViewsIsland as HubViews,
   StatsRowIsland as StatsRow,
   StreakChipIsland as StreakChip,
 } from '@/components/games/hub/HubIslands';
@@ -25,11 +27,20 @@ export const metadata: Metadata = {
     description: 'Six classics, rebuilt. One new daily set every midnight PT.',
     type: 'website',
     url: 'https://amoljadhav.ai/games',
+    images: [
+      {
+        url: 'https://amoljadhav.ai/api/og/games?g=hub',
+        width: 1200,
+        height: 630,
+        alt: 'Classic Games, Revisited — play online',
+      },
+    ],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Classic Games, Revisited',
-    description: 'Five classics, rebuilt. One new daily set every midnight PT.',
+    description: 'Six classics, rebuilt. One new daily set every midnight PT.',
+    images: ['https://amoljadhav.ai/api/og/games?g=hub'],
   },
 };
 
@@ -97,9 +108,14 @@ export default function GamesHubPage() {
           >
             Arcade
           </p>
-          <Suspense fallback={null}>
-            <StreakChip />
-          </Suspense>
+          <span className="flex items-center gap-3">
+            <Suspense fallback={null}>
+              <HubViews />
+            </Suspense>
+            <Suspense fallback={null}>
+              <StreakChip />
+            </Suspense>
+          </span>
         </div>
         <h1 id="games-h1" className="games-type-display mt-1">
           Classic Games, Revisited
@@ -143,11 +159,14 @@ export default function GamesHubPage() {
         <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {GAMES.map((g) => (
             <li key={g.slug}>
-              <Link
-                href={`/games/${g.slug}`}
-                className="games-card games-press games-tile block no-underline"
+              <div
+                className="games-card games-tile h-full flex flex-col"
                 style={{ position: 'relative', overflow: 'hidden' }}
               >
+                <Link
+                  href={`/games/${g.slug}`}
+                  className="games-press block no-underline flex-1"
+                >
                 <span
                   aria-hidden
                   className="games-tile-glow pointer-events-none absolute -top-16 -right-16 w-48 h-48 rounded-full"
@@ -158,7 +177,7 @@ export default function GamesHubPage() {
                 <span className="games-tile-artwrap" aria-hidden>
                   <TileArt slug={g.slug} />
                 </span>
-                <span className="block p-5 pt-1">
+                <span className="block px-5 pt-1 pb-1">
                   <span className="flex gap-1.5 mb-2.5" aria-hidden={false}>
                     {DAILY_SET.has(g.slug) && (
                       <span
@@ -197,7 +216,9 @@ export default function GamesHubPage() {
                     hasDaily={DAILY_SET.has(g.slug)}
                   />
                 </span>
-              </Link>
+                </Link>
+                <TileFooter slug={g.slug} name={g.name} />
+              </div>
             </li>
           ))}
         </ul>

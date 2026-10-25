@@ -36,3 +36,7 @@ export const StreakChipIsland = dynamic(
   () => import('./StatsRow').then((m) => ({ default: m.StreakChip })),
   { ssr: false },
 );
+
+export const HubViewsIsland = dynamic(() => import('./HubViews'), {
+  ssr: false,
+});
