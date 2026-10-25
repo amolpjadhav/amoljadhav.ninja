@@ -5,6 +5,16 @@ export const runtime = 'nodejs';
 const THIRTY_DAYS = 30 * 24 * 60 * 60;
 const MAX_MOVES = 12;
 
+// Lichess now fronts the explorer with a 401 unless the request carries a
+// personal token (free, no scopes needed:
+// https://lichess.org/account/oauth/token). Without LICHESS_EXPLORER_TOKEN
+// the route answers `source: "none"` and the UI hides popularity instead
+// of inventing it.
+function authHeaders(): Record<string, string> {
+  const token = process.env.LICHESS_EXPLORER_TOKEN?.trim();
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
 interface ExplorerMove {
   uci: string;
   san: string;
@@ -52,6 +62,7 @@ export async function GET(req: Request) {
   const enc = encodeURIComponent(fen);
   try {
     const masters = await fetch(`https://explorer.lichess.ovh/masters?fen=${enc}&moves=${MAX_MOVES}`, {
+      headers: authHeaders(),
       next: { revalidate: THIRTY_DAYS },
     });
     if (masters.ok) {
@@ -65,7 +76,7 @@ export async function GET(req: Request) {
     const ratings = 'ratings[]=1800&ratings[]=2000&ratings[]=2200&ratings[]=2500';
     const db = await fetch(
       `https://explorer.lichess.ovh/lichess?variant=standard&speeds[]=blitz&speeds[]=rapid&speeds[]=classical&${ratings}&fen=${enc}&moves=${MAX_MOVES}`,
-      { next: { revalidate: THIRTY_DAYS } },
+      { headers: authHeaders(), next: { revalidate: THIRTY_DAYS } },
     );
     if (db.ok) {
       const shaped = shape((await db.json()) as ExplorerBody, 'lichess');

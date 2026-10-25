@@ -2334,7 +2334,7 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
                   />
                   <span className="games-type-callout tabular-nums font-semibold">{k.san}</span>
                   <span
-                    className="games-type-caption flex-1 min-w-[120px] line-clamp-2"
+                    className="games-type-caption flex-1 min-w-0 line-clamp-2"
                     style={{ color: 'var(--text-2)' }}
                   >
                     {name}
