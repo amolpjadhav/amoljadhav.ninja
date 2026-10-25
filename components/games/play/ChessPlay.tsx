@@ -115,6 +115,68 @@ const CLASSIC_LIGHT = '#E8DCC4';
 const CLASSIC_DARK = '#B58863';
 const GRAPHITE_LIGHT = '#3A3D46';
 const GRAPHITE_DARK = '#23252B';
+const WALNUT_LIGHT = '#EAD9BC';
+const WALNUT_DARK = '#B3875F';
+const GREEN_LIGHT = '#EEEED2';
+const GREEN_DARK = '#769656';
+
+type BoardTheme = 'walnut' | 'classic' | 'graphite' | 'green';
+const BOARD_THEMES: { id: BoardTheme; label: string }[] = [
+  { id: 'walnut', label: 'Walnut' },
+  { id: 'classic', label: 'Classic' },
+  { id: 'graphite', label: 'Graphite' },
+  { id: 'green', label: 'Green' },
+];
+
+// Walnut grain: one SVG noise field masked to the dark squares and one
+// to the light squares (two filter passes total), multiply-blended so it
+// reads as wood tooth on close inspection, not at a glance.
+function WoodGrain({
+  isDark,
+  orientation,
+}: {
+  isDark: (sq: string) => boolean;
+  orientation: 'white' | 'black';
+}) {
+  let dark = '';
+  let light = '';
+  for (let f = 0; f < 8; f += 1) {
+    for (let r = 0; r < 8; r += 1) {
+      const x = (orientation === 'white' ? f : 7 - f) * 100;
+      const y = (orientation === 'white' ? 7 - r : r) * 100;
+      const d = `M${x} ${y}h100v100h-100z`;
+      if (isDark(`${'abcdefgh'[f]}${r + 1}`)) dark += d;
+      else light += d;
+    }
+  }
+  return (
+    <svg
+      viewBox="0 0 800 800"
+      aria-hidden
+      style={{
+        position: 'absolute',
+        inset: 0,
+        width: '100%',
+        height: '100%',
+        pointerEvents: 'none',
+        mixBlendMode: 'multiply',
+      }}
+    >
+      <defs>
+        <filter id="wood-grain">
+          <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="2" stitchTiles="stitch" />
+          <feColorMatrix
+            type="matrix"
+            values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0.8 0.8 0.8 0 0"
+          />
+          <feComposite in2="SourceGraphic" operator="in" />
+        </filter>
+      </defs>
+      <path d={dark} fill="#000" opacity={0.05} filter="url(#wood-grain)" />
+      <path d={light} fill="#000" opacity={0.03} filter="url(#wood-grain)" />
+    </svg>
+  );
+}
 const RING = 'inset 0 0 0 4px rgba(10,10,12,.45)';
 // Alternative arrows render blue (green = main line); widths, heads, and
 // labels live in the GuideArrows SVG overlay, not the board library.
@@ -650,7 +712,7 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
   const [confirmNew, setConfirmNew] = useState(false);
   const [resultOpen, setResultOpen] = useState(false);
   const [sound, setSound] = useState(() => readJSON<boolean>(SOUND_KEY) ?? false);
-  const [theme, setTheme] = useState<'classic' | 'graphite'>(() => readJSON<'classic' | 'graphite'>(THEME_KEY) ?? 'graphite');
+  const [theme, setTheme] = useState<BoardTheme>(() => readJSON<BoardTheme>(THEME_KEY) ?? 'walnut');
   const [sanInput, setSanInput] = useState('');
   const [shaking, setShaking] = useState(false);
   const [flipped, setFlipped] = useState(false);
@@ -1844,8 +1906,10 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
   // The side whose pieces sit at the top of the screen.
   const topColor: ChessColor = flipped ? playerColor : engineColor;
 
-  const lightSq = theme === 'classic' ? CLASSIC_LIGHT : GRAPHITE_LIGHT;
-  const darkSq = theme === 'classic' ? CLASSIC_DARK : GRAPHITE_DARK;
+  const lightSq =
+    theme === 'walnut' ? WALNUT_LIGHT : theme === 'green' ? GREEN_LIGHT : theme === 'classic' ? CLASSIC_LIGHT : GRAPHITE_LIGHT;
+  const darkSq =
+    theme === 'walnut' ? WALNUT_DARK : theme === 'green' ? GREEN_DARK : theme === 'classic' ? CLASSIC_DARK : GRAPHITE_DARK;
 
   // Square base color: a1 is dark, so odd file+rank sums are dark.
   const baseFor = useCallback(
@@ -1884,10 +1948,24 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
   // Coordinates take the opposite square color at 85% (Classic). The
   // graphite squares sit too close together for the literal rule, so it
   // uses near-white / near-black at 85% — readable on both.
-  const coordOnDark = theme === 'classic' ? 'rgba(232,220,196,.85)' : 'rgba(235,235,245,.85)';
-  const coordOnLight = theme === 'classic' ? 'rgba(181,136,99,.85)' : 'rgba(15,16,20,.85)';
-  const darkNotationProps = { fontSize: 11, color: coordOnDark };
-  const lightNotationProps = { fontSize: 11, color: coordOnLight };
+  const coordOnDark =
+    theme === 'walnut'
+      ? 'rgba(234,217,188,.85)'
+      : theme === 'green'
+        ? 'rgba(238,238,210,.85)'
+        : theme === 'classic'
+          ? 'rgba(232,220,196,.85)'
+          : 'rgba(235,235,245,.85)';
+  const coordOnLight =
+    theme === 'walnut'
+      ? 'rgba(179,135,95,.85)'
+      : theme === 'green'
+        ? 'rgba(118,150,86,.85)'
+        : theme === 'classic'
+          ? 'rgba(181,136,99,.85)'
+          : 'rgba(15,16,20,.85)';
+  const darkNotationProps = { fontSize: 11, fontWeight: 600, color: coordOnDark };
+  const lightNotationProps = { fontSize: 11, fontWeight: 600, color: coordOnLight };
   // FEN side-to-move flag, parsed without touching instance state in render.
   const turnIsPlayer = (fen.split(' ')[1] === 'w') === (playerColor === 'white');
   const canAct = status === 'playing' && turnIsPlayer && viewPly === null && !pendingPromo;
@@ -1921,7 +1999,7 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
   const squareStyles = useMemo(() => {
     const styles: Record<string, React.CSSProperties> = {};
     const tint = (sq: string) =>
-      `linear-gradient(rgba(229,192,123,.35), rgba(229,192,123,.35)), ${baseFor(sq)}`;
+      `linear-gradient(rgba(255,190,90,.40), rgba(255,190,90,.40)), ${baseFor(sq)}`;
     const dot = (sq: string) =>
       `radial-gradient(circle, rgba(10,10,12,.38) 21%, transparent 23%), ${baseFor(sq)}`;
     const shown = hist.slice(0, shownPly);
@@ -2445,14 +2523,29 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
                 >
                   Sound: {sound ? 'on' : 'off'}
                 </button>
-                <button
-                  type="button"
-                  onClick={() => setTheme((t) => (t === 'classic' ? 'graphite' : 'classic'))}
-                  className="games-touch games-press games-type-callout rounded-[14px] px-4 text-left"
-                  style={{ background: 'var(--surface-2)', color: 'var(--text-1)' }}
-                >
-                  Board: {theme === 'classic' ? 'Classic' : 'Graphite'}
-                </button>
+                <div role="group" aria-label="Board theme">
+                  <p className="games-type-micro px-4 pt-1" style={{ color: 'var(--text-3)' }}>
+                    Board theme
+                  </p>
+                  <div className="grid grid-cols-2 gap-2 px-4 pb-1">
+                    {BOARD_THEMES.map((t) => (
+                      <button
+                        key={t.id}
+                        type="button"
+                        aria-pressed={theme === t.id}
+                        onClick={() => setTheme(t.id)}
+                        className="games-press games-type-callout rounded-[10px] px-3 py-2"
+                        style={
+                          theme === t.id
+                            ? { background: 'var(--surface-3)', color: 'var(--text-1)', border: '1px solid #E5C07B' }
+                            : { background: 'var(--surface-2)', color: 'var(--text-2)', border: '1px solid transparent' }
+                        }
+                      >
+                        {t.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
                 <button
                   type="button"
                   onClick={() => persistSetup({ ...setup, bookMode: setup.bookMode === 'main' ? 'varied' : 'main' })}
@@ -2506,6 +2599,11 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
               )}
             <div
               className={`relative flex-1 games-board-lock${shaking ? ' games-shake' : ''}`}
+              style={{
+                borderRadius: 14,
+                overflow: 'hidden',
+                boxShadow: '0 30px 80px rgba(0,0,0,.6), 0 0 0 1px rgba(255,220,170,.12)',
+              }}
               aria-label="Chess board"
               data-guide-arrows={guideSpecs.filter((s) => !s.ring).length}
               data-guide-rings={guideSpecs.filter((s) => s.ring).length}
@@ -2537,6 +2635,15 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
                   onSquareClick,
                 }}
               />
+              {theme === 'walnut' && (
+                <WoodGrain
+                  isDark={(sq) => {
+                    const f = 'abcdefgh'.indexOf(sq[0] as string);
+                    return (f + Number(sq.slice(1))) % 2 === 1;
+                  }}
+                  orientation={orientation}
+                />
+              )}
               {guideSpecs.length > 0 && (
                 <GuideArrows
                   orientation={orientation}
