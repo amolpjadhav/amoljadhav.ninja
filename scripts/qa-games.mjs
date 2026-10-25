@@ -10,18 +10,35 @@ import { chromium } from 'playwright';
 import { Chess } from 'chess.js';
 
 // Deterministic off-book reply for the trainer flow: replay 1.e4 + the
-// main-line book answer from the shipped dataset, then return a legal
-// White move that is NOT a book child (file/row, row 0 = rank 8).
-function offbookMove() {
+// The bot answers 1.e4 from live explorer data when available (same as
+// the app), so fetch its most likely reply first and play from there;
+// then return a legal White move that is NOT a book child (file/row,
+// row 0 = rank 8). Book = dataset children plus every explorer move, so
+// the pick is off-book under either source.
+async function offbookMove() {
   const data = JSON.parse(readFileSync('public/data/openings.json', 'utf8'));
   const epd = (c) => c.fen().split(' ').slice(0, 4).join(' ');
   const c = new Chess();
   c.move('e4');
-  const reply = Object.entries(data.children[epd(c)] ?? {}).sort((a, b) => b[1] - a[1])[0];
-  if (!reply) throw new Error('no book reply to 1.e4 in openings.json');
-  const uci = reply[0];
-  c.move({ from: uci.slice(0, 2), to: uci.slice(2, 4), promotion: uci.slice(4) || undefined });
+  let replyUci = null;
+  const expMoves = [];
+  try {
+    const r = await fetch(`${BASE}/api/chess/explorer?fen=${encodeURIComponent(c.fen())}`);
+    const body = await r.json();
+    if (body?.source !== 'none' && Array.isArray(body.moves)) expMoves.push(...body.moves);
+  } catch {
+    /* dataset fallback below */
+  }
+  if (expMoves.length > 0) {
+    replyUci = expMoves.slice().sort((a, b) => b.games - a.games)[0].uci;
+  } else {
+    const reply = Object.entries(data.children[epd(c)] ?? {}).sort((a, b) => b[1] - a[1])[0];
+    if (!reply) throw new Error('no book reply to 1.e4 in openings.json');
+    replyUci = reply[0];
+  }
+  c.move({ from: replyUci.slice(0, 2), to: replyUci.slice(2, 4), promotion: replyUci.slice(4) || undefined });
   const book = new Set(Object.keys(data.children[epd(c)] ?? {}));
+  for (const m of expMoves) book.add(m.uci);
   const mv = c.moves({ verbose: true }).find((m) => !book.has(m.from + m.to + (m.promotion ?? '')));
   if (!mv) throw new Error('every legal reply is book (unexpected)');
   const sq = (s) => ({ file: s.charCodeAt(0) - 97, row: 8 - Number(s[1]) });
@@ -439,7 +456,7 @@ async function coachFlow(browser, width) {
     const pliesBefore = await page.evaluate(
       () => document.querySelectorAll('[aria-label="Move list"] li').length,
     );
-    const mv = offbookMove();
+    const mv = await offbookMove();
     await clickSq(mv.fromFile, mv.fromRow);
     await settle(page);
     await clickSq(mv.toFile, mv.toRow);
@@ -453,7 +470,8 @@ async function coachFlow(browser, width) {
     await settle(page);
     await shot(page, `coach-offbook-${width}`);
     await contrast(page, `${label}-offbook`);
-    // Fresh book line for the record: 1.e4 e5 2.Nf3, then the bot's reply.
+    // Fresh book line for the record: 1.e4, the bot's book reply, 2.Nf3,
+    // then the bot's reply.
     await page.evaluate(() => localStorage.clear());
     await page.goto(`${BASE}/games/chess`, { waitUntil: 'load' });
     await startGuided();
