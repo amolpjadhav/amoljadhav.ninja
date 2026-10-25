@@ -9,10 +9,8 @@ export async function GET() {
     if (error) throw error;
     const views: Record<string, number> = {};
     for (const row of data ?? []) views[row.slug] = row.views;
-    return NextResponse.json(
-      { views },
-      { headers: { 'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300' } },
-    );
+    // Never cache: a cached empty map is exactly how fresh counts hide.
+    return NextResponse.json({ views }, { headers: { 'Cache-Control': 'no-store' } });
   } catch (error) {
     console.error('Game views API error:', error);
     return NextResponse.json({ views: {} });
