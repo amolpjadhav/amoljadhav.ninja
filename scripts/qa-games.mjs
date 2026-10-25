@@ -519,6 +519,12 @@ async function coachRings(browser, width) {
     await setup.getByRole('tab', { name: 'Black' }).click();
     await setup.getByRole('button', { name: 'Start game' }).click();
     await page.getByRole('button', { name: 'Resign' }).waitFor();
+    // Board sizing: the dock stays above the fold (no scroll to Resign).
+    {
+      const bottom = await page.getByRole('button', { name: 'Resign' }).evaluate((el) => el.getBoundingClientRect().bottom);
+      const vh = await page.evaluate(() => window.innerHeight);
+      if (bottom > vh + 1) throw new Error(`dock below fold: ${Math.round(bottom)} > ${vh}`);
+    }
     // Bot (White) opens 1.e4 from the book; Black to move with e6 AND c6
     // ringed (both hide inside the e5/c5 shafts).
     await waitMarks(2, 2);

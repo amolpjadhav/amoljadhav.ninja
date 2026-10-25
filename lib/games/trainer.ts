@@ -140,14 +140,22 @@ export function decideUserMove(opts: {
 export type AssistExit = 'user-left' | 'line-ended' | 'playout';
 
 /** Banner copy when guidance ends. Pure so the wording is unit-tested. */
-export function exitBanner(exit: AssistExit, name: string | null, moveNo: number, mainSan: string | null): string {
+export function exitBanner(
+  exit: AssistExit,
+  name: string | null,
+  moveNo: number,
+  mainSan: string | null,
+  playedSan: string | null = null,
+): string {
   const line = name ?? 'this line';
   if (exit === 'user-left') {
+    if (playedSan && mainSan) return `You left the book with ${playedSan} — book was ${mainSan}`;
     return mainSan
       ? `You left the book at move ${moveNo} — main line was ${mainSan}`
       : `You left the book at move ${moveNo} — middlegame starts now`;
   }
   if (exit === 'playout') return `Opening complete: ${line} — middlegame starts now`;
+  if (playedSan) return `Stockfish left the book with ${playedSan} — ${line} · middlegame starts now`;
   return `Opening complete: ${line}. Middlegame starts now`;
 }
 

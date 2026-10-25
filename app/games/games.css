@@ -111,6 +111,27 @@
 .games-press {
   transition: transform 80ms ease, background-color 80ms ease;
 }
+
+/* Engine "thinking…" pulse (1s); off under reduced motion. */
+@keyframes games-thinking {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+.games-thinking { animation: games-thinking 1s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .games-thinking { animation: none; }
+}
+
+/* Review-due chip: gold text, surface lift on hover. */
+.games-review-chip { transition: background-color 80ms ease; }
+.games-review-chip:hover { background: var(--surface-3); }
+
+/* Chess board fits the viewport: bars + dock stay above the fold on
+   desktop (recomputed by the browser on every resize, no JS). */
+.chess-board-fit { max-width: min(88vw, 640px); margin-inline: auto; }
+@media (min-width: 1024px) {
+  .chess-board-fit { max-width: min(640px, calc(100dvh - 320px)); }
+}
 .games-press:active {
   transform: scale(0.96);
   background-color: var(--surface-3);

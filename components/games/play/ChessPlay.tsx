@@ -173,11 +173,11 @@ function writeJSON(key: string, value: unknown): void {
   }
 }
 
-// Tiny WebAudio blips (move / capture / check / end). No assets.
+// Tiny WebAudio blips (move / capture / castle / check / end). No assets.
 function useSound(enabled: boolean) {
   const ctxRef = useRef<AudioContext | null>(null);
   return useCallback(
-    (kind: 'move' | 'capture' | 'check' | 'end' | 'notify') => {
+    (kind: 'move' | 'capture' | 'castle' | 'check' | 'end' | 'notify') => {
       void kind;
       if (!enabled) return;
       try {
@@ -190,11 +190,13 @@ function useSound(enabled: boolean) {
             ? [[520, 0, 0.06]]
             : kind === 'capture'
               ? [[300, 0, 0.08]]
-              : kind === 'check'
-                ? [[700, 0, 0.07], [700, 0.09, 0.07]]
-                : kind === 'end'
-                  ? [[523, 0, 0.09], [659, 0.1, 0.09], [784, 0.2, 0.14]]
-                  : [[660, 0, 0.08]];
+              : kind === 'castle'
+                ? [[420, 0, 0.07], [630, 0.08, 0.09]]
+                : kind === 'check'
+                  ? [[700, 0, 0.07], [700, 0.09, 0.07]]
+                  : kind === 'end'
+                    ? [[523, 0, 0.09], [659, 0.1, 0.09], [784, 0.2, 0.14]]
+                    : [[660, 0, 0.08]];
         for (const [freq, delay, dur] of seq) {
           const osc = ctx.createOscillator();
           const gain = ctx.createGain();
@@ -213,6 +215,51 @@ function useSound(enabled: boolean) {
       }
     },
     [enabled],
+  );
+}
+
+// Eval bar: White's share fills from White's side (flips with the
+// board); the numeric label sits at the winning side's end.
+function EvalBar({
+  cp,
+  stale,
+  orientation,
+}: {
+  cp: number | null;
+  stale: boolean;
+  orientation: 'white' | 'black';
+}) {
+  const whiteEndTop = orientation === 'black';
+  const labelTop = cp !== null && (cp > 0 ? whiteEndTop : cp < 0 ? !whiteEndTop : false);
+  const label = (
+    <span
+      className="games-type-micro tabular-nums min-h-[1em]"
+      style={{ color: 'var(--text-2)', marginTop: labelTop ? 0 : 4, marginBottom: labelTop ? 4 : 0 }}
+      role={cp !== null ? 'img' : undefined}
+      aria-label={cp !== null ? `Evaluation ${fmtEvalCp(cp) ?? 'unknown'}` : undefined}
+    >
+      {cp !== null ? fmtEvalCp(cp) : ''}
+    </span>
+  );
+  return (
+    <div className="flex w-6 flex-col items-center py-1">
+      {labelTop ? label : null}
+      <div
+        className="relative flex-1 w-[10px] rounded-full overflow-hidden"
+        style={{ background: cp !== null ? '#141518' : 'transparent' }}
+      >
+        {cp !== null && (
+          <div
+            className={`absolute left-0 w-full bg-white ${whiteEndTop ? 'top-0' : 'bottom-0'}`}
+            style={{
+              height: `${evalWhiteShare(cp)}%`,
+              opacity: stale ? 0.45 : 1,
+            }}
+          />
+        )}
+      </div>
+      {labelTop ? null : label}
+    </div>
   );
 }
 
@@ -602,8 +649,8 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
   const [confirmResign, setConfirmResign] = useState(false);
   const [confirmNew, setConfirmNew] = useState(false);
   const [resultOpen, setResultOpen] = useState(false);
-  const [sound, setSound] = useState(() => readJSON<boolean>(SOUND_KEY) ?? true);
-  const [theme, setTheme] = useState<'classic' | 'graphite'>(() => readJSON<'classic' | 'graphite'>(THEME_KEY) ?? 'classic');
+  const [sound, setSound] = useState(() => readJSON<boolean>(SOUND_KEY) ?? false);
+  const [theme, setTheme] = useState<'classic' | 'graphite'>(() => readJSON<'classic' | 'graphite'>(THEME_KEY) ?? 'graphite');
   const [sanInput, setSanInput] = useState('');
   const [shaking, setShaking] = useState(false);
   const [flipped, setFlipped] = useState(false);
@@ -619,6 +666,9 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
   const [casual, setCasual] = useState(() => initialSetup.coach !== 'off');
   const [casualGames, setCasualGames] = useState(() => readJSON<number>(CHESS_CASUAL_KEY) ?? 0);
   const [exited, setExited] = useState(false);
+  // After leaving book the coach card collapses to one row; the player
+  // can expand it back for the summary.
+  const [coachExpanded, setCoachExpanded] = useState(false);
   const [banner, setBanner] = useState<{ text: string; key: number } | null>(null);
   const [nodes, setNodes] = useState<NodeStore>(() => readJSON<NodeStore>(NODES_KEY) ?? {});
   const [hintRevealed, setHintRevealed] = useState(false);
@@ -662,7 +712,9 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
   useEffect(() => {
     nodesRef.current = nodes;
   });
-  const exitAssistRef = useRef<((exit: AssistExit, mainSan: string | null, name: string | null) => void) | null>(null);
+  const exitAssistRef = useRef<
+    ((exit: AssistExit, mainSan: string | null, name: string | null, playedSan?: string | null) => void) | null
+  >(null);
   const advanceReviewRef = useRef<(() => void) | null>(null);
   const resolveReviewMoveRef = useRef<
     ((verdict: 'correct' | 'branch' | 'offbook' | 'snapback', epd: string, fullPath: string[]) => boolean) | null
@@ -746,10 +798,10 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
   }, []);
 
   const exitAssist = useCallback(
-    (exit: AssistExit, mainSan: string | null, entryName: string | null) => {
+    (exit: AssistExit, mainSan: string | null, entryName: string | null, playedSan: string | null = null) => {
       setExited(true);
         const moveNo = Math.floor(chess.history().length / 2) + 1;
-      flashBanner(exitBanner(exit, entryName, moveNo, mainSan));
+      flashBanner(exitBanner(exit, entryName, moveNo, mainSan, playedSan));
     },
     [chess, flashBanner],
   );
@@ -912,7 +964,7 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
         const inc = clockFor(time)?.incMs ?? 0;
         return mover === 'white' ? { ...prev, w: prev.w + inc } : { ...prev, b: prev.b + inc };
       });
-      notify(mv.captured ? 'capture' : 'move');
+      notify(mv.flags.includes('k') || mv.flags.includes('q') ? 'castle' : mv.captured ? 'capture' : 'move');
       sync();
       resetTurnHints();
       if (chess.isCheck() && !gameOutcome(chess).over) notify('check');
@@ -1018,7 +1070,12 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
         }
         // No book reply: the line ends here, engine takes over.
         const entry = lookupOpening(book, epdOf(chess.fen()));
-        exitAssistRef.current?.('line-ended', null, entry ? headerOpeningName(entry.name) : null);
+        exitAssistRef.current?.(
+          'line-ended',
+          null,
+          entry ? headerOpeningName(entry.name) : null,
+          chess.history().at(-1) ?? null,
+        );
       }
       const ok = requestMove(chess.fen(), chess.turn(), now.level);
       if (!ok) {
@@ -1088,7 +1145,12 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
         }
         if (verdict === 'offbook') {
           const entryNow = data ? lookupOpening(data, epd) : null;
-          exitAssistRef.current?.('user-left', main.san, entryNow ? headerOpeningName(entryNow.name) : null);
+          exitAssistRef.current?.(
+            'user-left',
+            main.san,
+            entryNow ? headerOpeningName(entryNow.name) : null,
+            mv.san,
+          );
         } else if (verdict === 'correct') {
           recordAttempt(epd, fullPath, hintUsedRef.current ? 'ungraded' : 'correct');
         } else {
@@ -1105,7 +1167,7 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
         const inc = clockFor(time)?.incMs ?? 0;
         return mover === 'white' ? { ...prev, w: prev.w + inc } : { ...prev, b: prev.b + inc };
       });
-      notify(mv.captured ? 'capture' : 'move');
+      notify(mv.flags.includes('k') || mv.flags.includes('q') ? 'castle' : mv.captured ? 'capture' : 'move');
       sync();
       if (chess.isCheck() && !gameOutcome(chess).over) notify('check');
       try {
@@ -1162,6 +1224,7 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
       setCoachKind(s.coach === 'recall' ? 'recall' : 'guided');
       setCasual(s.coach !== 'off');
       setExited(false);
+      setCoachExpanded(false);
       setBanner(null);
       setReview(null);
       setShaking(false);
@@ -1214,6 +1277,7 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
     setConfirmResign(false);
     setClocks(null);
     setExited(false);
+    setCoachExpanded(false);
     setBanner(null);
     setReview(null);
     setPendingReview(false);
@@ -1510,8 +1574,9 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
     const toMove = status === 'playing' && viewPly === null && (chess.turn() === 'w') === (color === 'white');
     return (
       <div
-        className="flex items-center gap-2 min-h-[44px] max-h-[44px] overflow-hidden whitespace-nowrap"
+        className="flex items-center gap-2 min-h-[44px] max-h-[44px] overflow-hidden whitespace-nowrap rounded-[10px] px-2"
         aria-live="polite"
+        style={toMove ? { background: 'var(--surface-2)' } : undefined}
       >
         {toMove && (
           <span
@@ -1532,8 +1597,15 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
           </span>
         )}
         {!mine && thinking && (
-          <span className="games-type-caption" style={{ color: 'var(--text-2)' }}>
-            thinking…
+          <span className="flex items-center gap-1.5">
+            <span
+              aria-hidden
+              className="games-thinking inline-block w-1.5 h-1.5 rounded-full shrink-0"
+              style={{ background: 'var(--game-accent)' }}
+            />
+            <span className="games-type-caption" style={{ color: 'var(--text-2)' }}>
+              thinking…
+            </span>
           </span>
         )}
         <span
@@ -1541,7 +1613,7 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
           aria-label={mine ? 'Pieces you captured' : 'Pieces Stockfish captured'}
         >
           {caps.map((t, i) => (
-            <ChessPieceIcon key={i} color={color === 'white' ? 'b' : 'w'} piece={t as ChessPieceKind} size={18} />
+            <ChessPieceIcon key={i} color={color === 'white' ? 'b' : 'w'} piece={t as ChessPieceKind} size={16} />
           ))}
         </span>
         {ahead > 0 && (
@@ -1809,8 +1881,13 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
     return out;
   }, []);
 
-  const coordColor = theme === 'classic' ? 'rgba(30,20,10,.85)' : 'rgba(235,235,245,.85)';
-  const notationProps = { fontSize: 11, color: coordColor };
+  // Coordinates take the opposite square color at 85% (Classic). The
+  // graphite squares sit too close together for the literal rule, so it
+  // uses near-white / near-black at 85% — readable on both.
+  const coordOnDark = theme === 'classic' ? 'rgba(232,220,196,.85)' : 'rgba(235,235,245,.85)';
+  const coordOnLight = theme === 'classic' ? 'rgba(181,136,99,.85)' : 'rgba(15,16,20,.85)';
+  const darkNotationProps = { fontSize: 11, color: coordOnDark };
+  const lightNotationProps = { fontSize: 11, color: coordOnLight };
   // FEN side-to-move flag, parsed without touching instance state in render.
   const turnIsPlayer = (fen.split(' ')[1] === 'w') === (playerColor === 'white');
   const canAct = status === 'playing' && turnIsPlayer && viewPly === null && !pendingPromo;
@@ -2094,8 +2171,14 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
 
   const firstOutPly = book.flags.findIndex((f) => !f);
   const outRow = firstOutPly >= 0 ? Math.floor(firstOutPly / 2) : -1;
+  const lastPly = sans.length;
+  const moveListRef = useRef<HTMLOListElement | null>(null);
+  // The list follows the game: latest move visible + highlighted.
+  useEffect(() => {
+    moveListRef.current?.scrollTo({ top: moveListRef.current.scrollHeight });
+  }, [sans.length]);
   const moveList = (
-    <ol className="flex flex-col gap-0.5 max-h-64 overflow-y-auto" aria-label="Move list">
+    <ol ref={moveListRef} className="flex flex-col gap-0.5 max-h-64 overflow-y-auto" aria-label="Move list">
       {pairs.map(([w, b], i) => (
         <li key={i}>
           <span className="grid grid-cols-[2.5rem_1fr_1fr] items-center gap-1">
@@ -2113,27 +2196,31 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
                   key={ply}
                   type="button"
                   onClick={() => setViewPly(shownPly === ply ? null : ply)}
-                  className="games-type-callout text-left rounded-md px-2 py-1 tabular-nums"
+                  aria-label={book.flags[ply - 1] ? `${san}, book move` : san}
+                  title={book.flags[ply - 1] ? 'Book move' : undefined}
+                  className="games-press games-type-callout text-left rounded-md px-2 py-0.5 tabular-nums"
                   style={{
-                    background: shownPly === ply ? 'var(--surface-3)' : 'transparent',
+                    background:
+                      shownPly === ply
+                        ? 'var(--surface-3)'
+                        : ply === lastPly && viewPly === null
+                          ? 'var(--surface-2)'
+                          : 'transparent',
                     color: 'var(--text-1)',
+                    boxShadow: book.flags[ply - 1] ? 'inset 2px 0 0 0 #E5C07B' : undefined,
                   }}
                 >
                   {san}
-                  {book.flags[ply - 1] && (
-                    <span aria-label="book move" title="Book move" className="ml-1" style={{ fontSize: 11 }}>
-                      📖
-                    </span>
-                  )}
                 </button>
               ) : (
                 <span key={ply} />
               ),
             )}
           </span>
-          {i === outRow && book.expectedSan && (
-            <p className="games-type-caption mt-0.5 mb-1 pl-10" style={{ color: 'var(--text-3)' }}>
-              Out of book — main line was {book.expectedSan}
+          {i === outRow && (
+            <p className="games-type-micro mt-0.5 mb-1 pl-10" style={{ color: 'var(--text-3)' }}>
+              ↳ out of book
+              {book.expectedSan ? ` — main line was ${book.expectedSan}` : ''}
             </p>
           )}
         </li>
@@ -2306,13 +2393,10 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
                   startReview();
                 }}
                 aria-label={`${dueCount(nodes)} opening positions due. Start review`}
-                className="games-press inline-flex flex-col items-center px-3 py-1 rounded-[10px] shrink-0"
-                style={{ background: 'var(--surface-2)' }}
+                className="games-press games-review-chip inline-flex flex-col items-center px-3 py-1 rounded-[10px] shrink-0"
+                style={{ background: 'var(--surface-2)', color: '#E5C07B' }}
               >
-                <span className="games-type-micro" style={{ color: 'var(--text-3)' }}>
-                  📖 Review
-                </span>
-                <span className="games-type-headline tabular-nums leading-tight">{dueCount(nodes)}</span>
+                <span className="games-type-micro">📖 {dueCount(nodes)} due</span>
               </button>
             )}
             <span
@@ -2391,7 +2475,7 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
           />
         }
         board={
-          <div className="w-full" style={{ maxWidth: 'min(88vw, 72vh, 640px)', marginInline: 'auto' }}>
+          <div className="w-full chess-board-fit">
             {renderBar(topColor, true)}
             {engineStatus === 'loading' && (
               <p className="games-type-caption mb-2" style={{ color: 'var(--text-2)' }} aria-live="polite">
@@ -2414,30 +2498,11 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
             )}
             <div className="flex items-stretch gap-2 my-1">
               {coachOn && coachKind === 'guided' && (
-                <div className="flex w-6 flex-col items-center py-1">
-                  <div
-                    className="relative flex-1 w-[10px] rounded-full overflow-hidden"
-                    style={{ background: displayEvalCp !== null ? '#141518' : 'transparent' }}
-                  >
-                    {displayEvalCp !== null && (
-                      <div
-                        className={`absolute left-0 w-full bg-white ${orientation === 'black' ? 'top-0' : 'bottom-0'}`}
-                        style={{
-                          height: `${evalWhiteShare(displayEvalCp)}%`,
-                          opacity: evalStale ? 0.45 : 1,
-                        }}
-                      />
-                    )}
-                  </div>
-                  <span
-                    className="games-type-micro tabular-nums mt-1 min-h-[1em]"
-                    style={{ color: 'var(--text-2)' }}
-                    role={displayEvalCp !== null ? 'img' : undefined}
-                    aria-label={displayEvalCp !== null ? `Evaluation ${fmtEvalCp(displayEvalCp) ?? 'unknown'}` : undefined}
-                  >
-                    {displayEvalCp !== null ? fmtEvalCp(displayEvalCp) : ''}
-                  </span>
-                </div>
+                <EvalBar
+                  cp={displayEvalCp}
+                  stale={evalStale}
+                  orientation={orientation}
+                />
               )}
             <div
               className={`relative flex-1 games-board-lock${shaking ? ' games-shake' : ''}`}
@@ -2463,8 +2528,8 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
                   showNotation: true,
                   darkSquareStyle: { backgroundColor: darkSq },
                   lightSquareStyle: { backgroundColor: lightSq },
-                  darkSquareNotationStyle: notationProps,
-                  lightSquareNotationStyle: notationProps,
+                  darkSquareNotationStyle: darkNotationProps,
+                  lightSquareNotationStyle: lightNotationProps,
                   squareStyles,
                   arrows,
                   pieces,
@@ -2496,25 +2561,24 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
               {optionsList}
               <div className="mt-2">{moveList}</div>
             </details>
-            <p
-              className="games-type-caption mt-3 text-center lg:whitespace-nowrap"
-              style={{ color: 'var(--text-3)' }}
-            >
-              <a
-                href="https://github.com/nmrugg/stockfish.js"
-                target="_blank"
-                rel="noreferrer"
-                className="underline underline-offset-2"
-              >
-                Stockfish
-              </a>{' '}
-              (
-              <a href="/vendor/stockfish/Copying.txt" target="_blank" rel="noreferrer" className="underline underline-offset-2">
-                GPL-3
-              </a>
-              ) · Opening names: Lichess (CC0)
-            </p>
           </div>
+        }
+        footer={
+          <p className="games-type-caption text-center" style={{ color: 'var(--text-3)' }}>
+            <a
+              href="https://github.com/nmrugg/stockfish.js"
+              target="_blank"
+              rel="noreferrer"
+              className="underline underline-offset-2"
+            >
+              Stockfish
+            </a>{' '}
+            (
+            <a href="/vendor/stockfish/Copying.txt" target="_blank" rel="noreferrer" className="underline underline-offset-2">
+              GPL-3
+            </a>
+            ) · Opening names: Lichess (CC0)
+          </p>
         }
         dock={
           <ControlDock>
@@ -2612,6 +2676,23 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
                     </button>
                   </div>
                 </>
+              ) : exited && book.name && !coachExpanded ? (
+                <button
+                  type="button"
+                  onClick={() => setCoachExpanded(true)}
+                  aria-expanded={false}
+                  aria-label={`Opening summary, ${book.eco}, ${headerOpeningName(book.name)}. Expand`}
+                  className="games-press w-full flex items-center gap-2 mt-1 text-left"
+                >
+                  <span aria-hidden>📖</span>
+                  <span className="games-type-body flex-1 truncate">
+                    {book.eco} · {headerOpeningName(book.name)}
+                    {book.outAtMove !== null ? ` · book to move ${book.outAtMove}` : ''}
+                  </span>
+                  <span aria-hidden className="games-type-callout shrink-0" style={{ color: 'var(--text-3)' }}>
+                    ▸
+                  </span>
+                </button>
               ) : book.name ? (
                 <>
                   <p className="games-type-body mt-1">
@@ -2619,10 +2700,22 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
                     {book.eco} · {headerOpeningName(book.name)}
                   </p>
                   {book.outAtMove !== null ? (
-                    <p className="games-type-caption mt-1" style={{ color: 'var(--text-2)' }}>
-                      Out of book · move {book.outAtMove}
-                      {book.expectedSan ? ` — main line was ${book.expectedSan}` : ''}
-                    </p>
+                    <>
+                      <p className="games-type-caption mt-1" style={{ color: 'var(--text-2)' }}>
+                        Out of book · move {book.outAtMove}
+                        {book.expectedSan ? ` — main line was ${book.expectedSan}` : ''}
+                      </p>
+                      {exited && (
+                        <button
+                          type="button"
+                          onClick={() => setCoachExpanded(false)}
+                          className="games-press games-type-caption mt-1"
+                          style={{ color: 'var(--text-3)' }}
+                        >
+                          Show less ▾
+                        </button>
+                      )}
+                    </>
                   ) : (
                     <p className="games-type-caption mt-1" style={{ color: 'var(--text-2)' }}>
                       Move {Math.max(1, fullMoves)} · in book
@@ -2795,6 +2888,21 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
           setSetupOpen(true);
         }}
         onClose={() => setResultOpen(false)}
+        note={
+          dueCount(nodes) > 0 ? (
+            <button
+              type="button"
+              onClick={() => {
+                setResultOpen(false);
+                startReview();
+              }}
+              className="games-press underline underline-offset-2"
+              style={{ color: '#E5C07B' }}
+            >
+              📖 Review {dueCount(nodes)} due
+            </button>
+          ) : undefined
+        }
       />
       <ConfirmDialog
         open={confirmResign}

@@ -18,6 +18,7 @@ export default function GameShell({
   dock,
   sidePanel,
   howToPlay,
+  footer,
   wide,
   narrow,
   squareBoard = true,
@@ -33,6 +34,8 @@ export default function GameShell({
   dock: ReactNode;
   sidePanel: ReactNode;
   howToPlay: ReactNode;
+  /** Small credit line under the play group, outside the sized area. */
+  footer?: ReactNode;
   /** Wider centered group (chess): 1200px cap, 32px gutters. */
   wide?: boolean;
   /** Single centered column (five letters): 520px cap, no side panel. */
@@ -73,6 +76,11 @@ export default function GameShell({
         {/* Mobile: how-to-play and stats surface through the ⋯ menu sheets. */}
         <div className="lg:hidden">{howToPlay}</div>
       </div>
+      {footer ? (
+        <div className={`w-full mx-auto px-4 md:px-6 pb-6 ${wide ? 'max-w-[1200px]' : narrow ? 'max-w-[520px]' : 'max-w-6xl'}`}>
+          {footer}
+        </div>
+      ) : null}
     </div>
   );
 }
