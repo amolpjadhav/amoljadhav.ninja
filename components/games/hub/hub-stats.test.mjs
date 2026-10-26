@@ -7,6 +7,7 @@ import {
   ptDateString,
   readHubStore,
   saveHasProgress,
+  tileStatusFor,
 } from './hub-stats.ts';
 
 function stubWindow(entries = {}) {
@@ -117,5 +118,50 @@ describe('readHubStore', () => {
     } finally {
       restore();
     }
+  });
+});
+
+describe('tileStatusFor', () => {
+  it('picks the status tone per entry', () => {
+    assert.deepEqual(tileStatusFor('sudoku', { solvedToday: true, best: '6:20' }, true), {
+      text: 'Solved today ✓',
+      tone: 'success',
+    });
+    assert.deepEqual(tileStatusFor('chess', { inProgress: true }, false), {
+      text: 'In progress · Resume',
+      tone: 'info',
+    });
+    assert.deepEqual(tileStatusFor('2048', { best: '1,000' }, false), {
+      text: 'Best 1,000',
+      tone: 'info',
+    });
+    assert.deepEqual(tileStatusFor('five-letters', undefined, true), {
+      text: 'Daily ready',
+      tone: 'accent',
+    });
+    assert.deepEqual(tileStatusFor('code-breaker', undefined, false), {
+      text: 'Play →',
+      tone: 'accent',
+    });
+  });
+
+  it('keeps each tile referentially stable when reads interleave', () => {
+    // Six tiles share the reader; one tile's read must not evict another's
+    // snapshot, or useSyncExternalStore throws at the hook.
+    const slugs = ['chess', 'five-letters', 'minesweeper', 'sudoku', 'code-breaker', '2048'];
+    const first = new Map(slugs.map((s) => [s, tileStatusFor(s, undefined, s !== 'chess')]));
+    for (let i = 0; i < 3; i += 1) {
+      for (const s of slugs) {
+        assert.equal(tileStatusFor(s, undefined, s !== 'chess'), first.get(s));
+      }
+    }
+  });
+
+  it('returns a new snapshot only when the entry changes', () => {
+    const before = tileStatusFor('sudoku', { best: '6:20' }, true);
+    assert.equal(tileStatusFor('sudoku', { best: '6:20' }, true), before);
+    const after = tileStatusFor('sudoku', { best: '6:20', solvedToday: true }, true);
+    assert.notEqual(after, before);
+    assert.equal(after.text, 'Solved today ✓');
   });
 });

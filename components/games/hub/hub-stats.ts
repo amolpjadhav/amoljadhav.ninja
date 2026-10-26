@@ -242,3 +242,39 @@ export function readHubStore(): HubStore {
 
   return { perGame, streakDays, dailyDone };
 }
+
+export type TileTone = 'accent' | 'success' | 'info';
+
+export interface TileStatusValue {
+  text: string;
+  tone: TileTone;
+}
+
+function tileFallback(hasDaily: boolean): TileStatusValue {
+  return { text: hasDaily ? 'Daily ready' : 'Play →', tone: 'accent' };
+}
+
+// Per-tile snapshot for useSyncExternalStore: referentially stable until
+// that tile's stored entry changes. A single shared slot thrashed across
+// tiles — every tile evicted the others' snapshot, so getSnapshot returned
+// a fresh object on nearly every read and React threw at the hook.
+const tileCache = new Map<string, { key: string; status: TileStatusValue }>();
+
+export function tileStatusFor(
+  slug: string,
+  entry: HubGameState | undefined,
+  hasDaily: boolean,
+): TileStatusValue {
+  const key = entry
+    ? `${entry.solvedToday ? 1 : 0}|${entry.inProgress ? 1 : 0}|${entry.best ?? ''}`
+    : 'none';
+  const cacheKey = `${slug}|${hasDaily ? 1 : 0}`;
+  const hit = tileCache.get(cacheKey);
+  if (hit && hit.key === key) return hit.status;
+  let status = tileFallback(hasDaily);
+  if (entry?.solvedToday) status = { text: 'Solved today ✓', tone: 'success' };
+  else if (entry?.inProgress) status = { text: 'In progress · Resume', tone: 'info' };
+  else if (entry?.best) status = { text: `Best ${entry.best}`, tone: 'info' };
+  tileCache.set(cacheKey, { key, status });
+  return status;
+}
