@@ -160,6 +160,23 @@ export function pairMoves(san: string[]): [string, string | null][] {
   return rows;
 }
 
+/** Plies one Undo press takes back: a full round on the player's turn,
+ *  otherwise just the player's last move. Repeated presses walk the
+ *  whole game back to the start. */
+export function undoKeepCount(histLength: number, playerToMove: boolean): number {
+  return Math.min(histLength, playerToMove ? 2 : 1);
+}
+
+/** True when the side to move in `fen` is the engine's (undo landed on
+ *  it, so the engine must be kicked to reply). */
+export function isEngineTurn(fen: string, playerColor: ChessColor): boolean {
+  try {
+    return (new Chess(fen).turn() === 'w') !== (playerColor === 'white');
+  } catch {
+    return false;
+  }
+}
+
 /** Promotion piece options when from→to is a promoting pawn push. */
 export function promotionChoices(chess: Chess, from: Square, to: Square): ('q' | 'r' | 'b' | 'n')[] {
   const moves = chess.moves({ square: from, verbose: true }) as Move[];

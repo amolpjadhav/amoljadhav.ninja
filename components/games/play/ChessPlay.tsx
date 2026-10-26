@@ -35,6 +35,7 @@ import {
   clockFor,
   engineAcceptsDraw,
   gameOutcome,
+  isEngineTurn,
   levelById,
   materialSummary,
   pairMoves,
@@ -44,6 +45,7 @@ import {
   recordLabel,
   resolveColor,
   shouldPlayRandom,
+  undoKeepCount,
 } from '@/lib/games/chess';
 import type {
   ChessColor,
@@ -1787,6 +1789,12 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
 
   const undo = useCallback(() => {
     if (status !== 'playing' || hist.length === 0) return;
+    const live = liveRef.current;
+    if (live.review) {
+      // Recall autoplay owns the move sequence; undo would desync its queue.
+      say('Pause the review to take back moves');
+      return;
+    }
     stopEngine();
     if (thinkTimer.current) clearTimeout(thinkTimer.current);
     if (replyTimer.current) clearTimeout(replyTimer.current);
@@ -1795,38 +1803,46 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
     setThinking(false);
     setHintMode(false);
     const turnIsPlayer = (chess.turn() === 'w') === (playerColor === 'white');
-    const pops = Math.min(hist.length, turnIsPlayer ? 2 : 1);
+    const pops = undoKeepCount(hist.length, turnIsPlayer);
     if (pops <= 0) return;
-    // Replay the kept plies by from/to (never re-parsed SAN text, which
-    // can resolve differently out of sequence), and refuse to load a
-    // replay that comes up short — the list and the board stay in sync.
-    const keep = hist.slice(0, hist.length - pops);
-    const fresh = new Chess();
-    for (const m of keep) {
-      try {
-        const step = fresh.move({ from: m.from, to: m.to, promotion: m.promotion });
-        if (!step) {
-          say('Could not take back — line unclear');
-          return;
-        }
-      } catch {
-        say('Could not take back — line unclear');
-        return;
-      }
+    // Pop the stack (history preserved): chess.load() would wipe the move
+    // history and empty the list while the board stays mid-game.
+    // Repeated presses walk the whole game back to the start.
+    for (let i = 0; i < pops; i += 1) {
+      if (!chess.undo()) break;
     }
-    if (fresh.history().length !== keep.length) {
-      say('Could not take back — line unclear');
-      return;
-    }
-    chess.load(fresh.fen());
     setUsedUndo(true);
     setHint(null);
     setViewPly(null);
     setSelected(null);
     setPendingPromo(null);
+    if (bannerTimer.current) clearTimeout(bannerTimer.current);
+    bannerTimer.current = null;
+    setBanner(null);
     sync();
-    say('Move taken back — this game is unrated');
-  }, [chess, hist, playerColor, say, status, stopEngine, sync]);
+    // Undoing back into theory re-engages the coach where it left off.
+    const book = openingsRef.current;
+    if (live.coachOn && book) {
+      const fenNow = chess.fen();
+      const kids = mergeExplorerKids(
+        bookChildStats(book, fenNow).filter((k) => k.san),
+        explorerRef.current[epdOf(fenNow)] ?? null,
+        fenNow,
+      );
+      if (kids.length > 0) {
+        setExited(false);
+        setPanelTab('coach');
+      }
+    }
+    if (isEngineTurn(chess.fen(), playerColor)) {
+      // Landed on the engine's turn (e.g. Black taking back White's move):
+      // kick it to reply instead of stalling the game.
+      say('Move taken back — engine to move');
+      scheduleEngine();
+    } else {
+      say('Move taken back — this game is unrated');
+    }
+  }, [chess, hist, playerColor, say, scheduleEngine, status, stopEngine, sync]);
 
   const requestHint = useCallback(() => {
     if (status !== 'playing' || !isPlayerTurnNow()) return;
