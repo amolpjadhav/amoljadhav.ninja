@@ -1850,11 +1850,15 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
       if (hint.stage === 1) setHint({ ...hint, stage: 2 });
       return;
     }
-    if (hintsLeft <= 0) {
-      say('No hints left this game');
-      return;
+    // Coach mode is for learning: hints never run out. Rated games keep
+    // the 3-hint limit so the lifeline means something.
+    if (!liveRef.current.coachOn) {
+      if (hintsLeft <= 0) {
+        say('No hints left this game');
+        return;
+      }
+      setHintsLeft((n) => n - 1);
     }
-    setHintsLeft((n) => n - 1);
     setHintMode(true);
     setThinking(true);
     const ok = requestMove(chess.fen(), chess.turn(), level);
@@ -2838,9 +2842,9 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
               <div className="flex flex-wrap items-start justify-center gap-3">
                 {setup.hints && (
                   <RoundDockButton
-                    label={`Hint (${hintsLeft} left)`}
+                    label={coachOn ? 'Hint (unlimited)' : `Hint (${hintsLeft} left)`}
                     symbol="?"
-                    caption={`Hint · ${hintsLeft}`}
+                    caption={coachOn ? 'Hint · ∞' : `Hint · ${hintsLeft}`}
                     onClick={requestHint}
                     disabled={!canAct}
                   />
