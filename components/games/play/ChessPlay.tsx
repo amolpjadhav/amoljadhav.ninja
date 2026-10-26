@@ -6,7 +6,6 @@ import type { Move, Square } from 'chess.js';
 import { Chessboard, defaultPieces } from 'react-chessboard';
 import type { Arrow, PieceRenderObject } from 'react-chessboard';
 import GameShell from '../GameShell';
-import { DockButton } from '../ControlDock';
 import ControlDock from '../ControlDock';
 import HowToPlaySheet from '../HowToPlaySheet';
 import ResultSheet from '../ResultSheet';
@@ -322,6 +321,49 @@ function EvalBar({
       </div>
       {labelTop ? null : label}
     </div>
+  );
+}
+
+// Circular icon dock buttons (chess only — the shared DockButton pills
+// stay as they are for the other games). Symbol + caption, 44px target.
+function RoundDockButton({
+  label,
+  symbol,
+  caption,
+  onClick,
+  disabled,
+  gold,
+}: {
+  label: string;
+  symbol: string;
+  caption: string;
+  onClick: () => void;
+  disabled?: boolean;
+  gold?: boolean;
+}) {
+  return (
+    <span className="inline-flex flex-col items-center gap-1">
+      <button
+        type="button"
+        aria-label={label}
+        title={label}
+        onClick={onClick}
+        disabled={disabled}
+        className="games-press inline-flex items-center justify-center w-11 h-11 rounded-full games-type-callout"
+        style={
+          gold
+            ? { background: 'var(--game-accent)', color: '#000' }
+            : { background: 'var(--surface-2)', color: 'var(--text-1)', opacity: disabled ? 0.4 : 1 }
+        }
+      >
+        <span aria-hidden style={{ fontSize: 18 }}>
+          {symbol}
+        </span>
+      </button>
+      <span aria-hidden className="games-type-micro" style={{ color: 'var(--text-3)' }}>
+        {caption}
+      </span>
+    </span>
   );
 }
 
@@ -728,9 +770,9 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
   const [casual, setCasual] = useState(() => initialSetup.coach !== 'off');
   const [casualGames, setCasualGames] = useState(() => readJSON<number>(CHESS_CASUAL_KEY) ?? 0);
   const [exited, setExited] = useState(false);
-  // After leaving book the coach card collapses to one row; the player
-  // can expand it back for the summary.
-  const [coachExpanded, setCoachExpanded] = useState(false);
+  // Single glass panel tabs (desktop): Coach shows the opening guide,
+  // Moves the list + SAN input. Leaving book flips to Moves.
+  const [panelTab, setPanelTab] = useState<'coach' | 'moves'>('coach');
   const [banner, setBanner] = useState<{ text: string; key: number } | null>(null);
   const [nodes, setNodes] = useState<NodeStore>(() => readJSON<NodeStore>(NODES_KEY) ?? {});
   const [hintRevealed, setHintRevealed] = useState(false);
@@ -862,6 +904,7 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
   const exitAssist = useCallback(
     (exit: AssistExit, mainSan: string | null, entryName: string | null, playedSan: string | null = null) => {
       setExited(true);
+      setPanelTab('moves');
         const moveNo = Math.floor(chess.history().length / 2) + 1;
       flashBanner(exitBanner(exit, entryName, moveNo, mainSan, playedSan));
     },
@@ -1063,13 +1106,27 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
     [applyEngineMove, hintMode],
   );
 
+  // Stranded engine searches (dead boot, wedged worker) resolve locally
+  // instead of stalling the game: same position and turn still pending.
+  const onEngineStall = useCallback(
+    (fen: string, turn: 'w' | 'b') => {
+      const live = liveRef.current;
+      if (live.status !== 'playing' || gameOutcome(chess).over) return;
+      if (chess.turn() !== turn || chess.fen() !== fen) return;
+      setThinking(false);
+      const mv = randomLegalMove(chess);
+      if (mv) applyEngineMove(mv.from, mv.to, mv.promotion);
+    },
+    [applyEngineMove, chess],
+  );
+
   const {
     status: engineStatus,
     requestMove,
     stop: stopEngine,
     analyze,
     cancelAnalysis,
-  } = useChessEngine(onEngineReply);
+  } = useChessEngine(onEngineReply, onEngineStall);
 
   useEffect(() => {
     if (engineStatus === 'failed' && !engineNote.current) {
@@ -1286,7 +1343,7 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
       setCoachKind(s.coach === 'recall' ? 'recall' : 'guided');
       setCasual(s.coach !== 'off');
       setExited(false);
-      setCoachExpanded(false);
+      setPanelTab('coach');
       setBanner(null);
       setReview(null);
       setShaking(false);
@@ -1339,7 +1396,7 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
     setConfirmResign(false);
     setClocks(null);
     setExited(false);
-    setCoachExpanded(false);
+    setPanelTab('coach');
     setBanner(null);
     setReview(null);
     setPendingReview(false);
@@ -1638,7 +1695,7 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
       <div
         className="flex items-center gap-2 min-h-[44px] max-h-[44px] overflow-hidden whitespace-nowrap rounded-[10px] px-2"
         aria-live="polite"
-        style={toMove ? { background: 'var(--surface-2)' } : undefined}
+        style={toMove ? { background: 'rgba(229,192,123,.08)' } : undefined}
       >
         {toMove && (
           <span
@@ -1649,13 +1706,25 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
           />
         )}
         {mine ? (
-          <span className="games-type-callout font-semibold truncate shrink-0">
-            You · {color === 'white' ? 'White' : 'Black'}
+          <span className="flex items-baseline gap-1.5 min-w-0 shrink-0">
+            <span className="games-type-callout font-semibold truncate">
+              You · {color === 'white' ? 'White' : 'Black'}
+            </span>
+            {toMove && (
+              <span className="games-type-caption shrink-0" style={{ color: '#E5C07B' }}>
+                ● Your move
+              </span>
+            )}
           </span>
         ) : (
           <span className="flex items-center gap-1.5 min-w-0 shrink-0">
             <LevelIcon levelId={level.id} size={20} />
-            <span className="games-type-callout font-semibold truncate">Stockfish · {level.name}</span>
+            <span className="flex flex-col leading-tight min-w-0">
+              <span className="games-type-callout font-semibold truncate">Stockfish · {level.name}</span>
+              <span className="games-type-micro truncate" style={{ color: 'var(--text-3)' }}>
+                {level.blurb}
+              </span>
+            </span>
           </span>
         )}
         {!mine && thinking && (
@@ -1728,14 +1797,26 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
     const turnIsPlayer = (chess.turn() === 'w') === (playerColor === 'white');
     const pops = Math.min(hist.length, turnIsPlayer ? 2 : 1);
     if (pops <= 0) return;
-    const keep = chess.history().slice(0, hist.length - pops);
+    // Replay the kept plies by from/to (never re-parsed SAN text, which
+    // can resolve differently out of sequence), and refuse to load a
+    // replay that comes up short — the list and the board stay in sync.
+    const keep = hist.slice(0, hist.length - pops);
     const fresh = new Chess();
-    for (const san of keep) {
+    for (const m of keep) {
       try {
-        fresh.move(san);
+        const step = fresh.move({ from: m.from, to: m.to, promotion: m.promotion });
+        if (!step) {
+          say('Could not take back — line unclear');
+          return;
+        }
       } catch {
+        say('Could not take back — line unclear');
         return;
       }
+    }
+    if (fresh.history().length !== keep.length) {
+      say('Could not take back — line unclear');
+      return;
     }
     chess.load(fresh.fen());
     setUsedUndo(true);
@@ -1745,7 +1826,7 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
     setPendingPromo(null);
     sync();
     say('Move taken back — this game is unrated');
-  }, [chess, hist.length, playerColor, say, status, stopEngine, sync]);
+  }, [chess, hist, playerColor, say, status, stopEngine, sync]);
 
   const requestHint = useCallback(() => {
     if (status !== 'playing' || !isPlayerTurnNow()) return;
@@ -2256,7 +2337,7 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
     moveListRef.current?.scrollTo({ top: moveListRef.current.scrollHeight });
   }, [sans.length]);
   const moveList = (
-    <ol ref={moveListRef} className="flex flex-col gap-0.5 max-h-64 overflow-y-auto" aria-label="Move list">
+    <ol ref={moveListRef} className="flex flex-col gap-0.5 max-h-64 lg:max-h-none lg:h-full overflow-y-auto" aria-label="Move list">
       {pairs.map(([w, b], i) => (
         <li key={i}>
           <span className="grid grid-cols-[2.5rem_1fr_1fr] items-center gap-1">
@@ -2368,17 +2449,21 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
         ? Math.max(...knownEvals)
         : Math.min(...knownEvals);
   const bestIdx = bestCp === null ? -1 : optionRows.findIndex((r) => r.childEval === bestCp);
+  // One shared style tag moves to the section header; mixed tags stay per row.
+  const rowTags = optionRows.map((r) => r.style);
+  const sharedTag = rowTags[0] && rowTags.every((t) => t === rowTags[0]) ? (rowTags[0] as string) : null;
   const optionsList =
     coachNode && optionRows.length > 0 ? (
       <div className="mt-3">
         <p className="games-type-micro mb-1.5" style={{ color: 'var(--text-3)' }}>
-          Your options
+          Your options{sharedTag ? ` · ${sharedTag} lines` : ''}
         </p>
-        <ul className="flex flex-col gap-1">
+        <ul className="flex flex-col gap-1.5">
           {optionRows.map(({ k, full, name, style, childEval }, i) => {
             const isBest = i === bestIdx;
             const delta = deltaEvalText(childEval, bestCp, sideToMove, isBest);
             const solo = soloUci === k.uci;
+            const dot = i === 0 ? '#30D158' : GUIDE_BLUE;
             return (
               <li key={k.uci}>
                 <button
@@ -2399,48 +2484,57 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
                         : undefined
                       : 'No stats'
                   }
-                  className="games-press w-full flex items-center gap-2 rounded-[10px] px-2.5 py-1.5 text-left"
+                  className="games-press w-full flex flex-col gap-1 rounded-[10px] px-2.5 py-2 text-left"
                   style={{
                     background: solo ? 'rgba(229,192,123,.14)' : 'var(--surface-2)',
                     border: '1px solid var(--hairline)',
                   }}
                 >
-                  <span
-                    aria-hidden
-                    className="inline-block w-2.5 h-2.5 rounded-full shrink-0"
-                    style={{ background: i === 0 ? '#30D158' : GUIDE_BLUE }}
-                  />
-                  <span className="games-type-callout tabular-nums font-semibold">{k.san}</span>
-                  <span
-                    className="games-type-caption flex-1 min-w-0 line-clamp-2"
-                    style={{ color: 'var(--text-2)' }}
-                  >
-                    {name}
+                  <span className="flex items-center gap-2">
+                    <span aria-hidden className="inline-block w-2.5 h-2.5 rounded-full shrink-0" style={{ background: dot }} />
+                    <span className="tabular-nums shrink-0" style={{ fontSize: 17, fontWeight: 700 }}>
+                      {k.san}
+                    </span>
+                    <span className="flex-1" />
+                    {style && !sharedTag && (
+                      <span
+                        className="games-type-micro px-1.5 py-0.5 rounded-full shrink-0 uppercase"
+                        style={{ background: 'var(--surface-3)', color: 'var(--text-3)' }}
+                      >
+                        {style}
+                      </span>
+                    )}
+                    {delta && (
+                      <span
+                        className="games-type-caption tabular-nums shrink-0 text-right"
+                        style={{ color: DELTA_TONE_COLOR[delta.tone], minWidth: 44 }}
+                      >
+                        {delta.text}
+                      </span>
+                    )}
+                    {k.pct !== null && (
+                      <span
+                        className="games-type-caption tabular-nums shrink-0"
+                        style={{ color: 'var(--text-2)', minWidth: 36, textAlign: 'right' }}
+                      >
+                        {k.pct}%
+                      </span>
+                    )}
                   </span>
-                  {style && (
-                    <span
-                      className="games-type-micro px-1.5 py-0.5 rounded-full shrink-0 uppercase"
-                      style={{ background: 'var(--surface-3)', color: 'var(--text-3)' }}
-                    >
-                      {style}
+                  <span className="flex items-center gap-2 pl-[18px]">
+                    <span className="games-type-caption min-w-0" style={{ color: 'var(--text-2)', fontSize: 14, fontWeight: 500 }}>
+                      {name}
                     </span>
-                  )}
-                  {delta && (
-                    <span
-                      className="games-type-caption tabular-nums shrink-0 w-11 text-right"
-                      style={{ color: DELTA_TONE_COLOR[delta.tone] }}
-                    >
-                      {delta.text}
-                    </span>
-                  )}
-                  {k.pct !== null && (
-                    <span
-                      className="games-type-caption tabular-nums shrink-0"
-                      style={{ color: 'var(--text-2)' }}
-                    >
-                      {k.pct}%
-                    </span>
-                  )}
+                    {k.pct !== null && (
+                      <span
+                        aria-hidden
+                        className="h-1 flex-1 rounded-full overflow-hidden"
+                        style={{ background: 'var(--surface-3)', minWidth: 24 }}
+                      >
+                        <span className="block h-full rounded-full" style={{ width: `${k.pct}%`, background: dot }} />
+                      </span>
+                    )}
+                  </span>
                 </button>
               </li>
             );
@@ -2448,6 +2542,41 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
         </ul>
       </div>
     ) : null;
+
+  // Shared by the desktop Moves tab and the mobile details: the move
+  // list with the SAN field pinned beneath it.
+  const movesPane = (
+    <>
+      <div className="mt-2 min-h-0 lg:flex-1 lg:overflow-y-auto">{moveList}</div>
+      <form
+        className="flex gap-2 mt-3 shrink-0"
+        onSubmit={(e) => {
+          e.preventDefault();
+          submitSan();
+        }}
+      >
+        <input
+          ref={sanRef}
+          value={sanInput}
+          onChange={(e) => setSanInput(e.target.value)}
+          placeholder="Type a move  /"
+          aria-label="Move in SAN notation"
+          autoComplete="off"
+          spellCheck={false}
+          className="games-type-callout min-w-0 flex-1 rounded-[10px] px-3 py-2"
+          style={{ background: 'var(--surface-2)', color: 'var(--text-1)', border: '1px solid var(--hairline)' }}
+        />
+        <button
+          type="submit"
+          aria-label="Play SAN move"
+          className="games-press games-type-callout rounded-[10px] px-4"
+          style={{ background: 'var(--surface-2)', color: 'var(--text-1)' }}
+        >
+          Go
+        </button>
+      </form>
+    </>
+  );
 
   return (
     <>
@@ -2666,7 +2795,7 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
                 </p>
               )}
               {optionsList}
-              <div className="mt-2">{moveList}</div>
+              {movesPane}
             </details>
           </div>
         }
@@ -2690,42 +2819,71 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
         dock={
           <ControlDock>
             {status === 'playing' ? (
-              <div className="flex flex-wrap items-center justify-center gap-2.5">
+              <div className="flex flex-wrap items-start justify-center gap-3">
                 {setup.hints && (
-                  <DockButton label="Hint" onClick={requestHint} disabled={!canAct}>
-                    Hint ({hintsLeft})
-                  </DockButton>
+                  <RoundDockButton
+                    label={`Hint (${hintsLeft} left)`}
+                    symbol="?"
+                    caption={`Hint · ${hintsLeft}`}
+                    onClick={requestHint}
+                    disabled={!canAct}
+                  />
                 )}
                 {setup.allowUndo && (
-                  <DockButton label="Undo" onClick={undo} disabled={hist.length === 0}>
-                    Undo
-                  </DockButton>
+                  <RoundDockButton label="Undo" symbol="↩" caption="Undo" onClick={undo} disabled={hist.length === 0} />
                 )}
-                <DockButton label="Offer draw" onClick={offerDraw}>
-                  ½ Draw
-                </DockButton>
-                <DockButton label="Flip board" onClick={() => setFlipped((f) => !f)}>
-                  Flip
-                </DockButton>
-                <DockButton label="Resign" onClick={() => setConfirmResign(true)}>
-                  Resign
-                </DockButton>
+                <RoundDockButton label="Offer draw" symbol="½" caption="Draw" onClick={offerDraw} />
+                <RoundDockButton label="Flip board" symbol="⇅" caption="Flip" onClick={() => setFlipped((f) => !f)} />
+                <RoundDockButton label="Resign" symbol="⚑" caption="Resign" onClick={() => setConfirmResign(true)} />
               </div>
             ) : (
-              <>
-                <DockButton label="Flip board" onClick={() => setFlipped((f) => !f)}>
-                  Flip
-                </DockButton>
-                <DockButton label="New game" onClick={() => setSetupOpen(true)} primary>
-                  New game
-                </DockButton>
-              </>
+              <div className="flex flex-wrap items-start justify-center gap-3">
+                <RoundDockButton label="Flip board" symbol="⇅" caption="Flip" onClick={() => setFlipped((f) => !f)} />
+                <RoundDockButton label="New game" symbol="+" caption="New" onClick={() => setSetupOpen(true)} gold />
+              </div>
             )}
           </ControlDock>
         }
         sidePanel={
-          <div className="flex min-h-0 flex-col gap-4 lg:sticky lg:top-20 lg:max-h-[calc(100dvh-6.5rem)] lg:overflow-y-auto lg:pb-1">
-            <div className="games-card p-5" aria-live="polite">
+          <div className="flex min-h-0 flex-col gap-4 lg:sticky lg:top-20 lg:h-[calc(100dvh-7rem)] lg:overflow-hidden lg:pb-1">
+            <div className="games-card p-5 flex flex-col min-h-0 lg:flex-1" aria-live="polite">
+              <div role="tablist" aria-label="Coach or moves" className="flex gap-1 rounded-[12px] p-1 shrink-0" style={{ background: 'var(--surface-2)' }}>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={panelTab === 'coach'}
+                  onClick={() => setPanelTab('coach')}
+                  className="games-press games-type-callout flex-1 rounded-[8px] px-3 py-1.5"
+                  style={
+                    panelTab === 'coach'
+                      ? { background: 'var(--surface-3)', color: 'var(--text-1)' }
+                      : { background: 'transparent', color: 'var(--text-3)' }
+                  }
+                >
+                  <span className="inline-flex items-center gap-1.5">
+                    {coachNode && (
+                      <span aria-hidden className="inline-block w-1.5 h-1.5 rounded-full" style={{ background: '#E5C07B' }} />
+                    )}
+                    Coach
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={panelTab === 'moves'}
+                  onClick={() => setPanelTab('moves')}
+                  className="games-press games-type-callout flex-1 rounded-[8px] px-3 py-1.5 tabular-nums"
+                  style={
+                    panelTab === 'moves'
+                      ? { background: 'var(--surface-3)', color: 'var(--text-1)' }
+                      : { background: 'transparent', color: 'var(--text-3)' }
+                  }
+                >
+                  Moves · {fullMoves}
+                </button>
+              </div>
+              {panelTab === 'coach' ? (
+              <div role="tabpanel" aria-label="Coach" className="mt-1 min-h-0 overflow-y-auto">
               <div className="flex items-center justify-between gap-2">
                 <h2 className="games-type-headline">Opening</h2>
                 <span className="flex items-center gap-1.5">
@@ -2783,23 +2941,6 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
                     </button>
                   </div>
                 </>
-              ) : exited && book.name && !coachExpanded ? (
-                <button
-                  type="button"
-                  onClick={() => setCoachExpanded(true)}
-                  aria-expanded={false}
-                  aria-label={`Opening summary, ${book.eco}, ${headerOpeningName(book.name)}. Expand`}
-                  className="games-press w-full flex items-center gap-2 mt-1 text-left"
-                >
-                  <span aria-hidden>📖</span>
-                  <span className="games-type-body flex-1 truncate">
-                    {book.eco} · {headerOpeningName(book.name)}
-                    {book.outAtMove !== null ? ` · book to move ${book.outAtMove}` : ''}
-                  </span>
-                  <span aria-hidden className="games-type-callout shrink-0" style={{ color: 'var(--text-3)' }}>
-                    ▸
-                  </span>
-                </button>
               ) : book.name ? (
                 <>
                   <p className="games-type-body mt-1">
@@ -2807,22 +2948,10 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
                     {book.eco} · {headerOpeningName(book.name)}
                   </p>
                   {book.outAtMove !== null ? (
-                    <>
-                      <p className="games-type-caption mt-1" style={{ color: 'var(--text-2)' }}>
-                        Out of book · move {book.outAtMove}
-                        {book.expectedSan ? ` — main line was ${book.expectedSan}` : ''}
-                      </p>
-                      {exited && (
-                        <button
-                          type="button"
-                          onClick={() => setCoachExpanded(false)}
-                          className="games-press games-type-caption mt-1"
-                          style={{ color: 'var(--text-3)' }}
-                        >
-                          Show less ▾
-                        </button>
-                      )}
-                    </>
+                    <p className="games-type-caption mt-1" style={{ color: 'var(--text-2)' }}>
+                      Out of book · move {book.outAtMove}
+                      {book.expectedSan ? ` — main line was ${book.expectedSan}` : ''}
+                    </p>
                   ) : (
                     <p className="games-type-caption mt-1" style={{ color: 'var(--text-2)' }}>
                       Move {Math.max(1, fullMoves)} · in book
@@ -2843,44 +2972,14 @@ export default function ChessPlay({ initialMode }: { initialMode: string }) {
                 </span>
                 <Switch on={coachOn} onToggle={toggleCoach} label="Opening coach" />
               </div>
-            </div>
-            <div className="games-card p-5">
-              <div className="flex items-center justify-between gap-2">
-                <h2 className="games-type-headline">Moves</h2>
-                <span className="games-type-caption tabular-nums" style={{ color: 'var(--text-3)' }}>
-                  {fullMoves === 0 ? 'New game' : `${fullMoves} ${fullMoves === 1 ? 'move' : 'moves'}`}
-                </span>
               </div>
-              <div className="mt-2">{moveList}</div>
-              <form
-                className="flex gap-2 mt-3"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  submitSan();
-                }}
-              >
-                <input
-                  ref={sanRef}
-                  value={sanInput}
-                  onChange={(e) => setSanInput(e.target.value)}
-                  placeholder="Type a move  /"
-                  aria-label="Move in SAN notation"
-                  autoComplete="off"
-                  spellCheck={false}
-                  className="games-type-callout min-w-0 flex-1 rounded-[10px] px-3 py-2"
-                  style={{ background: 'var(--surface-2)', color: 'var(--text-1)', border: '1px solid var(--hairline)' }}
-                />
-                <button
-                  type="submit"
-                  aria-label="Play SAN move"
-                  className="games-press games-type-callout rounded-[10px] px-4"
-                  style={{ background: 'var(--surface-2)', color: 'var(--text-1)' }}
-                >
-                  Go
-                </button>
-              </form>
+              ) : (
+              <div role="tabpanel" aria-label="Moves" className="mt-1 min-h-0 flex-1 flex flex-col overflow-y-auto">
+                {movesPane}
+              </div>
+              )}
             </div>
-            <div className="games-card p-5">
+            <div className="games-card p-5 shrink-0">
               <button
                 type="button"
                 onClick={() => setRecordForced((v) => !(v ?? status !== 'playing'))}

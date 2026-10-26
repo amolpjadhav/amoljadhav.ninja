@@ -28,13 +28,22 @@ const MOVE_TIMEOUT_MS = 15000;
 const ANALYSIS_DEPTH = 12;
 const ANALYSIS_TIMEOUT_MS = 3000;
 
-export function useChessEngine(onReply: (reply: EngineReply) => void) {
+export function useChessEngine(
+  onReply: (reply: EngineReply) => void,
+  onStall?: (fen: string, turn: 'w' | 'b') => void,
+) {
   const [ready, setReady] = useState(false);
   const [failed, setFailed] = useState(false);
   const workerRef = useRef<Worker | null>(null);
   const onReplyRef = useRef(onReply);
-  const pendingRef = useRef<{ turn: 'w' | 'b'; scoreCp: number | null; timeout: ReturnType<typeof setTimeout> } | null>(null);
-  const queuedRef = useRef<(() => void)[]>([]);
+  const onStallRef = useRef(onStall);
+  const pendingRef = useRef<{
+    fen: string;
+    turn: 'w' | 'b';
+    scoreCp: number | null;
+    timeout: ReturnType<typeof setTimeout>;
+  } | null>(null);
+  const queuedRef = useRef<{ run: () => void; fen: string; turn: 'w' | 'b' }[]>([]);
   // Background option analysis (coach evals). Never runs alongside a real
   // search: requestMove/stop preempt it, and analyze refuses while busy.
   const analysisRef = useRef<{
@@ -44,9 +53,10 @@ export function useChessEngine(onReply: (reply: EngineReply) => void) {
     done: (cp: number | null) => void;
   } | null>(null);
 
-  // Latest callback without touching the ref during render.
+  // Latest callbacks without touching refs during render.
   useEffect(() => {
     onReplyRef.current = onReply;
+    onStallRef.current = onStall;
   });
 
   const status: EngineStatus = failed ? 'failed' : ready ? 'ready' : 'loading';
@@ -63,6 +73,13 @@ export function useChessEngine(onReply: (reply: EngineReply) => void) {
       return () => clearTimeout(t);
     }
     workerRef.current = w;
+    // Searches stranded by a dead boot or a dead worker fall back to
+    // local moves through onStall — a committed search always resolves.
+    const flushStalled = () => {
+      const q = queuedRef.current;
+      queuedRef.current = [];
+      for (const entry of q) onStallRef.current?.(entry.fen, entry.turn);
+    };
     const bootTimeout = setTimeout(() => {
       try {
         w.terminate();
@@ -71,12 +88,12 @@ export function useChessEngine(onReply: (reply: EngineReply) => void) {
       }
       workerRef.current = null;
       setFailed(true);
+      flushStalled();
     }, BOOT_TIMEOUT_MS);
     const failNow = () => {
       clearTimeout(bootTimeout);
       if (pendingRef.current) clearTimeout(pendingRef.current.timeout);
       pendingRef.current = null;
-      queuedRef.current = [];
       try {
         w.terminate();
       } catch {
@@ -84,6 +101,7 @@ export function useChessEngine(onReply: (reply: EngineReply) => void) {
       }
       if (workerRef.current === w) workerRef.current = null;
       setFailed(true);
+      flushStalled();
     };
     w.onmessage = (e: MessageEvent) => {
       const line = String(e.data ?? '');
@@ -92,7 +110,7 @@ export function useChessEngine(onReply: (reply: EngineReply) => void) {
         setReady(true);
         const q = queuedRef.current;
         queuedRef.current = [];
-        q.forEach((fn) => fn());
+        q.forEach((entry) => entry.run());
         return;
       }
       const bm = parseBestmove(line);
@@ -162,7 +180,8 @@ export function useChessEngine(onReply: (reply: EngineReply) => void) {
         }
         if (pendingRef.current) clearTimeout(pendingRef.current.timeout);
         const timeout = setTimeout(() => {
-          // Wedged search: retire the worker so later turns go local.
+          // Wedged search: retire the worker so later turns go local,
+          // and resolve this move locally instead of stranding it.
           pendingRef.current = null;
           try {
             w.terminate();
@@ -171,8 +190,9 @@ export function useChessEngine(onReply: (reply: EngineReply) => void) {
           }
           if (workerRef.current === w) workerRef.current = null;
           setFailed(true);
+          onStallRef.current?.(fen, turn);
         }, MOVE_TIMEOUT_MS);
-        pendingRef.current = { turn, scoreCp: null, timeout };
+        pendingRef.current = { fen, turn, scoreCp: null, timeout };
         try {
           for (const cmd of engineSetupCommands(level)) w.postMessage(cmd);
           w.postMessage(`position fen ${fen}`);
@@ -184,7 +204,7 @@ export function useChessEngine(onReply: (reply: EngineReply) => void) {
       const w = workerRef.current;
       if (!w) return false;
       if (!ready) {
-        queuedRef.current.push(run);
+        queuedRef.current.push({ run, fen, turn });
         return true;
       }
       run();

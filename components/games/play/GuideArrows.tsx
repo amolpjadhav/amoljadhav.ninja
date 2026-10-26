@@ -167,11 +167,9 @@ export default function GuideArrows({
       const h = 20;
       const first = g[0] as GuideArrowSpec;
       const B = center(first.to, orientation);
-      if (first.ring) return [{ segs, x: B[0] - w / 2, y: B[1] - h / 2, w, h }];
-      const A = center(first.from, orientation);
-      const toward = norm(sub(B, A));
-      const anchor = add(B, scale(toward, -14));
-      return [{ segs, x: anchor[0] - w / 2, y: anchor[1] - h / 2, w, h }];
+      // Labels pin to the target square's top-right corner (inset 4px)
+      // so the piece underneath stays visible; nudging separates piles.
+      return [{ segs, x: B[0] + 50 - 4 - w, y: B[1] - 50 + 4, w, h }];
     }),
   ) as GroupPill[];
   return (
@@ -214,8 +212,29 @@ export default function GuideArrows({
             : baseOpacity;
         const hovered = hoverUci === a.uci;
         const nameAt = add(add(tip, scale(d, -(headLen + 44))), scale(pv, -(headHalf + 40)));
+        // Hovering a ring traces its path: a dotted line from the piece
+        // that moves there, so the option reads unambiguously.
+        const traceRing = a.ring && highlightUci === a.uci;
+        const tracePath = traceRing
+          ? (() => {
+              const dir = norm(sub(B, A));
+              const P0 = add(A, scale(dir, TAIL_OFFSET));
+              return `M ${P0[0]} ${P0[1]} L ${B[0]} ${B[1]}`;
+            })()
+          : null;
         return (
           <g key={a.uci} opacity={opacity}>
+            {tracePath ? (
+              <path
+                d={tracePath}
+                fill="none"
+                stroke={a.color}
+                strokeWidth={4}
+                strokeDasharray="1 7"
+                strokeLinecap="round"
+                opacity={0.85}
+              />
+            ) : null}
             {a.ring ? (
               <circle
                 cx={B[0]}

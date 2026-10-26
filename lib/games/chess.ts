@@ -220,8 +220,9 @@ export type EvalTone = 'best' | 'even' | 'loose' | 'bad';
 
 /**
  * Option-row delta vs the best known eval, from the side to move:
- * best → "Best", the rest as "−0.4" pawns worse. Sort stays popularity —
- * this only re-labels. Null when either eval is unknown.
+ * best → "Best", dead even → "=", the rest as "−0.4" pawns worse
+ * (U+2212 minus). Sort stays popularity — this only re-labels. Null
+ * when either eval is unknown.
  */
 export function deltaEvalText(
   cp: number | null,
@@ -232,8 +233,8 @@ export function deltaEvalText(
   if (cp === null || bestCp === null || !Number.isFinite(cp) || !Number.isFinite(bestCp)) return null;
   if (isBest) return { text: 'Best', tone: 'best' };
   const behind = ((bestCp - cp) * (side === 'w' ? 1 : -1)) / 100;
-  if (behind === 0) return { text: '0.0', tone: 'even' };
-  const text = `-${Math.abs(behind).toFixed(1)}`;
+  if (Math.abs(behind) < 0.05) return { text: '=', tone: 'even' };
+  const text = `−${Math.abs(behind).toFixed(1)}`;
   const tone: EvalTone = behind <= 0.3 ? 'even' : behind <= 1.0 ? 'loose' : 'bad';
   return { text, tone };
 }
