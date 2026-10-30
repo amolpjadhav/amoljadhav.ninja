@@ -18,6 +18,9 @@ export default function Header() {
           <Link href="/blog" className="text-[#0aee3c] hover:text-[#0aee3c]/80 transition-colors">
             Blog
           </Link>
+          <Link href="/quiz" className="text-[#0aee3c] hover:text-[#0aee3c]/80 transition-colors">
+            Quiz
+          </Link>
           <Link href="/#tools" className="text-[#0aee3c] hover:text-[#0aee3c]/80 transition-colors">
             Tools
           </Link>
@@ -46,6 +49,13 @@ export default function Header() {
               onClick={() => setMobileMenuOpen(false)}
             >
               Blog
+            </Link>
+            <Link
+              href="/quiz"
+              className="text-[#0aee3c] hover:text-[#0aee3c]/80 transition-colors"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Quiz
             </Link>
             <Link
               href="/#tools"
