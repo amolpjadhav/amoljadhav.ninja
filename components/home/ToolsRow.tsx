@@ -209,13 +209,24 @@ export default async function ToolsRow() {
                 (episodes.length > 0 ? (
                   <ul>
                     {episodes.map((ep) => (
-                      <li key={ep.url} className="py-1.5 border-b border-white/5 last:border-b-0">
-                        <p className="font-sans text-sm font-medium text-white/85 leading-snug line-clamp-1">
-                          {ep.title}
-                        </p>
-                        <p className="font-sans text-sm text-white/45 tabular-nums">
-                          {formatPerHour(ep.viewsPerHour) ?? '—'}
-                        </p>
+                      <li key={ep.url} className="flex items-center gap-2.5 py-1.5 border-b border-white/5 last:border-b-0">
+                        {ep.thumbnail && (
+                          // eslint-disable-next-line @next/next/no-img-element -- external YouTube thumbnail, sized by CSS
+                          <img
+                            src={ep.thumbnail}
+                            alt=""
+                            loading="lazy"
+                            className="w-20 shrink-0 aspect-video object-cover rounded-md border border-white/10"
+                          />
+                        )}
+                        <div className="min-w-0">
+                          <p className="font-sans text-sm font-medium text-white/85 leading-snug line-clamp-1">
+                            {ep.title}
+                          </p>
+                          <p className="font-sans text-sm text-white/45 tabular-nums">
+                            {formatPerHour(ep.viewsPerHour) ?? '—'}
+                          </p>
+                        </div>
                       </li>
                     ))}
                   </ul>
