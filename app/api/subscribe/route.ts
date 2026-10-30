@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
 import { supabaseAdmin } from '@/lib/supabase';
-import { categoryColor } from '@/lib/blog-content';
+import { categoryColor } from '@/lib/categoryColors';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const SITE_URL = 'https://amoljadhav.ai';

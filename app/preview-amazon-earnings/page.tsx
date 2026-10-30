@@ -1,4 +1,5 @@
-import { colorizeArticleSections, categoryColor } from '@/lib/blog-content';
+import { colorizeArticleSections } from '@/lib/blog-content';
+import { categoryColor } from '@/lib/categoryColors';
 import ArticleContent from '@/components/blog/ArticleContent';
 import TableOfContents from '@/components/blog/TableOfContents';
 import Header from '@/components/layout/Header';

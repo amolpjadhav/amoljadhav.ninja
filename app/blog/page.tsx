@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import Header from '@/components/layout/Header';
 import { supabase } from '@/lib/supabase';
 import { formatDate, formatCount } from '@/lib/utils';
-import { categoryColor } from '@/lib/blog-content';
+import { categoryColor } from '@/lib/categoryColors';
 import SubscribeForm from '@/components/blog/SubscribeForm';
 
 export const revalidate = 60; // Revalidate every 60 seconds

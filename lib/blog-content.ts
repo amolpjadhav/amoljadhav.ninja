@@ -180,9 +180,7 @@ export function colorizeArticleSections(html: string): { html: string; headings:
 }
 
 // Category colors live in lib/categoryColors.ts (single map for the home
-// grid, /blog index, and article pages); re-exported here so existing
-// importers keep working.
-export { CATEGORY_COLORS, DEFAULT_CATEGORY_COLOR, FILTER_CATEGORIES, categoryColor } from './categoryColors';
+// grid, /blog index, and article pages).
 
 // Splits the homepage list into pinned utilities vs everything else.
 // Pinned slugs keep their PINNED order (not date order); unknown slugs are

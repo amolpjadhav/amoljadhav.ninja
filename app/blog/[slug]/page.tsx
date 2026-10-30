@@ -4,7 +4,8 @@ import type { Metadata } from 'next';
 import Header from '@/components/layout/Header';
 import { supabase } from '@/lib/supabase';
 import { formatDate } from '@/lib/utils';
-import { colorizeArticleSections, categoryColor } from '@/lib/blog-content';
+import { colorizeArticleSections } from '@/lib/blog-content';
+import { categoryColor } from '@/lib/categoryColors';
 import {
   displayCompanyName,
   formatLastTrade,

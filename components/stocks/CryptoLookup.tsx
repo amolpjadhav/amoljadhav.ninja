@@ -6,7 +6,7 @@ import { Link as LinkIcon, Check, Search } from 'lucide-react';
 import type { CoinResponse, CoinSuggestion } from '@/lib/crypto';
 import { coinShareText, formatCryptoPrice, normalizeCoinId, supplyEmittedPct } from '@/lib/crypto';
 import { formatCompact, formatMoney, formatPct, positionInRangeLabel, shareCacheBuster, stockShareLinks } from '@/lib/stocks';
-import { categoryColor } from '@/lib/blog-content';
+import { categoryColor } from '@/lib/categoryColors';
 import {
   ChartSubhead,
   ExternalLink,

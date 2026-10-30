@@ -5,7 +5,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Link as LinkIcon, Check, Search } from 'lucide-react';
 import type { Filing, FinancialSeries, PricePoint, SegmentSeries, StockFast, StockResponse } from '@/lib/stocks';
 import { FILING_LABELS, cagr, cagrDetails, displayCompanyName, edgarCompanyUrl, fiscalYearEndMonth, fiscalYearSpan, formatCompact, formatEps, formatFilingDate, formatHeadquarters, formatInt, formatLastTrade, formatMoney, formatPct, formatPrice, formatQuoteChange, isMarketOpen, isOtherSegment, latestValue, marginLine, normalizeTicker, peHistoryNote, periodReturn, pickLede, positionInRangeLabel, revenueLine, shareCacheBuster, stockShareLinks, stockShareText, tableYears, yoyGrowth } from '@/lib/stocks';
-import { categoryColor } from '@/lib/blog-content';
+import { categoryColor } from '@/lib/categoryColors';
 import { EarningsCard, EarningsWeek, MarketStrip, Monogram, MoverTiles, WatchStar, useEarnings, useMarketMovers, useMarketStrip } from './MarketOverview';
 import { proxyLogoUrl } from '@/lib/earnings';
 import { createStockCache, stockFastUrl } from '@/lib/stock-cache';

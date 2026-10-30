@@ -1,7 +1,8 @@
 // Shared presentational blocks for the lookup tools (stocks + crypto):
 // section shells, stat tiles, fact grids, links, and share icons. One
 // source of truth so both profiles keep the same visual language.
-import { SECTION_ACCENTS, categoryColor } from '@/lib/blog-content';
+import { SECTION_ACCENTS } from '@/lib/blog-content';
+import { categoryColor } from '@/lib/categoryColors';
 
 const ACCENT = categoryColor('Investing');
 
