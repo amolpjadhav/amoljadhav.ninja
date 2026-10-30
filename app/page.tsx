@@ -180,9 +180,6 @@ export default function Home() {
                 </div>
               </div>
 
-              <p className="mt-4 font-sans text-base leading-relaxed text-white/60 max-w-[60ch]">
-                Seattle engineer writing about markets, AI and games — plus the tools I build along the way.
-              </p>
             </div>
 
             <div className="col-span-12 min-w-0 min-[1200px]:col-span-6">
