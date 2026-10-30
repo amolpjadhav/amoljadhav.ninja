@@ -42,10 +42,8 @@ export default async function RecentArticles() {
   // recent) with no duplicates.
   const pool = rest;
 
-  const mostRead = [...pool].sort((a, b) => (b.views ?? 0) - (a.views ?? 0)).slice(0, 3);
-  const mostReadSlugs = new Set(mostRead.map((p) => p.slug));
-  const recent = pool.filter((p) => !mostReadSlugs.has(p.slug)).slice(0, 6);
-  const grid = [...mostRead, ...recent];
+  // Whole grid ranked by views, most-read first.
+  const grid = [...pool].sort((a, b) => (b.views ?? 0) - (a.views ?? 0)).slice(0, 9);
 
   return (
     <div>
