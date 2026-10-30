@@ -25,6 +25,20 @@ export function formatDate(date: string): string {
   });
 }
 
+// Compact card date: "Aug 28", with the year only when it isn't this year
+// ("Aug 28, 2025"). Server render passes nowMs through in tests.
+export function formatShortDate(date: string, nowMs: number = Date.now()): string {
+  const d = new Date(date);
+  const parts = new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    timeZone: 'UTC',
+  }).format(d);
+  const year = d.getUTCFullYear();
+  const thisYear = new Date(nowMs).getUTCFullYear();
+  return year === thisYear ? parts : `${parts}, ${year}`;
+}
+
 export function calculateReadTime(content: string): number {
   const wordsPerMinute = 200;
   const words = content.trim().split(/\s+/).length;

@@ -179,26 +179,10 @@ export function colorizeArticleSections(html: string): { html: string; headings:
   return { html: decodeTextEntities(processedChunks.join('')), headings };
 }
 
-// Fixed (not rotating) colors per article category, so a given topic always
-// reads as the same color across the blog index, homepage, and article page.
-const CATEGORY_COLORS: Record<string, string> = {
-  AI: '#c084fc',
-  Gaming: '#f472b6',
-  Travel: '#fb923c',
-  Engineering: '#38bdf8',
-  Investing: '#facc15',
-  'Mental Models': '#fb7185',
-  Curiosity: '#2dd4bf',
-  Economics: '#34d399',
-  Science: '#6366f1',
-};
-
-const DEFAULT_CATEGORY_COLOR = '#0aee3c';
-
-export function categoryColor(category?: string | null): string {
-  if (!category) return DEFAULT_CATEGORY_COLOR;
-  return CATEGORY_COLORS[category] ?? DEFAULT_CATEGORY_COLOR;
-}
+// Category colors live in lib/categoryColors.ts (single map for the home
+// grid, /blog index, and article pages); re-exported here so existing
+// importers keep working.
+export { CATEGORY_COLORS, DEFAULT_CATEGORY_COLOR, FILTER_CATEGORIES, categoryColor } from './categoryColors';
 
 // Splits the homepage list into pinned utilities vs everything else.
 // Pinned slugs keep their PINNED order (not date order); unknown slugs are
