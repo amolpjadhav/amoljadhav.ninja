@@ -270,9 +270,9 @@ export default function TerminalTyper({ fortunes, trivia, history, snapshot }: P
 
   return (
     <div ref={ref} className="relative" aria-label="Site terminal">
-      <Sizer />
-      {/* Live overlay; screen readers get the static summary instead. */}
-      <div aria-hidden className="absolute inset-0">
+      {/* Live loop hugs its content: no trailing empty "$" line unless typing. */}
+      {/* Screen readers get the static summary instead. */}
+      <div aria-hidden>
         {eng.lines.map(renderLine)}
         {outTyping ? (
           <p className="whitespace-normal break-words leading-normal text-[#0aee3c]/70">
@@ -308,8 +308,8 @@ export default function TerminalTyper({ fortunes, trivia, history, snapshot }: P
   );
 }
 
-// Invisible 3-line frame plus prompt row: pins the box height from first
-// paint so scenes never shift the layout.
+// Invisible frame for the static reduced-motion snapshot: pins the box
+// height from first paint. The live loop hugs its content instead.
 function Sizer() {
   return (
     <div aria-hidden className="invisible">

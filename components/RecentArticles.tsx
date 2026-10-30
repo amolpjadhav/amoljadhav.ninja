@@ -38,9 +38,9 @@ export default async function RecentArticles() {
   }
 
   const { rest } = splitPinnedPosts(posts, [...PINNED_SLUGS, ...GAMES_SLUGS]);
-  // The newest post renders as the featured row above; the grid covers the
-  // rest (most-read first, then recent) with no duplicates.
-  const [, ...pool] = rest;
+  // No featured row: the grid covers everything (most-read first, then
+  // recent) with no duplicates.
+  const pool = rest;
 
   const mostRead = [...pool].sort((a, b) => (b.views ?? 0) - (a.views ?? 0)).slice(0, 3);
   const mostReadSlugs = new Set(mostRead.map((p) => p.slug));

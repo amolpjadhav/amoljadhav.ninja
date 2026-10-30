@@ -5,7 +5,7 @@ import MatrixBackground from '@/components/layout/MatrixBackground';
 import RecentArticles from '@/components/RecentArticles';
 import ToolsRow from '@/components/home/ToolsRow';
 import ArcadeStrip from '@/components/home/ArcadeStrip';
-import FeaturedArticle from '@/components/home/FeaturedArticle';
+import HeroNewArticle from '@/components/home/HeroNewArticle';
 import HeroTerminal from '@/components/home/HeroTerminal';
 import SubscribeForm from '@/components/blog/SubscribeForm';
 
@@ -28,22 +28,6 @@ function TerminalSkeleton() {
         <div className="h-3.5 w-1/3 rounded bg-[#0aee3c]/10 motion-safe:animate-pulse" />
         <div className="h-3.5 w-full rounded bg-[#0aee3c]/10 motion-safe:animate-pulse" />
         <div className="h-3.5 w-2/3 rounded bg-[#0aee3c]/10 motion-safe:animate-pulse" />
-      </div>
-    </div>
-  );
-}
-
-function FeaturedSkeleton() {
-  return (
-    <div
-      aria-hidden
-      className="grid grid-cols-12 gap-6 rounded-2xl border border-[rgba(120,255,140,0.14)] bg-[rgba(10,14,10,0.85)] p-6"
-    >
-      <div className="col-span-12 min-h-44 rounded-xl border border-white/10 bg-white/[0.02] motion-safe:animate-pulse min-[768px]:col-span-5" />
-      <div className="col-span-12 space-y-2 min-[768px]:col-span-7">
-        <div className="h-3 w-1/3 rounded bg-white/10 motion-safe:animate-pulse" />
-        <div className="h-7 w-full rounded bg-white/10 motion-safe:animate-pulse" />
-        <div className="h-4 w-2/3 rounded bg-white/10 motion-safe:animate-pulse" />
       </div>
     </div>
   );
@@ -154,9 +138,13 @@ export default function Home() {
           </header>
 
           {/* Hero: intro left, terminal right (stacked below 1200px) */}
-          <section className="relative grid grid-cols-12 gap-6 mt-8 items-center animate-fadeIn">
-            <div className="col-span-12 min-w-0 min-[1200px]:col-span-6">
-              <div className="flex items-center gap-4">
+          <section className="relative grid grid-cols-12 gap-6 mt-8 items-start animate-fadeIn">
+            <div className="relative col-span-12 min-w-0 min-[1200px]:col-span-6">
+              <div
+                aria-hidden
+                className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_left,rgba(0,0,0,0.6),transparent_70%)]"
+              />
+              <div className="relative flex items-center gap-4">
                 <div className="relative w-16 h-16 shrink-0">
                   <div className="relative z-10 w-full h-full rounded-full border-2 border-[#0aee3c] overflow-hidden shadow-[0_0_18px_rgba(10,238,60,0.45)] animate-rotateIn">
                     <Image
@@ -177,9 +165,11 @@ export default function Home() {
                   <p className="font-mono italic text-[#0aee3c]/70 text-sm tracking-wide animate-fadeInUp">
                     A random walk, written down
                   </p>
+                  <Suspense fallback={null}>
+                    <HeroNewArticle />
+                  </Suspense>
                 </div>
               </div>
-
             </div>
 
             <div className="col-span-12 min-w-0 min-[1200px]:col-span-6">
@@ -188,10 +178,6 @@ export default function Home() {
               </Suspense>
             </div>
           </section>
-
-          <Suspense fallback={<FeaturedSkeleton />}>
-            <FeaturedArticle />
-          </Suspense>
 
           <Suspense fallback={<ToolsSkeleton />}>
             <ToolsRow />

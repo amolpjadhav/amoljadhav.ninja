@@ -11,17 +11,19 @@ import { PINNED_SLUGS } from '@/components/RecentArticles';
 import MarketStrip from './MarketStrip';
 import Mag7Summary from './Mag7Summary';
 import TickerLookup from './TickerLookup';
-import { getEpisode, getStrip } from './heroData';
+import { getTopEpisodes, getStrip } from './heroData';
 
 // Presentation-only display copy: short titles (≤3 words) + one-line
-// descriptions. Links and data sources are untouched.
-const CARD_META: Record<string, { title: string; description?: string }> = {
-  'look-up-stock-and-company-details': { title: 'Stock Lookup' },
-  'monthly-book-spin': { title: 'Book Spin' },
-  'trending-podcasts': { title: 'Trending Podcasts' },
+// descriptions (line-clamp 2 is only a narrow-screen fallback — at full
+// width each fits on one line with no ellipsis). Links and data sources
+// are untouched.
+const CARD_META: Record<string, { title: string; description: string }> = {
+  'look-up-stock-and-company-details': { title: 'Stock Lookup', description: 'Any company, explained on one page' },
+  'monthly-book-spin': { title: 'Book Spin', description: 'Five books a month, picked by genre' },
+  'trending-podcasts': { title: 'Trending Podcasts', description: 'Fastest-rising podcasts this week' },
   'ai-model-price-calculator': {
     title: 'AI Price Calculator',
-    description: 'What that prompt actually costs.',
+    description: 'What a prompt costs, model by model',
   },
 };
 
@@ -37,7 +39,7 @@ function CardTitle({ children }: { children: React.ReactNode }) {
 }
 
 function CardDescription({ children }: { children: React.ReactNode }) {
-  return <p className="mt-1 font-sans text-sm leading-relaxed text-white/55 line-clamp-1 max-w-[60ch]">{children}</p>;
+  return <p className="mt-1 font-sans text-sm leading-relaxed text-white/55 line-clamp-2 max-w-[60ch]">{children}</p>;
 }
 
 function CardCta() {
@@ -50,7 +52,7 @@ function CardCta() {
 
 // Fixed-height live preview zone shared by every card.
 function Preview({ children }: { children: React.ReactNode }) {
-  return <div className="mt-4 h-40 overflow-hidden">{children}</div>;
+  return <div className="mt-4 h-[180px] overflow-hidden">{children}</div>;
 }
 
 function ToolCard({
@@ -121,7 +123,7 @@ async function StockCard({ slug, title, excerpt }: { slug: string; title: string
       <Preview>
         {live && strip ? <MarketStrip items={strip.slice(0, 3)} /> : <Fallback excerpt={excerpt} />}
         <div className="mt-2">
-          <Mag7Summary />
+          <Mag7Summary limit={2} />
         </div>
         <TonightLine />
         <div className="mt-2">
@@ -136,9 +138,9 @@ async function StockCard({ slug, title, excerpt }: { slug: string; title: string
 }
 
 export default async function ToolsRow() {
-  const [{ data: posts }, episode] = await Promise.all([
+  const [{ data: posts }, episodes] = await Promise.all([
     supabase.from('blog_posts').select('title, slug, excerpt').in('slug', PINNED_SLUGS).eq('published', true),
-    getEpisode(),
+    getTopEpisodes(3),
   ]);
   const bySlug = new Map((posts ?? []).map((p) => [p.slug, p]));
   const cards = PINNED_SLUGS.map((s) => bySlug.get(s)).filter((p) => p !== undefined);
@@ -167,7 +169,7 @@ export default async function ToolsRow() {
         {cards.map((post) => {
           const meta = CARD_META[post.slug];
           const title = meta?.title ?? post.title;
-          const description = meta?.description ?? post.excerpt;
+          const description = meta?.description ?? post.excerpt ?? '';
           if (post.slug === 'look-up-stock-and-company-details') {
             return <StockCard key={post.slug} slug={post.slug} title={title} excerpt={description} />;
           }
@@ -204,20 +206,53 @@ export default async function ToolsRow() {
                 </div>
               )}
               {post.slug === 'trending-podcasts' &&
-                (episode ? (
-                  <div>
-                    <p className="font-sans text-sm font-medium text-white/85 leading-snug line-clamp-2">{episode.title}</p>
-                    <p className="font-sans text-sm text-white/45 mt-1 tabular-nums">
-                      {episode.channel}
-                      {formatPerHour(episode.viewsPerHour) ? ` · ${formatPerHour(episode.viewsPerHour)}` : ''}
-                    </p>
-                  </div>
+                (episodes.length > 0 ? (
+                  <ul>
+                    {episodes.map((ep) => (
+                      <li key={ep.url} className="py-1.5 border-b border-white/5 last:border-b-0">
+                        <p className="font-sans text-sm font-medium text-white/85 leading-snug line-clamp-1">
+                          {ep.title}
+                        </p>
+                        <p className="font-sans text-sm text-white/45 tabular-nums">
+                          {formatPerHour(ep.viewsPerHour) ?? '—'}
+                        </p>
+                      </li>
+                    ))}
+                  </ul>
                 ) : (
                   <Fallback excerpt={post.excerpt} />
                 ))}
+              {post.slug === 'ai-model-price-calculator' && (
+                <div>
+                  <p className="font-sans text-xs text-white/40">Sample prompt · ~500 input + ~500 output tokens</p>
+                  <ul className="mt-1.5">
+                    {[
+                      { model: 'Gemini Flash', cost: '$0.0002', cheapest: true },
+                      { model: 'GPT-4o', cost: '$0.006', cheapest: false },
+                      { model: 'Claude Sonnet', cost: '$0.009', cheapest: false },
+                    ].map((row) => (
+                      <li
+                        key={row.model}
+                        className={`flex items-baseline justify-between gap-2 py-1 border-b border-white/5 last:border-b-0 font-sans text-sm tabular-nums ${
+                          row.cheapest ? 'text-[#0aee3c]' : 'text-white/70'
+                        }`}
+                      >
+                        <span>
+                          {row.model}
+                          {row.cheapest && (
+                            <span className="ml-2 text-xs font-semibold uppercase tracking-wide">cheapest</span>
+                          )}
+                        </span>
+                        <span>{row.cost}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
               {post.slug !== 'look-up-stock-and-company-details' &&
                 post.slug !== 'monthly-book-spin' &&
-                post.slug !== 'trending-podcasts' && <Fallback excerpt={post.excerpt} />}
+                post.slug !== 'trending-podcasts' &&
+                post.slug !== 'ai-model-price-calculator' && <Fallback excerpt={post.excerpt} />}
             </ToolCard>
           );
         })}

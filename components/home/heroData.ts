@@ -23,6 +23,22 @@ const getLists = async () => {
 
 export const getEpisode = async () => toTopEpisode((await getLists())?.trending[0]);
 
+export const getTopEpisodes = async (count: number) => {
+  const lists = await getLists();
+  if (!lists) return [];
+  return lists.trending
+    .slice(0, count)
+    .map((ep) => toTopEpisode(ep))
+    .filter((ep) => ep !== null);
+};
+
+// Freshness gate for the hero "New:" line (latest article ≤ N days old).
+// Lives here (not in render) so the purity lint stays clean.
+export function isFreshArticle(createdAt: string, days: number, nowMs: number = Date.now()): boolean {
+  const t = new Date(createdAt).getTime();
+  return Number.isFinite(t) && nowMs - t <= days * 86400000;
+}
+
 // Reduced-motion snapshot, picked per request: a random fortune plus the
 // year line. Plain loader (not render) so randomness is lint-clean.
 export function snapshotFor(fortunes: Fortune[]): { fortune: Fortune; cal: string } {

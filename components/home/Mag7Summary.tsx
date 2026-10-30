@@ -21,8 +21,9 @@ type IdleWindow = Window & {
   cancelIdleCallback?: (handle: number) => void;
 };
 
-export default function Mag7Summary() {
+export default function Mag7Summary({ limit = MAG7.length }: { limit?: number }) {
   const [moves, setMoves] = useState<Map<string, number | null>>(() => new Map());
+  const symbols = MAG7.slice(0, Math.max(0, limit));
 
   // The quotes are a nicety on top of working shortcuts, so they wait
   // for idle rather than competing with the rest of the homepage for
@@ -56,7 +57,7 @@ export default function Mag7Summary() {
 
   const row = (hidden: boolean) => (
     <div aria-hidden={hidden || undefined} className="flex shrink-0 items-center">
-      {MAG7.map((symbol) => {
+      {symbols.map((symbol) => {
         const move = formatChangePct(moves.get(symbol) ?? null);
         return (
           <a
@@ -78,7 +79,11 @@ export default function Mag7Summary() {
   return (
     <div>
       <p className="mb-1 font-mono text-xs tracking-wide text-white/40 uppercase">Mag 7</p>
-      <div className="tape min-w-0 overflow-hidden" role="marquee" aria-label="Mag 7 moves">
+      <div
+        className="tape min-w-0 overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_24px,black_calc(100%-24px),transparent)]"
+        role="marquee"
+        aria-label="Mag 7 moves"
+      >
         <div className="tape-track flex h-6 items-center">
           {row(false)}
           {row(true)}
