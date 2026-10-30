@@ -4,7 +4,8 @@ import { Suspense } from 'react';
 import MatrixBackground from '@/components/layout/MatrixBackground';
 import RecentArticles from '@/components/RecentArticles';
 import ToolsRow from '@/components/home/ToolsRow';
-import GamesRow from '@/components/home/GamesRow';
+import ArcadeStrip from '@/components/home/ArcadeStrip';
+import FeaturedArticle from '@/components/home/FeaturedArticle';
 import HeroTerminal from '@/components/home/HeroTerminal';
 import SubscribeForm from '@/components/blog/SubscribeForm';
 
@@ -13,13 +14,15 @@ import SubscribeForm from '@/components/blog/SubscribeForm';
 // RecentArticles at build time. 60s matches /blog, /blog/[slug] and /stats.
 export const revalidate = 60;
 
-// Streaming placeholders: the terminal, tools, and articles each await
-// upstream data, so they hold skeleton space instead of popping the layout.
+// Streaming placeholders: the terminal, featured, tools, games, and articles
+// each await upstream data, so they hold skeleton space instead of popping
+// the layout.
 function TerminalSkeleton() {
   return (
     <div
       aria-hidden
-      className="w-full md:w-[400px] md:shrink-0 overflow-hidden rounded-lg border border-[#0aee3c]/20 bg-black"
+      className="w-full overflow-hidden rounded-2xl border border-[#0aee3c]/20 bg-black"
+      style={{ minHeight: 140 }}
     >
       <div className="py-3.5 px-4 space-y-2">
         <div className="h-3.5 w-1/3 rounded bg-[#0aee3c]/10 motion-safe:animate-pulse" />
@@ -30,19 +33,35 @@ function TerminalSkeleton() {
   );
 }
 
+function FeaturedSkeleton() {
+  return (
+    <div
+      aria-hidden
+      className="grid grid-cols-12 gap-6 rounded-2xl border border-[rgba(120,255,140,0.14)] bg-[rgba(10,14,10,0.85)] p-6"
+    >
+      <div className="col-span-12 min-h-44 rounded-xl border border-white/10 bg-white/[0.02] motion-safe:animate-pulse min-[768px]:col-span-5" />
+      <div className="col-span-12 space-y-2 min-[768px]:col-span-7">
+        <div className="h-3 w-1/3 rounded bg-white/10 motion-safe:animate-pulse" />
+        <div className="h-7 w-full rounded bg-white/10 motion-safe:animate-pulse" />
+        <div className="h-4 w-2/3 rounded bg-white/10 motion-safe:animate-pulse" />
+      </div>
+    </div>
+  );
+}
+
 function ToolsSkeleton() {
   return (
-    <section aria-hidden className="relative mb-6">
-      <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide mb-2">
+    <section aria-hidden className="relative mt-12">
+      <div className="flex items-center gap-2 font-mono text-xs font-bold uppercase tracking-wide mb-4">
         <span className="text-[#0aee3c]">$</span>
         <span className="text-[#0aee3c]/60">Tools</span>
         <span className="flex-1 h-px bg-gradient-to-r from-[#0aee3c]/30 to-transparent" />
       </div>
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-6 min-[768px]:grid-cols-[repeat(2,minmax(0,1fr))] min-[1200px]:grid-cols-[repeat(4,minmax(0,1fr))]">
         {[0, 1, 2, 3].map((i) => (
           <div
             key={i}
-            className="h-44 rounded-lg border border-[#0aee3c]/10 bg-white/[0.02] motion-safe:animate-pulse"
+            className="h-64 rounded-2xl border border-[rgba(120,255,140,0.14)] bg-[rgba(10,14,10,0.85)] motion-safe:animate-pulse"
           />
         ))}
       </div>
@@ -52,20 +71,13 @@ function ToolsSkeleton() {
 
 function GamesSkeleton() {
   return (
-    <section aria-hidden className="relative mb-6">
-      <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide mb-2">
+    <section aria-hidden className="relative mt-12">
+      <div className="flex items-center gap-2 font-mono text-xs font-bold uppercase tracking-wide mb-4">
         <span className="text-[#0aee3c]">$</span>
         <span className="text-[#0aee3c]/60">Games</span>
         <span className="flex-1 h-px bg-gradient-to-r from-[#0aee3c]/30 to-transparent" />
       </div>
-      <div className="grid gap-3 md:grid-cols-2">
-        {[0, 1].map((i) => (
-          <div
-            key={i}
-            className="h-36 rounded-lg border border-[#0aee3c]/10 bg-white/[0.02] motion-safe:animate-pulse"
-          />
-        ))}
-      </div>
+      <div className="h-44 rounded-2xl border border-[rgba(120,255,140,0.14)] bg-[rgba(10,14,10,0.85)] motion-safe:animate-pulse" />
     </section>
   );
 }
@@ -73,18 +85,21 @@ function GamesSkeleton() {
 function ArticlesSkeleton() {
   return (
     <div aria-hidden className="motion-safe:animate-pulse">
-      <div className="h-28 rounded-lg border border-white/10 bg-white/[0.02] mb-4" />
-      <div className="grid gap-3 sm:grid-cols-3 mb-4">
-        {[0, 1, 2].map((i) => (
-          <div key={i} className="h-24 rounded-lg border border-white/10 bg-white/[0.02]" />
-        ))}
-      </div>
-      <div className="space-y-2">
-        {[0, 1, 2, 3].map((i) => (
-          <div key={i} className="h-8 rounded border-b border-b-[#0aee3c]/10 bg-white/[0.02]" />
+      <div className="grid gap-6 min-[768px]:grid-cols-[repeat(2,minmax(0,1fr))] min-[1200px]:grid-cols-[repeat(3,minmax(0,1fr))]">
+        {[0, 1, 2, 3, 4, 5].map((i) => (
+          <div key={i} className="h-44 rounded-2xl border border-[rgba(120,255,140,0.14)] bg-[rgba(10,14,10,0.85)]" />
         ))}
       </div>
     </div>
+  );
+}
+
+function SectionHeader({ children }: { children: string }) {
+  return (
+    <h2 className="flex items-center gap-2 font-mono text-xs font-bold text-[#0aee3c]/60 uppercase tracking-wide mb-4">
+      <span className="text-[#0aee3c]">$</span> {children}
+      <span className="flex-1 h-px bg-gradient-to-r from-[#0aee3c]/30 to-transparent" />
+    </h2>
   );
 }
 
@@ -92,56 +107,56 @@ export default function Home() {
   return (
     <>
       <MatrixBackground />
+      {/* Soft dark vignette so cards never sit on busy glyphs. */}
+      <div
+        aria-hidden
+        className="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,0.55),transparent_70%)]"
+      />
 
-      <main className="min-h-screen pt-6 pb-8 px-4">
-        {/* Desktop runs 20% wider than max-w-2xl (42rem -> 50.4rem); mobile unchanged. */}
-        <div className="container mx-auto max-w-2xl md:max-w-[50.4rem]">
-          {/* Main Terminal Container */}
-          <section className="relative bg-black border border-[#0aee3c]/20 rounded-lg p-5 md:p-6 mb-4 mt-4 animate-fadeIn">
-            {/* Ambient glow accents (clipped to the card's rounded corners) */}
-            <div className="pointer-events-none absolute inset-0 rounded-lg overflow-hidden">
-              <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-72 h-72 bg-[#0aee3c]/10 rounded-full blur-3xl" />
-            </div>
-            <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#0aee3c] to-transparent opacity-60" />
-
-            {/* Slim site header, inside the container */}
-            <header className="relative flex items-center justify-between border-b border-[#0aee3c]/10 pb-3 text-xs font-mono">
-              <Link href="/" className="text-[#0aee3c] hover:text-white transition-colors">
-                <span aria-hidden>$ </span>home
+      <main className="min-h-screen pt-6 pb-8 px-[clamp(16px,4vw,48px)]">
+        <div className="mx-auto w-full max-w-[1320px]">
+          {/* Slim site header */}
+          <header className="relative flex items-center justify-between border-b border-[#0aee3c]/10 pb-3 text-xs font-mono">
+            <Link href="/" className="text-[#0aee3c] hover:text-white transition-colors">
+              <span aria-hidden>$ </span>home
+            </Link>
+            <nav className="flex items-center gap-4" aria-label="Site">
+              <Link href="/blog" className="text-[#0aee3c]/70 hover:text-[#0aee3c] transition-colors">
+                Blog
               </Link>
-              <nav className="flex items-center gap-4" aria-label="Site">
-                <Link href="/blog" className="text-[#0aee3c]/70 hover:text-[#0aee3c] transition-colors">
-                  Blog
-                </Link>
-                <Link href="/#tools" className="text-[#0aee3c]/70 hover:text-[#0aee3c] transition-colors">
-                  Tools
-                </Link>
-                <Link href="/#games" className="text-[#0aee3c]/70 hover:text-[#0aee3c] transition-colors">
-                  Games
-                </Link>
-                <Link href="/stats" className="text-[#0aee3c]/70 hover:text-[#0aee3c] transition-colors">
-                  Stats
-                </Link>
-                <Link href="/contact" className="text-[#0aee3c]/70 hover:text-[#0aee3c] transition-colors">
-                  Contact
-                </Link>
-                <a
-                  href="https://x.com/amol4chill"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label="Follow on X"
-                  className="text-[#0aee3c]/70 hover:text-[#0aee3c] transition-colors"
-                >
-                  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden className="block h-3.5 w-3.5">
-                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-                  </svg>
-                </a>
-              </nav>
-            </header>
+              <Link href="/quiz" className="text-[#0aee3c]/70 hover:text-[#0aee3c] transition-colors">
+                Quiz
+              </Link>
+              <Link href="/#tools" className="text-[#0aee3c]/70 hover:text-[#0aee3c] transition-colors">
+                Tools
+              </Link>
+              <Link href="/#games" className="text-[#0aee3c]/70 hover:text-[#0aee3c] transition-colors">
+                Games
+              </Link>
+              <Link href="/stats" className="text-[#0aee3c]/70 hover:text-[#0aee3c] transition-colors">
+                Stats
+              </Link>
+              <Link href="/contact" className="text-[#0aee3c]/70 hover:text-[#0aee3c] transition-colors">
+                Contact
+              </Link>
+              <a
+                href="https://x.com/amol4chill"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Follow on X"
+                className="text-[#0aee3c]/70 hover:text-[#0aee3c] transition-colors"
+              >
+                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden className="block h-3.5 w-3.5">
+                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                </svg>
+              </a>
+            </nav>
+          </header>
 
-            {/* Hero Section: compact intro + live terminal */}
-            <div className="relative flex flex-col gap-4 mb-5 pt-2 md:flex-row md:items-start">
-              <div className="flex min-w-0 flex-1 items-center gap-4">
+          {/* Hero: intro left, terminal right (stacked below 1200px) */}
+          <section className="relative grid grid-cols-12 gap-6 mt-8 items-center animate-fadeIn">
+            <div className="col-span-12 min-w-0 min-[1200px]:col-span-6">
+              <div className="flex items-center gap-4">
                 <div className="relative w-16 h-16 shrink-0">
                   <div className="relative z-10 w-full h-full rounded-full border-2 border-[#0aee3c] overflow-hidden shadow-[0_0_18px_rgba(10,238,60,0.45)] animate-rotateIn">
                     <Image
@@ -156,41 +171,48 @@ export default function Home() {
                 </div>
 
                 <div className="min-w-0 flex-1">
-                  <h1 className="text-xl font-bold text-[#0aee3c] tracking-wide drop-shadow-[0_0_10px_rgba(10,238,60,0.5)] animate-fadeInUp">
+                  <h1 className="font-mono text-xl font-bold text-[#0aee3c] tracking-wide drop-shadow-[0_0_10px_rgba(10,238,60,0.5)] animate-fadeInUp">
                     Amol Jadhav
                   </h1>
-                  <p className="italic text-[#0aee3c]/70 text-sm tracking-wide animate-fadeInUp">
+                  <p className="font-mono italic text-[#0aee3c]/70 text-sm tracking-wide animate-fadeInUp">
                     A random walk, written down
                   </p>
                 </div>
               </div>
 
+              <p className="mt-4 font-sans text-base leading-relaxed text-white/60 max-w-[60ch]">
+                Seattle engineer writing about markets, AI and games — plus the tools I build along the way.
+              </p>
+            </div>
+
+            <div className="col-span-12 min-w-0 min-[1200px]:col-span-6">
               <Suspense fallback={<TerminalSkeleton />}>
                 <HeroTerminal />
               </Suspense>
             </div>
-
-            <Suspense fallback={<ToolsSkeleton />}>
-              <ToolsRow />
-            </Suspense>
-
-            <Suspense fallback={<GamesSkeleton />}>
-              <GamesRow />
-            </Suspense>
-
-            {/* Latest Blog Posts */}
-            <div className="relative">
-              <h2 className="flex items-center gap-2 text-xs font-bold text-[#0aee3c]/60 uppercase tracking-wide mb-2">
-                <span className="text-[#0aee3c]">$</span> Articles
-                <span className="flex-1 h-px bg-gradient-to-r from-[#0aee3c]/30 to-transparent" />
-              </h2>
-              <Suspense fallback={<ArticlesSkeleton />}>
-                <RecentArticles />
-              </Suspense>
-            </div>
           </section>
 
-          <div className="mb-4 animate-fadeIn">
+          <Suspense fallback={<FeaturedSkeleton />}>
+            <FeaturedArticle />
+          </Suspense>
+
+          <Suspense fallback={<ToolsSkeleton />}>
+            <ToolsRow />
+          </Suspense>
+
+          <Suspense fallback={<GamesSkeleton />}>
+            <ArcadeStrip />
+          </Suspense>
+
+          {/* Writing */}
+          <section aria-label="Articles" className="relative mt-12">
+            <SectionHeader>Articles</SectionHeader>
+            <Suspense fallback={<ArticlesSkeleton />}>
+              <RecentArticles />
+            </Suspense>
+          </section>
+
+          <div className="mt-12 animate-fadeIn">
             <SubscribeForm variant="terminal" />
           </div>
         </div>

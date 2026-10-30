@@ -24,7 +24,7 @@ export default function MarketStrip({ items }: { items: StripItem[] }) {
 
   return (
     <div>
-      <p className="mb-2 flex min-h-4 items-center gap-1.5 font-mono text-[11px] text-white/35">
+      <p className="mb-2 flex min-h-4 items-center gap-1.5 font-sans text-sm text-white/45">
         {status && (
           <>
             <span
@@ -36,7 +36,7 @@ export default function MarketStrip({ items }: { items: StripItem[] }) {
         )}
       </p>
 
-      <ul className="font-mono text-xs">
+      <ul className="font-sans text-sm tabular-nums">
         {items.map((item) => {
           const move = formatChangePct(item.changePct);
           return (

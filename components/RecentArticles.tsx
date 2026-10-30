@@ -38,128 +38,53 @@ export default async function RecentArticles() {
   }
 
   const { rest } = splitPinnedPosts(posts, [...PINNED_SLUGS, ...GAMES_SLUGS]);
-  const [latest, ...pool] = rest;
+  // The newest post renders as the featured row above; the grid covers the
+  // rest (most-read first, then recent) with no duplicates.
+  const [, ...pool] = rest;
 
   const mostRead = [...pool].sort((a, b) => (b.views ?? 0) - (a.views ?? 0)).slice(0, 3);
   const mostReadSlugs = new Set(mostRead.map((p) => p.slug));
   const recent = pool.filter((p) => !mostReadSlugs.has(p.slug)).slice(0, 6);
+  const grid = [...mostRead, ...recent];
 
   return (
     <div>
-      <Link
-        href={`/blog/${latest.slug}`}
-        className="group block bg-black border border-white/10 rounded-lg p-4 mb-1 transition-all hover:border-white/20 animate-fadeInUp"
-        style={{ opacity: 0, animationFillMode: 'forwards' }}
-      >
-        <div className="flex items-center gap-2 mb-2">
-          <span
-            className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded"
-            style={{ color: '#f59e0b', background: '#f59e0b22' }}
-          >
-            Latest
-          </span>
-          {latest.category && (
-            <span className="text-[10px] uppercase tracking-wide text-white/40">{latest.category}</span>
-          )}
-        </div>
-
-        <h3 className="text-white/85 group-hover:text-white transition-colors font-medium text-base mb-1.5">
-          {latest.title}
-        </h3>
-
-        {latest.excerpt && (
-          <p className="text-white/50 text-xs leading-relaxed line-clamp-2 mb-2">{latest.excerpt}</p>
-        )}
-
-        <div className="flex items-center gap-2 text-[#0aee3c]/40 text-xs">
-          <span>{formatDate(latest.created_at)}</span>
-          {latest.read_time && (
-            <>
-              <span aria-hidden>·</span>
-              <span>{latest.read_time} min read</span>
-            </>
-          )}
-        </div>
-      </Link>
-
-      {mostRead.length > 0 && (
-        <>
-          <h2 className="flex items-center gap-2 text-xs font-bold text-[#0aee3c]/60 uppercase tracking-wide mt-5 mb-2">
-            <span className="text-[#0aee3c]">$</span> Most read
-            <span className="flex-1 h-px bg-gradient-to-r from-[#0aee3c]/30 to-transparent" />
-          </h2>
-          <div className="grid gap-3 sm:grid-cols-3">
-            {mostRead.map((post, index) => {
-              const footer = [viewCountLabel(post.views ?? 0), post.read_time ? `${post.read_time} min read` : null]
-                .filter(Boolean)
-                .join(' · ');
-              return (
-                <Link
-                  key={post.slug}
-                  href={`/blog/${post.slug}`}
-                  className="group block bg-black border border-white/10 rounded-lg p-4 transition-all hover:border-white/25 animate-fadeInUp"
-                  style={{
-                    opacity: 0,
-                    animationFillMode: 'forwards',
-                    animationDelay: `${(index + 1) * 0.08}s`,
-                  }}
-                >
-                  <span className="font-mono text-2xl font-bold text-[#0aee3c]">
-                    {String(index + 1).padStart(2, '0')}
-                  </span>
-                  <h3 className="text-white/85 group-hover:text-white transition-colors font-medium text-sm mt-1 mb-1 line-clamp-2">
-                    {post.title}
-                  </h3>
-                  {post.excerpt && <p className="text-white/35 text-xs line-clamp-2 mb-2">{post.excerpt}</p>}
-                  {footer && <p className="text-[#0aee3c]/40 text-xs font-mono">{footer}</p>}
-                </Link>
-              );
-            })}
-          </div>
-        </>
-      )}
-
-      {recent.length > 0 && (
-        <>
-          <h2 className="flex items-center gap-2 text-xs font-bold text-[#0aee3c]/60 uppercase tracking-wide mt-5 mb-2">
-            <span className="text-[#0aee3c]">$</span> Recent
-            <span className="flex-1 h-px bg-gradient-to-r from-[#0aee3c]/30 to-transparent" />
-          </h2>
-          {recent.map((post, index) => {
-            return (
-              <Link
-                key={post.slug}
-                href={`/blog/${post.slug}`}
-                className="group block py-1.5 px-1.5 -mx-1.5 rounded border-b border-b-[#0aee3c]/10 last:border-b-0 hover:bg-[#0aee3c]/5 transition-colors animate-fadeInUp"
-                style={{
-                  animationDelay: `${(index + 1) * 0.08}s`,
-                  opacity: 0,
-                  animationFillMode: 'forwards',
-                }}
-              >
-                <div className="flex items-baseline justify-between gap-3 text-sm pl-1.5">
-                  <span className="text-white/85 group-hover:text-white transition-colors">
-                    <span className="inline-block w-6 text-[#0aee3c]/50 group-hover:text-[#0aee3c] mr-2 transition-colors">
-                      {String(index + 1).padStart(2, '0')}
-                    </span>
-                    {post.title}
-                  </span>
-                  <span className="text-[#0aee3c]/40 text-xs whitespace-nowrap shrink-0">
-                    {formatDate(post.created_at)}
-                  </span>
-                </div>
-                {post.excerpt && (
-                  <p className="text-white/35 text-xs mt-0.5 ml-9 line-clamp-1">{post.excerpt}</p>
-                )}
-              </Link>
-            );
-          })}
-        </>
-      )}
+      <div className="grid gap-6 min-[768px]:grid-cols-[repeat(2,minmax(0,1fr))] min-[1200px]:grid-cols-[repeat(3,minmax(0,1fr))]">
+        {grid.map((post, index) => {
+          const footer = [formatDate(post.created_at), viewCountLabel(post.views ?? 0), post.read_time ? `${post.read_time} min read` : null]
+            .filter(Boolean)
+            .join(' · ');
+          return (
+            <Link
+              key={post.slug}
+              href={`/blog/${post.slug}`}
+              className="group flex h-full min-w-0 flex-col rounded-2xl border border-[rgba(120,255,140,0.14)] bg-[rgba(10,14,10,0.85)] p-6 no-underline transition-all duration-150 hover:-translate-y-0.5 hover:border-[rgba(120,255,140,0.28)] animate-fadeInUp"
+              style={{
+                opacity: 0,
+                animationFillMode: 'forwards',
+                animationDelay: `${(index + 1) * 0.08}s`,
+              }}
+            >
+              <p className="font-mono text-xs text-white/40">{post.category ?? 'Writing'}</p>
+              <h3 className="mt-2 font-sans text-xl font-semibold leading-snug text-white/90 transition-colors group-hover:text-white line-clamp-2">
+                {post.title}
+              </h3>
+              {post.excerpt && (
+                <p className="mt-2 font-sans text-sm leading-relaxed text-white/55 line-clamp-2 max-w-[60ch]">
+                  {post.excerpt}
+                </p>
+              )}
+              {footer && (
+                <p className="mt-auto pt-3 font-sans text-sm text-white/45 tabular-nums">{footer}</p>
+              )}
+            </Link>
+          );
+        })}
+      </div>
 
       <Link
         href="/blog"
-        className="inline-block mt-2 text-xs text-[#0aee3c]/60 hover:text-[#0aee3c] transition-colors"
+        className="inline-block mt-4 font-sans text-sm font-semibold text-[#0aee3c] hover:underline"
       >
         View all articles &rarr;
       </Link>

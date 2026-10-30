@@ -19,8 +19,8 @@ export default async function HeroTerminal() {
   const snapshot = snapshotFor(fortunes);
   return (
     <div
-      className="w-full md:w-[480px] md:shrink-0 overflow-hidden rounded-lg border border-[#0aee3c]/20 bg-black font-mono text-sm"
-      style={{ maxWidth: 540 }}
+      className="w-full overflow-hidden rounded-2xl border border-[#0aee3c]/20 bg-black font-mono text-sm"
+      style={{ minHeight: 140 }}
     >
       <div className="py-3.5 px-4">
         <TerminalTyper fortunes={fortunes} trivia={trivia} history={history} snapshot={snapshot} />

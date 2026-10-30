@@ -63,7 +63,7 @@ export default function Mag7Summary() {
             key={symbol}
             href={`${LOOKUP_PATH}?ticker=${encodeURIComponent(symbol)}`}
             aria-label={`${symbol}, ${move.text}. Look up.`}
-            className="flex items-center gap-1 px-2.5 font-mono text-[11px] tabular-nums"
+            className="flex items-center gap-1 px-2.5 font-sans text-sm tabular-nums"
           >
             <span className="text-white/80">{symbol}</span>
             <span className={TONE_TEXT[move.tone]}>
@@ -77,7 +77,7 @@ export default function Mag7Summary() {
 
   return (
     <div>
-      <p className="mb-1 font-mono text-[10px] tracking-wide text-white/25 uppercase">Mag 7</p>
+      <p className="mb-1 font-mono text-xs tracking-wide text-white/40 uppercase">Mag 7</p>
       <div className="tape min-w-0 overflow-hidden" role="marquee" aria-label="Mag 7 moves">
         <div className="tape-track flex h-6 items-center">
           {row(false)}

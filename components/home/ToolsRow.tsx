@@ -13,44 +13,70 @@ import Mag7Summary from './Mag7Summary';
 import TickerLookup from './TickerLookup';
 import { getEpisode, getStrip } from './heroData';
 
+// Presentation-only display copy: short titles (≤3 words) + one-line
+// descriptions. Links and data sources are untouched.
+const CARD_META: Record<string, { title: string; description?: string }> = {
+  'look-up-stock-and-company-details': { title: 'Stock Lookup' },
+  'monthly-book-spin': { title: 'Book Spin' },
+  'trending-podcasts': { title: 'Trending Podcasts' },
+  'ai-model-price-calculator': {
+    title: 'AI Price Calculator',
+    description: 'What that prompt actually costs.',
+  },
+};
+
+const CARD =
+  'group flex h-full min-w-0 flex-col rounded-2xl border border-[rgba(120,255,140,0.14)] bg-[rgba(10,14,10,0.85)] p-6 transition-all duration-150 hover:-translate-y-0.5 hover:border-[rgba(120,255,140,0.28)]';
+
+function CardTitle({ children }: { children: React.ReactNode }) {
+  return (
+    <h3 className="font-sans text-lg font-semibold text-white/90 transition-colors group-hover:text-white line-clamp-2">
+      {children}
+    </h3>
+  );
+}
+
+function CardDescription({ children }: { children: React.ReactNode }) {
+  return <p className="mt-1 font-sans text-sm leading-relaxed text-white/55 line-clamp-1 max-w-[60ch]">{children}</p>;
+}
+
+function CardCta() {
+  return (
+    <span className="mt-auto block pt-4 font-sans text-sm font-semibold text-[#0aee3c]">
+      Open <span aria-hidden>→</span>
+    </span>
+  );
+}
+
+// Fixed-height live preview zone shared by every card.
+function Preview({ children }: { children: React.ReactNode }) {
+  return <div className="mt-4 h-40 overflow-hidden">{children}</div>;
+}
+
 function ToolCard({
   slug,
   title,
+  description,
   children,
-  footer,
 }: {
   slug: string;
   title: string;
+  description: string | null;
   children: React.ReactNode;
-  footer?: string;
 }) {
   return (
-    <Link
-      href={`/blog/${slug}`}
-      className="group flex min-w-0 flex-col bg-black border border-[#0aee3c]/20 rounded-lg p-3 transition-all hover:border-[#0aee3c]/50 hover:shadow-[0_0_16px_rgba(10,238,60,0.25)]"
-    >
-      <h3 className="text-white/85 group-hover:text-white transition-colors font-medium text-base mb-2">{title}</h3>
-      {children}
-      {footer && (
-        <span className="mt-auto block pt-2 font-mono text-xs text-[#0aee3c]/70 group-hover:text-[#0aee3c] transition-colors">
-          {footer} <span aria-hidden>→</span>
-        </span>
-      )}
+    <Link href={`/blog/${slug}`} className={CARD}>
+      <CardTitle>{title}</CardTitle>
+      {description && <CardDescription>{description}</CardDescription>}
+      <Preview>{children}</Preview>
+      <CardCta />
     </Link>
   );
 }
 
-function cardFooter(slug: string): string | undefined {
-  if (slug === 'monthly-book-spin') return 'Browse books';
-  if (slug === 'trending-podcasts') return 'See all';
-  if (slug === 'seattle-transit-next-bus') return 'Plan a trip';
-  if (slug === 'ai-model-price-calculator') return 'Estimate cost';
-  return undefined;
-}
-
 function Fallback({ excerpt }: { excerpt: string | null }) {
   if (!excerpt) return null;
-  return <p className="text-white/40 text-xs leading-relaxed line-clamp-3">{excerpt}</p>;
+  return <p className="font-sans text-sm leading-relaxed text-white/55 line-clamp-4 max-w-[60ch]">{excerpt}</p>;
 }
 
 const LOOKUP_PATH = '/blog/look-up-stock-and-company-details';
@@ -66,12 +92,12 @@ async function TonightLine() {
   }
   if (!tonight) return null;
   return (
-    <p className="mt-2 font-mono text-[11px] leading-relaxed text-white/45">
+    <p className="mt-2 font-sans text-sm leading-relaxed text-white/45">
       <span className="text-white/60">{tonight.label}:</span>{' '}
       {tonight.tickers.map((t, i) => (
         <span key={t}>
           {i > 0 && <span aria-hidden> · </span>}
-          <Link href={`${LOOKUP_PATH}?ticker=${encodeURIComponent(t)}`} className="text-[#0aee3c]/80 hover:text-[#0aee3c] hover:underline">
+          <Link href={`${LOOKUP_PATH}?ticker=${encodeURIComponent(t)}`} className="text-[#0aee3c] hover:underline">
             {t}
           </Link>
         </span>
@@ -85,28 +111,26 @@ async function StockCard({ slug, title, excerpt }: { slug: string; title: string
   const strip = await getStrip();
   const live = strip !== null && strip.length >= 3 && stripHasMoves(strip);
   // A form can't live inside the card link, so this card is a plain shell
-  // with a linked title instead of a whole-card link.
+  // with a linked title and a bottom-left CTA instead of a whole-card link.
   return (
-    <div className="group flex min-w-0 flex-col bg-black border border-[#0aee3c]/20 rounded-lg p-3 transition-all hover:border-[#0aee3c]/50 hover:shadow-[0_0_16px_rgba(10,238,60,0.25)]">
-      <div className="mb-2 flex items-baseline justify-between gap-2">
-        <Link href={`/blog/${slug}`}>
-          <h3 className="text-white/85 group-hover:text-white transition-colors font-medium text-base">{title}</h3>
-        </Link>
-        <Link
-          href={`/blog/${slug}`}
-          className="shrink-0 font-mono text-[11px] text-[#0aee3c]/60 transition-colors hover:text-[#0aee3c]"
-        >
-          Open <span aria-hidden>→</span>
-        </Link>
-      </div>
-      {live && strip ? <MarketStrip items={strip.slice(0, 3)} /> : <Fallback excerpt={excerpt} />}
-      <div className="mt-2">
-        <Mag7Summary />
-      </div>
-      <TonightLine />
-      <div className="mt-auto pt-3">
-        <TickerLookup />
-      </div>
+    <div className={CARD}>
+      <Link href={`/blog/${slug}`} className="no-underline">
+        <CardTitle>{title}</CardTitle>
+      </Link>
+      {excerpt && <CardDescription>{excerpt}</CardDescription>}
+      <Preview>
+        {live && strip ? <MarketStrip items={strip.slice(0, 3)} /> : <Fallback excerpt={excerpt} />}
+        <div className="mt-2">
+          <Mag7Summary />
+        </div>
+        <TonightLine />
+        <div className="mt-2">
+          <TickerLookup />
+        </div>
+      </Preview>
+      <Link href={`/blog/${slug}`} className="mt-auto block pt-4 font-sans text-sm font-semibold text-[#0aee3c] no-underline">
+        Open <span aria-hidden>→</span>
+      </Link>
     </div>
   );
 }
@@ -131,28 +155,32 @@ export default async function ToolsRow() {
     .filter((c) => c !== null);
 
   return (
-    <section id="tools" aria-label="Tools" className="relative mb-6 scroll-mt-20">
-      <h2 className="flex items-center gap-2 text-xs font-bold text-[#0aee3c]/60 uppercase tracking-wide mb-2">
+    <section id="tools" aria-label="Tools" className="relative mt-12 scroll-mt-20">
+      <h2 className="flex items-center gap-2 font-mono text-xs font-bold text-[#0aee3c]/60 uppercase tracking-wide mb-4">
         <span className="text-[#0aee3c]">$</span> Tools
         <span className="flex-1 h-px bg-gradient-to-r from-[#0aee3c]/30 to-transparent" />
       </h2>
       {/* Explicit minmax(0,1fr) columns on every breakpoint: the Mag 7
           tape is max-content wide, and an implicit auto column would size
           to it and blow the row (and the page) out on mobile. */}
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4">
-        {cards.map((post) =>
-          post.slug === 'look-up-stock-and-company-details' ? (
-            <StockCard key={post.slug} slug={post.slug} title={post.title} excerpt={post.excerpt} />
-          ) : (
-            <ToolCard key={post.slug} slug={post.slug} title={post.title} footer={cardFooter(post.slug)}>
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-6 min-[768px]:grid-cols-[repeat(2,minmax(0,1fr))] min-[1200px]:grid-cols-[repeat(4,minmax(0,1fr))]">
+        {cards.map((post) => {
+          const meta = CARD_META[post.slug];
+          const title = meta?.title ?? post.title;
+          const description = meta?.description ?? post.excerpt;
+          if (post.slug === 'look-up-stock-and-company-details') {
+            return <StockCard key={post.slug} slug={post.slug} title={title} excerpt={description} />;
+          }
+          return (
+            <ToolCard key={post.slug} slug={post.slug} title={title} description={description}>
               {post.slug === 'monthly-book-spin' && (
                 <div>
-                  <p className="text-white/40 text-xs mb-2">{month.label} picks:</p>
+                  <p className="font-sans text-sm text-white/55 mb-2">{month.label} picks:</p>
                   <div className="flex flex-wrap gap-1.5">
                     {monthGenres.map((g) => (
                       <span
                         key={g}
-                        className="text-[11px] px-2 py-0.5 rounded-full border border-[#0aee3c]/25 text-[#0aee3c]/80"
+                        className="font-sans text-xs px-2 py-0.5 rounded-full border border-[#0aee3c]/25 text-[#0aee3c]/80"
                       >
                         {g}
                       </span>
@@ -178,17 +206,8 @@ export default async function ToolsRow() {
               {post.slug === 'trending-podcasts' &&
                 (episode ? (
                   <div>
-                    {episode.thumbnail && (
-                      // eslint-disable-next-line @next/next/no-img-element -- external YouTube thumbnail, sized by CSS
-                      <img
-                        src={episode.thumbnail}
-                        alt=""
-                        loading="lazy"
-                        className="w-full aspect-video object-cover rounded-md border border-white/10 mb-2"
-                      />
-                    )}
-                    <p className="text-white/85 text-sm font-medium leading-snug line-clamp-1">{episode.title}</p>
-                    <p className="text-white/40 text-xs mt-0.5 font-mono">
+                    <p className="font-sans text-sm font-medium text-white/85 leading-snug line-clamp-2">{episode.title}</p>
+                    <p className="font-sans text-sm text-white/45 mt-1 tabular-nums">
                       {episode.channel}
                       {formatPerHour(episode.viewsPerHour) ? ` · ${formatPerHour(episode.viewsPerHour)}` : ''}
                     </p>
@@ -200,8 +219,8 @@ export default async function ToolsRow() {
                 post.slug !== 'monthly-book-spin' &&
                 post.slug !== 'trending-podcasts' && <Fallback excerpt={post.excerpt} />}
             </ToolCard>
-          ),
-        )}
+          );
+        })}
       </div>
     </section>
   );

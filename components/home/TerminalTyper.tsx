@@ -109,13 +109,18 @@ export default function TerminalTyper({ fortunes, trivia, history, snapshot }: P
     () => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches,
   );
   const [active, setActive] = useState(true);
+  // First paint shows the last completed command + output (server snapshot),
+  // then the loop animates on from the hold beat — never an empty void.
   const [eng, setEng] = useState<Engine>(() => ({
     scene: 'fortune',
     recent: ['fortune'],
-    phase: 'cmd',
+    phase: 'hold',
     typed: 0,
-    lines: [],
-    seq: 0,
+    lines: [
+      { id: 0, kind: 'cmd', text: CMDS.fortune },
+      { id: 1, kind: 'out', text: snapshot.fortune.text, href: snapshot.fortune.link },
+    ],
+    seq: 2,
     fortunes: [],
     trivia: [],
     factorCmd: null,

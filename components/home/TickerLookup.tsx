@@ -119,11 +119,11 @@ export default function TickerLookup() {
           aria-activedescendant={active >= 0 ? `ticker-option-${active}` : undefined}
           autoComplete="off"
           spellCheck={false}
-          className="min-w-0 flex-1 rounded border border-[#0aee3c]/25 bg-white/[0.03] px-2.5 py-1.5 font-mono text-xs uppercase text-white/90 placeholder:text-white/30 placeholder:normal-case focus:border-[#0aee3c]/60 focus:outline-none"
+          className="min-w-0 flex-1 rounded border border-[#0aee3c]/25 bg-white/[0.03] px-2.5 py-1.5 font-sans text-sm uppercase text-white/90 placeholder:text-white/30 placeholder:normal-case focus:border-[#0aee3c]/60 focus:outline-none"
         />
         <button
           type="submit"
-          className="shrink-0 rounded border border-[#0aee3c]/50 bg-transparent px-3 py-1.5 text-xs font-semibold text-[#0aee3c] transition-all hover:bg-[#0aee3c]/10"
+          className="shrink-0 rounded border border-[#0aee3c]/50 bg-transparent px-3 py-1.5 font-sans text-sm font-semibold text-[#0aee3c] transition-all hover:bg-[#0aee3c]/10"
         >
           Go
         </button>
@@ -152,8 +152,8 @@ export default function TickerLookup() {
                 i === active ? 'bg-[#0aee3c]/10' : ''
               }`}
             >
-              <span className="font-mono text-xs text-[#0aee3c]">{r.ticker}</span>
-              <span className="truncate text-[11px] text-white/45">{r.title}</span>
+              <span className="font-sans text-sm font-semibold text-[#0aee3c]">{r.ticker}</span>
+              <span className="truncate font-sans text-sm text-white/45">{r.title}</span>
             </li>
           ))}
         </ul>
