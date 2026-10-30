@@ -5,6 +5,16 @@
 export interface QuizTopic {
   name: string;
   short: string;
+  /** Laws readers mix this one up with (drives "Don't confuse with"). */
+  confusableWith?: string[];
+  learnMore?: {
+    /** 2–3 sentences: the real story behind the law. */
+    origin: string;
+    /** 2–3 short sightings in the wild. */
+    wild: string[];
+    /** Topic key + 1–2 sentences contrasting the closest confusable. */
+    confusedWith?: { topic: string; note: string };
+  };
 }
 
 export interface QuizQuestion {

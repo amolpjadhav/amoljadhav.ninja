@@ -24,6 +24,7 @@ interface Session {
   title: string;
   answered: boolean;
   opts: Picked[];
+  picked: number | null;
 }
 
 interface FlashState {
@@ -59,6 +60,10 @@ export default function QuizPlay({ category }: { category: QuizCategory }) {
   const [session, setSession] = useState<Session | null>(null);
   const [flash, setFlash] = useState<FlashState | null>(null);
   const [drill, setDrill] = useState('');
+  // "Learn more" starts expanded on desktop, collapsed on phones.
+  const [learnOpen, setLearnOpen] = useState(
+    () => typeof window !== 'undefined' && window.innerWidth >= 768,
+  );
   const stats = useMemo(() => categoryStats(category, progress), [category, progress]);
 
   const goHome = useCallback(() => {
@@ -81,6 +86,7 @@ export default function QuizPlay({ category }: { category: QuizCategory }) {
         missed: [],
         title,
         answered: false,
+        picked: null,
         opts: shuffle(q.a.map((text, idx) => ({ text, correct: idx === 0 }))),
       });
       setView('quiz');
@@ -115,6 +121,7 @@ export default function QuizPlay({ category }: { category: QuizCategory }) {
       setSession({
         ...session,
         answered: true,
+        picked: idx,
         correct: session.correct + (ok ? 1 : 0),
         missed: ok ? session.missed : [...session.missed, q],
       });
@@ -134,6 +141,7 @@ export default function QuizPlay({ category }: { category: QuizCategory }) {
       ...session,
       i,
       answered: false,
+      picked: null,
       opts: shuffle(q.a.map((text, idx) => ({ text, correct: idx === 0 }))),
     });
   }, [session]);
@@ -170,57 +178,105 @@ export default function QuizPlay({ category }: { category: QuizCategory }) {
   if (view === 'quiz' && session) {
     const q = session.list[session.i] as QuizQuestion;
     const topic = category.topics[q.topic];
+    const wasRight = session.answered && session.picked !== null && session.opts[session.picked]?.correct;
+    const learn = topic?.learnMore;
+    const confusedName = learn?.confusedWith ? category.topics[learn.confusedWith.topic]?.name : null;
     return (
       <div className="rounded-xl border border-white/10 bg-white/[0.03] p-5">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 font-mono">
           <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-[#0aee3c]/15 text-[#0aee3c]">
             {q.type === 'which' ? `Which ${category.topicLabel}?` : (topic?.name ?? q.topic)}
           </span>
           <span className="flex-1" />
-          <span className="text-sm text-white/50 tabular-nums">
+          <span className="text-sm text-white/60 tabular-nums">
             {session.i + 1} / {session.list.length}
           </span>
           <button type="button" onClick={goHome} className="text-xs px-2.5 py-1.5 rounded-lg border border-white/10 text-white/70 hover:border-[#0aee3c]/60">
             Quit
           </button>
         </div>
-        <div className="h-1.5 rounded-full bg-white/10 overflow-hidden my-3">
+        <div className="h-1.5 rounded-full bg-white/20 overflow-hidden my-3">
           <div className="h-full bg-[#0aee3c] transition-all" style={{ width: `${(100 * session.i) / session.list.length}%` }} />
         </div>
-        <p className="text-lg font-semibold my-4">{q.q}</p>
-        <div className="grid gap-2.5">
-          {session.opts.map((o, i) => (
-            <button
-              key={i}
-              type="button"
-              disabled={session.answered}
-              onClick={() => answer(i)}
-              className={`text-left px-4 py-3 rounded-xl border transition-colors ${
-                session.answered
-                  ? o.correct
-                    ? 'border-emerald-400/70 bg-emerald-400/10'
-                    : 'border-white/10 opacity-70'
-                  : 'border-white/10 bg-white/[0.02] hover:border-[#0aee3c]/60'
-              }`}
-            >
-              <kbd className="inline-block min-w-[22px] text-center mr-2 text-xs text-white/50 border border-white/10 rounded px-1">
-                {i + 1}
-              </kbd>
-              {o.text}
-            </button>
-          ))}
+        <p className="font-sans text-lg font-semibold my-4 text-[#E8E8E8]">{q.q}</p>
+        <div className="grid gap-2.5 font-sans">
+          {session.opts.map((o, i) => {
+            const isPicked = session.picked === i;
+            const tone = !session.answered
+              ? 'border-white/10 bg-white/[0.02] hover:border-[#0aee3c]/60'
+              : o.correct
+                ? 'border-emerald-400/70 bg-emerald-400/10'
+                : isPicked
+                  ? 'border-red-400/70 bg-red-400/10'
+                  : 'border-white/10 opacity-60';
+            return (
+              <button
+                key={i}
+                type="button"
+                disabled={session.answered}
+                onClick={() => answer(i)}
+                className={`text-left px-4 py-3 rounded-xl border transition-colors text-[#E8E8E8] ${tone}`}
+              >
+                <kbd className="font-mono inline-block min-w-[22px] text-center mr-2 text-xs text-white/50 border border-white/10 rounded px-1">
+                  {i + 1}
+                </kbd>
+                {session.answered && o.correct && <span aria-hidden className="mr-2 text-emerald-400 font-bold">✓</span>}
+                {session.answered && isPicked && !o.correct && <span aria-hidden className="mr-2 text-red-400 font-bold">✗</span>}
+                {o.text}
+                <span className="sr-only">{session.answered ? (o.correct ? ' (correct answer)' : isPicked ? ' (your answer — wrong)' : '') : ''}</span>
+              </button>
+            );
+          })}
         </div>
         {session.answered && (
-          <div className="mt-4 p-4 rounded-xl border-l-4 border-[#0aee3c] bg-[#0aee3c]/[0.07]">
-            <p className="font-bold">{q.ex}</p>
+          <div className="mt-4 p-4 rounded-xl border-l-4 border-[#0aee3c] bg-[#0aee3c]/[0.07] font-sans">
+            <p className="font-bold text-[#E8E8E8]">
+              {wasRight ? '✓ Correct' : '✗ Not quite'} — {q.ex}
+            </p>
             {topic && (
-              <p className="text-sm text-white/60 mt-2">
+              <p className="text-sm text-[#9A9A9A] mt-2">
                 {topic.name} — {topic.short}
               </p>
             )}
+            {learn && (
+              <div className="mt-3">
+                <button
+                  type="button"
+                  onClick={() => setLearnOpen((o) => !o)}
+                  aria-expanded={learnOpen}
+                  className="font-mono text-xs text-[#0aee3c] hover:underline"
+                >
+                  Learn more {learnOpen ? '▾' : '▸'}
+                </button>
+                {learnOpen && (
+                  <div className="mt-2 grid gap-3 text-sm text-[#E8E8E8]">
+                    <p>
+                      <b className="block text-[#9A9A9A] text-xs uppercase tracking-wide mb-1">Origin</b>
+                      {learn.origin}
+                    </p>
+                    <div>
+                      <b className="block text-[#9A9A9A] text-xs uppercase tracking-wide mb-1">Spot it in the wild</b>
+                      <ul className="list-disc pl-5 grid gap-1">
+                        {learn.wild.map((w) => (
+                          <li key={w}>{w}</li>
+                        ))}
+                      </ul>
+                    </div>
+                    {learn.confusedWith && (
+                      <p>
+                        <b className="block text-[#9A9A9A] text-xs uppercase tracking-wide mb-1">
+                          Don&apos;t confuse with{confusedName ? ` ${confusedName}` : ''}
+                        </b>
+                        {learn.confusedWith.note}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
-        <div className="flex items-center gap-3 mt-4">
+        <div className="flex items-center gap-3 mt-4 font-mono">
           <span className="text-xs text-white/40">Keys: 1–4 to answer, Enter for next</span>
           <span className="flex-1" />
           {session.answered && (
@@ -249,7 +305,7 @@ export default function QuizPlay({ category }: { category: QuizCategory }) {
         <button
           type="button"
           onClick={() => setFlash((f) => (f ? { ...f, flipped: !f.flipped } : f))}
-          className="w-full min-h-[180px] flex flex-col items-center justify-center text-center my-3 px-4"
+          className="w-full min-h-[180px] flex flex-col items-center justify-center text-center my-3 px-4 font-sans"
         >
           {flash.flipped ? (
             <>
@@ -310,7 +366,7 @@ export default function QuizPlay({ category }: { category: QuizCategory }) {
           {missedRows.length ? (
             <>
               <b>Review these {category.topicLabel}s:</b>
-              <ul className="mt-2 grid gap-2">
+              <ul className="mt-2 grid gap-2 font-sans">
                 {missedRows.map(([key, n]) => (
                   <li key={key} className="text-sm p-3 rounded-xl border border-white/10">
                     <b>{category.topics[key]?.name ?? key}</b>

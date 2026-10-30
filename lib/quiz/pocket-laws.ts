@@ -14,59 +14,143 @@ export const pocketLaws: QuizCategory = {
   topics: {
   "murphy": {
     "name": "Murphy's Law",
-    "short": "Anything that can go wrong, will — plan for the unlikely if the cost is high enough."
+    "short": "Anything that can go wrong, will — plan for the unlikely if the cost is high enough.",
+    "confusableWith": ["hofstadter"],
+    "learnMore": {
+      "origin": "In 1949, at Edwards Air Force Base, Captain Edward A. Murphy Jr. was testing crash restraints when a technician wired every sensor backwards. Murphy's remark — that if there was a wrong way to do it, someone would find it — was popularized as a law of inevitable mishap.",
+      "wild": ["Pilots run pre-flight checklists for failures that almost never happen", "Back up irreplaceable files the night before a deadline, not after a crash", "Pack spare cables for every demo-day presentation"],
+      "confusedWith": { "topic": "hofstadter", "note": "Murphy is about a rare failure eventually striking because you never planned for it. Hofstadter is about your time estimate overrunning even after you padded it." }
+    }
   },
   "moore": {
     "name": "Moore's Law",
-    "short": "Computing capability roughly doubles every couple of years — doubling adds up faster than you expect."
+    "short": "Computing capability roughly doubles every couple of years — doubling adds up faster than you expect.",
+    "confusableWith": ["jevons"],
+    "learnMore": {
+      "origin": "In 1965, Intel co-founder Gordon Moore observed that the number of transistors on a chip was doubling roughly every two years. The trend held for about six decades and is now slowing as switches approach physical limits.",
+      "wild": ["Room-sized NASA computers became a phone in your pocket", "The doubling pond: half-covered on day 29, full on day 30", "Chip progress stalling as transistors can't shrink forever"],
+      "confusedWith": { "topic": "jevons", "note": "Moore is about capability doubling over time. Jevons is about efficiency gains increasing total consumption instead of reducing it." }
+    }
   },
   "sunk": {
     "name": "Sunk Cost Fallacy",
-    "short": "Past investment shouldn't determine a future decision, but it does anyway."
+    "short": "Past investment shouldn't determine a future decision, but it does anyway.",
+    "confusableWith": ["loss"],
+    "learnMore": {
+      "origin": "Economists have long argued that unrecoverable costs should be ignored, but psychologists Hal Arkes and Catherine Blumer showed in 1985 that people systematically let past spending drive future choices — the more invested, the harder it is to walk away.",
+      "wild": ["Sitting through a boring movie because you already watched an hour", "Eating past full at a buffet because you paid for it", "Finishing a degree you hate because of the years already spent"],
+      "confusedWith": { "topic": "loss", "note": "Sunk cost is about letting past spending decide what you do next. Loss aversion is about losses feeling roughly twice as bad as equal gains." }
+    }
   },
   "parkinson": {
     "name": "Parkinson's Law",
-    "short": "Work expands to fill the time you allow it."
+    "short": "Work expands to fill the time you allow it.",
+    "confusableWith": ["hofstadter", "bikeshed"],
+    "learnMore": {
+      "origin": "In a 1955 Economist essay, naval historian C. Northcote Parkinson joked that bureaucracies grow regardless of workload — and added the famous corollary that work expands to fill the time available for it.",
+      "wild": ["A month-long essay finished the night before it's due", "Packing takes all day with all day, or 30 minutes before the cab arrives", "Tighter deadlines producing faster, still-good work"],
+      "confusedWith": { "topic": "hofstadter", "note": "Parkinson: work stretches to fill the time you're given. Hofstadter: tasks overrun their estimates even after you pad them." }
+    }
   },
   "pareto": {
     "name": "Pareto Principle (80/20)",
-    "short": "Most results trace back to a small slice of causes."
+    "short": "Most results trace back to a small slice of causes.",
+    "confusableWith": ["goodhart"],
+    "learnMore": {
+      "origin": "In 1896, economist Vilfredo Pareto noticed that about 80% of Italy's land was owned by 20% of the people. Management thinker Joseph Juran later generalized the imbalance into the 80/20 rule for quality problems.",
+      "wild": ["A few outfits account for most days worn", "A handful of customers bring in most revenue", "A small share of bugs cause most crashes"],
+      "confusedWith": { "topic": "goodhart", "note": "Pareto tells you where to look — the vital few. Goodhart warns that once that vital-few metric becomes the target, people game it." }
+    }
   },
   "streisand": {
     "name": "Streisand Effect",
-    "short": "Suppressing something draws more attention to it."
+    "short": "Suppressing something draws more attention to it.",
+    "confusableWith": ["murphy"],
+    "learnMore": {
+      "origin": "In 2003, Barbra Streisand sued a photographer over an aerial shot of her Malibu home that was part of a coastal-erosion archive. Before the lawsuit the photo had been downloaded 6 times — twice by her own lawyers. Afterwards, hundreds of thousands of people went to look.",
+      "wild": ["A takedown demand over a bad review goes viral", "A blocked website becomes the most-shared link in the country", "A demanded tweet-deletion gets screenshotted everywhere"],
+      "confusedWith": { "topic": "murphy", "note": "Streisand is about suppression backfiring — the cover-up draws the crowd. Murphy is about an unplanned rare failure striking because nobody prepared." }
+    }
   },
   "goodhart": {
     "name": "Goodhart's Law",
-    "short": "A metric becomes worthless the moment it's the target."
+    "short": "A metric becomes worthless the moment it's the target.",
+    "confusableWith": ["pareto"],
+    "learnMore": {
+      "origin": "British economist Charles Goodhart noted in 1975 that once a monetary measure became a policy target, it stopped measuring what it was supposed to. Anthropologist Marilyn Strathern's version is blunter: when a measure becomes a target, it ceases to be a good measure.",
+      "wild": ["Engineers judged by lines of code write longer code", "Schools judged by scores teach to the test", "Daily weigh-ins optimized by skipping water, not by health"],
+      "confusedWith": { "topic": "pareto", "note": "Goodhart is about a metric corrupted by becoming the target. Pareto is about a small share of causes driving most results — use it to find the metric, not to game it." }
+    }
   },
   "jevons": {
     "name": "Jevons Paradox",
-    "short": "Efficiency gains often increase total consumption, not decrease it."
+    "short": "Efficiency gains often increase total consumption, not decrease it.",
+    "confusableWith": ["moore"],
+    "learnMore": {
+      "origin": "In 1865's The Coal Question, economist William Stanley Jevons observed that more efficient steam engines didn't cut coal use — cheaper steam power spread everywhere, so total coal consumption rose.",
+      "wild": ["Fuel-efficient cars lead to more driving and longer commutes", "Cheaper AI coding means more projects, shifting work to review and testing", "Efficient LED bulbs end up lighting far more places"],
+      "confusedWith": { "topic": "moore", "note": "Jevons is about efficiency raising total use. Moore is about capability doubling over time — the trend that often creates the efficiency Jevons then acts on." }
+    }
   },
   "hofstadter": {
     "name": "Hofstadter's Law",
-    "short": "It takes longer than expected, even accounting for this law."
+    "short": "It takes longer than expected, even accounting for this law.",
+    "confusableWith": ["parkinson", "murphy"],
+    "learnMore": {
+      "origin": "Cognitive scientist Douglas Hofstadter framed it in 1979's Gödel, Escher, Bach as a deliberate self-reference: any buffer you add becomes part of a new estimate that also runs over.",
+      "wild": ["A 6-week renovation padded to 8 weeks takes 12", "Software estimates that slip after the padding is absorbed", "Frequent check-ins catching the slip early instead of at the deadline"],
+      "confusedWith": { "topic": "parkinson", "note": "Hofstadter: estimates overrun even when padded — the fix is checking progress early. Parkinson: work simply fills whatever time it's given." }
+    }
   },
   "peter": {
     "name": "Peter Principle",
-    "short": "People get promoted until they hit a role they're not suited for."
+    "short": "People get promoted until they hit a role they're not suited for.",
+    "confusableWith": ["brooks"],
+    "learnMore": {
+      "origin": "Educator Laurence J. Peter published the principle in a 1969 book: promotions reward success in the current role, so people keep rising until they land in one their skills don't fit — and stay there.",
+      "wild": ["A star salesperson promoted into merely okay sales management", "A rating that climbs until it meets stronger players, then plateaus", "Preparing for the next role's skills before the promotion arrives"],
+      "confusedWith": { "topic": "brooks", "note": "Peter is about the wrong person in the role. Brooks is about too many people on the task — new hires cost ramp-up and coordination." }
+    }
   },
   "chesterton": {
     "name": "Chesterton's Fence",
-    "short": "Don't remove a rule until you understand why it exists."
+    "short": "Don't remove a rule until you understand why it exists.",
+    "confusableWith": ["sunk"],
+    "learnMore": {
+      "origin": "Writer G.K. Chesterton made the case in 1929's The Thing: a fence across a field shouldn't come down until you know why it went up. Not understanding a rule is not the same as the reason being gone.",
+      "wild": ["A fence marking ground that floods every spring", "A 'pointless' approval step added after an expensive mistake", "Legacy code nobody dares delete — read its history first"],
+      "confusedWith": { "topic": "sunk", "note": "Chesterton says understand a rule's origin before removing it. Sunk cost says past spending is never by itself a reason to continue." }
+    }
   },
   "bikeshed": {
     "name": "Law of Triviality (Bikeshedding)",
-    "short": "Groups argue longest about the least important decision."
+    "short": "Groups argue longest about the least important decision.",
+    "confusableWith": ["parkinson"],
+    "learnMore": {
+      "origin": "Parkinson illustrated it with a committee waving through a nuclear reactor in minutes, then spending 45 minutes on the staff bike shed's paint. Programmer Poul-Henning Kamp's 1999 email gave the internet its name: bikeshedding.",
+      "wild": ["An hour on the logo's blue, five minutes on the $2M architecture", "Car seat fabric debated, financing terms waved through", "Everyone comments on what's easy to judge; hard calls get silence"],
+      "confusedWith": { "topic": "parkinson", "note": "Same originator, different law: Triviality is about groups debating trivia. Parkinson's Law is about work filling the time allowed." }
+    }
   },
   "brooks": {
     "name": "Brooks's Law",
-    "short": "Adding people to a late project makes it later."
+    "short": "Adding people to a late project makes it later.",
+    "confusableWith": ["peter"],
+    "learnMore": {
+      "origin": "IBM's Fred Brooks managed the OS/360 project and wrote The Mythical Man-Month (1975): new people need training and add communication pairs — n(n−1)/2, so 10 people means 45 pairs — slowing the team before helping it.",
+      "wild": ["Three engineers added to a late project, weeks lost to ramp-up", "Doubling a team from 5 to 10 more than quadruples coordination pairs", "A smaller focused team, or an honest deadline move, instead"],
+      "confusedWith": { "topic": "peter", "note": "Brooks is about too many people slowing a task. Peter is about one person promoted past their competence." }
+    }
   },
   "loss": {
     "name": "Loss Aversion",
-    "short": "Losing something hurts about twice as much as gaining the same thing feels good."
+    "short": "Losing something hurts about twice as much as gaining the same thing feels good.",
+    "confusableWith": ["sunk"],
+    "learnMore": {
+      "origin": "Psychologists Daniel Kahneman and Amos Tversky documented it in 1979's prospect theory: losses weigh about twice as much as equal gains. Kahneman won the 2002 Nobel Prize in Economics for this line of work.",
+      "wild": ["A lost $20 ruins the afternoon; a found $20 barely registers", "Holding a falling stock to avoid locking in the loss", "Demanding $50 for an unused item no stranger would buy for $15"],
+      "confusedWith": { "topic": "sunk", "note": "Loss aversion is about losses feeling bigger than equal gains. Sunk cost is about letting unrecoverable past spending decide the next move." }
+    }
   }
 },
   questions: [
