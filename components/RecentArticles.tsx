@@ -64,11 +64,11 @@ export default async function RecentArticles() {
               }}
             >
               <p className="font-mono text-xs text-white/40">{post.category ?? 'Writing'}</p>
-              <h3 className="mt-2 font-sans text-xl font-semibold leading-snug text-white/90 transition-colors group-hover:text-white line-clamp-2">
+              <h3 className="mt-2 font-sans text-xl font-semibold leading-snug text-balance text-white/90 transition-colors group-hover:text-white">
                 {post.title}
               </h3>
               {post.excerpt && (
-                <p className="mt-2 font-sans text-sm leading-relaxed text-white/55 line-clamp-2 max-w-[60ch]">
+                <p className="mt-2 font-sans text-sm leading-relaxed text-white/55 line-clamp-3 max-w-[60ch]">
                   {post.excerpt}
                 </p>
               )}
