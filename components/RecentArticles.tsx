@@ -46,6 +46,7 @@ export default async function RecentArticles() {
     title: post.title,
     excerpt: post.excerpt ?? '',
     category: post.category ?? 'Writing',
+    views: typeof post.views === 'number' ? post.views : 0,
     meta: [
       formatShortDate(post.created_at),
       post.read_time ? `${post.read_time} min read` : null,

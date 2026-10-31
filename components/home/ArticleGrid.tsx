@@ -11,6 +11,7 @@ export interface ArticleCardModel {
   excerpt: string;
   category: string;
   meta: string;
+  views: number;
 }
 
 const CARD =
@@ -45,7 +46,9 @@ function CardBody({ post }: { post: ArticleCardModel }) {
 
 export default function ArticleGrid({ posts }: { posts: ArticleCardModel[] }) {
   const [filter, setFilter] = useState<(typeof FILTER_CATEGORIES)[number]>('All');
-  const visible = (filter === 'All' ? posts : posts.filter((p) => p.category === filter)).slice(0, 6);
+  // Every tab ranks by views, highest first.
+  const ranked = [...posts].sort((a, b) => (b.views ?? 0) - (a.views ?? 0));
+  const visible = (filter === 'All' ? ranked : ranked.filter((p) => p.category === filter)).slice(0, 6);
   const [first, ...rest] = visible;
 
   return (
