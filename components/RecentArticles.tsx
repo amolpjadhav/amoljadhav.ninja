@@ -40,7 +40,7 @@ export default async function RecentArticles() {
   const { rest } = splitPinnedPosts(posts, [...PINNED_SLUGS, ...GAMES_SLUGS]);
   // Newest first (query order). Display strings are built server-side so the
   // client grid stays dumb: short date (year only when not this year),
-  // read time, and views only once they pass 500.
+  // read time, and always-on view counts.
   const models: ArticleCardModel[] = rest.map((post) => ({
     slug: post.slug,
     title: post.title,
@@ -49,8 +49,8 @@ export default async function RecentArticles() {
     views: typeof post.views === 'number' ? post.views : 0,
     meta: [
       formatShortDate(post.created_at),
+      viewCountLabel(typeof post.views === 'number' ? post.views : 0),
       post.read_time ? `${post.read_time} min read` : null,
-      typeof post.views === 'number' && post.views >= 500 ? viewCountLabel(post.views) : null,
     ]
       .filter(Boolean)
       .join(' · '),
