@@ -1,6 +1,5 @@
 'use client';
 
-import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
 import { FILTER_CATEGORIES, categoryColor } from '@/lib/categoryColors';
@@ -31,11 +30,11 @@ function CardBody({ post }: { post: ArticleCardModel }) {
   return (
     <>
       <CategoryLabel category={post.category} />
-      <h3 className="mt-2 font-sans text-xl font-semibold leading-snug text-white/90 transition-colors group-hover:text-white line-clamp-3">
+      <h3 className="mt-2 font-sans text-xl font-semibold leading-snug text-balance text-white/90 transition-colors group-hover:text-white">
         {post.title}
       </h3>
       {post.excerpt && (
-        <p className="mt-2 font-sans text-sm leading-relaxed text-white/55 line-clamp-2 max-w-[60ch]">
+        <p className="mt-2 font-sans text-sm leading-relaxed text-white/55 line-clamp-3 max-w-[60ch]">
           {post.excerpt}
         </p>
       )}
@@ -49,7 +48,6 @@ export default function ArticleGrid({ posts }: { posts: ArticleCardModel[] }) {
   // Every tab ranks by views, highest first.
   const ranked = [...posts].sort((a, b) => (b.views ?? 0) - (a.views ?? 0));
   const visible = (filter === 'All' ? ranked : ranked.filter((p) => p.category === filter)).slice(0, 6);
-  const [first, ...rest] = visible;
 
   return (
     <div>
@@ -77,30 +75,7 @@ export default function ArticleGrid({ posts }: { posts: ArticleCardModel[] }) {
       </div>
 
       <div className="grid gap-5 min-[768px]:grid-cols-[repeat(2,minmax(0,1fr))] min-[1200px]:grid-cols-[repeat(3,minmax(0,1fr))]">
-        {first && (
-          <Link
-            key={first.slug}
-            href={`/blog/${first.slug}`}
-            className={`${CARD} overflow-hidden min-[1200px]:col-span-2`}
-          >
-            <div className="grid h-full min-[768px]:grid-cols-[45%_1fr]">
-              <div className="relative min-h-48 min-[768px]:min-h-full">
-                <Image
-                  src={`/blog/${first.slug}/opengraph-image`}
-                  alt=""
-                  fill
-                  sizes="(min-width: 1200px) 400px, 100vw"
-                  className="object-cover"
-                  loading="lazy"
-                />
-              </div>
-              <div className="flex min-w-0 flex-col p-6">
-                <CardBody post={first} />
-              </div>
-            </div>
-          </Link>
-        )}
-        {rest.map((post, index) => (
+        {visible.map((post, index) => (
           <Link
             key={post.slug}
             href={`/blog/${post.slug}`}
