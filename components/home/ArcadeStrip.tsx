@@ -65,6 +65,25 @@ export default function ArcadeStrip() {
           </div>
         </div>
       </div>
+      <Link
+        href="/blog/chess-notation"
+        className="group mt-4 flex items-center gap-3 rounded-2xl border border-[rgba(120,255,140,0.14)] bg-[rgba(10,14,10,0.85)] px-6 py-4 no-underline transition-all duration-150 hover:-translate-y-0.5 hover:border-[rgba(120,255,140,0.28)]"
+      >
+        <span aria-hidden className="font-mono text-lg text-[#0aee3c]">
+          ♞
+        </span>
+        <span className="min-w-0">
+          <span className="block font-sans text-base font-semibold text-white/90">
+            Chess Notation Trainer
+          </span>
+          <span className="block font-sans text-sm text-white/55 max-w-[60ch]">
+            Learn to read moves in minutes, then practice inside Chess.
+          </span>
+        </span>
+        <span aria-hidden className="ml-auto shrink-0 font-sans text-sm font-semibold text-[#0aee3c]">
+          Open →
+        </span>
+      </Link>
     </section>
   );
 }
