@@ -5,6 +5,14 @@ import { genreBySlug } from '@/lib/books';
 import { coverUrl } from '@/lib/books';
 import { poolById } from '@/lib/book-pool';
 import { formatPerHour } from '@/lib/podcasts';
+import {
+  barWidths,
+  costPer1k,
+  displayName,
+  formatPer1k,
+  getPricedModels,
+  pickPreviewTrio,
+} from '@/lib/ai-pricing';
 import { stripHasMoves } from '@/lib/homepage';
 import { fetchEarningsWeek, upcomingAfterClose } from '@/lib/earnings';
 import { PINNED_SLUGS } from '@/components/RecentArticles';
@@ -82,6 +90,54 @@ function Fallback({ excerpt }: { excerpt: string | null }) {
 }
 
 const LOOKUP_PATH = '/blog/look-up-stock-and-company-details';
+
+// Live three-tier preview (cheap / mid / premium, distinct vendors) from the
+// same OpenRouter feed as the calculator widget; curated table on failure.
+async function PricePreview({ excerpt }: { excerpt: string | null }) {
+  const trio = pickPreviewTrio((await getPricedModels()).models);
+  if (trio.length < 3) return <Fallback excerpt={excerpt} />;
+  const costs = trio.map(costPer1k);
+  const widths = barWidths(costs);
+  const ratio = costs[0] > 0 ? Math.max(1, Math.round(costs[2] / costs[0])) : 1;
+  return (
+    <div>
+      <p
+        className="font-sans text-[13px] text-white/40"
+        title="Sample request: ~500 input + ~500 output tokens"
+      >
+        A typical chat reply · per 1,000 prompts
+      </p>
+      <ul className="mt-1.5">
+        {trio.map((m, i) => {
+          const name = displayName(m);
+          return (
+            <li
+              key={m.id}
+              className="flex items-center gap-2 py-1 border-b border-white/5 last:border-b-0 font-sans text-sm whitespace-nowrap"
+            >
+              {i === 0 && <span aria-hidden className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#0aee3c]" />}
+              <span className="min-w-0 flex-1 truncate text-white/80" title={name}>
+                {name}
+              </span>
+              <span aria-hidden className="w-[60px] shrink-0">
+                <span className="block h-1 rounded-full bg-white/25" style={{ width: widths[i] }} />
+              </span>
+              <span className="shrink-0 tabular-nums text-white/90">{formatPer1k(costs[i])}</span>
+              {i === 0 && (
+                <span className="shrink-0 rounded-full border border-[#0aee3c]/40 px-1.5 py-px text-[11px] font-semibold text-[#0aee3c]">
+                  Cheapest
+                </span>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+      <p className="mt-1.5 font-sans text-xs text-white/40">
+        {trio[2].label} costs {ratio}× more than {trio[0].label}
+      </p>
+    </div>
+  );
+}
 
 async function TonightLine() {
   // One cached calendar call (shared with the lookup page's hourly slot);
@@ -233,33 +289,7 @@ export default async function ToolsRow() {
                 ) : (
                   <Fallback excerpt={post.excerpt} />
                 ))}
-              {post.slug === 'ai-model-price-calculator' && (
-                <div>
-                  <p className="font-sans text-xs text-white/40">Sample prompt · ~500 input + ~500 output tokens</p>
-                  <ul className="mt-1.5">
-                    {[
-                      { model: 'Gemini Flash', cost: '$0.0002', cheapest: true },
-                      { model: 'GPT-4o', cost: '$0.006', cheapest: false },
-                      { model: 'Claude Sonnet', cost: '$0.009', cheapest: false },
-                    ].map((row) => (
-                      <li
-                        key={row.model}
-                        className={`flex items-baseline justify-between gap-2 py-1 border-b border-white/5 last:border-b-0 font-sans text-sm tabular-nums ${
-                          row.cheapest ? 'text-[#0aee3c]' : 'text-white/70'
-                        }`}
-                      >
-                        <span>
-                          {row.model}
-                          {row.cheapest && (
-                            <span className="ml-2 text-xs font-semibold uppercase tracking-wide">cheapest</span>
-                          )}
-                        </span>
-                        <span>{row.cost}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+              {post.slug === 'ai-model-price-calculator' && <PricePreview excerpt={description} />}
               {post.slug !== 'look-up-stock-and-company-details' &&
                 post.slug !== 'monthly-book-spin' &&
                 post.slug !== 'trending-podcasts' &&

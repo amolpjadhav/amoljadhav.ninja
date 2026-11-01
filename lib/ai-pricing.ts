@@ -20,7 +20,13 @@ export interface FlagshipModel {
 
 export interface PricedModel extends FlagshipModel {
   live: boolean;
+  /** OpenRouter display name ("Anthropic: Claude Sonnet 4.5"); present when live. */
+  liveName?: string;
 }
+
+/** Home-card sample request: a typical chat reply. */
+export const SAMPLE_INPUT_TOKENS = 500;
+export const SAMPLE_OUTPUT_TOKENS = 500;
 
 export const FLAGSHIPS: FlagshipModel[] = [
   { id: 'anthropic/claude-opus-5.5', label: 'Claude Opus 5.5', vendor: 'Anthropic', promptPerToken: 0.000004, completionPerToken: 0.00002, context: 1000000, reasoning: true },
@@ -53,6 +59,53 @@ export function costForUsage(
 /** Price per million tokens, the unit every provider quotes. */
 export function perMillion(perToken: number): number {
   return perToken * 1_000_000;
+}
+
+/** USD cost of 1,000 sample replies (500 in + 500 out tokens each). */
+export function costPer1k(m: Pick<FlagshipModel, 'promptPerToken' | 'completionPerToken'>): number {
+  return costForUsage(m.promptPerToken, m.completionPerToken, SAMPLE_INPUT_TOKENS, SAMPLE_OUTPUT_TOKENS) * 1000;
+}
+
+/**
+ * Home-card price: whole dollars at $1+, two decimals below ("$6", "$0.20").
+ * Per-1k units keep every row on the same scale.
+ */
+export function formatPer1k(n: number): string {
+  if (!Number.isFinite(n)) return '—';
+  if (Math.abs(n) >= 1) return '$' + Math.round(n).toLocaleString('en-US');
+  return '$' + Math.abs(n).toFixed(2);
+}
+
+/** Versioned display name: live OpenRouter name when fresh, curated label otherwise. */
+export function displayName(m: PricedModel): string {
+  return m.live && m.liveName ? m.liveName : m.label;
+}
+
+/** Log-scale bar widths (px) so a 80× cost gap reads at a glance. */
+export function barWidths(costs: number[], maxPx = 60, minPx = 6): number[] {
+  if (costs.length === 0) return [];
+  const logs = costs.map((c) => Math.log(Math.max(c, 1e-12)));
+  const lo = Math.min(...logs);
+  const hi = Math.max(...logs);
+  if (!(hi > lo)) return costs.map(() => maxPx);
+  return logs.map((l) => minPx + ((l - lo) / (hi - lo)) * (maxPx - minPx));
+}
+
+/**
+ * Cheap / mid / premium trio for the home card: sorted by per-1k cost with
+ * distinct vendors when the table allows it. Deterministic; safe on short
+ * tables (returns what exists).
+ */
+export function pickPreviewTrio(models: PricedModel[]): PricedModel[] {
+  const sorted = [...models].sort((a, b) => costPer1k(a) - costPer1k(b));
+  if (sorted.length <= 3) return sorted;
+  const cheap = sorted[0];
+  const premium = [...sorted].reverse().find((m) => m.vendor !== cheap.vendor) ?? sorted[sorted.length - 1];
+  const rest = sorted.filter((m) => m !== cheap && m !== premium);
+  const mid =
+    rest.find((m) => m.vendor !== cheap.vendor && m.vendor !== premium.vendor) ??
+    rest[Math.floor(rest.length / 2)];
+  return [cheap, mid, premium];
 }
 
 /** $1,234.56 and $0.45 for cent amounts, $0.0042 below a cent. */
@@ -107,6 +160,7 @@ export function mergeLivePrice(base: FlagshipModel, live: OpenRouterModel | unde
   const prompt = Number(live?.pricing?.prompt);
   const completion = Number(live?.pricing?.completion);
   const context = Number(live?.context_length);
+  const liveName = typeof live?.name === 'string' && live.name.trim() !== '' ? live.name.trim() : undefined;
   if (live && Number.isFinite(prompt) && prompt >= 0 && Number.isFinite(completion) && completion >= 0) {
     return {
       ...base,
@@ -114,7 +168,38 @@ export function mergeLivePrice(base: FlagshipModel, live: OpenRouterModel | unde
       completionPerToken: completion,
       context: Number.isFinite(context) && context > 0 ? Math.floor(context) : base.context,
       live: true,
+      ...(liveName ? { liveName } : {}),
     };
   }
   return { ...base, live: false };
+}
+
+export interface PricedTable {
+  models: PricedModel[];
+  /** False when OpenRouter was unreachable and the curated table is served. */
+  live: boolean;
+  updatedAt: string;
+}
+
+/**
+ * Flagship prices, live from OpenRouter with the curated table as fallback
+ * (same contract as GET /api/ai-prices). Shared by the API route and the
+ * home-card preview so both read the same numbers.
+ */
+export async function getPricedModels(): Promise<PricedTable> {
+  const updatedAt = new Date().toISOString();
+  try {
+    const res = await fetch('https://openrouter.ai/api/v1/models', {
+      next: { revalidate: 3600 },
+      headers: { 'User-Agent': 'amoljadhav.ninja price calculator' },
+    });
+    if (!res.ok) throw new Error(`OpenRouter ${res.status}`);
+    const json = await res.json();
+    const rows = Array.isArray(json?.data) ? json.data : [];
+    const byId = new Map(rows.filter((m) => typeof m?.id === 'string').map((m) => [m.id, m]));
+    return { models: FLAGSHIPS.map((base) => mergeLivePrice(base, byId.get(base.id))), live: true, updatedAt };
+  } catch (error) {
+    console.error('AI prices fetch error:', error);
+    return { models: FLAGSHIPS.map((base) => ({ ...base, live: false })), live: false, updatedAt };
+  }
 }
