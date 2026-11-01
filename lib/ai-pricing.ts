@@ -76,19 +76,25 @@ export function formatPer1k(n: number): string {
   return '$' + Math.abs(n).toFixed(2);
 }
 
-/** Versioned display name: live OpenRouter name when fresh, curated label otherwise. */
+/**
+ * Versioned display name: live OpenRouter name when fresh, curated label
+ * otherwise. OpenRouter names arrive as "Provider: Model" — the provider
+ * prefix is stripped so narrow cards show the model, not the vendor.
+ */
 export function displayName(m: PricedModel): string {
-  return m.live && m.liveName ? m.liveName : m.label;
+  const raw = m.live && m.liveName ? m.liveName : m.label;
+  const parts = raw.split(': ').map((p) => p.trim()).filter((p) => p !== '');
+  return parts.length > 0 ? parts[parts.length - 1] : raw;
 }
 
-/** Log-scale bar widths (px) so a 80× cost gap reads at a glance. */
-export function barWidths(costs: number[], maxPx = 60, minPx = 6): number[] {
+/** Log-scale bar fill (percent of track) so an 80× cost gap reads at a glance. */
+export function barWidths(costs: number[], minPct = 4): number[] {
   if (costs.length === 0) return [];
   const logs = costs.map((c) => Math.log(Math.max(c, 1e-12)));
   const lo = Math.min(...logs);
   const hi = Math.max(...logs);
-  if (!(hi > lo)) return costs.map(() => maxPx);
-  return logs.map((l) => minPx + ((l - lo) / (hi - lo)) * (maxPx - minPx));
+  if (!(hi > lo)) return costs.map(() => 100);
+  return logs.map((l) => minPct + ((l - lo) / (hi - lo)) * (100 - minPct));
 }
 
 /**

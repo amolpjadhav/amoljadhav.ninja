@@ -111,23 +111,25 @@ async function PricePreview({ excerpt }: { excerpt: string | null }) {
         {trio.map((m, i) => {
           const name = displayName(m);
           return (
-            <li
-              key={m.id}
-              className="flex items-center gap-2 py-1 border-b border-white/5 last:border-b-0 font-sans text-sm whitespace-nowrap"
-            >
-              {i === 0 && <span aria-hidden className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#0aee3c]" />}
-              <span className="min-w-0 flex-1 truncate text-white/80" title={name}>
-                {name}
-              </span>
-              <span aria-hidden className="w-[60px] shrink-0">
-                <span className="block h-1 rounded-full bg-white/25" style={{ width: widths[i] }} />
-              </span>
-              <span className="shrink-0 tabular-nums text-white/90">{formatPer1k(costs[i])}</span>
-              {i === 0 && (
-                <span className="shrink-0 rounded-full border border-[#0aee3c]/40 px-1.5 py-px text-[11px] font-semibold text-[#0aee3c]">
-                  Cheapest
+            <li key={m.id} className="py-1.5 border-b border-white/5 last:border-b-0 font-sans">
+              <div className="flex items-center gap-2">
+                <span className="min-w-0 flex-1 truncate text-[15px] font-medium text-white/85" title={name}>
+                  {name}
                 </span>
-              )}
+                {i === 0 && (
+                  <span className="shrink-0 rounded-full border border-[#0aee3c]/40 px-1.5 py-px text-[11px] font-semibold text-[#0aee3c]">
+                    Cheapest
+                  </span>
+                )}
+              </div>
+              <div className="mt-1 flex items-center gap-2">
+                <span aria-hidden className="h-1.5 flex-1 rounded-full bg-[rgba(255,255,255,0.06)]">
+                  <span className="block h-full rounded-full bg-white/25" style={{ width: `${widths[i]}%` }} />
+                </span>
+                <span className="w-14 shrink-0 text-right text-[15px] font-semibold tabular-nums text-white/90">
+                  {formatPer1k(costs[i])}
+                </span>
+              </div>
             </li>
           );
         })}
