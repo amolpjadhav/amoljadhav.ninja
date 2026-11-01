@@ -126,23 +126,26 @@ function isConfusablePair(a, b) {
   return a === b || a.startsWith(b) || b.startsWith(a);
 }
 
-function shortLineOf(c) {
-  return c.line.split(' ').slice(0, 4).join(' ');
-}
-
+// Full lines everywhere: a truncated prefix (e.g. "1.e4 e5 2.Nf3") can be
+// shared by several openings, so prefixes are ambiguous both as answers
+// (a distractor prefix may also begin the line) and as prompts. Complete
+// lines are unique per opening and match the explanation.
 const questions = [];
 for (const c of picked) {
   const topic = familyOf(c.sans);
-  const shortLine = shortLineOf(c);
   const sameFamily = picked.filter((o) => familyOf(o.sans) === topic && !isConfusablePair(o.name, c.name));
   const familyPool = sameFamily.length >= 3 ? sameFamily : picked.filter((o) => !isConfusablePair(o.name, c.name));
   const nameDistractors = shuffled(familyPool).slice(0, 3).map((o) => o.name);
-  const linePool = shuffled(familyPool).map(shortLineOf).filter((l, i, arr) => l !== shortLine && arr.indexOf(l) === i);
+  // A distractor that is a prefix of the answer (or vice versa) would also
+  // be technically correct, so require every option to diverge: neither may
+  // extend the other.
+  const diverges = (l) => l !== c.line && !c.line.startsWith(`${l} `) && !l.startsWith(`${c.line} `);
+  const linePool = shuffled(familyPool).map((o) => o.line).filter((l, i, arr) => diverges(l) && arr.indexOf(l) === i);
   const lineDistractors = linePool.slice(0, 3);
   if (nameDistractors.length < 3 || lineDistractors.length < 3) continue;
   questions.push({
     topic,
-    q: `${shortLine} — which opening is this?`,
+    q: `${c.line} — which opening is this?`,
     a: [c.name, ...nameDistractors],
     ex: `${c.eco} · ${c.line}`,
     type: 'which',
@@ -150,7 +153,7 @@ for (const c of picked) {
   questions.push({
     topic,
     q: `Which moves begin ${c.name}?`,
-    a: [shortLine, ...lineDistractors],
+    a: [c.line, ...lineDistractors],
     ex: `${c.eco} · ${c.line}`,
   });
 }

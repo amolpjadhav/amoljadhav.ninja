@@ -31,29 +31,6 @@ export const chessOpenings: QuizCategory = {
 },
   questions: [
   {
-    "topic": "open",
-    "q": "1.e4 e5 2.Nf3 — which opening is this?",
-    "a": [
-      "King's Knight Opening",
-      "Ruy Lopez",
-      "Ruy Lopez: Morphy Defense",
-      "King's Gambit Accepted"
-    ],
-    "ex": "C40 · 1.e4 e5 2.Nf3",
-    "type": "which"
-  },
-  {
-    "topic": "open",
-    "q": "Which moves begin King's Knight Opening?",
-    "a": [
-      "1.e4 e5 2.Nf3",
-      "1.e4 e5 2.Nf3 Nc6",
-      "1.e4 e5 2.f4",
-      "1.e4 e5 2.f4 exf4"
-    ],
-    "ex": "C40 · 1.e4 e5 2.Nf3"
-  },
-  {
     "topic": "closed",
     "q": "1.d4 Nf6 2.c4 — which opening is this?",
     "a": [
@@ -72,7 +49,7 @@ export const chessOpenings: QuizCategory = {
       "1.d4 Nf6 2.c4",
       "1.d4 d5 2.c4",
       "1.d4 d5 2.c4 c6",
-      "1.d4 Nf6 2.c4 e6"
+      "1.d4 d5 2.c4 e6 3.Nc3"
     ],
     "ex": "A50 · 1.d4 Nf6 2.c4"
   },
@@ -94,8 +71,8 @@ export const chessOpenings: QuizCategory = {
     "a": [
       "1.d4 d5 2.c4",
       "1.d4 Nf6 2.c4 g6",
-      "1.d4 Nf6 2.c4",
-      "1.d4 Nf6 2.c4 e6"
+      "1.d4 Nf6 2.c4 g6 3.Nc3",
+      "1.d4 Nf6 2.c4"
     ],
     "ex": "D06 · 1.d4 d5 2.c4"
   },
@@ -116,7 +93,7 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin Indian Defense?",
     "a": [
       "1.d4 Nf6 2.c4 e6",
-      "1.d4 Nf6 2.c4 g6",
+      "1.d4 Nf6 2.c4 g6 3.Nc3",
       "1.d4 d5 2.c4 e6",
       "1.d4 d5 2.c4"
     ],
@@ -140,14 +117,14 @@ export const chessOpenings: QuizCategory = {
     "a": [
       "1.e4 c5 2.Nf3",
       "1.e4 e5 2.Nf3 Nc6",
-      "1.d4 Nf6 2.c4 e6",
+      "1.d4 Nf6 2.c4 e6 3.Nf3",
       "1.e4 e6 2.d4"
     ],
     "ex": "B27 · 1.e4 c5 2.Nf3"
   },
   {
     "topic": "open",
-    "q": "1.e4 e5 2.Nf3 Nc6 — which opening is this?",
+    "q": "1.e4 e5 2.Nf3 Nc6 3.Bb5 — which opening is this?",
     "a": [
       "Ruy Lopez",
       "King's Knight Opening",
@@ -161,10 +138,10 @@ export const chessOpenings: QuizCategory = {
     "topic": "open",
     "q": "Which moves begin Ruy Lopez?",
     "a": [
-      "1.e4 e5 2.Nf3 Nc6",
+      "1.e4 e5 2.Nf3 Nc6 3.Bb5",
       "1.e4 e5 2.f4",
-      "1.e4 e5 2.Nf3",
-      "1.e4 e5 2.f4 exf4"
+      "1.e4 e5 2.Nf3 Nc6 3.Bc4",
+      "1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5"
     ],
     "ex": "C60 · 1.e4 e5 2.Nf3 Nc6 3.Bb5"
   },
@@ -185,9 +162,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin Indian Defense: West Indian Defense?",
     "a": [
       "1.d4 Nf6 2.c4 g6",
-      "1.d4 Nf6 2.c4",
       "1.d4 d5 2.c4 e6",
-      "1.d4 d5 2.c4"
+      "1.d4 d5 2.c4",
+      "1.d4 Nf6 2.c4 e6 3.Nc3"
     ],
     "ex": "E60 · 1.d4 Nf6 2.c4 g6"
   },
@@ -209,14 +186,37 @@ export const chessOpenings: QuizCategory = {
     "a": [
       "1.e4 e6 2.d4",
       "1.d4 d5 2.c4 c6",
-      "1.e4 e5 2.Nf3 Nc6",
-      "1.d4 Nf6 2.c4 g6"
+      "1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5",
+      "1.d4 Nf6 2.c4 g6 3.Nc3"
     ],
     "ex": "C00 · 1.e4 e6 2.d4"
   },
   {
     "topic": "open",
-    "q": "1.e4 e5 2.Nf3 Nc6 — which opening is this?",
+    "q": "1.e4 e5 2.f4 — which opening is this?",
+    "a": [
+      "King's Gambit",
+      "King's Knight Opening: Normal Variation",
+      "Ruy Lopez",
+      "King's Knight Opening"
+    ],
+    "ex": "C30 · 1.e4 e5 2.f4",
+    "type": "which"
+  },
+  {
+    "topic": "open",
+    "q": "Which moves begin King's Gambit?",
+    "a": [
+      "1.e4 e5 2.f4",
+      "1.e4 e5 2.Nf3 Nc6",
+      "1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5",
+      "1.e4 e5 2.Nf3 Nc6 3.Bb5 a6"
+    ],
+    "ex": "C30 · 1.e4 e5 2.f4"
+  },
+  {
+    "topic": "open",
+    "q": "1.e4 e5 2.Nf3 Nc6 3.Bc4 — which opening is this?",
     "a": [
       "Italian Game",
       "King's Knight Opening: Normal Variation",
@@ -230,10 +230,10 @@ export const chessOpenings: QuizCategory = {
     "topic": "open",
     "q": "Which moves begin Italian Game?",
     "a": [
-      "1.e4 e5 2.Nf3 Nc6",
+      "1.e4 e5 2.Nf3 Nc6 3.Bc4",
       "1.e4 e5 2.f4",
-      "1.e4 e5 2.f4 exf4",
-      "1.e4 e5 2.Nf3"
+      "1.e4 e5 2.Nf3 Nc6 3.Bb5 a6",
+      "1.e4 e5 2.Nf3 Nc6 3.Bb5 a6 4.Ba4"
     ],
     "ex": "C50 · 1.e4 e5 2.Nf3 Nc6 3.Bc4"
   },
@@ -255,14 +255,14 @@ export const chessOpenings: QuizCategory = {
     "a": [
       "1.e4 e6 2.d4 d5",
       "1.e4 c5 2.Nf3 d6",
-      "1.e4 e5 2.Nf3 Nc6",
-      "1.d4 Nf6 2.c4 e6"
+      "1.e4 e5 2.Nf3 Nc6 3.Bb5 a6 4.Ba4",
+      "1.d4 Nf6 2.c4 e6 3.Nf3"
     ],
     "ex": "C00 · 1.e4 e6 2.d4 d5"
   },
   {
     "topic": "closed",
-    "q": "1.d4 Nf6 2.c4 e6 — which opening is this?",
+    "q": "1.d4 Nf6 2.c4 e6 3.Nf3 — which opening is this?",
     "a": [
       "Indian Defense: Anti-Nimzo-Indian",
       "Queen's Gambit Declined: Queen's Knight Variation",
@@ -276,16 +276,16 @@ export const chessOpenings: QuizCategory = {
     "topic": "closed",
     "q": "Which moves begin Indian Defense: Anti-Nimzo-Indian?",
     "a": [
-      "1.d4 Nf6 2.c4 e6",
+      "1.d4 Nf6 2.c4 e6 3.Nf3",
       "1.d4 d5 2.c4",
-      "1.d4 Nf6 2.c4",
-      "1.d4 d5 2.c4 c6"
+      "1.d4 d5 2.c4 c6",
+      "1.d4 d5 2.c4 e6 3.Nc3"
     ],
     "ex": "E10 · 1.d4 Nf6 2.c4 e6 3.Nf3"
   },
   {
     "topic": "open",
-    "q": "1.e4 e5 2.Nf3 Nc6 — which opening is this?",
+    "q": "1.e4 e5 2.Nf3 Nc6 3.Bb5 a6 — which opening is this?",
     "a": [
       "Ruy Lopez: Morphy Defense",
       "King's Gambit Accepted",
@@ -299,16 +299,16 @@ export const chessOpenings: QuizCategory = {
     "topic": "open",
     "q": "Which moves begin Ruy Lopez: Morphy Defense?",
     "a": [
-      "1.e4 e5 2.Nf3 Nc6",
+      "1.e4 e5 2.Nf3 Nc6 3.Bb5 a6",
       "1.e4 e5 2.f4 exf4",
       "1.e4 e5 2.f4",
-      "1.e4 e5 2.Nf3"
+      "1.e4 e5 2.Nf3 Nc6 3.Bc4"
     ],
     "ex": "C70 · 1.e4 e5 2.Nf3 Nc6 3.Bb5 a6"
   },
   {
     "topic": "closed",
-    "q": "1.d4 Nf6 2.c4 g6 — which opening is this?",
+    "q": "1.d4 Nf6 2.c4 g6 3.Nc3 — which opening is this?",
     "a": [
       "King's Indian Defense",
       "Indian Defense",
@@ -322,16 +322,16 @@ export const chessOpenings: QuizCategory = {
     "topic": "closed",
     "q": "Which moves begin King's Indian Defense?",
     "a": [
-      "1.d4 Nf6 2.c4 g6",
+      "1.d4 Nf6 2.c4 g6 3.Nc3",
       "1.d4 d5 2.c4",
-      "1.d4 Nf6 2.c4 e6",
-      "1.d4 d5 2.c4 e6"
+      "1.d4 Nf6 2.c4 e6 3.Nf3",
+      "1.d4 d5 2.c4 e6 3.Nc3"
     ],
     "ex": "E61 · 1.d4 Nf6 2.c4 g6 3.Nc3"
   },
   {
     "topic": "open",
-    "q": "1.e4 e5 2.Nf3 Nc6 — which opening is this?",
+    "q": "1.e4 e5 2.Nf3 Nc6 3.Bb5 a6 4.Ba4 — which opening is this?",
     "a": [
       "Ruy Lopez: Bird's Defense Deferred",
       "King's Knight Opening",
@@ -345,12 +345,35 @@ export const chessOpenings: QuizCategory = {
     "topic": "open",
     "q": "Which moves begin Ruy Lopez: Bird's Defense Deferred?",
     "a": [
-      "1.e4 e5 2.Nf3 Nc6",
-      "1.e4 e5 2.Nf3",
+      "1.e4 e5 2.Nf3 Nc6 3.Bb5 a6 4.Ba4",
+      "1.e4 e5 2.Nf3 Nc6 3.Bc4",
       "1.e4 e5 2.f4",
-      "1.e4 e5 2.f4 exf4"
+      "1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5"
     ],
     "ex": "C70 · 1.e4 e5 2.Nf3 Nc6 3.Bb5 a6 4.Ba4"
+  },
+  {
+    "topic": "open",
+    "q": "1.e4 e5 2.f4 exf4 — which opening is this?",
+    "a": [
+      "King's Gambit Accepted",
+      "King's Knight Opening",
+      "Italian Game",
+      "Ruy Lopez"
+    ],
+    "ex": "C33 · 1.e4 e5 2.f4 exf4",
+    "type": "which"
+  },
+  {
+    "topic": "open",
+    "q": "Which moves begin King's Gambit Accepted?",
+    "a": [
+      "1.e4 e5 2.f4 exf4",
+      "1.e4 e5 2.Nf3 Nc6 3.Bb5 a6 4.Ba4",
+      "1.e4 e5 2.Nf3 Nc6 3.Bc4",
+      "1.e4 e5 2.Nf3 Nc6 3.Bb5 a6"
+    ],
+    "ex": "C33 · 1.e4 e5 2.f4 exf4"
   },
   {
     "topic": "closed",
@@ -371,7 +394,7 @@ export const chessOpenings: QuizCategory = {
       "1.d4 d5 2.c4 e6",
       "1.d4 Nf6 2.c4 e6",
       "1.d4 d5 2.c4 c6",
-      "1.d4 Nf6 2.c4 g6"
+      "1.d4 Nf6 2.c4 e6 3.Nf3"
     ],
     "ex": "D30 · 1.d4 d5 2.c4 e6"
   },
@@ -393,14 +416,14 @@ export const chessOpenings: QuizCategory = {
     "a": [
       "1.e4 c5 2.Nf3 d6",
       "1.e4 e5 2.Nf3",
-      "1.e4 e5 2.Nf3 Nc6",
-      "1.d4 Nf6 2.c4 g6"
+      "1.e4 e5 2.Nf3 Nc6 3.Bb5 a6 4.Ba4",
+      "1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5"
     ],
     "ex": "B50 · 1.e4 c5 2.Nf3 d6"
   },
   {
     "topic": "closed",
-    "q": "1.d4 Nf6 2.c4 e6 — which opening is this?",
+    "q": "1.d4 Nf6 2.c4 e6 3.Nc3 — which opening is this?",
     "a": [
       "Nimzo-Indian Defense",
       "Indian Defense: Anti-Nimzo-Indian",
@@ -414,16 +437,16 @@ export const chessOpenings: QuizCategory = {
     "topic": "closed",
     "q": "Which moves begin Nimzo-Indian Defense?",
     "a": [
-      "1.d4 Nf6 2.c4 e6",
+      "1.d4 Nf6 2.c4 e6 3.Nc3",
       "1.d4 d5 2.c4 e6",
-      "1.d4 Nf6 2.c4",
+      "1.d4 d5 2.c4 e6 3.Nc3",
       "1.d4 d5 2.c4 c6"
     ],
     "ex": "E20 · 1.d4 Nf6 2.c4 e6 3.Nc3"
   },
   {
     "topic": "open",
-    "q": "1.e4 e5 2.Nf3 Nc6 — which opening is this?",
+    "q": "1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 — which opening is this?",
     "a": [
       "Italian Game: Giuoco Piano",
       "King's Gambit Accepted",
@@ -437,16 +460,16 @@ export const chessOpenings: QuizCategory = {
     "topic": "open",
     "q": "Which moves begin Italian Game: Giuoco Piano?",
     "a": [
-      "1.e4 e5 2.Nf3 Nc6",
+      "1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5",
       "1.e4 e5 2.f4",
-      "1.e4 e5 2.Nf3",
+      "1.e4 e5 2.Nf3 Nc6 3.Bb5 a6",
       "1.e4 e5 2.f4 exf4"
     ],
     "ex": "C50 · 1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5"
   },
   {
     "topic": "french",
-    "q": "1.e4 e6 2.d4 d5 — which opening is this?",
+    "q": "1.e4 e6 2.d4 d5 3.Nc3 — which opening is this?",
     "a": [
       "French Defense: Paulsen Variation",
       "King's Knight Opening",
@@ -460,16 +483,16 @@ export const chessOpenings: QuizCategory = {
     "topic": "french",
     "q": "Which moves begin French Defense: Paulsen Variation?",
     "a": [
-      "1.e4 e6 2.d4 d5",
-      "1.e4 e5 2.Nf3 Nc6",
-      "1.d4 Nf6 2.c4 g6",
+      "1.e4 e6 2.d4 d5 3.Nc3",
+      "1.e4 e5 2.Nf3 Nc6 3.Bb5 a6",
+      "1.d4 Nf6 2.c4 g6 3.Nc3",
       "1.d4 Nf6 2.c4 e6"
     ],
     "ex": "C10 · 1.e4 e6 2.d4 d5 3.Nc3"
   },
   {
     "topic": "closed",
-    "q": "1.d4 d5 2.c4 e6 — which opening is this?",
+    "q": "1.d4 d5 2.c4 e6 3.Nc3 — which opening is this?",
     "a": [
       "Queen's Gambit Declined: Queen's Knight Variation",
       "Indian Defense: West Indian Defense",
@@ -483,9 +506,9 @@ export const chessOpenings: QuizCategory = {
     "topic": "closed",
     "q": "Which moves begin Queen's Gambit Declined: Queen's Knight Variation?",
     "a": [
-      "1.d4 d5 2.c4 e6",
+      "1.d4 d5 2.c4 e6 3.Nc3",
       "1.d4 Nf6 2.c4 g6",
-      "1.d4 Nf6 2.c4 e6",
+      "1.d4 Nf6 2.c4 e6 3.Nc3",
       "1.d4 Nf6 2.c4"
     ],
     "ex": "D31 · 1.d4 d5 2.c4 e6 3.Nc3"
@@ -508,8 +531,8 @@ export const chessOpenings: QuizCategory = {
     "a": [
       "1.d4 d5 2.c4 c6",
       "1.d4 d5 2.c4 e6",
-      "1.d4 d5 2.c4",
-      "1.d4 Nf6 2.c4 e6"
+      "1.d4 Nf6 2.c4 e6 3.Nf3",
+      "1.d4 Nf6 2.c4 e6 3.Nc3"
     ],
     "ex": "D10 · 1.d4 d5 2.c4 c6"
   }
