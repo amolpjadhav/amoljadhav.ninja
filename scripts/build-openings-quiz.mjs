@@ -11,7 +11,7 @@ const DATA = new URL('../public/data/openings.json', import.meta.url);
 const OUT = new URL('../lib/quiz/chess-openings.ts', import.meta.url);
 const MAX_DEPTH = 7;
 const BRANCH = 8;
-const OPENINGS_WANTED = 24;
+const OPENINGS_WANTED = 100;
 
 function epdOf(game) {
   return game.fen().split(' ').slice(0, 4).join(' ');
