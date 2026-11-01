@@ -1,20 +1,8 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import dynamic from 'next/dynamic';
 import { notFound } from 'next/navigation';
+import QuizPlayIsland from '@/components/quiz/QuizPlayIsland';
 import { QUIZ_CATEGORIES, quizCategoryById } from '@/lib/quiz/categories';
-
-// Client-only island: the play state (shuffle, progress, review deep link)
-// never touches SSR.
-const QuizPlay = dynamic(() => import('@/components/quiz/QuizPlay'), {
-  ssr: false,
-  loading: () => (
-    <div
-      aria-hidden
-      className="h-64 rounded-xl border border-white/10 bg-white/[0.03] motion-safe:animate-pulse"
-    />
-  ),
-});
 
 export function generateStaticParams() {
   return QUIZ_CATEGORIES.map((c) => ({ category: c.id }));
@@ -75,7 +63,7 @@ export default async function QuizCategoryPage({
         )}
       </p>
       <div className="mt-6">
-        <QuizPlay category={category} initialStart={start === 'smart' ? 'smart' : undefined} />
+        <QuizPlayIsland category={category} initialStart={start === 'smart' ? 'smart' : undefined} />
       </div>
     </div>
   );

@@ -1,20 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import dynamic from 'next/dynamic';
+import QuizHubIsland from '@/components/quiz/QuizHubIsland';
 import { QUIZ_CATEGORIES } from '@/lib/quiz/categories';
-
-// Client-only island (same pattern as the games hub): progress lives in
-// localStorage, so the server emits a skeleton and the island hydrates it.
-const QuizHub = dynamic(() => import('@/components/quiz/QuizHub'), {
-  ssr: false,
-  loading: () => (
-    <div className="grid gap-4 sm:grid-cols-2 min-[1200px]:grid-cols-3" aria-hidden>
-      {QUIZ_CATEGORIES.map((c) => (
-        <div key={c.id} className="h-56 rounded-xl border border-white/10 bg-white/[0.03] motion-safe:animate-pulse" />
-      ))}
-    </div>
-  ),
-});
 
 export const metadata: Metadata = {
   title: 'Quiz | Amol Jadhav',
@@ -37,7 +24,7 @@ export default function QuizHubPage() {
         Short quizzes that bring back what you miss.
       </p>
       <div className="mt-6">
-        <QuizHub categories={QUIZ_CATEGORIES} />
+        <QuizHubIsland categories={QUIZ_CATEGORIES} />
       </div>
     </div>
   );
