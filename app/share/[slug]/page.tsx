@@ -3,6 +3,14 @@ import { notFound } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import ShareRedirect from '@/components/blog/ShareRedirect';
 import { ARTICLE_SLUG, ARTICLE_TITLE, GAME_ANCHOR, buildCardParams, encodeMarks, isGameId, parseCardParams } from '@/lib/games/share';
+import {
+  buildQuizCardParams,
+  deckIdFromQuizSlug,
+  deckTitle,
+  isQuizShareSlug,
+  parseQuizCardParams,
+} from '@/lib/quiz/share';
+import { QUIZ_CATEGORIES } from '@/lib/quiz/categories';
 
 // Share landing: /share/chess-notation?score=16&total=20&acc=89&avg=1.8&best=1
 // Crawlers read the score-card metadata below (that's the snapshot embedded in
@@ -94,6 +102,36 @@ export async function generateMetadata({
     }
   }
 
+  // Quiz result cards: /share/quiz-pocket-laws?deck=pocket-laws&big=9/10&…
+  // Crawlers get the personalized OG card; humans bounce to the deck.
+  if (isQuizShareSlug(slug, QUIZ_CATEGORIES)) {
+    const card = parseQuizCardParams((k) => first(sp[k]) ?? null, QUIZ_CATEGORIES);
+    const deckId = deckIdFromQuizSlug(slug, QUIZ_CATEGORIES) ?? '';
+    const title = card
+      ? `${card.title} Quiz: ${card.big}${card.line ? ` — ${card.line}` : ''}`
+      : `${deckTitle(deckId, QUIZ_CATEGORIES) ?? 'Quiz'} · Ideas worth keeping`;
+    const description = card
+      ? `My ${card.title} quiz result. Short quizzes that bring back what you miss — can you beat it?`
+      : 'Short quizzes that bring back what you miss. Play free, no ads.';
+    const cardParams = card
+      ? buildQuizCardParams({ deck: card.deck, big: card.big, line: card.line, text: '', stats: card.stats })
+      : new URLSearchParams({ deck: deckId });
+    const cardUrl = `${SITE}/api/og/quiz?${cardParams.toString()}`;
+    return {
+      title,
+      description,
+      alternates: { canonical: `${SITE}/quiz/${deckId}` },
+      openGraph: {
+        title,
+        description,
+        type: 'website',
+        url: `${SITE}/share/${slug}?${cardParams.toString()}`,
+        images: [{ url: cardUrl, width: 1200, height: 630, alt: title }],
+      },
+      twitter: { card: 'summary_large_image', title, description, images: [cardUrl] },
+    };
+  }
+
   const postTitle = (await getTitle(slug)) ?? 'this chess drill';
   const score = first(sp.score) ?? '0';
   const total = first(sp.total) ?? '20';
@@ -151,6 +189,10 @@ export default async function SharePage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { slug } = await params;
+  // Quiz result links bounce humans straight to the deck; crawlers never
+  // run this JS and keep the OG card metadata above.
+  const quizDeck = deckIdFromQuizSlug(slug, QUIZ_CATEGORIES);
+  if (quizDeck) return <ShareRedirect to={`/quiz/${quizDeck}`} />;
   // The games article may still be a draft: its share links should bounce
   // to the article slug regardless of publish state.
   if (slug !== ARTICLE_SLUG && (await getTitle(slug)) === null) notFound();

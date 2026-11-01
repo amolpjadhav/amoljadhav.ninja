@@ -14,6 +14,15 @@ import {
   smartPick,
 } from '@/lib/quiz/engine';
 import type { ProgressMap, QuizCategory, QuizMode, QuizQuestion } from '@/lib/quiz/types';
+import { buildQuizShareUrl, buildQuizXUrl } from '@/lib/quiz/share';
+
+function XBrandIcon() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+    </svg>
+  );
+}
 
 interface Picked {
   text: string;
@@ -96,6 +105,7 @@ export default function QuizPlay({
   const [learnOpen, setLearnOpen] = useState(
     () => typeof window !== 'undefined' && window.innerWidth >= 768,
   );
+  const [linkCopied, setLinkCopied] = useState(false);
   const stats = useMemo(() => categoryStats(category, progress), [category, progress]);
 
   const goHome = useCallback(() => {
@@ -378,6 +388,16 @@ export default function QuizPlay({
 
   if (view === 'results' && session) {
     const pct = Math.round((100 * session.correct) / session.list.length);
+    const shareInput = {
+      deck: category.id,
+      big: `${session.correct}/${session.list.length}`,
+      line: `${pct}% accuracy · ${session.title}`,
+      text: `I scored ${session.correct}/${session.list.length} on the ${category.title} quiz — can you beat it?`,
+      stats: [
+        ['Mastered', `${stats.mastered}/${stats.total}`],
+        ['Mode', session.title],
+      ] as [string, string][],
+    };
     const byTopic = new Map<string, number>();
     for (const q of session.missed) byTopic.set(q.topic, (byTopic.get(q.topic) ?? 0) + 1);
     const missedRows = [...byTopic.entries()].sort((a, b) => b[1] - a[1]);
@@ -397,6 +417,27 @@ export default function QuizPlay({
             <b className="block text-xl tabular-nums">{stats.mastered}/{stats.total}</b>
             <span className="text-xs text-white/50">mastered overall</span>
           </div>
+        </div>
+        <div className="flex gap-2.5 mt-4">
+          <a
+            href={buildQuizXUrl(shareInput)}
+            target="_blank"
+            rel="noreferrer"
+            className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#0aee3c] text-black font-semibold font-sans no-underline"
+          >
+            <XBrandIcon /> Share result
+          </a>
+          <button
+            type="button"
+            onClick={async () => {
+              await navigator.clipboard.writeText(buildQuizShareUrl(shareInput));
+              setLinkCopied(true);
+              setTimeout(() => setLinkCopied(false), 2000);
+            }}
+            className="flex-1 px-5 py-2.5 rounded-xl border border-white/10 text-white/80 hover:border-[#0aee3c]/60 font-sans"
+          >
+            {linkCopied ? '✓ Link copied' : 'Copy result link'}
+          </button>
         </div>
         <div className="mt-4">
           {missedRows.length ? (
