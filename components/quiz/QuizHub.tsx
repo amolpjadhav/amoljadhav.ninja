@@ -23,16 +23,18 @@ function Ring({ pct, accent, label }: { pct: number; accent: string; label: stri
     <span className="relative inline-block h-11 w-11 shrink-0" role="img" aria-label={label}>
       <svg viewBox="0 0 44 44" className="h-11 w-11 -rotate-90" aria-hidden>
         <circle cx="22" cy="22" r={r} fill="none" stroke="rgba(255,255,255,0.12)" strokeWidth="5" />
-        <circle
-          cx="22"
-          cy="22"
-          r={r}
-          fill="none"
-          stroke={accent}
-          strokeWidth="5"
-          strokeLinecap="round"
-          strokeDasharray={`${(pct / 100) * c} ${c}`}
-        />
+        {pct > 0 && (
+          <circle
+            cx="22"
+            cy="22"
+            r={r}
+            fill="none"
+            stroke={accent}
+            strokeWidth="5"
+            strokeLinecap="round"
+            strokeDasharray={`${(pct / 100) * c} ${c}`}
+          />
+        )}
       </svg>
       <span className="absolute inset-0 flex items-center justify-center font-mono text-[10px] text-white/70 tabular-nums">
         {pct}%
