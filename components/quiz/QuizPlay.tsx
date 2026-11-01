@@ -3,11 +3,15 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   categoryStats,
+  loadActivityDays,
   loadProgress,
   questionsForMode,
+  recordActivityDay,
   recordAnswer,
+  saveActivityDays,
   saveProgress,
   shuffle,
+  smartPick,
 } from '@/lib/quiz/engine';
 import type { ProgressMap, QuizCategory, QuizMode, QuizQuestion } from '@/lib/quiz/types';
 
@@ -54,10 +58,38 @@ const MODES: { mode: Exclude<QuizMode, 'drill'>; emoji: string; name: string; bl
   { mode: 'flash', emoji: '🃏', name: 'Flashcards', blurb: 'Law ↔ meaning, flip to reveal' },
 ];
 
-export default function QuizPlay({ category }: { category: QuizCategory }) {
+export default function QuizPlay({
+  category,
+  initialStart,
+}: {
+  category: QuizCategory;
+  /** Auto-start a Smart Review session (hub "Review due" deep link). */
+  initialStart?: 'smart';
+}) {
   const [progress, setProgress] = useState<ProgressMap>(() => loadProgress(category.legacyStorageKey));
-  const [view, setView] = useState<'home' | 'quiz' | 'flash' | 'results'>('home');
-  const [session, setSession] = useState<Session | null>(null);
+  // Hub "Review due" deep link: the opening session is part of mount state
+  // (client-only island, so the shuffle never touches SSR).
+  const [initial] = useState(() => {
+    if (initialStart !== 'smart') return null;
+    const list = smartPick(category.questions, loadProgress(category.legacyStorageKey), 20);
+    if (list.length === 0) return null;
+    const q = list[0] as QuizQuestion;
+    return {
+      session: {
+        list,
+        i: 0,
+        correct: 0,
+        missed: [] as QuizQuestion[],
+        title: 'Review due',
+        answered: false,
+        picked: null as number | null,
+        opts: shuffle(q.a.map((text, idx) => ({ text, correct: idx === 0 }))),
+      } as Session,
+      view: 'quiz' as const,
+    };
+  });
+  const [view, setView] = useState<'home' | 'quiz' | 'flash' | 'results'>(initial?.view ?? 'home');
+  const [session, setSession] = useState<Session | null>(initial?.session ?? null);
   const [flash, setFlash] = useState<FlashState | null>(null);
   const [drill, setDrill] = useState('');
   // "Learn more" starts expanded on desktop, collapsed on phones.
@@ -118,6 +150,10 @@ export default function QuizPlay({ category }: { category: QuizCategory }) {
       const nextMap = recordAnswer(progress, q, ok);
       setProgress(nextMap);
       saveProgress(category.legacyStorageKey, nextMap);
+      // Every answered question counts toward the cross-deck streak.
+      const d = new Date();
+      const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      saveActivityDays(recordActivityDay(loadActivityDays(), today));
       setSession({
         ...session,
         answered: true,

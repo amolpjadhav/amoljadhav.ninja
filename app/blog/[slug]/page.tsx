@@ -1,6 +1,8 @@
 import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
+import Link from 'next/link';
+import { QUIZ_BY_ARTICLE_SLUG } from '@/lib/quiz/categories';
 import Header from '@/components/layout/Header';
 import { supabase } from '@/lib/supabase';
 import { formatDate } from '@/lib/utils';
@@ -379,6 +381,26 @@ export default async function BlogPostPage({
 
           {post.quiz && post.quiz.length > 0 && (
             <QuizModal questions={post.quiz} accent={categoryColor(post.category)} title={post.title} slug={post.slug} />
+          )}
+
+          {QUIZ_BY_ARTICLE_SLUG[post.slug] && (
+            <Link
+              href={`/quiz/${QUIZ_BY_ARTICLE_SLUG[post.slug]}`}
+              className="group mt-6 flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.03] px-5 py-4 no-underline transition-colors hover:border-[#0aee3c]/60"
+            >
+              <span aria-hidden className="text-xl">
+                🧠
+              </span>
+              <span className="min-w-0">
+                <span className="block font-sans font-bold text-white/90">Quiz yourself</span>
+                <span className="block font-sans text-sm text-white/50">
+                  Spaced repetition on this article&apos;s ideas — progress saves in your browser.
+                </span>
+              </span>
+              <span aria-hidden className="ml-auto shrink-0 font-sans text-sm font-semibold text-[#0aee3c]">
+                Start →
+              </span>
+            </Link>
           )}
 
           <div className="mt-10">

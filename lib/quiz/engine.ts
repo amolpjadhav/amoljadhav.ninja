@@ -153,6 +153,71 @@ export function categoryStats(category: QuizCategory, all: ProgressMap): Categor
   };
 }
 
+// Due today: unseen questions plus missed ones not yet re-mastered. The hub
+// "Review due" entry point drills exactly this set.
+export function dueQuestions(category: QuizCategory, all: ProgressMap): QuizQuestion[] {
+  return category.questions.filter((q) => {
+    const p = all[qid(q)] ?? blankProgress();
+    return p.seen === 0 || (p.wrong > 0 && !isMastered(p));
+  });
+}
+
+// Cross-deck activity streak: day strings are YYYY-MM-DD. recordDay returns
+// the new list (capped, sorted); streak counts consecutive days back from
+// today, tolerating "yet to play today" (yesterday anchors the streak).
+export function recordActivityDay(days: readonly string[], today: string): string[] {
+  if (days.includes(today)) return [...days];
+  return [...days, today].sort().slice(-365);
+}
+
+export function activityStreak(days: readonly string[], today: string): number {
+  if (days.length === 0) return 0;
+  const set = new Set(days);
+  let cursor = today;
+  if (!set.has(cursor)) {
+    cursor = prevDay(cursor);
+    if (!set.has(cursor)) return 0;
+  }
+  let n = 0;
+  while (set.has(cursor)) {
+    n += 1;
+    cursor = prevDay(cursor);
+  }
+  return n;
+}
+
+function prevDay(day: string): string {
+  const [y, m, d] = day.split('-').map(Number);
+  const t = Date.UTC(y, m - 1, d) - 86400000;
+  const dt = new Date(t);
+  const p = (v: number) => String(v).padStart(2, '0');
+  return `${dt.getUTCFullYear()}-${p(dt.getUTCMonth() + 1)}-${p(dt.getUTCDate())}`;
+}
+
+export const QUIZ_ACTIVITY_KEY = 'quiz-activity.v1';
+
+export function loadActivityDays(): string[] {
+  try {
+    if (typeof window === 'undefined' || !window.localStorage) return [];
+    const raw = window.localStorage.getItem(QUIZ_ACTIVITY_KEY);
+    if (!raw) return [];
+    const parsed: unknown = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter((d): d is string => typeof d === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d)).slice(-365);
+  } catch {
+    return [];
+  }
+}
+
+export function saveActivityDays(days: readonly string[]): void {
+  try {
+    if (typeof window === 'undefined' || !window.localStorage) return;
+    window.localStorage.setItem(QUIZ_ACTIVITY_KEY, JSON.stringify(days));
+  } catch {
+    // Progress just doesn't persist.
+  }
+}
+
 // Build the question list for a mode. drill needs a topic key; empty list
 // means the mode button should explain there's nothing to do yet.
 export function questionsForMode(

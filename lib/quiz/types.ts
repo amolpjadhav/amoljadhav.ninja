@@ -33,9 +33,12 @@ export interface QuizCategory {
   id: string;
   title: string;
   emoji: string;
+  /** Card accent: one of the article category colors. */
+  accent: string;
   description: string;
-  /** Article this category drills (shown as "from the article"). */
-  source: string;
+  /** Article this category drills (shown as "from the article"); omit when
+   *  the deck drills a tool or dataset instead of an article. */
+  source?: string;
   /** Singular noun for one topic ("law", "bias", …). */
   topicLabel: string;
   /** localStorage key — reused verbatim so standalone-quiz progress carries over. */

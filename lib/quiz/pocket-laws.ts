@@ -7,6 +7,7 @@ export const pocketLaws: QuizCategory = {
   id: "pocket-laws",
   title: "Pocket Laws",
   emoji: "🧠",
+  accent: "#FFB340",
   description: "14 mental models worth carrying around.",
   source: "https://www.amoljadhav.ai/blog/pocket-laws-101-the-mental-models-worth-carrying-around",
   topicLabel: "law",

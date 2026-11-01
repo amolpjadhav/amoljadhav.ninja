@@ -1,8 +1,20 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { notFound } from 'next/navigation';
-import QuizPlay from '@/components/quiz/QuizPlay';
 import { QUIZ_CATEGORIES, quizCategoryById } from '@/lib/quiz/categories';
+
+// Client-only island: the play state (shuffle, progress, review deep link)
+// never touches SSR.
+const QuizPlay = dynamic(() => import('@/components/quiz/QuizPlay'), {
+  ssr: false,
+  loading: () => (
+    <div
+      aria-hidden
+      className="h-64 rounded-xl border border-white/10 bg-white/[0.03] motion-safe:animate-pulse"
+    />
+  ),
+});
 
 export function generateStaticParams() {
   return QUIZ_CATEGORIES.map((c) => ({ category: c.id }));
@@ -25,12 +37,15 @@ export async function generateMetadata({
 
 export default async function QuizCategoryPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ category: string }>;
+  searchParams?: Promise<{ start?: string }>;
 }) {
   const { category: id } = await params;
   const category = quizCategoryById(id);
   if (!category) notFound();
+  const start = (await searchParams)?.start;
 
   return (
     <div className="container mx-auto max-w-3xl px-4 pt-24 pb-16">
@@ -44,18 +59,23 @@ export default async function QuizCategoryPage({
       </h1>
       <p className="text-white/60 mt-2">
         {category.description} Your progress is saved in this browser, and the
-        questions you get wrong come back more often.{' '}
-        <a
-          href={category.source}
-          target="_blank"
-          rel="noreferrer"
-          className="underline underline-offset-2 text-white/80"
-        >
-          From the article
-        </a>
+        questions you get wrong come back more often.
+        {category.source && (
+          <>
+            {' '}
+            <a
+              href={category.source}
+              target="_blank"
+              rel="noreferrer"
+              className="underline underline-offset-2 text-white/80"
+            >
+              From the article
+            </a>
+          </>
+        )}
       </p>
       <div className="mt-6">
-        <QuizPlay category={category} />
+        <QuizPlay category={category} initialStart={start === 'smart' ? 'smart' : undefined} />
       </div>
     </div>
   );
