@@ -39,9 +39,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.e4 e5 2.Nf3 — which opening is this?",
     "a": [
       "King's Knight Opening",
-      "Italian Game: Two Knights Defense, Knight Attack",
-      "King's Gambit Accepted: King's Knight's Gambit",
-      "Three Knights Opening"
+      "Italian Game: Two Knights Defense, Open Variation",
+      "Ruy Lopez",
+      "Vienna Gambit, with Max Lange Defense: Steinitz Gambit"
     ],
     "ex": "C40 · 1.e4 e5 2.Nf3",
     "type": "which"
@@ -51,9 +51,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin King's Knight Opening?",
     "a": [
       "1.e4 e5 2.Nf3",
-      "1.e4 e5 2.Nc3 Nf6",
-      "1.e4 e5 2.d4 exd4",
-      "1.e4 e5 2.f4"
+      "1.e4 e5 2.Nc3 Nc6",
+      "1.e4 e5 2.Bc4 Bc5",
+      "1.e4 e5 2.f4 exf4"
     ],
     "ex": "C40 · 1.e4 e5 2.Nf3"
   },
@@ -62,9 +62,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.d4 Nf6 2.c4 — which opening is this?",
     "a": [
       "Indian Defense: Normal Variation",
-      "Benoni Defense: Modern Variation",
-      "Slav Defense: Modern Line",
-      "Queen's Indian Defense"
+      "Indian Defense: West Indian Defense",
+      "Nimzo-Indian Defense: Classical Variation",
+      "Queen's Indian Defense: Fianchetto Variation"
     ],
     "ex": "A50 · 1.d4 Nf6 2.c4",
     "type": "which"
@@ -74,9 +74,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin Indian Defense: Normal Variation?",
     "a": [
       "1.d4 Nf6 2.c4",
-      "1.d4 f5 2.c4 Nf6 3.g3",
-      "1.d4 d5 2.c4 e6",
-      "1.d4 Nf6 2.Nf3 g6"
+      "1.d4 d5 2.e4 dxe4 3.Nc3 Nf6 4.f3",
+      "1.d4 d5 2.c4 c6 3.Nc3 Nf6",
+      "1.d4 Nf6 2.Nf3"
     ],
     "ex": "A50 · 1.d4 Nf6 2.c4"
   },
@@ -85,9 +85,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.e4 e5 2.Nf3 Nc6 — which opening is this?",
     "a": [
       "King's Knight Opening: Normal Variation",
-      "King's Gambit",
-      "Ruy Lopez: Berlin Defense",
-      "Vienna Game"
+      "Ruy Lopez: Morphy Defense",
+      "King's Gambit Declined: Falkbeer Countergambit Accepted",
+      "Italian Game: Two Knights Defense, Knight Attack"
     ],
     "ex": "C44 · 1.e4 e5 2.Nf3 Nc6",
     "type": "which"
@@ -97,9 +97,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin King's Knight Opening: Normal Variation?",
     "a": [
       "1.e4 e5 2.Nf3 Nc6",
-      "1.e4 e5 2.d4",
-      "1.e4 e5 2.f4 exf4 3.Nf3",
-      "1.e4 e5 2.d4 exd4"
+      "1.e4 e5 2.Nf3 f5",
+      "1.e4 e5 2.f4 exf4 3.Bc4 Qh4+",
+      "1.e4 e5 2.Nc3 Nc6"
     ],
     "ex": "C44 · 1.e4 e5 2.Nf3 Nc6"
   },
@@ -108,9 +108,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.d4 d5 2.c4 — which opening is this?",
     "a": [
       "Queen's Gambit",
-      "Benoni Defense: Modern Variation",
-      "Indian Defense",
-      "Blackmar-Diemer Gambit Accepted"
+      "Queen's Indian Defense: Fianchetto Variation",
+      "King's Indian Defense",
+      "Grünfeld Defense: Exchange Variation"
     ],
     "ex": "D06 · 1.d4 d5 2.c4",
     "type": "which"
@@ -120,9 +120,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin Queen's Gambit?",
     "a": [
       "1.d4 d5 2.c4",
-      "1.d4 d5 2.e4",
       "1.d4 d5 2.e4 dxe4 3.Nc3 Nf6 4.f3",
-      "1.d4 Nf6 2.c4 g6 3.Nf3"
+      "1.d4 d5 2.e4",
+      "1.d4 Nf6 2.Nf3"
     ],
     "ex": "D06 · 1.d4 d5 2.c4"
   },
@@ -131,9 +131,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.d4 Nf6 2.c4 e6 — which opening is this?",
     "a": [
       "Indian Defense",
-      "Blackmar-Diemer Gambit",
-      "Queen's Gambit Declined: Queen's Knight Variation",
-      "Slav Defense"
+      "Dutch Defense: Classical Variation",
+      "Blumenfeld Countergambit",
+      "Queen's Gambit Declined: Albin Countergambit"
     ],
     "ex": "E00 · 1.d4 Nf6 2.c4 e6",
     "type": "which"
@@ -143,9 +143,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin Indian Defense?",
     "a": [
       "1.d4 Nf6 2.c4 e6",
-      "1.d4 f5 2.c4 Nf6 3.g3",
-      "1.d4 d5 2.e4 dxe4 3.Nc3 Nf6 4.f3",
-      "1.d4 Nf6 2.c4 g6 3.Nf3 Bg7"
+      "1.d4 d5 2.c4 c6",
+      "1.d4 d5 2.c4 e5",
+      "1.d4 d5 2.c4"
     ],
     "ex": "E00 · 1.d4 Nf6 2.c4 e6"
   },
@@ -154,9 +154,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.e4 c5 2.Nf3 — which opening is this?",
     "a": [
       "Sicilian Defense",
-      "Queen's Pawn Game: Zukertort Variation",
-      "French Defense: Normal Variation",
-      "King's Knight Opening: Normal Variation"
+      "Indian Defense: Knights Variation",
+      "Blackmar-Diemer Gambit Accepted",
+      "Slav Defense: Modern Line"
     ],
     "ex": "B27 · 1.e4 c5 2.Nf3",
     "type": "which"
@@ -166,9 +166,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin Sicilian Defense?",
     "a": [
       "1.e4 c5 2.Nf3",
+      "1.d4 d5 2.c4 dxc4",
       "1.e4 e5 2.Nf3 Nc6 3.Bc4 Nf6",
-      "1.e4 e5 2.f4 exf4 3.Bc4",
-      "1.e4 e6 2.d4 d5 3.Nc3 Bb4"
+      "1.e4 e5 2.Nf3 Nc6 3.d4"
     ],
     "ex": "B27 · 1.e4 c5 2.Nf3"
   },
@@ -177,9 +177,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.e4 e5 2.Nf3 Nc6 3.Bb5 — which opening is this?",
     "a": [
       "Ruy Lopez",
-      "Four Knights Game",
-      "King's Knight Opening: Normal Variation",
-      "King's Gambit Accepted"
+      "Vienna Gambit, with Max Lange Defense",
+      "Scotch Game: Scotch Gambit",
+      "Italian Game"
     ],
     "ex": "C60 · 1.e4 e5 2.Nf3 Nc6 3.Bb5",
     "type": "which"
@@ -189,9 +189,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin Ruy Lopez?",
     "a": [
       "1.e4 e5 2.Nf3 Nc6 3.Bb5",
+      "1.e4 e5 2.Nf3 Nc6 3.Bc4 Nf6 4.Ng5",
       "1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.b4",
-      "1.e4 e5 2.Nf3 Nc6 3.Nc3",
-      "1.e4 e5 2.Nf3 Nc6 3.Bc4"
+      "1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.O-O"
     ],
     "ex": "C60 · 1.e4 e5 2.Nf3 Nc6 3.Bb5"
   },
@@ -200,9 +200,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.d4 Nf6 2.c4 g6 — which opening is this?",
     "a": [
       "Indian Defense: West Indian Defense",
+      "Tarrasch Defense",
       "Grünfeld Defense: Three Knights Variation",
-      "East Indian Defense",
-      "King's Indian Defense: Normal Variation"
+      "Indian Defense: Knights Variation"
     ],
     "ex": "E60 · 1.d4 Nf6 2.c4 g6",
     "type": "which"
@@ -212,20 +212,43 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin Indian Defense: West Indian Defense?",
     "a": [
       "1.d4 Nf6 2.c4 g6",
-      "1.d4 d5 2.c4 dxc4 3.Nf3",
-      "1.d4 Nf6 2.c4 c5",
-      "1.d4 d5 2.e4 dxe4"
+      "1.d4 Nf6 2.c4 c5 3.d5 e6",
+      "1.d4 d5 2.c4 Nc6",
+      "1.d4 d5 2.e4 dxe4 3.Nc3 Nf6 4.f3"
     ],
     "ex": "E60 · 1.d4 Nf6 2.c4 g6"
+  },
+  {
+    "topic": "french",
+    "q": "1.e4 e6 2.d4 — which opening is this?",
+    "a": [
+      "French Defense: Normal Variation",
+      "French Defense: Classical Variation",
+      "Caro-Kann Defense: Exchange Variation",
+      "Caro-Kann Defense: Modern Variation"
+    ],
+    "ex": "C00 · 1.e4 e6 2.d4",
+    "type": "which"
+  },
+  {
+    "topic": "french",
+    "q": "Which moves begin French Defense: Normal Variation?",
+    "a": [
+      "1.e4 e6 2.d4",
+      "1.e4 c6 2.d4 d5 3.Nd2",
+      "1.e4 c6 2.d4 d5 3.exd5",
+      "1.e4 c6 2.d4"
+    ],
+    "ex": "C00 · 1.e4 e6 2.d4"
   },
   {
     "topic": "open",
     "q": "1.e4 e5 2.f4 — which opening is this?",
     "a": [
       "King's Gambit",
-      "Four Knights Game",
-      "Latvian Gambit",
-      "Ruy Lopez: Berlin Defense"
+      "Four Knights Game: Spanish Variation",
+      "Bishop's Opening: Boi Variation",
+      "Ruy Lopez: Bird's Defense Deferred"
     ],
     "ex": "C30 · 1.e4 e5 2.f4",
     "type": "which"
@@ -235,9 +258,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin King's Gambit?",
     "a": [
       "1.e4 e5 2.f4",
-      "1.e4 e5 2.Nf3 Nc6 3.Bb5 a6",
-      "1.e4 e5 2.Nc3",
-      "1.e4 e5 2.Bc4"
+      "1.e4 e5 2.Nf3 d6",
+      "1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.O-O",
+      "1.e4 e5 2.Nc3 Nc6 3.f4"
     ],
     "ex": "C30 · 1.e4 e5 2.f4"
   },
@@ -246,9 +269,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.e4 e5 2.Nf3 Nc6 3.Bc4 — which opening is this?",
     "a": [
       "Italian Game",
-      "Petrov's Defense",
-      "Bishop's Opening",
-      "Center Game Accepted"
+      "Scotch Game: Scotch Gambit",
+      "Bishop's Opening: Boi Variation",
+      "Scotch Game"
     ],
     "ex": "C50 · 1.e4 e5 2.Nf3 Nc6 3.Bc4",
     "type": "which"
@@ -258,9 +281,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin Italian Game?",
     "a": [
       "1.e4 e5 2.Nf3 Nc6 3.Bc4",
-      "1.e4 e5 2.Nc3 Nf6",
-      "1.e4 e5 2.Nf3 d6",
-      "1.e4 e5 2.Nc3"
+      "1.e4 e5 2.Nf3 Nf6",
+      "1.e4 e5 2.Nf3 f5",
+      "1.e4 e5 2.Nc3 Nc6"
     ],
     "ex": "C50 · 1.e4 e5 2.Nf3 Nc6 3.Bc4"
   },
@@ -269,9 +292,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.e4 e6 2.d4 d5 — which opening is this?",
     "a": [
       "French Defense",
-      "Philidor Defense",
-      "King's Indian Defense: Fianchetto Variation",
-      "Scotch Game"
+      "Caro-Kann Defense: Panov Attack",
+      "Caro-Kann Defense: Modern Variation",
+      "Caro-Kann Defense: Main Line"
     ],
     "ex": "C00 · 1.e4 e6 2.d4 d5",
     "type": "which"
@@ -281,9 +304,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin French Defense?",
     "a": [
       "1.e4 e6 2.d4 d5",
-      "1.d4 d5 2.c4 c6 3.Nf3",
-      "1.d4 Nf6 2.c4 e6 3.Nc3 Bb4 4.e3",
-      "1.e4 d5 2.exd5"
+      "1.e4 c6 2.d4 d5 3.exd5",
+      "1.e4 c6 2.d4 d5 3.Nd2",
+      "1.e4 c6 2.d4 d5 3.exd5 cxd5 4.c4"
     ],
     "ex": "C00 · 1.e4 e6 2.d4 d5"
   },
@@ -292,9 +315,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.d4 Nf6 2.c4 e6 3.Nf3 — which opening is this?",
     "a": [
       "Indian Defense: Anti-Nimzo-Indian",
-      "Queen's Indian Defense",
-      "Queen's Gambit Accepted",
-      "Catalan Opening"
+      "Old Indian Defense",
+      "Semi-Slav Defense: Main Line",
+      "Dutch Defense: Normal Variation"
     ],
     "ex": "E10 · 1.d4 Nf6 2.c4 e6 3.Nf3",
     "type": "which"
@@ -305,8 +328,8 @@ export const chessOpenings: QuizCategory = {
     "a": [
       "1.d4 Nf6 2.c4 e6 3.Nf3",
       "1.d4 Nf6 2.c4 c5 3.d5 e6",
-      "1.d4 Nf6 2.c4 c5 3.d5",
-      "1.d4 d5 2.e4 dxe4"
+      "1.d4 Nf6 2.c4 e6 3.g3",
+      "1.d4 Nf6 2.c4 e6 3.Nc3 d5 4.cxd5"
     ],
     "ex": "E10 · 1.d4 Nf6 2.c4 e6 3.Nf3"
   },
@@ -315,9 +338,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.e4 e5 2.Nf3 Nc6 3.Bb5 a6 — which opening is this?",
     "a": [
       "Ruy Lopez: Morphy Defense",
-      "Ruy Lopez: Bird's Defense Deferred",
-      "Center Game",
-      "King's Gambit Accepted: King's Knight's Gambit"
+      "Italian Game: Evans Gambit",
+      "King's Gambit Accepted: King's Knight's Gambit",
+      "King's Gambit Accepted: Bishop's Gambit"
     ],
     "ex": "C70 · 1.e4 e5 2.Nf3 Nc6 3.Bb5 a6",
     "type": "which"
@@ -327,9 +350,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin Ruy Lopez: Morphy Defense?",
     "a": [
       "1.e4 e5 2.Nf3 Nc6 3.Bb5 a6",
-      "1.e4 e5 2.Nf3 f5",
-      "1.e4 e5 2.f4",
-      "1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5"
+      "1.e4 e5 2.Nf3 Nc6 3.Bc4 Nf6",
+      "1.e4 e5 2.Bc4",
+      "1.e4 e5 2.Nf3 Nc6 3.Nc3 Nf6 4.Bb5"
     ],
     "ex": "C70 · 1.e4 e5 2.Nf3 Nc6 3.Bb5 a6"
   },
@@ -338,8 +361,8 @@ export const chessOpenings: QuizCategory = {
     "q": "1.d4 Nf6 2.c4 g6 3.Nc3 — which opening is this?",
     "a": [
       "King's Indian Defense",
-      "Tarrasch Defense: Schara Gambit",
-      "Blackmar-Diemer Gambit: Fritz Attack",
+      "Modern Defense",
+      "Queen's Gambit",
       "Blackmar-Diemer Gambit Accepted"
     ],
     "ex": "E61 · 1.d4 Nf6 2.c4 g6 3.Nc3",
@@ -350,9 +373,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin King's Indian Defense?",
     "a": [
       "1.d4 Nf6 2.c4 g6 3.Nc3",
-      "1.d4 f5 2.c4 Nf6",
-      "1.d4 Nf6 2.c4 e6 3.Nc3",
-      "1.d4 f5 2.c4 Nf6 3.g3"
+      "1.d4 d5 2.c4 e6 3.Nc3 c6",
+      "1.d4 d5 2.e4 dxe4 3.Nc3 Nf6 4.f3",
+      "1.d4 d5 2.c4"
     ],
     "ex": "E61 · 1.d4 Nf6 2.c4 g6 3.Nc3"
   },
@@ -361,9 +384,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.e4 e5 2.Nf3 Nc6 3.Bb5 a6 4.Ba4 — which opening is this?",
     "a": [
       "Ruy Lopez: Bird's Defense Deferred",
-      "Italian Game",
-      "King's Knight Opening",
-      "Four Knights Game: Spanish Variation"
+      "King's Gambit Accepted: King's Knight's Gambit",
+      "King's Gambit Declined: Falkbeer Countergambit Accepted",
+      "Center Game Accepted"
     ],
     "ex": "C70 · 1.e4 e5 2.Nf3 Nc6 3.Bb5 a6 4.Ba4",
     "type": "which"
@@ -373,9 +396,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin Ruy Lopez: Bird's Defense Deferred?",
     "a": [
       "1.e4 e5 2.Nf3 Nc6 3.Bb5 a6 4.Ba4",
-      "1.e4 e5 2.Nf3 d6",
-      "1.e4 e5 2.Nf3 Nc6 3.Nc3 Nf6 4.Bb5",
-      "1.e4 e5 2.f4 exf4 3.Nf3"
+      "1.e4 e5 2.Bc4 Bc5",
+      "1.e4 e5 2.f4 exf4 3.Bc4 Qh4+",
+      "1.e4 e5 2.Nc3 Nc6"
     ],
     "ex": "C70 · 1.e4 e5 2.Nf3 Nc6 3.Bb5 a6 4.Ba4"
   },
@@ -384,9 +407,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.e4 e5 2.f4 exf4 — which opening is this?",
     "a": [
       "King's Gambit Accepted",
-      "Center Game",
-      "Four Knights Game: Spanish Variation",
-      "Italian Game: Classical Variation"
+      "Italian Game: Two Knights Defense",
+      "Bishop's Opening",
+      "Vienna Gambit, with Max Lange Defense"
     ],
     "ex": "C33 · 1.e4 e5 2.f4 exf4",
     "type": "which"
@@ -396,9 +419,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin King's Gambit Accepted?",
     "a": [
       "1.e4 e5 2.f4 exf4",
-      "1.e4 e5 2.Nf3 Nc6 3.Bb5 a6 4.Ba4",
-      "1.e4 e5 2.Nf3 Nc6 3.Nc3 Nf6 4.Bb5",
-      "1.e4 e5 2.Nf3 Nc6 3.Nc3 Nf6"
+      "1.e4 e5 2.Bc4 Nf6",
+      "1.e4 e5 2.d4 exd4",
+      "1.e4 e5 2.Nf3 Nf6"
     ],
     "ex": "C33 · 1.e4 e5 2.f4 exf4"
   },
@@ -407,9 +430,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.d4 d5 2.c4 e6 — which opening is this?",
     "a": [
       "Queen's Gambit Declined",
-      "Queen's Indian Defense: Fianchetto Variation",
-      "King's Indian Defense: Fianchetto Variation",
-      "Grünfeld Defense"
+      "Catalan Opening",
+      "Grünfeld Defense: Exchange Variation",
+      "Blackmar-Diemer Gambit: Fritz Attack"
     ],
     "ex": "D30 · 1.d4 d5 2.c4 e6",
     "type": "which"
@@ -419,9 +442,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin Queen's Gambit Declined?",
     "a": [
       "1.d4 d5 2.c4 e6",
-      "1.d4 d5 2.Nf3",
-      "1.d4 Nf6 2.Nf3 g6",
-      "1.d4 Nf6 2.c4 c5"
+      "1.d4 Nf6 2.c4 e6 3.Nc3 Bb4 4.Qc2",
+      "1.d4 Nf6 2.c4 e6",
+      "1.d4 Nf6 2.Nf3 g6"
     ],
     "ex": "D30 · 1.d4 d5 2.c4 e6"
   },
@@ -430,9 +453,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.e4 c5 2.Nf3 d6 — which opening is this?",
     "a": [
       "Sicilian Defense: Modern Variations",
-      "Sicilian Defense: Open",
-      "Sicilian Defense: French Variation, Open",
-      "Sicilian Defense: Kan Variation"
+      "Sicilian Defense: Halasz Gambit",
+      "Sicilian Defense: Old Sicilian",
+      "Sicilian Defense: Open"
     ],
     "ex": "B50 · 1.e4 c5 2.Nf3 d6",
     "type": "which"
@@ -442,9 +465,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin Sicilian Defense: Modern Variations?",
     "a": [
       "1.e4 c5 2.Nf3 d6",
-      "1.e4 c5 2.Nf3 e6 3.d4 cxd4 4.Nxd4",
-      "1.e4 c5 2.Nf3 Nc6 3.d4",
-      "1.e4 c5 2.Nf3 e6"
+      "1.e4 c5 2.d4 cxd4",
+      "1.e4 c5 2.d4",
+      "1.e4 c5 2.Nc3"
     ],
     "ex": "B50 · 1.e4 c5 2.Nf3 d6"
   },
@@ -453,9 +476,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.d4 Nf6 2.c4 e6 3.Nc3 — which opening is this?",
     "a": [
       "Nimzo-Indian Defense",
-      "King's Indian Defense: Fianchetto Variation",
-      "Indian Defense: Anti-Nimzo-Indian",
-      "Dutch Defense: Normal Variation"
+      "Semi-Slav Defense: Accelerated Move Order",
+      "Queen's Gambit Declined: Albin Countergambit",
+      "Tarrasch Defense: Schara Gambit"
     ],
     "ex": "E20 · 1.d4 Nf6 2.c4 e6 3.Nc3",
     "type": "which"
@@ -465,9 +488,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin Nimzo-Indian Defense?",
     "a": [
       "1.d4 Nf6 2.c4 e6 3.Nc3",
-      "1.d4 Nf6 2.c4 c5 3.d5 e6",
-      "1.d4 d5 2.Nf3",
-      "1.d4 d5 2.c4"
+      "1.d4 Nf6 2.c4 c5",
+      "1.d4 d5 2.c4 e6 3.Nc3 c5",
+      "1.d4 d5 2.c4 e6 3.Nc3 c6"
     ],
     "ex": "E20 · 1.d4 Nf6 2.c4 e6 3.Nc3"
   },
@@ -476,9 +499,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 — which opening is this?",
     "a": [
       "Italian Game: Giuoco Piano",
-      "Bishop's Opening",
-      "Italian Game: Evans Gambit",
-      "Center Game Accepted"
+      "King's Gambit Declined: Falkbeer Countergambit Accepted",
+      "King's Gambit",
+      "King's Knight Opening"
     ],
     "ex": "C50 · 1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5",
     "type": "which"
@@ -488,20 +511,43 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin Italian Game: Giuoco Piano?",
     "a": [
       "1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5",
-      "1.e4 e5 2.Nf3 Nc6 3.d4",
-      "1.e4 e5 2.Nf3 Nc6 3.Nc3 Nf6 4.Bb5",
-      "1.e4 e5 2.Nc3 Nc6"
+      "1.e4 e5 2.Nf3 Nc6 3.Bc4 Nf6",
+      "1.e4 e5 2.Nf3 Nc6 3.Nc3",
+      "1.e4 e5 2.Nf3 Nf6"
     ],
     "ex": "C50 · 1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5"
+  },
+  {
+    "topic": "french",
+    "q": "1.e4 e6 2.d4 d5 3.Nc3 — which opening is this?",
+    "a": [
+      "French Defense: Paulsen Variation",
+      "French Defense: Normal Variation",
+      "Caro-Kann Defense: Main Line",
+      "French Defense: Winawer Variation, Advance Variation"
+    ],
+    "ex": "C10 · 1.e4 e6 2.d4 d5 3.Nc3",
+    "type": "which"
+  },
+  {
+    "topic": "french",
+    "q": "Which moves begin French Defense: Paulsen Variation?",
+    "a": [
+      "1.e4 e6 2.d4 d5 3.Nc3",
+      "1.e4 c6 2.d4 d5 3.exd5",
+      "1.e4 e6 2.d4 d5 3.e5",
+      "1.e4 c6 2.d4 d5 3.Nd2 dxe4"
+    ],
+    "ex": "C10 · 1.e4 e6 2.d4 d5 3.Nc3"
   },
   {
     "topic": "closed",
     "q": "1.d4 d5 2.c4 e6 3.Nc3 — which opening is this?",
     "a": [
       "Queen's Gambit Declined: Queen's Knight Variation",
-      "Nimzo-Indian Defense: Rubinstein System",
-      "King's Indian Defense: Normal Variation",
-      "Queen's Gambit Declined: Three Knights Variation"
+      "Indian Defense: Maddigan Gambit",
+      "Blackmar-Diemer Gambit",
+      "Bogo-Indian Defense"
     ],
     "ex": "D31 · 1.d4 d5 2.c4 e6 3.Nc3",
     "type": "which"
@@ -511,9 +557,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin Queen's Gambit Declined: Queen's Knight Variation?",
     "a": [
       "1.d4 d5 2.c4 e6 3.Nc3",
-      "1.d4 Nf6 2.c4 g6 3.Nc3",
-      "1.d4 d5 2.c4 dxc4 3.Nf3",
-      "1.d4 Nf6 2.c4 e6 3.Nf3 b6 4.g3"
+      "1.d4 Nf6 2.c4 e6 3.Nc3 Bb4 4.Qc2",
+      "1.d4 Nf6 2.c4",
+      "1.d4 Nf6 2.c4 g6 3.Nf3 Bg7"
     ],
     "ex": "D31 · 1.d4 d5 2.c4 e6 3.Nc3"
   },
@@ -522,9 +568,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.d4 d5 2.c4 c6 — which opening is this?",
     "a": [
       "Slav Defense",
-      "Dutch Defense",
-      "Queen's Gambit Accepted",
-      "King's Indian Defense: Fianchetto Variation"
+      "Tarrasch Defense: Schara Gambit",
+      "Queen's Gambit Declined: Tarrasch Defense, Pseudo-Tarrasch",
+      "Queen's Gambit Declined"
     ],
     "ex": "D10 · 1.d4 d5 2.c4 c6",
     "type": "which"
@@ -534,9 +580,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin Slav Defense?",
     "a": [
       "1.d4 d5 2.c4 c6",
-      "1.d4 Nf6 2.Nf3",
-      "1.d4 Nf6 2.c4 g6 3.Nc3 Bg7",
-      "1.d4 Nf6 2.c4 e6 3.Nf3 d5"
+      "1.d4 d5 2.c4 dxc4 3.Nf3",
+      "1.d4 Nf6 2.c4 e6 3.Nf3 b6 4.g3",
+      "1.d4 Nf6 2.c4 g6 3.Nc3"
     ],
     "ex": "D10 · 1.d4 d5 2.c4 c6"
   },
@@ -545,9 +591,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.e4 c5 2.Nf3 d6 3.d4 cxd4 4.Nxd4 — which opening is this?",
     "a": [
       "Sicilian Defense: Modern Variations, Main Line",
-      "Sicilian Defense: Kan Variation",
       "Sicilian Defense: Open",
-      "Sicilian Defense: Closed"
+      "Sicilian Defense: O'Kelly Variation",
+      "Sicilian Defense: Kan Variation"
     ],
     "ex": "B54 · 1.e4 c5 2.Nf3 d6 3.d4 cxd4 4.Nxd4",
     "type": "which"
@@ -557,9 +603,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin Sicilian Defense: Modern Variations, Main Line?",
     "a": [
       "1.e4 c5 2.Nf3 d6 3.d4 cxd4 4.Nxd4",
-      "1.e4 c5 2.Nf3 e6 3.d4",
+      "1.e4 c5 2.d4 cxd4",
       "1.e4 c5 2.Nf3 e6 3.d4 cxd4 4.Nxd4",
-      "1.e4 c5 2.Nf3 e6 3.d4 cxd4"
+      "1.e4 c5 2.d4 cxd4 3.c3 dxc3"
     ],
     "ex": "B54 · 1.e4 c5 2.Nf3 d6 3.d4 cxd4 4.Nxd4"
   },
@@ -568,9 +614,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.d4 Nf6 2.c4 g6 3.Nc3 Bg7 — which opening is this?",
     "a": [
       "King's Indian Defense: Normal Variation",
-      "Queen's Pawn Game: Zukertort Variation",
+      "Benko Gambit Accepted",
       "Queen's Gambit Declined",
-      "Queen's Indian Defense"
+      "Modern Defense"
     ],
     "ex": "E70 · 1.d4 Nf6 2.c4 g6 3.Nc3 Bg7",
     "type": "which"
@@ -580,9 +626,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin King's Indian Defense: Normal Variation?",
     "a": [
       "1.d4 Nf6 2.c4 g6 3.Nc3 Bg7",
-      "1.d4 Nf6 2.c4 c5 3.d5 e6",
-      "1.d4 Nf6 2.c4 g6 3.Nf3 Bg7",
-      "1.d4 d5 2.c4 c6 3.Nf3"
+      "1.d4 d5 2.c4 e5",
+      "1.d4 d5 2.c4 e6 3.Nc3",
+      "1.d4 f5 2.c4 Nf6 3.g3 e6"
     ],
     "ex": "E70 · 1.d4 Nf6 2.c4 g6 3.Nc3 Bg7"
   },
@@ -591,9 +637,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.e4 e5 2.f4 exf4 3.Nf3 — which opening is this?",
     "a": [
       "King's Gambit Accepted: King's Knight's Gambit",
-      "Ruy Lopez",
-      "Three Knights Opening",
-      "Philidor Defense"
+      "Italian Game: Evans Gambit",
+      "Petrov's Defense",
+      "Vienna Game"
     ],
     "ex": "C34 · 1.e4 e5 2.f4 exf4 3.Nf3",
     "type": "which"
@@ -603,9 +649,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin King's Gambit Accepted: King's Knight's Gambit?",
     "a": [
       "1.e4 e5 2.f4 exf4 3.Nf3",
-      "1.e4 e5 2.Nf3 Nc6 3.Bb5 a6 4.Ba4",
-      "1.e4 e5 2.Nc3 Nc6",
-      "1.e4 e5 2.Nf3 Nc6 3.Bb5 a6"
+      "1.e4 e5 2.Nf3 Nc6 3.Bb5 a6",
+      "1.e4 e5 2.d4",
+      "1.e4 e5 2.Nf3 Nf6"
     ],
     "ex": "C34 · 1.e4 e5 2.f4 exf4 3.Nf3"
   },
@@ -614,9 +660,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.e4 c6 2.d4 — which opening is this?",
     "a": [
       "Caro-Kann Defense",
-      "French Defense: Winawer Variation, Advance Variation",
       "French Defense: Classical Variation",
-      "French Defense: Paulsen Variation"
+      "French Defense: Winawer Variation",
+      "French Defense: Advance Variation"
     ],
     "ex": "B12 · 1.e4 c6 2.d4",
     "type": "which"
@@ -626,9 +672,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin Caro-Kann Defense?",
     "a": [
       "1.e4 c6 2.d4",
-      "1.e4 e6 2.d4 d5 3.Nc3 Nf6",
-      "1.e4 e6 2.d4 d5 3.Nc3 Bb4 4.e5",
-      "1.e4 e6 2.d4 d5 3.Nc3 Bb4"
+      "1.e4 e6 2.d4 d5",
+      "1.e4 e6 2.d4 d5 3.Nc3 Bb4",
+      "1.e4 e6 2.d4 d5 3.e5"
     ],
     "ex": "B12 · 1.e4 c6 2.d4"
   },
@@ -637,9 +683,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.d4 Nf6 2.c4 e6 3.Nf3 d5 — which opening is this?",
     "a": [
       "Queen's Gambit Declined: Traditional Variation",
-      "Queen's Indian Defense",
-      "Indian Defense: Normal Variation",
-      "Indian Defense: Anti-Nimzo-Indian"
+      "Grünfeld Defense: Three Knights Variation",
+      "King's Indian Defense: Normal Variation",
+      "King's Indian Defense: Fianchetto Variation"
     ],
     "ex": "D30 · 1.d4 Nf6 2.c4 e6 3.Nf3 d5",
     "type": "which"
@@ -649,9 +695,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin Queen's Gambit Declined: Traditional Variation?",
     "a": [
       "1.d4 Nf6 2.c4 e6 3.Nf3 d5",
-      "1.d4 Nf6 2.c4 e6 3.Nc3 Bb4 4.Qc2",
-      "1.d4 d5 2.c4 dxc4",
-      "1.d4 d5 2.e4 dxe4"
+      "1.d4 Nf6 2.c4 c5 3.d5 e6",
+      "1.d4 d5 2.c4 Nc6",
+      "1.d4 d5 2.c4 e6 3.Nc3 c6"
     ],
     "ex": "D30 · 1.d4 Nf6 2.c4 e6 3.Nf3 d5"
   },
@@ -660,9 +706,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.d4 d5 2.c4 c6 3.Nf3 — which opening is this?",
     "a": [
       "Slav Defense: Modern Line",
-      "Indian Defense",
-      "Queen's Gambit Declined",
-      "Catalan Opening"
+      "Benoni Defense: Modern Variation, Snake Variation",
+      "Catalan Opening: Open Defense",
+      "King's Indian Defense: Fianchetto Variation, Immediate Fianchetto"
     ],
     "ex": "D11 · 1.d4 d5 2.c4 c6 3.Nf3",
     "type": "which"
@@ -672,9 +718,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin Slav Defense: Modern Line?",
     "a": [
       "1.d4 d5 2.c4 c6 3.Nf3",
-      "1.d4 d5 2.c4 e6 3.Nc3 c5",
-      "1.d4 Nf6 2.c4 g6",
-      "1.d4 Nf6 2.c4 g6 3.Nc3 d5"
+      "1.d4 Nf6 2.c4 d6",
+      "1.d4 d5 2.e4 dxe4",
+      "1.d4 Nf6 2.c4 e6 3.Nf3 b6"
     ],
     "ex": "D11 · 1.d4 d5 2.c4 c6 3.Nf3"
   },
@@ -683,9 +729,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.d4 Nf6 2.c4 e6 3.Nf3 d5 4.Nc3 — which opening is this?",
     "a": [
       "Queen's Gambit Declined: Three Knights Variation",
-      "Benoni Defense: Modern Variation",
-      "King's Indian Defense",
-      "Blackmar-Diemer Gambit: Fritz Attack"
+      "Benko Gambit",
+      "Benoni Defense",
+      "Nimzo-Indian Defense: Rubinstein System"
     ],
     "ex": "D37 · 1.d4 Nf6 2.c4 e6 3.Nf3 d5 4.Nc3",
     "type": "which"
@@ -695,9 +741,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin Queen's Gambit Declined: Three Knights Variation?",
     "a": [
       "1.d4 Nf6 2.c4 e6 3.Nf3 d5 4.Nc3",
-      "1.d4 Nf6 2.Nf3 g6",
-      "1.d4 Nf6 2.c4 e6 3.Nf3 b6 4.g3",
-      "1.d4 d5 2.c4 e6 3.Nc3"
+      "1.d4 d5 2.e4 dxe4 3.Nc3 Nf6 4.f3",
+      "1.d4 Nf6 2.c4 g6 3.Nc3",
+      "1.d4 d5 2.Nf3"
     ],
     "ex": "D37 · 1.d4 Nf6 2.c4 e6 3.Nf3 d5 4.Nc3"
   },
@@ -706,9 +752,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.e4 c5 2.Nf3 Nc6 — which opening is this?",
     "a": [
       "Sicilian Defense: Old Sicilian",
+      "Sicilian Defense: Smith-Morra Gambit Accepted, Fianchetto Defense",
       "Sicilian Defense: Closed",
-      "Sicilian Defense: Smith-Morra Gambit",
-      "Sicilian Defense: French Variation, Open"
+      "Sicilian Defense: O'Kelly Variation"
     ],
     "ex": "B30 · 1.e4 c5 2.Nf3 Nc6",
     "type": "which"
@@ -718,9 +764,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin Sicilian Defense: Old Sicilian?",
     "a": [
       "1.e4 c5 2.Nf3 Nc6",
-      "1.e4 c5 2.Nf3 e6",
-      "1.e4 c5 2.Nf3 d6 3.d4 cxd4 4.Nxd4",
-      "1.e4 c5 2.d4"
+      "1.e4 c5 2.d4 cxd4 3.c3 dxc3",
+      "1.e4 c5 2.d4 cxd4",
+      "1.e4 c5 2.Nc3"
     ],
     "ex": "B30 · 1.e4 c5 2.Nf3 Nc6"
   },
@@ -729,8 +775,8 @@ export const chessOpenings: QuizCategory = {
     "q": "1.e4 c5 2.Nf3 e6 — which opening is this?",
     "a": [
       "Sicilian Defense: French Variation",
-      "Sicilian Defense: Halasz Gambit",
-      "Sicilian Defense: Closed",
+      "Sicilian Defense: Closed, Traditional",
+      "Sicilian Defense: Drazic Variation",
       "Sicilian Defense: Modern Variations"
     ],
     "ex": "B40 · 1.e4 c5 2.Nf3 e6",
@@ -741,9 +787,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin Sicilian Defense: French Variation?",
     "a": [
       "1.e4 c5 2.Nf3 e6",
-      "1.e4 c5 2.Nf3 Nc6 3.d4",
-      "1.e4 c5 2.Nf3 Nc6",
-      "1.e4 c5 2.Nf3 d6 3.d4 cxd4 4.Nxd4"
+      "1.e4 c5 2.Nc3 Nc6",
+      "1.e4 c5 2.Nf3 a6",
+      "1.e4 c5 2.d4 cxd4 3.c3 dxc3 4.Nxc3"
     ],
     "ex": "B40 · 1.e4 c5 2.Nf3 e6"
   },
@@ -753,8 +799,8 @@ export const chessOpenings: QuizCategory = {
     "a": [
       "Queen's Gambit Accepted",
       "Indian Defense: Anti-Nimzo-Indian",
-      "Nimzo-Indian Defense",
-      "Queen's Gambit Declined: Three Knights Variation"
+      "Queen's Gambit Declined: Three Knights Variation",
+      "Queen's Gambit Declined: Modern Variation"
     ],
     "ex": "D20 · 1.d4 d5 2.c4 dxc4",
     "type": "which"
@@ -764,9 +810,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin Queen's Gambit Accepted?",
     "a": [
       "1.d4 d5 2.c4 dxc4",
-      "1.d4 Nf6 2.c4 g6 3.Nc3 d5",
-      "1.d4 Nf6 2.c4 e6",
-      "1.d4 f5 2.c4"
+      "1.d4 d5 2.c4 e6 3.Nc3",
+      "1.d4 d5 2.c4 c6 3.Nc3 Nf6",
+      "1.d4 d5 2.e4 dxe4"
     ],
     "ex": "D20 · 1.d4 d5 2.c4 dxc4"
   },
@@ -775,9 +821,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.d4 Nf6 2.Nf3 — which opening is this?",
     "a": [
       "Indian Defense: Knights Variation",
-      "Slav Defense",
-      "Dutch Defense",
-      "Queen's Gambit Declined: Traditional Variation"
+      "Dutch Defense: Normal Variation",
+      "Bogo-Indian Defense",
+      "Blackmar-Diemer Gambit: Fritz Attack"
     ],
     "ex": "A46 · 1.d4 Nf6 2.Nf3",
     "type": "which"
@@ -787,9 +833,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin Indian Defense: Knights Variation?",
     "a": [
       "1.d4 Nf6 2.Nf3",
-      "1.d4 f5 2.c4 Nf6",
-      "1.d4 Nf6 2.c4 e6 3.Nc3",
-      "1.d4 Nf6 2.c4 g6 3.Nc3"
+      "1.d4 Nf6 2.c4 e6 3.Nc3 d5 4.Bg5",
+      "1.d4 Nf6 2.c4 g6 3.Nf3 Bg7",
+      "1.d4 d5 2.c4 e6 3.Nc3 c6"
     ],
     "ex": "A46 · 1.d4 Nf6 2.Nf3"
   },
@@ -798,9 +844,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.d4 Nf6 2.c4 e6 3.Nf3 b6 — which opening is this?",
     "a": [
       "Queen's Indian Defense",
-      "Tarrasch Defense",
-      "Benko Gambit",
-      "Nimzo-Indian Defense"
+      "King's Indian Defense: Fianchetto Variation, Immediate Fianchetto",
+      "Queen's Gambit Accepted",
+      "Queen's Gambit Declined: Normal Defense"
     ],
     "ex": "E12 · 1.d4 Nf6 2.c4 e6 3.Nf3 b6",
     "type": "which"
@@ -810,9 +856,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin Queen's Indian Defense?",
     "a": [
       "1.d4 Nf6 2.c4 e6 3.Nf3 b6",
-      "1.d4 d5 2.e4 dxe4",
-      "1.d4 d5 2.c4 dxc4",
-      "1.d4 d5 2.c4"
+      "1.d4 Nf6 2.c4 e6 3.Nc3 d5 4.Bg5",
+      "1.d4 Nf6 2.Nf3 e6",
+      "1.d4 d5 2.c4 e6 3.Nf3"
     ],
     "ex": "E12 · 1.d4 Nf6 2.c4 e6 3.Nf3 b6"
   },
@@ -821,9 +867,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.e4 e5 2.Nf3 Nc6 3.d4 — which opening is this?",
     "a": [
       "Scotch Game",
-      "King's Gambit Accepted",
-      "Italian Game: Two Knights Defense",
-      "Four Knights Game"
+      "Vienna Game: Max Lange Defense",
+      "Philidor Defense",
+      "Vienna Gambit, with Max Lange Defense: Steinitz Gambit"
     ],
     "ex": "C44 · 1.e4 e5 2.Nf3 Nc6 3.d4",
     "type": "which"
@@ -833,9 +879,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin Scotch Game?",
     "a": [
       "1.e4 e5 2.Nf3 Nc6 3.d4",
-      "1.e4 e5 2.Nf3 Nc6 3.Bc4",
-      "1.e4 e5 2.f4",
-      "1.e4 e5 2.f4 exf4 3.Bc4"
+      "1.e4 e5 2.f4 d5",
+      "1.e4 e5 2.Nf3 Nc6 3.Nc3",
+      "1.e4 e5 2.Nc3 Nc6 3.f4"
     ],
     "ex": "C44 · 1.e4 e5 2.Nf3 Nc6 3.d4"
   },
@@ -844,9 +890,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.e4 e5 2.Nf3 Nc6 3.Bc4 Nf6 — which opening is this?",
     "a": [
       "Italian Game: Two Knights Defense",
-      "Four Knights Game: Spanish Variation",
-      "Three Knights Opening",
-      "Vienna Game: Falkbeer Variation"
+      "Latvian Gambit",
+      "King's Gambit Accepted: Bishop's Gambit",
+      "Vienna Gambit, with Max Lange Defense: Steinitz Gambit"
     ],
     "ex": "C55 · 1.e4 e5 2.Nf3 Nc6 3.Bc4 Nf6",
     "type": "which"
@@ -856,9 +902,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin Italian Game: Two Knights Defense?",
     "a": [
       "1.e4 e5 2.Nf3 Nc6 3.Bc4 Nf6",
-      "1.e4 e5 2.Nf3 Nc6 3.Nc3 Nf6 4.Bb5",
-      "1.e4 e5 2.Bc4",
-      "1.e4 e5 2.Nf3 Nc6 3.d4"
+      "1.e4 e5 2.Bc4 Nf6",
+      "1.e4 e5 2.f4 exf4",
+      "1.e4 e5 2.f4 exf4 3.Bc4 Qh4+"
     ],
     "ex": "C55 · 1.e4 e5 2.Nf3 Nc6 3.Bc4 Nf6"
   },
@@ -867,9 +913,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.e4 e5 2.Nc3 — which opening is this?",
     "a": [
       "Vienna Game",
-      "Petrov's Defense",
-      "Latvian Gambit",
-      "King's Gambit Accepted: King's Knight's Gambit"
+      "Four Knights Game",
+      "King's Gambit Accepted",
+      "Scotch Game: Scotch Gambit"
     ],
     "ex": "C25 · 1.e4 e5 2.Nc3",
     "type": "which"
@@ -879,9 +925,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin Vienna Game?",
     "a": [
       "1.e4 e5 2.Nc3",
-      "1.e4 e5 2.Nf3 Nc6 3.Bc4 Nf6 4.Ng5",
-      "1.e4 e5 2.Nf3 Nc6 3.d4",
-      "1.e4 e5 2.Nf3 Nc6 3.Bb5 Nf6"
+      "1.e4 e5 2.Bc4 Bc5",
+      "1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.b4",
+      "1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5"
     ],
     "ex": "C25 · 1.e4 e5 2.Nc3"
   },
@@ -890,9 +936,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.d4 Nf6 2.c4 c5 — which opening is this?",
     "a": [
       "Benoni Defense",
-      "Queen's Gambit Declined",
-      "Dutch Defense: Fianchetto Variation",
-      "Blackmar-Diemer Gambit"
+      "Dutch Defense: Classical Variation",
+      "Queen's Gambit Declined: Three Knights Variation",
+      "Nimzo-Indian Defense: Rubinstein System"
     ],
     "ex": "A56 · 1.d4 Nf6 2.c4 c5",
     "type": "which"
@@ -902,9 +948,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin Benoni Defense?",
     "a": [
       "1.d4 Nf6 2.c4 c5",
-      "1.d4 Nf6 2.Nf3",
-      "1.d4 Nf6 2.c4 e6 3.Nc3 Bb4 4.e3",
-      "1.d4 d5 2.c4"
+      "1.d4 Nf6 2.c4 e6 3.Nf3 Bb4+",
+      "1.d4 d5 2.e4 dxe4 3.Nc3 Nf6 4.f3",
+      "1.d4 d5 2.c4 dxc4"
     ],
     "ex": "A56 · 1.d4 Nf6 2.c4 c5"
   },
@@ -913,9 +959,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.e4 e5 2.Nf3 Nf6 — which opening is this?",
     "a": [
       "Petrov's Defense",
-      "King's Knight Opening",
-      "Vienna Game: Falkbeer Variation",
-      "Center Game"
+      "Ruy Lopez: Morphy Defense",
+      "Four Knights Game",
+      "King's Gambit Accepted"
     ],
     "ex": "C42 · 1.e4 e5 2.Nf3 Nf6",
     "type": "which"
@@ -925,9 +971,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin Petrov's Defense?",
     "a": [
       "1.e4 e5 2.Nf3 Nf6",
-      "1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.b4",
-      "1.e4 e5 2.Nf3 f5",
-      "1.e4 e5 2.d4 exd4"
+      "1.e4 e5 2.Nf3 Nc6 3.d4 exd4 4.Bc4",
+      "1.e4 e5 2.Nf3 Nc6 3.Nc3",
+      "1.e4 e5 2.Nc3 Nc6"
     ],
     "ex": "C42 · 1.e4 e5 2.Nf3 Nf6"
   },
@@ -936,9 +982,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.e4 e6 2.d4 d5 3.Nc3 Bb4 — which opening is this?",
     "a": [
       "French Defense: Winawer Variation",
-      "French Defense: Tarrasch Variation",
-      "French Defense: Classical Variation",
-      "French Defense: Paulsen Variation"
+      "Caro-Kann Defense: Modern Variation",
+      "French Defense: Normal Variation",
+      "Caro-Kann Defense: Main Line"
     ],
     "ex": "C15 · 1.e4 e6 2.d4 d5 3.Nc3 Bb4",
     "type": "which"
@@ -948,9 +994,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin French Defense: Winawer Variation?",
     "a": [
       "1.e4 e6 2.d4 d5 3.Nc3 Bb4",
-      "1.e4 e6 2.d4 d5 3.Nc3 Nf6",
       "1.e4 e6 2.d4 d5 3.Nd2",
-      "1.e4 c6 2.d4"
+      "1.e4 e6 2.d4 d5 3.Nc3 Nf6 4.Bg5",
+      "1.e4 c6 2.d4 d5 3.Nd2 dxe4"
     ],
     "ex": "C15 · 1.e4 e6 2.d4 d5 3.Nc3 Bb4"
   },
@@ -959,9 +1005,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.e4 c5 2.Nf3 e6 3.d4 — which opening is this?",
     "a": [
       "Sicilian Defense: Drazic Variation",
-      "Sicilian Defense: Closed",
+      "Sicilian Defense: O'Kelly Variation",
       "Sicilian Defense: Modern Variations",
-      "Sicilian Defense: Smith-Morra Gambit"
+      "Sicilian Defense: French Variation, Open"
     ],
     "ex": "B40 · 1.e4 c5 2.Nf3 e6 3.d4",
     "type": "which"
@@ -971,9 +1017,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin Sicilian Defense: Drazic Variation?",
     "a": [
       "1.e4 c5 2.Nf3 e6 3.d4",
-      "1.e4 c5 2.Nf3 Nc6 3.d4",
       "1.e4 c5 2.Nc3",
-      "1.e4 c5 2.Nf3 Nc6"
+      "1.e4 c5 2.Nf3 d6 3.d4 cxd4 4.Nxd4",
+      "1.e4 c5 2.Nc3 Nc6"
     ],
     "ex": "B40 · 1.e4 c5 2.Nf3 e6 3.d4"
   },
@@ -982,9 +1028,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.d4 Nf6 2.c4 g6 3.Nc3 d5 — which opening is this?",
     "a": [
       "Grünfeld Defense",
-      "Indian Defense: West Indian Defense",
-      "Tarrasch Defense",
-      "Queen's Gambit Declined: Three Knights Variation"
+      "East Indian Defense",
+      "Nimzo-Indian Defense",
+      "Benko Gambit"
     ],
     "ex": "D80 · 1.d4 Nf6 2.c4 g6 3.Nc3 d5",
     "type": "which"
@@ -994,9 +1040,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin Grünfeld Defense?",
     "a": [
       "1.d4 Nf6 2.c4 g6 3.Nc3 d5",
-      "1.d4 d5 2.c4 e6",
-      "1.d4 Nf6 2.c4 e6 3.Nf3 d5 4.Nc3",
-      "1.d4 d5 2.c4 e6 3.Nc3 c5"
+      "1.d4 Nf6 2.c4 c5",
+      "1.d4 d5 2.c4 dxc4 3.Nf3",
+      "1.d4 d5 2.c4 c6 3.Nf3"
     ],
     "ex": "D80 · 1.d4 Nf6 2.c4 g6 3.Nc3 d5"
   },
@@ -1005,9 +1051,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.e4 c5 2.Nf3 Nc6 3.d4 — which opening is this?",
     "a": [
       "Sicilian Defense: Open",
-      "Sicilian Defense: Old Sicilian",
-      "Sicilian Defense: Closed",
-      "Sicilian Defense: Kan Variation"
+      "Sicilian Defense: Smith-Morra Gambit Accepted, Fianchetto Defense",
+      "Sicilian Defense: Halasz Gambit",
+      "Sicilian Defense: Old Sicilian"
     ],
     "ex": "B32 · 1.e4 c5 2.Nf3 Nc6 3.d4",
     "type": "which"
@@ -1017,9 +1063,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin Sicilian Defense: Open?",
     "a": [
       "1.e4 c5 2.Nf3 Nc6 3.d4",
-      "1.e4 c5 2.Nc3",
-      "1.e4 c5 2.Nf3 e6",
-      "1.e4 c5 2.Nf3 d6 3.d4 cxd4 4.Nxd4"
+      "1.e4 c5 2.Nf3 e6 3.d4",
+      "1.e4 c5 2.Nc3 Nc6",
+      "1.e4 c5 2.d4 cxd4"
     ],
     "ex": "B32 · 1.e4 c5 2.Nf3 Nc6 3.d4"
   },
@@ -1028,9 +1074,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.d4 d5 2.Nf3 — which opening is this?",
     "a": [
       "Queen's Pawn Game: Zukertort Variation",
-      "Dutch Defense: Fianchetto Variation",
-      "Benoni Defense: Modern Variation",
-      "Nimzo-Indian Defense: Classical Variation"
+      "Queen's Gambit Declined: Chigorin Defense",
+      "Benko Gambit Accepted",
+      "Nimzo-Indian Defense: Rubinstein System"
     ],
     "ex": "D02 · 1.d4 d5 2.Nf3",
     "type": "which"
@@ -1040,9 +1086,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin Queen's Pawn Game: Zukertort Variation?",
     "a": [
       "1.d4 d5 2.Nf3",
-      "1.d4 Nf6 2.c4 g6 3.Nc3 Bg7",
-      "1.d4 f5 2.c4 Nf6 3.g3",
-      "1.d4 d5 2.c4 e6 3.Nc3"
+      "1.d4 Nf6 2.Nf3 e6",
+      "1.d4 Nf6 2.c4 g6 3.Nf3 Bg7",
+      "1.d4 Nf6 2.c4 e6 3.Nc3 Bb4 4.e3"
     ],
     "ex": "D02 · 1.d4 d5 2.Nf3"
   },
@@ -1053,7 +1099,7 @@ export const chessOpenings: QuizCategory = {
       "Sicilian Defense: French Variation, Open",
       "Sicilian Defense: Closed",
       "Sicilian Defense: Halasz Gambit",
-      "Sicilian Defense: Drazic Variation"
+      "Sicilian Defense: Closed, Traditional"
     ],
     "ex": "B40 · 1.e4 c5 2.Nf3 e6 3.d4 cxd4",
     "type": "which"
@@ -1063,9 +1109,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin Sicilian Defense: French Variation, Open?",
     "a": [
       "1.e4 c5 2.Nf3 e6 3.d4 cxd4",
-      "1.e4 c5 2.Nf3 d6",
-      "1.e4 c5 2.d4 cxd4",
-      "1.e4 c5 2.d4"
+      "1.e4 c5 2.Nc3",
+      "1.e4 c5 2.Nc3 Nc6",
+      "1.e4 c5 2.Nf3 d6 3.d4 cxd4 4.Nxd4"
     ],
     "ex": "B40 · 1.e4 c5 2.Nf3 e6 3.d4 cxd4"
   },
@@ -1074,9 +1120,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.d4 Nf6 2.c4 c5 3.d5 — which opening is this?",
     "a": [
       "Benko Gambit",
-      "Catalan Opening",
-      "Queen's Pawn Game: Zukertort Variation",
-      "Tarrasch Defense: Schara Gambit"
+      "Queen's Gambit Declined: Traditional Variation",
+      "King's Indian Defense: Normal Variation, King's Knight Variation",
+      "Semi-Slav Defense: Accelerated Move Order"
     ],
     "ex": "A57 · 1.d4 Nf6 2.c4 c5 3.d5",
     "type": "which"
@@ -1086,9 +1132,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin Benko Gambit?",
     "a": [
       "1.d4 Nf6 2.c4 c5 3.d5",
-      "1.d4 f5 2.c4 Nf6 3.g3",
-      "1.d4 Nf6 2.c4 e6",
-      "1.d4 Nf6 2.c4 g6 3.Nc3"
+      "1.d4 d5 2.e4",
+      "1.d4 Nf6 2.c4 e6 3.Nf3 d5 4.Nc3",
+      "1.d4 Nf6 2.c4 e6 3.Nc3 d5 4.cxd5"
     ],
     "ex": "A57 · 1.d4 Nf6 2.c4 c5 3.d5"
   },
@@ -1097,9 +1143,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.b4 — which opening is this?",
     "a": [
       "Italian Game: Evans Gambit",
-      "King's Knight Opening",
+      "Three Knights Opening",
       "Ruy Lopez: Morphy Defense",
-      "King's Gambit Accepted"
+      "Italian Game: Giuoco Piano"
     ],
     "ex": "C51 · 1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.b4",
     "type": "which"
@@ -1110,8 +1156,8 @@ export const chessOpenings: QuizCategory = {
     "a": [
       "1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.b4",
       "1.e4 e5 2.Nf3 Nc6 3.Bb5 Nf6",
-      "1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.c3",
-      "1.e4 e5 2.Nf3 Nc6 3.Nc3 Nf6"
+      "1.e4 e5 2.Nf3 Nc6 3.Bc4 Nf6 4.Ng5",
+      "1.e4 e5 2.f4 exf4"
     ],
     "ex": "C51 · 1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.b4"
   },
@@ -1120,9 +1166,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.d4 Nf6 2.c4 e6 3.Nc3 Bb4 4.e3 — which opening is this?",
     "a": [
       "Nimzo-Indian Defense: Rubinstein System",
-      "Dutch Defense: Normal Variation",
-      "Dutch Defense",
-      "Benoni Defense: Modern Variation"
+      "Queen's Gambit",
+      "Grünfeld Defense",
+      "Slav Defense: Modern Line"
     ],
     "ex": "E40 · 1.d4 Nf6 2.c4 e6 3.Nc3 Bb4 4.e3",
     "type": "which"
@@ -1132,9 +1178,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin Nimzo-Indian Defense: Rubinstein System?",
     "a": [
       "1.d4 Nf6 2.c4 e6 3.Nc3 Bb4 4.e3",
-      "1.d4 Nf6 2.c4 c5",
-      "1.d4 d5 2.c4 dxc4",
-      "1.d4 d5 2.c4 c6 3.Nc3 Nf6"
+      "1.d4 d5 2.c4 c6",
+      "1.d4 Nf6 2.c4 c5 3.d5",
+      "1.d4 Nf6 2.c4 e6 3.g3 d5 4.Bg2"
     ],
     "ex": "E40 · 1.d4 Nf6 2.c4 e6 3.Nc3 Bb4 4.e3"
   },
@@ -1143,9 +1189,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.e4 e6 2.d4 d5 3.Nc3 Nf6 — which opening is this?",
     "a": [
       "French Defense: Classical Variation",
-      "French Defense: Paulsen Variation",
-      "French Defense: Tarrasch Variation",
-      "French Defense, Classical, 4. Bg5"
+      "French Defense: Winawer Variation, Advance Variation",
+      "Caro-Kann Defense: Modern Variation",
+      "French Defense: Normal Variation"
     ],
     "ex": "C11 · 1.e4 e6 2.d4 d5 3.Nc3 Nf6",
     "type": "which"
@@ -1155,9 +1201,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin French Defense: Classical Variation?",
     "a": [
       "1.e4 e6 2.d4 d5 3.Nc3 Nf6",
-      "1.e4 e6 2.d4 d5 3.Nd2",
-      "1.e4 e6 2.d4 d5 3.Nc3 Bb4",
-      "1.e4 c6 2.d4"
+      "1.e4 c6 2.d4 d5 3.exd5",
+      "1.e4 c6 2.d4 d5 3.exd5 cxd5 4.c4",
+      "1.e4 c6 2.d4 d5 3.Nd2 dxe4"
     ],
     "ex": "C11 · 1.e4 e6 2.d4 d5 3.Nc3 Nf6"
   },
@@ -1166,9 +1212,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.e4 c5 2.Nf3 e6 3.d4 cxd4 4.Nxd4 — which opening is this?",
     "a": [
       "Sicilian Defense: Kan Variation",
-      "Sicilian Defense: Open",
       "Sicilian Defense: Closed",
-      "Sicilian Defense: Modern Variations, Main Line"
+      "Sicilian Defense: French Variation, Open",
+      "Sicilian Defense: Hyperaccelerated Dragon"
     ],
     "ex": "B41 · 1.e4 c5 2.Nf3 e6 3.d4 cxd4 4.Nxd4",
     "type": "which"
@@ -1178,9 +1224,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin Sicilian Defense: Kan Variation?",
     "a": [
       "1.e4 c5 2.Nf3 e6 3.d4 cxd4 4.Nxd4",
-      "1.e4 c5 2.d4",
-      "1.e4 c5 2.Nf3 Nc6",
-      "1.e4 c5 2.Nf3 d6 3.d4 cxd4 4.Nxd4"
+      "1.e4 c5 2.Nc3 Nc6",
+      "1.e4 c5 2.d4 cxd4 3.c3 dxc3 4.Nxc3",
+      "1.e4 c5 2.d4"
     ],
     "ex": "B41 · 1.e4 c5 2.Nf3 e6 3.d4 cxd4 4.Nxd4"
   },
@@ -1189,9 +1235,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.d4 d5 2.e4 — which opening is this?",
     "a": [
       "Blackmar-Diemer Gambit",
-      "Grünfeld Defense: Three Knights Variation",
       "King's Indian Defense: Normal Variation, King's Knight Variation",
-      "Queen's Gambit Declined"
+      "Grünfeld Defense: Three Knights Variation",
+      "King's Indian Defense: Fianchetto Variation, Immediate Fianchetto"
     ],
     "ex": "D00 · 1.d4 d5 2.e4",
     "type": "which"
@@ -1201,9 +1247,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin Blackmar-Diemer Gambit?",
     "a": [
       "1.d4 d5 2.e4",
-      "1.d4 Nf6 2.c4 g6 3.Nc3 d5 4.Nf3",
-      "1.d4 f5 2.c4",
-      "1.d4 d5 2.c4 e6 3.Nc3"
+      "1.d4 Nf6 2.c4 g6 3.g3",
+      "1.d4 Nf6 2.Nc3",
+      "1.d4 d5 2.c4 c6"
     ],
     "ex": "D00 · 1.d4 d5 2.e4"
   },
@@ -1212,9 +1258,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.e4 Nf6 2.e5 — which opening is this?",
     "a": [
       "Alekhine Defense: Mokele Mbembe",
-      "Scandinavian Defense: Modern Variation",
-      "Pirc Defense",
-      "English Opening: King's English Variation, Two Knights Variation"
+      "English Opening: King's English Variation, Four Knights Variation",
+      "English Opening: King's English Variation, Reversed Sicilian",
+      "English Opening: Symmetrical Variation, Normal Variation"
     ],
     "ex": "B02 · 1.e4 Nf6 2.e5",
     "type": "which"
@@ -1224,9 +1270,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin Alekhine Defense: Mokele Mbembe?",
     "a": [
       "1.e4 Nf6 2.e5",
-      "1.c4 e6 2.Nf3",
-      "1.e4 d6 2.d4 Nf6 3.Nc3",
-      "1.e4 d6 2.d4"
+      "1.Nf3 d5 2.c4",
+      "1.c4 e5 2.Nc3 Nf6 3.Nf3",
+      "1.c4 c5 2.Nc3"
     ],
     "ex": "B02 · 1.e4 Nf6 2.e5"
   },
@@ -1235,9 +1281,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.d4 d5 2.e4 dxe4 — which opening is this?",
     "a": [
       "Blackmar-Diemer Gambit: Fritz Attack",
-      "Benoni Defense: Modern Variation",
-      "Benko Gambit",
-      "Indian Defense: West Indian Defense"
+      "Queen's Gambit Accepted",
+      "Nimzo-Indian Defense",
+      "Semi-Slav Defense: Accelerated Move Order"
     ],
     "ex": "D00 · 1.d4 d5 2.e4 dxe4",
     "type": "which"
@@ -1247,9 +1293,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin Blackmar-Diemer Gambit: Fritz Attack?",
     "a": [
       "1.d4 d5 2.e4 dxe4",
-      "1.d4 Nf6 2.c4 c5",
-      "1.d4 Nf6 2.c4 e6 3.Nf3",
-      "1.d4 d5 2.c4 c6 3.Nf3"
+      "1.d4 g6 2.c4",
+      "1.d4 Nf6 2.c4 e6 3.Nc3 d5 4.cxd5",
+      "1.d4 Nf6 2.c4 e6 3.Nc3 Bb4 4.Qc2"
     ],
     "ex": "D00 · 1.d4 d5 2.e4 dxe4"
   },
@@ -1258,9 +1304,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.c4 e5 2.Nc3 — which opening is this?",
     "a": [
       "English Opening: King's English Variation, Reversed Sicilian",
-      "Alekhine Defense: Normal Variation",
-      "Alekhine Defense: Mokele Mbembe",
-      "Alekhine Defense"
+      "Scandinavian Defense: Modern Variation",
+      "English Opening: Neo-Catalan",
+      "Lion Defense"
     ],
     "ex": "A21 · 1.c4 e5 2.Nc3",
     "type": "which"
@@ -1270,9 +1316,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin English Opening: King's English Variation, Reversed Sicilian?",
     "a": [
       "1.c4 e5 2.Nc3",
-      "1.e4 Nf6 2.e5",
-      "1.c4 e6 2.Nf3",
-      "1.e4 d6 2.d4 Nf6 3.Nc3"
+      "1.e4 d5 2.exd5",
+      "1.e4 Nf6 2.e5 Nd5 3.d4",
+      "1.e4 Nc6 2.d4 d5"
     ],
     "ex": "A21 · 1.c4 e5 2.Nc3"
   },
@@ -1282,8 +1328,8 @@ export const chessOpenings: QuizCategory = {
     "a": [
       "Three Knights Opening",
       "King's Knight Opening",
-      "Vienna Game: Max Lange Defense",
-      "Ruy Lopez: Morphy Defense"
+      "Scotch Game",
+      "King's Knight Opening: Normal Variation"
     ],
     "ex": "C46 · 1.e4 e5 2.Nf3 Nc6 3.Nc3",
     "type": "which"
@@ -1293,8 +1339,8 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin Three Knights Opening?",
     "a": [
       "1.e4 e5 2.Nf3 Nc6 3.Nc3",
-      "1.e4 e5 2.Nf3 Nf6",
-      "1.e4 e5 2.Nc3 Nc6",
+      "1.e4 e5 2.Nf3 Nc6 3.Bb5 Nf6",
+      "1.e4 e5 2.Nc3",
       "1.e4 e5 2.f4"
     ],
     "ex": "C46 · 1.e4 e5 2.Nf3 Nc6 3.Nc3"
@@ -1304,9 +1350,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.e4 Nf6 2.e5 Nd5 — which opening is this?",
     "a": [
       "Alekhine Defense: Normal Variation",
-      "Scandinavian Defense: Modern Variation",
+      "English Opening: Anglo-Indian Defense, King's Knight Variation",
       "English Opening: King's English Variation, Reversed Sicilian",
-      "Pirc Defense"
+      "Nimzowitsch Defense"
     ],
     "ex": "B02 · 1.e4 Nf6 2.e5 Nd5",
     "type": "which"
@@ -1316,9 +1362,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin Alekhine Defense: Normal Variation?",
     "a": [
       "1.e4 Nf6 2.e5 Nd5",
+      "1.Nf3 d5 2.g3",
       "1.c4 e5 2.Nc3 Nf6",
-      "1.e4 Nc6 2.d4",
-      "1.c4 e5 2.Nc3"
+      "1.Nf3 d5 2.c4"
     ],
     "ex": "B02 · 1.e4 Nf6 2.e5 Nd5"
   },
@@ -1327,9 +1373,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.d4 d5 2.c4 dxc4 3.Nf3 — which opening is this?",
     "a": [
       "Queen's Gambit Accepted: Normal Variation",
-      "Catalan Opening",
-      "Queen's Gambit Declined: Traditional Variation",
-      "Dutch Defense"
+      "East Indian Defense",
+      "Indian Defense: Knights Variation",
+      "Tarrasch Defense: Schara Gambit"
     ],
     "ex": "D21 · 1.d4 d5 2.c4 dxc4 3.Nf3",
     "type": "which"
@@ -1339,9 +1385,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin Queen's Gambit Accepted: Normal Variation?",
     "a": [
       "1.d4 d5 2.c4 dxc4 3.Nf3",
-      "1.d4 d5 2.c4 e6",
-      "1.d4 Nf6 2.c4 e6 3.Nf3 b6 4.g3",
-      "1.d4 Nf6 2.c4 g6 3.Nc3"
+      "1.d4 d5 2.c4 e6 3.Nc3 c5 4.cxd5",
+      "1.d4 Nf6 2.c4 c5 3.d5",
+      "1.d4 Nf6 2.c4 g6 3.Nc3 d5 4.Nf3"
     ],
     "ex": "D21 · 1.d4 d5 2.c4 dxc4 3.Nf3"
   },
@@ -1350,9 +1396,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.e4 e5 2.Nf3 Nc6 3.Nc3 Nf6 — which opening is this?",
     "a": [
       "Four Knights Game",
-      "Italian Game: Two Knights Defense, Knight Attack",
-      "Philidor Defense",
-      "King's Gambit"
+      "King's Knight Opening: Normal Variation",
+      "Petrov's Defense",
+      "Italian Game"
     ],
     "ex": "C47 · 1.e4 e5 2.Nf3 Nc6 3.Nc3 Nf6",
     "type": "which"
@@ -1362,9 +1408,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin Four Knights Game?",
     "a": [
       "1.e4 e5 2.Nf3 Nc6 3.Nc3 Nf6",
-      "1.e4 e5 2.Nf3 Nc6 3.Bc4",
-      "1.e4 e5 2.Nc3 Nc6",
-      "1.e4 e5 2.f4"
+      "1.e4 e5 2.Nc3 Nf6",
+      "1.e4 e5 2.Nf3 Nc6 3.c3",
+      "1.e4 e5 2.Nf3 Nc6 3.Bb5 a6 4.Ba4"
     ],
     "ex": "C47 · 1.e4 e5 2.Nf3 Nc6 3.Nc3 Nf6"
   },
@@ -1373,9 +1419,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.e4 e5 2.Nf3 d6 — which opening is this?",
     "a": [
       "Philidor Defense",
-      "Ruy Lopez: Berlin Defense",
-      "Italian Game: Classical Variation",
-      "Four Knights Game: Spanish Variation"
+      "King's Gambit",
+      "Bishop's Opening: Berlin Defense",
+      "Italian Game"
     ],
     "ex": "C41 · 1.e4 e5 2.Nf3 d6",
     "type": "which"
@@ -1385,9 +1431,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin Philidor Defense?",
     "a": [
       "1.e4 e5 2.Nf3 d6",
-      "1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5",
-      "1.e4 e5 2.Nf3 Nc6 3.Bb5 Nf6",
-      "1.e4 e5 2.Nf3 Nc6"
+      "1.e4 e5 2.f4 exf4",
+      "1.e4 e5 2.Nf3 Nc6 3.Bc4",
+      "1.e4 e5 2.Nf3 Nc6 3.Nc3 Nf6 4.Bb5"
     ],
     "ex": "C41 · 1.e4 e5 2.Nf3 d6"
   },
@@ -1396,9 +1442,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.e4 d5 2.exd5 — which opening is this?",
     "a": [
       "Scandinavian Defense: Modern Variation",
+      "Nimzowitsch Defense",
       "Alekhine Defense",
-      "Alekhine Defense: Normal Variation",
-      "Nimzowitsch Defense"
+      "English Opening: Neo-Catalan"
     ],
     "ex": "B01 · 1.e4 d5 2.exd5",
     "type": "which"
@@ -1408,9 +1454,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin Scandinavian Defense: Modern Variation?",
     "a": [
       "1.e4 d5 2.exd5",
-      "1.e4 d6 2.d4 Nf6 3.Nc3",
-      "1.e4 d6 2.d4",
-      "1.c4 e5 2.Nc3"
+      "1.c4 c5 2.Nc3",
+      "1.e4 Nc6 2.d4",
+      "1.e4 d6 2.d4 Nf6 3.Nc3"
     ],
     "ex": "B01 · 1.e4 d5 2.exd5"
   },
@@ -1419,9 +1465,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.e4 e6 2.d4 d5 3.Nc3 Bb4 4.e5 — which opening is this?",
     "a": [
       "French Defense: Winawer Variation, Advance Variation",
-      "French Defense: Normal Variation",
-      "French Defense: Tarrasch Variation",
-      "Caro-Kann Defense"
+      "Caro-Kann Defense: Modern Variation",
+      "Caro-Kann Defense",
+      "French Defense: Advance Variation"
     ],
     "ex": "C16 · 1.e4 e6 2.d4 d5 3.Nc3 Bb4 4.e5",
     "type": "which"
@@ -1431,9 +1477,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin French Defense: Winawer Variation, Advance Variation?",
     "a": [
       "1.e4 e6 2.d4 d5 3.Nc3 Bb4 4.e5",
-      "1.e4 e6 2.d4 d5 3.Nc3 Nf6",
-      "1.e4 e6 2.d4 d5 3.Nc3 Nf6 4.Bg5",
-      "1.e4 c6 2.d4"
+      "1.e4 c6 2.d4 d5 3.exd5",
+      "1.e4 e6 2.d4 d5 3.e5",
+      "1.e4 c6 2.d4 d5 3.exd5 cxd5 4.c4"
     ],
     "ex": "C16 · 1.e4 e6 2.d4 d5 3.Nc3 Bb4 4.e5"
   },
@@ -1442,9 +1488,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.e4 d6 2.d4 — which opening is this?",
     "a": [
       "Pirc Defense",
-      "Scandinavian Defense: Modern Variation",
-      "English Opening: King's English Variation, Two Knights Variation",
-      "Alekhine Defense: Normal Variation"
+      "Alekhine Defense: Normal Variation",
+      "King's Indian Attack",
+      "Scandinavian Defense: Mieses-Kotroc Variation"
     ],
     "ex": "B00 · 1.e4 d6 2.d4",
     "type": "which"
@@ -1454,9 +1500,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin Pirc Defense?",
     "a": [
       "1.e4 d6 2.d4",
-      "1.c4 e6 2.Nf3",
-      "1.e4 Nf6 2.e5 Nd5",
-      "1.e4 Nf6 2.e5 Nd5 3.d4"
+      "1.c4 Nf6 2.Nc3",
+      "1.Nf3 d5 2.g3",
+      "1.Nf3 d5 2.c4"
     ],
     "ex": "B00 · 1.e4 d6 2.d4"
   },
@@ -1465,9 +1511,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.e4 e5 2.Bc4 — which opening is this?",
     "a": [
       "Bishop's Opening",
-      "King's Knight Opening",
-      "Ruy Lopez: Berlin Defense",
-      "King's Gambit Accepted: King's Knight's Gambit"
+      "Vienna Game",
+      "Ruy Lopez",
+      "Three Knights Opening"
     ],
     "ex": "C23 · 1.e4 e5 2.Bc4",
     "type": "which"
@@ -1477,9 +1523,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin Bishop's Opening?",
     "a": [
       "1.e4 e5 2.Bc4",
-      "1.e4 e5 2.Nc3 Nc6",
-      "1.e4 e5 2.d4",
-      "1.e4 e5 2.f4"
+      "1.e4 e5 2.Nf3 f5",
+      "1.e4 e5 2.f4",
+      "1.e4 e5 2.Nf3 Nc6 3.Bb5 a6 4.Ba4"
     ],
     "ex": "C23 · 1.e4 e5 2.Bc4"
   },
@@ -1488,9 +1534,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.e4 e6 2.d4 d5 3.Nc3 Nf6 4.Bg5 — which opening is this?",
     "a": [
       "French Defense, Classical, 4. Bg5",
+      "French Defense: Advance Variation",
       "French Defense: Winawer Variation, Advance Variation",
-      "French Defense: Classical Variation",
-      "French Defense: Winawer Variation"
+      "Caro-Kann Defense: Modern Variation"
     ],
     "ex": "C12 · 1.e4 e6 2.d4 d5 3.Nc3 Nf6 4.Bg5",
     "type": "which"
@@ -1500,9 +1546,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin French Defense, Classical, 4. Bg5?",
     "a": [
       "1.e4 e6 2.d4 d5 3.Nc3 Nf6 4.Bg5",
-      "1.e4 c6 2.d4",
       "1.e4 e6 2.d4 d5 3.Nc3 Bb4 4.e5",
-      "1.e4 e6 2.d4 d5 3.Nc3 Bb4"
+      "1.e4 e6 2.d4 d5 3.Nc3 Bb4",
+      "1.e4 c6 2.d4 d5 3.exd5 cxd5 4.c4"
     ],
     "ex": "C12 · 1.e4 e6 2.d4 d5 3.Nc3 Nf6 4.Bg5"
   },
@@ -1511,9 +1557,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.c3 — which opening is this?",
     "a": [
       "Italian Game: Classical Variation",
-      "Italian Game: Two Knights Defense",
-      "Italian Game: Giuoco Piano",
-      "King's Knight Opening: Normal Variation"
+      "King's Knight Opening: Normal Variation",
+      "Vienna Game: Max Lange Defense",
+      "Vienna Gambit, with Max Lange Defense: Steinitz Gambit"
     ],
     "ex": "C53 · 1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.c3",
     "type": "which"
@@ -1523,9 +1569,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin Italian Game: Classical Variation?",
     "a": [
       "1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.c3",
-      "1.e4 e5 2.Nf3 Nc6 3.Bb5 Nf6",
-      "1.e4 e5 2.f4 exf4",
-      "1.e4 e5 2.Nf3 Nc6 3.Bc4 Nf6 4.Ng5"
+      "1.e4 e5 2.Nf3 Nc6 3.Nc3",
+      "1.e4 e5 2.Bc4",
+      "1.e4 e5 2.Nf3 Nc6 3.d4 exd4 4.Bc4"
     ],
     "ex": "C53 · 1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.c3"
   },
@@ -1534,9 +1580,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.e4 e5 2.Nf3 Nc6 3.Bb5 Nf6 — which opening is this?",
     "a": [
       "Ruy Lopez: Berlin Defense",
-      "King's Knight Opening",
-      "Italian Game",
-      "King's Gambit Accepted: King's Knight's Gambit"
+      "Ruy Lopez: Morphy Defense",
+      "King's Knight Opening: Normal Variation",
+      "King's Gambit Accepted: Bishop's Gambit"
     ],
     "ex": "C65 · 1.e4 e5 2.Nf3 Nc6 3.Bb5 Nf6",
     "type": "which"
@@ -1546,9 +1592,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin Ruy Lopez: Berlin Defense?",
     "a": [
       "1.e4 e5 2.Nf3 Nc6 3.Bb5 Nf6",
-      "1.e4 e5 2.f4",
-      "1.e4 e5 2.d4",
-      "1.e4 e5 2.Nf3 Nc6 3.Bc4 Nf6 4.Ng5"
+      "1.e4 e5 2.f4 exf4 3.Nf3",
+      "1.e4 e5 2.f4 exf4",
+      "1.e4 e5 2.Bc4"
     ],
     "ex": "C65 · 1.e4 e5 2.Nf3 Nc6 3.Bb5 Nf6"
   },
@@ -1557,9 +1603,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.d4 Nf6 2.c4 e6 3.g3 — which opening is this?",
     "a": [
       "Catalan Opening",
-      "Queen's Gambit",
-      "Indian Defense: West Indian Defense",
-      "Semi-Slav Defense: Main Line"
+      "Benoni Defense: Modern Variation",
+      "Benoni Defense: Modern Variation, Snake Variation",
+      "Indian Defense: Normal Variation"
     ],
     "ex": "E00 · 1.d4 Nf6 2.c4 e6 3.g3",
     "type": "which"
@@ -1569,9 +1615,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin Catalan Opening?",
     "a": [
       "1.d4 Nf6 2.c4 e6 3.g3",
-      "1.d4 d5 2.c4 e6 3.Nc3",
-      "1.d4 Nf6 2.c4 c5",
-      "1.d4 Nf6 2.c4 g6 3.Nc3 d5 4.Nf3"
+      "1.d4 Nf6 2.c4 g6 3.Nc3 d5 4.Nf3",
+      "1.d4 Nf6 2.c4 c5 3.d5 e6 4.Nc3",
+      "1.d4 d5 2.c4 e6 3.Nc3 c5"
     ],
     "ex": "E00 · 1.d4 Nf6 2.c4 e6 3.g3"
   },
@@ -1580,8 +1626,8 @@ export const chessOpenings: QuizCategory = {
     "q": "1.d4 f5 2.c4 — which opening is this?",
     "a": [
       "Dutch Defense",
-      "Slav Defense: Modern Line",
-      "Indian Defense: Anti-Nimzo-Indian",
+      "Yusupov-Rubinstein System",
+      "Queen's Gambit Declined: Exchange Variation",
       "Indian Defense: Knights Variation"
     ],
     "ex": "A84 · 1.d4 f5 2.c4",
@@ -1592,9 +1638,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin Dutch Defense?",
     "a": [
       "1.d4 f5 2.c4",
-      "1.d4 Nf6 2.c4 g6 3.Nc3 d5 4.Nf3",
-      "1.d4 d5 2.Nf3",
-      "1.d4 d5 2.c4 e6 3.Nc3 c5 4.cxd5"
+      "1.d4 Nf6 2.c4 g6 3.g3",
+      "1.d4 d5 2.c4 e6",
+      "1.d4 Nf6 2.c4 c5 3.d5 e6 4.Nc3"
     ],
     "ex": "A84 · 1.d4 f5 2.c4"
   },
@@ -1603,9 +1649,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.e4 c5 2.d4 — which opening is this?",
     "a": [
       "Sicilian Defense: Smith-Morra Gambit",
-      "Sicilian Defense: French Variation, Open",
-      "Sicilian Defense: Kan Variation",
-      "Sicilian Defense: Modern Variations"
+      "Sicilian Defense: O'Kelly Variation",
+      "Sicilian Defense: Halasz Gambit",
+      "Sicilian Defense: French Variation, Open"
     ],
     "ex": "B21 · 1.e4 c5 2.d4",
     "type": "which"
@@ -1615,9 +1661,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin Sicilian Defense: Smith-Morra Gambit?",
     "a": [
       "1.e4 c5 2.d4",
-      "1.e4 c5 2.Nc3",
-      "1.e4 c5 2.Nf3 Nc6 3.d4",
-      "1.e4 c5 2.Nf3 d6"
+      "1.e4 c5 2.Nf3 Nc6",
+      "1.e4 c5 2.Nf3 e6 3.d4 cxd4 4.Nxd4",
+      "1.e4 c5 2.Nf3 Nc6 3.d4"
     ],
     "ex": "B21 · 1.e4 c5 2.d4"
   },
@@ -1626,9 +1672,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.c4 e5 2.Nc3 Nf6 — which opening is this?",
     "a": [
       "English Opening: King's English Variation, Two Knights Variation",
-      "Nimzowitsch Defense",
-      "Scandinavian Defense: Modern Variation",
-      "Pirc Defense"
+      "King's Indian Attack",
+      "English Opening: Symmetrical Variation, Normal Variation",
+      "Alekhine Defense"
     ],
     "ex": "A22 · 1.c4 e5 2.Nc3 Nf6",
     "type": "which"
@@ -1638,9 +1684,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin English Opening: King's English Variation, Two Knights Variation?",
     "a": [
       "1.c4 e5 2.Nc3 Nf6",
-      "1.e4 d6 2.d4 Nf6 3.Nc3",
-      "1.c4 e6 2.Nf3",
-      "1.e4 Nc6 2.d4"
+      "1.c4 Nf6 2.Nf3",
+      "1.c4 e6 2.Nf3 d5 3.g3",
+      "1.e4 d5 2.exd5 Qxd5"
     ],
     "ex": "A22 · 1.c4 e5 2.Nc3 Nf6"
   },
@@ -1649,9 +1695,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.e4 d6 2.d4 Nf6 3.Nc3 — which opening is this?",
     "a": [
       "Lion Defense",
-      "Alekhine Defense",
+      "Scandinavian Defense: Mieses-Kotroc Variation",
       "Pirc Defense",
-      "English Opening: King's English Variation, Reversed Sicilian"
+      "Alekhine Defense"
     ],
     "ex": "B07 · 1.e4 d6 2.d4 Nf6 3.Nc3",
     "type": "which"
@@ -1661,9 +1707,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin Lion Defense?",
     "a": [
       "1.e4 d6 2.d4 Nf6 3.Nc3",
-      "1.c4 e5 2.Nc3 Nf6",
+      "1.e4 d5 2.exd5 Qxd5 3.Nc3",
       "1.e4 Nf6 2.e5 Nd5 3.d4",
-      "1.e4 Nf6 2.e5 Nd5"
+      "1.c4 e6 2.Nf3"
     ],
     "ex": "B07 · 1.e4 d6 2.d4 Nf6 3.Nc3"
   },
@@ -1672,9 +1718,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.d4 Nf6 2.c4 e6 3.Nf3 b6 4.g3 — which opening is this?",
     "a": [
       "Queen's Indian Defense: Fianchetto Variation",
-      "East Indian Defense",
-      "Grünfeld Defense: Three Knights Variation",
-      "Slav Defense"
+      "King's Indian Defense: Normal Variation, King's Knight Variation",
+      "Indian Defense: Knights Variation",
+      "Bogo-Indian Defense"
     ],
     "ex": "E15 · 1.d4 Nf6 2.c4 e6 3.Nf3 b6 4.g3",
     "type": "which"
@@ -1684,9 +1730,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin Queen's Indian Defense: Fianchetto Variation?",
     "a": [
       "1.d4 Nf6 2.c4 e6 3.Nf3 b6 4.g3",
-      "1.d4 Nf6 2.c4 e6 3.Nc3",
-      "1.d4 d5 2.c4 e6",
-      "1.d4 Nf6 2.c4 g6 3.Nc3"
+      "1.d4 Nf6 2.c4 g6 3.Nc3",
+      "1.d4 d5 2.c4 dxc4",
+      "1.d4 d5 2.c4 e6 3.Nc3 c6"
     ],
     "ex": "E15 · 1.d4 Nf6 2.c4 e6 3.Nf3 b6 4.g3"
   },
@@ -1695,9 +1741,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.e4 c5 2.d4 cxd4 — which opening is this?",
     "a": [
       "Sicilian Defense: Halasz Gambit",
-      "Sicilian Defense: Open",
-      "Sicilian Defense: French Variation",
-      "Sicilian Defense: Kan Variation"
+      "Sicilian Defense: Old Sicilian",
+      "Sicilian Defense: Smith-Morra Gambit",
+      "Sicilian Defense: Open"
     ],
     "ex": "B21 · 1.e4 c5 2.d4 cxd4",
     "type": "which"
@@ -1707,9 +1753,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin Sicilian Defense: Halasz Gambit?",
     "a": [
       "1.e4 c5 2.d4 cxd4",
-      "1.e4 c5 2.Nf3 e6 3.d4",
-      "1.e4 c5 2.Nf3 e6 3.d4 cxd4",
-      "1.e4 c5 2.Nf3 e6 3.d4 cxd4 4.Nxd4"
+      "1.e4 c5 2.Nf3 d6",
+      "1.e4 c5 2.Nc3",
+      "1.e4 c5 2.Nf3 e6 3.d4"
     ],
     "ex": "B21 · 1.e4 c5 2.d4 cxd4"
   },
@@ -1718,9 +1764,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.d4 d5 2.e4 dxe4 3.Nc3 Nf6 4.f3 — which opening is this?",
     "a": [
       "Blackmar-Diemer Gambit Accepted",
-      "Indian Defense: Knights Variation",
-      "Queen's Indian Defense",
-      "Tarrasch Defense: Schara Gambit"
+      "Indian Defense: Anti-Nimzo-Indian",
+      "Catalan Opening: Open Defense",
+      "Old Indian Defense"
     ],
     "ex": "D00 · 1.d4 d5 2.e4 dxe4 3.Nc3 Nf6 4.f3",
     "type": "which"
@@ -1730,9 +1776,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin Blackmar-Diemer Gambit Accepted?",
     "a": [
       "1.d4 d5 2.e4 dxe4 3.Nc3 Nf6 4.f3",
-      "1.d4 f5 2.c4 Nf6",
-      "1.d4 d5 2.c4 c6 3.Nc3 Nf6",
-      "1.d4 Nf6 2.c4 e6 3.Nc3"
+      "1.d4 d5 2.c4",
+      "1.d4 Nf6 2.c4 g6 3.g3",
+      "1.d4 d5 2.c4 c6 3.Nf3"
     ],
     "ex": "D00 · 1.d4 d5 2.e4 dxe4 3.Nc3 Nf6 4.f3"
   },
@@ -1741,9 +1787,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.e4 e5 2.Nf3 Nc6 3.Bc4 Nf6 4.Ng5 — which opening is this?",
     "a": [
       "Italian Game: Two Knights Defense, Knight Attack",
-      "Four Knights Game",
-      "King's Gambit",
-      "Italian Game: Evans Gambit"
+      "Vienna Gambit, with Max Lange Defense",
+      "Petrov's Defense",
+      "Three Knights Opening"
     ],
     "ex": "C57 · 1.e4 e5 2.Nf3 Nc6 3.Bc4 Nf6 4.Ng5",
     "type": "which"
@@ -1753,9 +1799,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin Italian Game: Two Knights Defense, Knight Attack?",
     "a": [
       "1.e4 e5 2.Nf3 Nc6 3.Bc4 Nf6 4.Ng5",
-      "1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.c3",
-      "1.e4 e5 2.Nf3 Nf6",
-      "1.e4 e5 2.d4 exd4"
+      "1.e4 e5 2.Nc3 Nc6 3.f4 exf4",
+      "1.e4 e5 2.f4 d5 3.exd5",
+      "1.e4 e5 2.Nf3 Nc6 3.Bb5 a6"
     ],
     "ex": "C57 · 1.e4 e5 2.Nf3 Nc6 3.Bc4 Nf6 4.Ng5"
   },
@@ -1764,9 +1810,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.d4 d5 2.c4 c6 3.Nc3 Nf6 — which opening is this?",
     "a": [
       "Semi-Slav Defense: Main Line",
-      "Queen's Indian Defense",
-      "Blackmar-Diemer Gambit Accepted",
-      "Blackmar-Diemer Gambit"
+      "Benko Gambit Accepted",
+      "Queen's Gambit Declined: Normal Defense",
+      "Dutch Defense"
     ],
     "ex": "D45 · 1.d4 d5 2.c4 c6 3.Nc3 Nf6",
     "type": "which"
@@ -1776,9 +1822,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin Semi-Slav Defense: Main Line?",
     "a": [
       "1.d4 d5 2.c4 c6 3.Nc3 Nf6",
-      "1.d4 Nf6 2.c4 e6 3.Nf3 b6 4.g3",
-      "1.d4 Nf6 2.c4 g6 3.Nc3 d5",
-      "1.d4 Nf6 2.c4 e6 3.Nc3 Bb4 4.e3"
+      "1.d4 Nf6 2.Nf3 e6",
+      "1.d4 f5 2.c4 Nf6 3.g3 e6",
+      "1.d4 d5 2.c4 Nc6"
     ],
     "ex": "D45 · 1.d4 d5 2.c4 c6 3.Nc3 Nf6"
   },
@@ -1787,9 +1833,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.e4 Nf6 2.e5 Nd5 3.d4 — which opening is this?",
     "a": [
       "Alekhine Defense",
-      "Nimzowitsch Defense",
-      "Scandinavian Defense: Modern Variation",
-      "Pirc Defense"
+      "Réti Opening",
+      "English Opening: King's English Variation, Reversed Sicilian",
+      "Scandinavian Defense: Modern Variation"
     ],
     "ex": "B03 · 1.e4 Nf6 2.e5 Nd5 3.d4",
     "type": "which"
@@ -1799,9 +1845,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin Alekhine Defense?",
     "a": [
       "1.e4 Nf6 2.e5 Nd5 3.d4",
-      "1.c4 e5 2.Nc3",
-      "1.e4 d6 2.d4 Nf6 3.Nc3",
-      "1.e4 Nc6 2.d4"
+      "1.c4 c5 2.Nc3",
+      "1.c4 Nf6 2.Nf3",
+      "1.e4 d6 2.d4 Nf6 3.Nc3"
     ],
     "ex": "B03 · 1.e4 Nf6 2.e5 Nd5 3.d4"
   },
@@ -1810,9 +1856,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.e4 e5 2.d4 — which opening is this?",
     "a": [
       "Center Game",
-      "King's Gambit Accepted",
-      "Bishop's Opening",
-      "Vienna Game"
+      "Petrov's Defense",
+      "Italian Game: Deutz Gambit",
+      "Vienna Game: Max Lange Defense"
     ],
     "ex": "C20 · 1.e4 e5 2.d4",
     "type": "which"
@@ -1822,9 +1868,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin Center Game?",
     "a": [
       "1.e4 e5 2.d4",
-      "1.e4 e5 2.Nc3 Nf6",
-      "1.e4 e5 2.Nf3 f5",
-      "1.e4 e5 2.Nf3 Nc6 3.Nc3"
+      "1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5",
+      "1.e4 e5 2.Nf3 Nc6 3.Nc3 Nf6",
+      "1.e4 e5 2.Bc4 Nf6"
     ],
     "ex": "C20 · 1.e4 e5 2.d4"
   },
@@ -1833,9 +1879,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.e4 e5 2.f4 exf4 3.Bc4 — which opening is this?",
     "a": [
       "King's Gambit Accepted: Bishop's Gambit",
-      "Vienna Game: Falkbeer Variation",
-      "Ruy Lopez: Morphy Defense",
-      "King's Knight Opening: Normal Variation"
+      "Italian Game: Two Knights Defense",
+      "Italian Game: Two Knights Defense, Knight Attack",
+      "King's Gambit Declined: Falkbeer Countergambit Accepted"
     ],
     "ex": "C33 · 1.e4 e5 2.f4 exf4 3.Bc4",
     "type": "which"
@@ -1845,9 +1891,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin King's Gambit Accepted: Bishop's Gambit?",
     "a": [
       "1.e4 e5 2.f4 exf4 3.Bc4",
-      "1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.b4",
+      "1.e4 e5 2.Nc3 Nc6 3.f4 exf4",
       "1.e4 e5 2.d4 exd4",
-      "1.e4 e5 2.Nf3"
+      "1.e4 e5 2.Nf3 d6"
     ],
     "ex": "C33 · 1.e4 e5 2.f4 exf4 3.Bc4"
   },
@@ -1856,9 +1902,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.e4 Nc6 2.d4 — which opening is this?",
     "a": [
       "Nimzowitsch Defense",
-      "Pirc Defense",
-      "Scandinavian Defense: Modern Variation",
-      "English Opening: King's English Variation, Reversed Sicilian"
+      "English Opening: King's English Variation, Reversed Sicilian",
+      "English Opening: Anglo-Indian Defense, Queen's Knight Variation",
+      "Scandinavian Defense: Modern Variation"
     ],
     "ex": "B00 · 1.e4 Nc6 2.d4",
     "type": "which"
@@ -1868,9 +1914,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin Nimzowitsch Defense?",
     "a": [
       "1.e4 Nc6 2.d4",
-      "1.c4 e6 2.Nf3",
-      "1.e4 Nf6 2.e5 Nd5",
-      "1.e4 Nf6 2.e5"
+      "1.e4 d5 2.exd5",
+      "1.e4 Nf6 2.e5",
+      "1.c4 e6 2.Nf3"
     ],
     "ex": "B00 · 1.e4 Nc6 2.d4"
   },
@@ -1879,9 +1925,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.d4 f5 2.c4 Nf6 — which opening is this?",
     "a": [
       "Dutch Defense: Normal Variation",
-      "King's Indian Defense: Fianchetto Variation",
-      "Queen's Pawn Game: Zukertort Variation",
-      "Grünfeld Defense: Three Knights Variation"
+      "Benoni Defense",
+      "Queen's Gambit Declined: Modern Variation",
+      "Slav Defense: Modern Line"
     ],
     "ex": "A84 · 1.d4 f5 2.c4 Nf6",
     "type": "which"
@@ -1891,9 +1937,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin Dutch Defense: Normal Variation?",
     "a": [
       "1.d4 f5 2.c4 Nf6",
-      "1.d4 d5 2.e4",
-      "1.d4 d5 2.c4 c6",
-      "1.d4 Nf6 2.c4 g6 3.Nc3"
+      "1.d4 Nf6 2.c4",
+      "1.d4 d5 2.c4 e6 3.Nc3",
+      "1.d4 Nf6 2.c4 e6 3.Nf3 d5"
     ],
     "ex": "A84 · 1.d4 f5 2.c4 Nf6"
   },
@@ -1902,9 +1948,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.c4 e6 2.Nf3 — which opening is this?",
     "a": [
       "English Opening: Agincourt Defense",
-      "Pirc Defense",
-      "Alekhine Defense: Mokele Mbembe",
-      "Alekhine Defense: Normal Variation"
+      "Scandinavian Defense: Mieses-Kotroc Variation",
+      "Nimzowitsch Defense: Scandinavian Variation",
+      "Nimzowitsch Defense"
     ],
     "ex": "A13 · 1.c4 e6 2.Nf3",
     "type": "which"
@@ -1915,8 +1961,8 @@ export const chessOpenings: QuizCategory = {
     "a": [
       "1.c4 e6 2.Nf3",
       "1.e4 Nf6 2.e5 Nd5",
-      "1.e4 Nf6 2.e5",
-      "1.c4 e5 2.Nc3 Nf6"
+      "1.e4 d5 2.exd5 Qxd5",
+      "1.e4 d6 2.d4 Nf6 3.Nc3"
     ],
     "ex": "A13 · 1.c4 e6 2.Nf3"
   },
@@ -1926,8 +1972,8 @@ export const chessOpenings: QuizCategory = {
     "a": [
       "Four Knights Game: Spanish Variation",
       "Center Game",
-      "Bishop's Opening",
-      "King's Gambit Accepted: Bishop's Gambit"
+      "Petrov's Defense",
+      "King's Knight Opening: Normal Variation"
     ],
     "ex": "C48 · 1.e4 e5 2.Nf3 Nc6 3.Nc3 Nf6 4.Bb5",
     "type": "which"
@@ -1937,9 +1983,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin Four Knights Game: Spanish Variation?",
     "a": [
       "1.e4 e5 2.Nf3 Nc6 3.Nc3 Nf6 4.Bb5",
-      "1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5",
-      "1.e4 e5 2.Bc4",
-      "1.e4 e5 2.d4"
+      "1.e4 e5 2.Nf3 Nc6 3.Bc4 Nf6",
+      "1.e4 e5 2.d4 exd4",
+      "1.e4 e5 2.Bc4 Bc5"
     ],
     "ex": "C48 · 1.e4 e5 2.Nf3 Nc6 3.Nc3 Nf6 4.Bb5"
   },
@@ -1948,9 +1994,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.d4 d5 2.c4 e6 3.Nc3 c5 — which opening is this?",
     "a": [
       "Tarrasch Defense",
-      "Queen's Gambit Declined",
-      "Indian Defense: Knights Variation",
-      "Slav Defense: Modern Line"
+      "Blackmar-Diemer Gambit: Fritz Attack",
+      "Dutch Defense: Fianchetto Variation",
+      "Queen's Gambit Declined"
     ],
     "ex": "D32 · 1.d4 d5 2.c4 e6 3.Nc3 c5",
     "type": "which"
@@ -1960,9 +2006,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin Tarrasch Defense?",
     "a": [
       "1.d4 d5 2.c4 e6 3.Nc3 c5",
-      "1.d4 Nf6 2.c4 e6 3.Nf3 b6",
-      "1.d4 d5 2.c4 dxc4 3.Nf3",
-      "1.d4 d5 2.c4 c6"
+      "1.d4 d5 2.c4 dxc4",
+      "1.d4 Nf6 2.c4 d6",
+      "1.d4 d5 2.c4 e5"
     ],
     "ex": "D32 · 1.d4 d5 2.c4 e6 3.Nc3 c5"
   },
@@ -1971,9 +2017,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.d4 Nf6 2.c4 g6 3.Nf3 Bg7 — which opening is this?",
     "a": [
       "King's Indian Defense: Fianchetto Variation",
-      "Slav Defense",
-      "Nimzo-Indian Defense: Classical Variation",
-      "Queen's Gambit"
+      "Benko Gambit Accepted",
+      "Queen's Gambit Declined: Three Knights Variation",
+      "Modern Defense"
     ],
     "ex": "E60 · 1.d4 Nf6 2.c4 g6 3.Nf3 Bg7",
     "type": "which"
@@ -1983,9 +2029,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin King's Indian Defense: Fianchetto Variation?",
     "a": [
       "1.d4 Nf6 2.c4 g6 3.Nf3 Bg7",
-      "1.d4 Nf6 2.c4 g6 3.Nc3 Bg7",
-      "1.d4 d5 2.e4 dxe4",
-      "1.d4 f5 2.c4 Nf6"
+      "1.d4 Nf6 2.c4 g6 3.Nc3 d5",
+      "1.d4 d5 2.c4 Nc6",
+      "1.d4 Nf6 2.c4 g6 3.Nc3 Bg7"
     ],
     "ex": "E60 · 1.d4 Nf6 2.c4 g6 3.Nf3 Bg7"
   },
@@ -1994,9 +2040,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.d4 Nf6 2.c4 g6 3.Nf3 — which opening is this?",
     "a": [
       "King's Indian Defense: Normal Variation, King's Knight Variation",
-      "Grünfeld Defense",
-      "Benoni Defense",
-      "Blackmar-Diemer Gambit Accepted"
+      "Catalan Opening",
+      "Grünfeld Defense: Three Knights Variation",
+      "Queen's Indian Defense: Fianchetto Variation"
     ],
     "ex": "E60 · 1.d4 Nf6 2.c4 g6 3.Nf3",
     "type": "which"
@@ -2006,9 +2052,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin King's Indian Defense: Normal Variation, King's Knight Variation?",
     "a": [
       "1.d4 Nf6 2.c4 g6 3.Nf3",
-      "1.d4 Nf6 2.c4 g6 3.Nc3 d5",
-      "1.d4 Nf6 2.c4 e6 3.Nf3 b6",
-      "1.d4 d5 2.c4 c6 3.Nc3 Nf6"
+      "1.d4 d5 2.c4 e6",
+      "1.d4 Nf6 2.c4 g6 3.Nc3 d5 4.cxd5",
+      "1.d4 Nf6 2.c4 e6 3.g3"
     ],
     "ex": "E60 · 1.d4 Nf6 2.c4 g6 3.Nf3"
   },
@@ -2017,9 +2063,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.e4 e5 2.Nc3 Nc6 — which opening is this?",
     "a": [
       "Vienna Game: Max Lange Defense",
-      "King's Knight Opening",
-      "Scotch Game",
-      "King's Gambit Accepted: Bishop's Gambit"
+      "Scotch Game: Scotch Gambit",
+      "Ponziani Opening",
+      "Bishop's Opening: Boi Variation"
     ],
     "ex": "C25 · 1.e4 e5 2.Nc3 Nc6",
     "type": "which"
@@ -2029,9 +2075,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin Vienna Game: Max Lange Defense?",
     "a": [
       "1.e4 e5 2.Nc3 Nc6",
-      "1.e4 e5 2.Nf3 Nc6",
-      "1.e4 e5 2.Nf3 Nc6 3.Bc4",
-      "1.e4 e5 2.Nc3 Nf6"
+      "1.e4 e5 2.Nf3 Nc6 3.d4 exd4 4.Bc4",
+      "1.e4 e5 2.Nf3 d6",
+      "1.e4 e5 2.Nf3 f5"
     ],
     "ex": "C25 · 1.e4 e5 2.Nc3 Nc6"
   },
@@ -2040,9 +2086,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.e4 e5 2.d4 exd4 — which opening is this?",
     "a": [
       "Center Game Accepted",
-      "King's Gambit Accepted",
-      "King's Knight Opening",
-      "King's Knight Opening: Normal Variation"
+      "Ruy Lopez: Morphy Defense",
+      "Italian Game: Classical Variation",
+      "King's Gambit Accepted: Bishop's Gambit, Boden Variation"
     ],
     "ex": "C21 · 1.e4 e5 2.d4 exd4",
     "type": "which"
@@ -2052,9 +2098,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin Center Game Accepted?",
     "a": [
       "1.e4 e5 2.d4 exd4",
-      "1.e4 e5 2.f4 exf4 3.Bc4",
-      "1.e4 e5 2.Nf3 Nc6 3.Bc4 Nf6 4.Ng5",
-      "1.e4 e5 2.Bc4"
+      "1.e4 e5 2.Bc4 Nf6",
+      "1.e4 e5 2.f4 d5",
+      "1.e4 e5 2.Nf3 d6"
     ],
     "ex": "C21 · 1.e4 e5 2.d4 exd4"
   },
@@ -2063,9 +2109,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.d4 d5 2.c4 e6 3.Nc3 c5 4.cxd5 — which opening is this?",
     "a": [
       "Tarrasch Defense: Schara Gambit",
+      "Dutch Defense: Classical Variation",
       "Dutch Defense: Fianchetto Variation",
-      "Queen's Gambit",
-      "Queen's Gambit Accepted: Normal Variation"
+      "Queen's Gambit Declined: Tarrasch Defense, Pseudo-Tarrasch"
     ],
     "ex": "D32 · 1.d4 d5 2.c4 e6 3.Nc3 c5 4.cxd5",
     "type": "which"
@@ -2075,9 +2121,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin Tarrasch Defense: Schara Gambit?",
     "a": [
       "1.d4 d5 2.c4 e6 3.Nc3 c5 4.cxd5",
-      "1.d4 Nf6 2.c4 g6 3.Nf3 Bg7",
-      "1.d4 Nf6 2.c4 e6 3.Nc3 Bb4 4.e3",
-      "1.d4 Nf6 2.c4 e6"
+      "1.d4 d5 2.e4 dxe4",
+      "1.d4 Nf6 2.c4 e6 3.Nf3 b6 4.g3",
+      "1.d4 d5 2.e4"
     ],
     "ex": "D32 · 1.d4 d5 2.c4 e6 3.Nc3 c5 4.cxd5"
   },
@@ -2086,9 +2132,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.d4 f5 2.c4 Nf6 3.g3 — which opening is this?",
     "a": [
       "Dutch Defense: Fianchetto Variation",
-      "Slav Defense: Modern Line",
-      "King's Indian Defense",
-      "Nimzo-Indian Defense: Classical Variation"
+      "Queen's Gambit Declined: Modern Variation",
+      "Modern Defense",
+      "King's Indian Defense: Normal Variation, King's Knight Variation"
     ],
     "ex": "A86 · 1.d4 f5 2.c4 Nf6 3.g3",
     "type": "which"
@@ -2098,9 +2144,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin Dutch Defense: Fianchetto Variation?",
     "a": [
       "1.d4 f5 2.c4 Nf6 3.g3",
-      "1.d4 Nf6 2.c4 c5 3.d5 e6",
-      "1.d4 d5 2.c4 e6 3.Nc3 c5",
-      "1.d4 d5 2.c4 c6 3.Nf3"
+      "1.d4 d5 2.e4 dxe4 3.Nc3 Nf6 4.f3",
+      "1.d4 d5 2.c4 e6 3.Nc3 c5 4.cxd5",
+      "1.d4 Nf6 2.c4 e6 3.Nf3 c5"
     ],
     "ex": "A86 · 1.d4 f5 2.c4 Nf6 3.g3"
   },
@@ -2109,9 +2155,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.d4 Nf6 2.Nf3 g6 — which opening is this?",
     "a": [
       "East Indian Defense",
-      "Tarrasch Defense",
-      "Blackmar-Diemer Gambit Accepted",
-      "Benoni Defense"
+      "Queen's Gambit",
+      "Blackmar-Diemer Gambit: Fritz Attack",
+      "Queen's Gambit Declined: Chigorin Defense"
     ],
     "ex": "A48 · 1.d4 Nf6 2.Nf3 g6",
     "type": "which"
@@ -2121,9 +2167,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin East Indian Defense?",
     "a": [
       "1.d4 Nf6 2.Nf3 g6",
-      "1.d4 d5 2.c4 c6 3.Nf3",
-      "1.d4 Nf6 2.c4 e6",
-      "1.d4 Nf6 2.c4 e6 3.Nf3 b6"
+      "1.d4 Nf6 2.Nf3 e6",
+      "1.d4 Nf6 2.c4 g6",
+      "1.d4 Nf6 2.c4 c5 3.d5 e6 4.Nc3"
     ],
     "ex": "A48 · 1.d4 Nf6 2.Nf3 g6"
   },
@@ -2132,8 +2178,8 @@ export const chessOpenings: QuizCategory = {
     "q": "1.e4 e6 2.d4 d5 3.Nd2 — which opening is this?",
     "a": [
       "French Defense: Tarrasch Variation",
-      "French Defense: Normal Variation",
-      "French Defense, Classical, 4. Bg5",
+      "Caro-Kann Defense",
+      "Caro-Kann Defense: Panov Attack",
       "French Defense: Paulsen Variation"
     ],
     "ex": "C03 · 1.e4 e6 2.d4 d5 3.Nd2",
@@ -2144,9 +2190,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin French Defense: Tarrasch Variation?",
     "a": [
       "1.e4 e6 2.d4 d5 3.Nd2",
-      "1.e4 e6 2.d4 d5 3.Nc3 Nf6",
-      "1.e4 c6 2.d4",
-      "1.e4 e6 2.d4 d5 3.Nc3 Bb4"
+      "1.e4 c6 2.d4 d5 3.exd5 cxd5 4.c4",
+      "1.e4 c6 2.d4 d5 3.exd5",
+      "1.e4 e6 2.d4 d5 3.Nc3 Nf6 4.Bg5"
     ],
     "ex": "C03 · 1.e4 e6 2.d4 d5 3.Nd2"
   },
@@ -2155,9 +2201,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.e4 e5 2.Nf3 f5 — which opening is this?",
     "a": [
       "Latvian Gambit",
-      "Bishop's Opening",
-      "Center Game Accepted",
-      "King's Gambit Accepted"
+      "King's Gambit Accepted",
+      "King's Gambit Declined: Falkbeer Countergambit Accepted",
+      "Ruy Lopez: Bird's Defense Deferred"
     ],
     "ex": "C40 · 1.e4 e5 2.Nf3 f5",
     "type": "which"
@@ -2167,9 +2213,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin Latvian Gambit?",
     "a": [
       "1.e4 e5 2.Nf3 f5",
-      "1.e4 e5 2.Nf3 Nc6 3.Bb5 a6 4.Ba4",
-      "1.e4 e5 2.Nc3",
-      "1.e4 e5 2.f4 exf4"
+      "1.e4 e5 2.Nf3 Nc6 3.Nc3 Nf6",
+      "1.e4 e5 2.Nf3 Nc6 3.c3",
+      "1.e4 e5 2.Nf3 Nc6 3.Bb5 a6"
     ],
     "ex": "C40 · 1.e4 e5 2.Nf3 f5"
   },
@@ -2178,8 +2224,8 @@ export const chessOpenings: QuizCategory = {
     "q": "1.e4 c5 2.Nc3 — which opening is this?",
     "a": [
       "Sicilian Defense: Closed",
-      "Sicilian Defense: Smith-Morra Gambit",
-      "Sicilian Defense: Old Sicilian",
+      "Sicilian Defense: Modern Variations, Main Line",
+      "Sicilian Defense: French Variation, Open",
       "Sicilian Defense: Halasz Gambit"
     ],
     "ex": "B23 · 1.e4 c5 2.Nc3",
@@ -2190,9 +2236,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin Sicilian Defense: Closed?",
     "a": [
       "1.e4 c5 2.Nc3",
-      "1.e4 c5 2.d4",
-      "1.e4 c5 2.Nf3 e6 3.d4 cxd4 4.Nxd4",
-      "1.e4 c5 2.Nf3 e6 3.d4 cxd4"
+      "1.e4 c5 2.d4 cxd4 3.c3 dxc3 4.Nxc3",
+      "1.e4 c5 2.Nf3 Nc6",
+      "1.e4 c5 2.Nf3 Nc6 3.d4"
     ],
     "ex": "B23 · 1.e4 c5 2.Nc3"
   },
@@ -2201,9 +2247,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.e4 e5 2.Nc3 Nf6 — which opening is this?",
     "a": [
       "Vienna Game: Falkbeer Variation",
-      "King's Knight Opening: Normal Variation",
-      "Petrov's Defense",
-      "Four Knights Game"
+      "Ruy Lopez",
+      "King's Gambit Declined: Falkbeer Countergambit",
+      "Bishop's Opening: Boi Variation"
     ],
     "ex": "C26 · 1.e4 e5 2.Nc3 Nf6",
     "type": "which"
@@ -2213,9 +2259,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin Vienna Game: Falkbeer Variation?",
     "a": [
       "1.e4 e5 2.Nc3 Nf6",
-      "1.e4 e5 2.Nf3 Nc6 3.Bb5 Nf6",
-      "1.e4 e5 2.f4 exf4 3.Bc4",
-      "1.e4 e5 2.Bc4"
+      "1.e4 e5 2.Bc4 Nf6",
+      "1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.O-O",
+      "1.e4 e5 2.Nf3 Nc6 3.Nc3 Nf6 4.Bb5"
     ],
     "ex": "C26 · 1.e4 e5 2.Nc3 Nf6"
   },
@@ -2224,8 +2270,8 @@ export const chessOpenings: QuizCategory = {
     "q": "1.d4 Nf6 2.c4 c5 3.d5 e6 — which opening is this?",
     "a": [
       "Benoni Defense: Modern Variation",
-      "Indian Defense: West Indian Defense",
-      "Queen's Indian Defense: Fianchetto Variation",
+      "Catalan Opening",
+      "Nimzo-Indian Defense: Classical Variation",
       "Indian Defense"
     ],
     "ex": "A60 · 1.d4 Nf6 2.c4 c5 3.d5 e6",
@@ -2236,9 +2282,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin Benoni Defense: Modern Variation?",
     "a": [
       "1.d4 Nf6 2.c4 c5 3.d5 e6",
-      "1.d4 d5 2.c4 c6 3.Nc3 Nf6",
-      "1.d4 Nf6 2.c4 g6",
-      "1.d4 Nf6 2.c4 e6 3.Nf3 d5"
+      "1.d4 Nf6 2.c4 e6 3.g3 d5 4.Bg2",
+      "1.d4 f5 2.c4 Nf6",
+      "1.d4 Nf6 2.c4 e6 3.Nf3 b6 4.g3"
     ],
     "ex": "A60 · 1.d4 Nf6 2.c4 c5 3.d5 e6"
   },
@@ -2247,9 +2293,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.d4 Nf6 2.c4 g6 3.Nc3 d5 4.Nf3 — which opening is this?",
     "a": [
       "Grünfeld Defense: Three Knights Variation",
-      "Nimzo-Indian Defense",
-      "Indian Defense: West Indian Defense",
-      "Queen's Gambit Declined: Queen's Knight Variation"
+      "King's Indian Defense: Normal Variation, King's Knight Variation",
+      "Queen's Pawn Game: Zukertort Variation",
+      "Semi-Slav Defense: Main Line"
     ],
     "ex": "D90 · 1.d4 Nf6 2.c4 g6 3.Nc3 d5 4.Nf3",
     "type": "which"
@@ -2259,9 +2305,9 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin Grünfeld Defense: Three Knights Variation?",
     "a": [
       "1.d4 Nf6 2.c4 g6 3.Nc3 d5 4.Nf3",
-      "1.d4 Nf6 2.c4 e6 3.Nf3 d5 4.Nc3",
-      "1.d4 d5 2.c4 dxc4",
-      "1.d4 Nf6 2.c4 c5"
+      "1.d4 Nf6 2.c4 e6 3.g3 d5 4.Bg2",
+      "1.d4 Nf6 2.c4 g6 3.g3",
+      "1.d4 Nf6 2.c4 g6 3.Nf3"
     ],
     "ex": "D90 · 1.d4 Nf6 2.c4 g6 3.Nc3 d5 4.Nf3"
   },
@@ -2270,9 +2316,9 @@ export const chessOpenings: QuizCategory = {
     "q": "1.d4 Nf6 2.c4 e6 3.Nc3 Bb4 4.Qc2 — which opening is this?",
     "a": [
       "Nimzo-Indian Defense: Classical Variation",
-      "Benko Gambit",
-      "Queen's Gambit Accepted",
-      "King's Indian Defense: Normal Variation"
+      "Benko Gambit Accepted",
+      "Blumenfeld Countergambit",
+      "Tarrasch Defense"
     ],
     "ex": "E32 · 1.d4 Nf6 2.c4 e6 3.Nc3 Bb4 4.Qc2",
     "type": "which"
@@ -2282,11 +2328,1161 @@ export const chessOpenings: QuizCategory = {
     "q": "Which moves begin Nimzo-Indian Defense: Classical Variation?",
     "a": [
       "1.d4 Nf6 2.c4 e6 3.Nc3 Bb4 4.Qc2",
-      "1.d4 d5 2.c4 e6 3.Nc3",
-      "1.d4 Nf6 2.c4 g6 3.Nf3 Bg7",
-      "1.d4 Nf6 2.c4 e6 3.Nf3 b6"
+      "1.d4 d5 2.c4 e6 3.Nc3 c5",
+      "1.d4 Nf6 2.c4 g6 3.Nf3",
+      "1.d4 Nf6 2.c4 c5 3.d5 e6"
     ],
     "ex": "E32 · 1.d4 Nf6 2.c4 e6 3.Nc3 Bb4 4.Qc2"
+  },
+  {
+    "topic": "closed",
+    "q": "1.d4 Nf6 2.c4 c5 3.d5 e6 4.Nc3 — which opening is this?",
+    "a": [
+      "Benoni Defense: Modern Variation, Snake Variation",
+      "Slav Defense",
+      "Indian Defense",
+      "Semi-Slav Defense: Main Line"
+    ],
+    "ex": "A60 · 1.d4 Nf6 2.c4 c5 3.d5 e6 4.Nc3",
+    "type": "which"
+  },
+  {
+    "topic": "closed",
+    "q": "Which moves begin Benoni Defense: Modern Variation, Snake Variation?",
+    "a": [
+      "1.d4 Nf6 2.c4 c5 3.d5 e6 4.Nc3",
+      "1.d4 d5 2.c4 e5",
+      "1.d4 Nf6 2.Nc3",
+      "1.d4 Nf6 2.c4 g6 3.Nc3 d5 4.cxd5"
+    ],
+    "ex": "A60 · 1.d4 Nf6 2.c4 c5 3.d5 e6 4.Nc3"
+  },
+  {
+    "topic": "french",
+    "q": "1.e4 c6 2.d4 d5 3.exd5 — which opening is this?",
+    "a": [
+      "Caro-Kann Defense: Exchange Variation",
+      "French Defense, Classical, 4. Bg5",
+      "French Defense: Advance Variation",
+      "French Defense: Tarrasch Variation"
+    ],
+    "ex": "B13 · 1.e4 c6 2.d4 d5 3.exd5",
+    "type": "which"
+  },
+  {
+    "topic": "french",
+    "q": "Which moves begin Caro-Kann Defense: Exchange Variation?",
+    "a": [
+      "1.e4 c6 2.d4 d5 3.exd5",
+      "1.e4 e6 2.d4 d5 3.Nd2",
+      "1.e4 e6 2.d4 d5 3.Nc3 Bb4 4.e5",
+      "1.e4 e6 2.d4 d5"
+    ],
+    "ex": "B13 · 1.e4 c6 2.d4 d5 3.exd5"
+  },
+  {
+    "topic": "french",
+    "q": "1.e4 e6 2.d4 d5 3.e5 — which opening is this?",
+    "a": [
+      "French Defense: Advance Variation",
+      "Caro-Kann Defense: Panov Attack",
+      "French Defense: Normal Variation",
+      "French Defense: Classical Variation"
+    ],
+    "ex": "C02 · 1.e4 e6 2.d4 d5 3.e5",
+    "type": "which"
+  },
+  {
+    "topic": "french",
+    "q": "Which moves begin French Defense: Advance Variation?",
+    "a": [
+      "1.e4 e6 2.d4 d5 3.e5",
+      "1.e4 e6 2.d4 d5 3.Nc3",
+      "1.e4 e6 2.d4 d5 3.Nd2",
+      "1.e4 e6 2.d4 d5 3.Nc3 Nf6"
+    ],
+    "ex": "C02 · 1.e4 e6 2.d4 d5 3.e5"
+  },
+  {
+    "topic": "open",
+    "q": "1.e4 e5 2.f4 d5 — which opening is this?",
+    "a": [
+      "King's Gambit Declined: Falkbeer Countergambit",
+      "King's Gambit Accepted: Bishop's Gambit, Boden Variation",
+      "Vienna Game",
+      "King's Gambit Accepted: King's Knight's Gambit"
+    ],
+    "ex": "C31 · 1.e4 e5 2.f4 d5",
+    "type": "which"
+  },
+  {
+    "topic": "open",
+    "q": "Which moves begin King's Gambit Declined: Falkbeer Countergambit?",
+    "a": [
+      "1.e4 e5 2.f4 d5",
+      "1.e4 e5 2.Nf3 Nc6 3.Nc3",
+      "1.e4 e5 2.Nf3 Nc6 3.d4",
+      "1.e4 e5 2.f4 exf4 3.Nf3"
+    ],
+    "ex": "C31 · 1.e4 e5 2.f4 d5"
+  },
+  {
+    "topic": "closed",
+    "q": "1.d4 f5 2.c4 Nf6 3.g3 e6 — which opening is this?",
+    "a": [
+      "Dutch Defense: Classical Variation",
+      "King's Indian Defense: Normal Variation, King's Knight Variation",
+      "Indian Defense: Knights Variation",
+      "Benoni Defense: Modern Variation, Snake Variation"
+    ],
+    "ex": "A90 · 1.d4 f5 2.c4 Nf6 3.g3 e6",
+    "type": "which"
+  },
+  {
+    "topic": "closed",
+    "q": "Which moves begin Dutch Defense: Classical Variation?",
+    "a": [
+      "1.d4 f5 2.c4 Nf6 3.g3 e6",
+      "1.d4 d5 2.c4 c6",
+      "1.d4 Nf6 2.c4 e6",
+      "1.d4 Nf6 2.c4 e6 3.Nc3"
+    ],
+    "ex": "A90 · 1.d4 f5 2.c4 Nf6 3.g3 e6"
+  },
+  {
+    "topic": "flank",
+    "q": "1.c4 e5 2.Nc3 Nf6 3.Nf3 — which opening is this?",
+    "a": [
+      "English Opening: King's English Variation, Four Knights Variation",
+      "Lion Defense",
+      "King's Indian Attack",
+      "English Opening: King's English Variation, Reversed Sicilian"
+    ],
+    "ex": "A28 · 1.c4 e5 2.Nc3 Nf6 3.Nf3",
+    "type": "which"
+  },
+  {
+    "topic": "flank",
+    "q": "Which moves begin English Opening: King's English Variation, Four Knights Variation?",
+    "a": [
+      "1.c4 e5 2.Nc3 Nf6 3.Nf3",
+      "1.e4 Nf6 2.e5 Nd5 3.d4",
+      "1.c4 e6 2.Nf3 d5 3.g3",
+      "1.c4 Nf6 2.Nc3"
+    ],
+    "ex": "A28 · 1.c4 e5 2.Nc3 Nf6 3.Nf3"
+  },
+  {
+    "topic": "flank",
+    "q": "1.Nf3 d5 2.g3 — which opening is this?",
+    "a": [
+      "King's Indian Attack",
+      "Scandinavian Defense: Main Line",
+      "Alekhine Defense: Mokele Mbembe",
+      "Pirc Defense"
+    ],
+    "ex": "A07 · 1.Nf3 d5 2.g3",
+    "type": "which"
+  },
+  {
+    "topic": "flank",
+    "q": "Which moves begin King's Indian Attack?",
+    "a": [
+      "1.Nf3 d5 2.g3",
+      "1.e4 Nf6 2.e5",
+      "1.Nf3 d5 2.c4",
+      "1.c4 e6 2.Nf3"
+    ],
+    "ex": "A07 · 1.Nf3 d5 2.g3"
+  },
+  {
+    "topic": "closed",
+    "q": "1.d4 d5 2.c4 e6 3.Nc3 c6 — which opening is this?",
+    "a": [
+      "Semi-Slav Defense: Accelerated Move Order",
+      "Benko Gambit",
+      "Tarrasch Defense",
+      "Queen's Gambit Declined: Three Knights Variation"
+    ],
+    "ex": "D31 · 1.d4 d5 2.c4 e6 3.Nc3 c6",
+    "type": "which"
+  },
+  {
+    "topic": "closed",
+    "q": "Which moves begin Semi-Slav Defense: Accelerated Move Order?",
+    "a": [
+      "1.d4 d5 2.c4 e6 3.Nc3 c6",
+      "1.d4 Nf6 2.c4 e6 3.Nc3 Bb4 4.e3",
+      "1.d4 Nf6 2.c4 e6 3.g3",
+      "1.d4 d5 2.c4 e6 3.Nc3 c5"
+    ],
+    "ex": "D31 · 1.d4 d5 2.c4 e6 3.Nc3 c6"
+  },
+  {
+    "topic": "sicilian",
+    "q": "1.e4 c5 2.d4 cxd4 3.c3 dxc3 — which opening is this?",
+    "a": [
+      "Sicilian Defense: Smith-Morra Gambit Accepted",
+      "Sicilian Defense: Modern Variations",
+      "Sicilian Defense: Hyperaccelerated Dragon",
+      "Sicilian Defense: Drazic Variation"
+    ],
+    "ex": "B21 · 1.e4 c5 2.d4 cxd4 3.c3 dxc3",
+    "type": "which"
+  },
+  {
+    "topic": "sicilian",
+    "q": "Which moves begin Sicilian Defense: Smith-Morra Gambit Accepted?",
+    "a": [
+      "1.e4 c5 2.d4 cxd4 3.c3 dxc3",
+      "1.e4 c5 2.Nf3 Nc6 3.d4",
+      "1.e4 c5 2.Nf3 e6 3.d4 cxd4",
+      "1.e4 c5 2.Nf3 d6 3.d4 cxd4 4.Nxd4"
+    ],
+    "ex": "B21 · 1.e4 c5 2.d4 cxd4 3.c3 dxc3"
+  },
+  {
+    "topic": "french",
+    "q": "1.e4 c6 2.d4 d5 3.Nd2 — which opening is this?",
+    "a": [
+      "Caro-Kann Defense: Modern Variation",
+      "Caro-Kann Defense: Exchange Variation",
+      "French Defense: Winawer Variation",
+      "French Defense, Classical, 4. Bg5"
+    ],
+    "ex": "B12 · 1.e4 c6 2.d4 d5 3.Nd2",
+    "type": "which"
+  },
+  {
+    "topic": "french",
+    "q": "Which moves begin Caro-Kann Defense: Modern Variation?",
+    "a": [
+      "1.e4 c6 2.d4 d5 3.Nd2",
+      "1.e4 e6 2.d4 d5 3.Nc3 Nf6",
+      "1.e4 e6 2.d4 d5",
+      "1.e4 c6 2.d4 d5 3.exd5"
+    ],
+    "ex": "B12 · 1.e4 c6 2.d4 d5 3.Nd2"
+  },
+  {
+    "topic": "sicilian",
+    "q": "1.e4 c5 2.Nf3 a6 — which opening is this?",
+    "a": [
+      "Sicilian Defense: O'Kelly Variation",
+      "Sicilian Defense: Smith-Morra Gambit",
+      "Sicilian Defense: Modern Variations, Main Line",
+      "Sicilian Defense: Closed"
+    ],
+    "ex": "B28 · 1.e4 c5 2.Nf3 a6",
+    "type": "which"
+  },
+  {
+    "topic": "sicilian",
+    "q": "Which moves begin Sicilian Defense: O'Kelly Variation?",
+    "a": [
+      "1.e4 c5 2.Nf3 a6",
+      "1.e4 c5 2.Nf3 e6",
+      "1.e4 c5 2.Nf3 g6",
+      "1.e4 c5 2.Nf3 d6 3.d4 cxd4 4.Nxd4"
+    ],
+    "ex": "B28 · 1.e4 c5 2.Nf3 a6"
+  },
+  {
+    "topic": "open",
+    "q": "1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.O-O — which opening is this?",
+    "a": [
+      "Italian Game: Deutz Gambit",
+      "Ruy Lopez: Morphy Defense",
+      "Ponziani Opening",
+      "Ruy Lopez: Berlin Defense"
+    ],
+    "ex": "C50 · 1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.O-O",
+    "type": "which"
+  },
+  {
+    "topic": "open",
+    "q": "Which moves begin Italian Game: Deutz Gambit?",
+    "a": [
+      "1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.O-O",
+      "1.e4 e5 2.Nc3 Nc6 3.f4",
+      "1.e4 e5 2.Bc4",
+      "1.e4 e5 2.Nf3 f5"
+    ],
+    "ex": "C50 · 1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.O-O"
+  },
+  {
+    "topic": "open",
+    "q": "1.e4 e5 2.Nf3 Nc6 3.d4 exd4 4.Bc4 — which opening is this?",
+    "a": [
+      "Scotch Game: Scotch Gambit",
+      "Vienna Gambit, with Max Lange Defense: Steinitz Gambit",
+      "Italian Game: Evans Gambit",
+      "Four Knights Game"
+    ],
+    "ex": "C44 · 1.e4 e5 2.Nf3 Nc6 3.d4 exd4 4.Bc4",
+    "type": "which"
+  },
+  {
+    "topic": "open",
+    "q": "Which moves begin Scotch Game: Scotch Gambit?",
+    "a": [
+      "1.e4 e5 2.Nf3 Nc6 3.d4 exd4 4.Bc4",
+      "1.e4 e5 2.Nf3 Nc6 3.Nc3 Nf6 4.Bb5",
+      "1.e4 e5 2.Nf3 Nc6 3.Bc4",
+      "1.e4 e5 2.Nf3 Nc6 3.Bc4 Nf6"
+    ],
+    "ex": "C44 · 1.e4 e5 2.Nf3 Nc6 3.d4 exd4 4.Bc4"
+  },
+  {
+    "topic": "sicilian",
+    "q": "1.e4 c5 2.d4 cxd4 3.c3 dxc3 4.Nxc3 — which opening is this?",
+    "a": [
+      "Sicilian Defense: Smith-Morra Gambit Accepted, Fianchetto Defense",
+      "Sicilian Defense: Old Sicilian",
+      "Sicilian Defense: Open",
+      "Sicilian Defense: Drazic Variation"
+    ],
+    "ex": "B21 · 1.e4 c5 2.d4 cxd4 3.c3 dxc3 4.Nxc3",
+    "type": "which"
+  },
+  {
+    "topic": "sicilian",
+    "q": "Which moves begin Sicilian Defense: Smith-Morra Gambit Accepted, Fianchetto Defense?",
+    "a": [
+      "1.e4 c5 2.d4 cxd4 3.c3 dxc3 4.Nxc3",
+      "1.e4 c5 2.Nf3 g6",
+      "1.e4 c5 2.Nf3 e6 3.d4",
+      "1.e4 c5 2.Nf3 a6"
+    ],
+    "ex": "B21 · 1.e4 c5 2.d4 cxd4 3.c3 dxc3 4.Nxc3"
+  },
+  {
+    "topic": "closed",
+    "q": "1.d4 Nf6 2.Nf3 e6 — which opening is this?",
+    "a": [
+      "Yusupov-Rubinstein System",
+      "Semi-Slav Defense: Accelerated Move Order",
+      "Queen's Gambit Declined: Traditional Variation",
+      "Blackmar-Diemer Gambit: Fritz Attack"
+    ],
+    "ex": "A46 · 1.d4 Nf6 2.Nf3 e6",
+    "type": "which"
+  },
+  {
+    "topic": "closed",
+    "q": "Which moves begin Yusupov-Rubinstein System?",
+    "a": [
+      "1.d4 Nf6 2.Nf3 e6",
+      "1.d4 d5 2.c4 e6 3.Nc3",
+      "1.d4 d5 2.c4 dxc4 3.Nf3",
+      "1.d4 Nf6 2.c4 e6 3.g3"
+    ],
+    "ex": "A46 · 1.d4 Nf6 2.Nf3 e6"
+  },
+  {
+    "topic": "french",
+    "q": "1.e4 c6 2.d4 d5 3.Nd2 dxe4 — which opening is this?",
+    "a": [
+      "Caro-Kann Defense: Main Line",
+      "French Defense: Classical Variation",
+      "French Defense, Classical, 4. Bg5",
+      "French Defense: Normal Variation"
+    ],
+    "ex": "B15 · 1.e4 c6 2.d4 d5 3.Nd2 dxe4",
+    "type": "which"
+  },
+  {
+    "topic": "french",
+    "q": "Which moves begin Caro-Kann Defense: Main Line?",
+    "a": [
+      "1.e4 c6 2.d4 d5 3.Nd2 dxe4",
+      "1.e4 e6 2.d4 d5 3.Nc3",
+      "1.e4 e6 2.d4 d5 3.Nd2",
+      "1.e4 e6 2.d4"
+    ],
+    "ex": "B15 · 1.e4 c6 2.d4 d5 3.Nd2 dxe4"
+  },
+  {
+    "topic": "closed",
+    "q": "1.d4 Nf6 2.c4 e6 3.g3 d5 4.Bg2 — which opening is this?",
+    "a": [
+      "Catalan Opening: Open Defense",
+      "Indian Defense: Maddigan Gambit",
+      "Blackmar-Diemer Gambit",
+      "Queen's Gambit Declined: Exchange Variation"
+    ],
+    "ex": "E01 · 1.d4 Nf6 2.c4 e6 3.g3 d5 4.Bg2",
+    "type": "which"
+  },
+  {
+    "topic": "closed",
+    "q": "Which moves begin Catalan Opening: Open Defense?",
+    "a": [
+      "1.d4 Nf6 2.c4 e6 3.g3 d5 4.Bg2",
+      "1.d4 d5 2.c4 dxc4",
+      "1.d4 Nf6 2.c4 e6 3.Nc3 d5",
+      "1.d4 d5 2.c4 e6 3.Nf3"
+    ],
+    "ex": "E01 · 1.d4 Nf6 2.c4 e6 3.g3 d5 4.Bg2"
+  },
+  {
+    "topic": "flank",
+    "q": "1.e4 d5 2.exd5 Qxd5 — which opening is this?",
+    "a": [
+      "Scandinavian Defense: Mieses-Kotroc Variation",
+      "Alekhine Defense: Normal Variation",
+      "English Opening: Anglo-Indian Defense, Queen's Knight Variation",
+      "Scandinavian Defense: Main Line"
+    ],
+    "ex": "B01 · 1.e4 d5 2.exd5 Qxd5",
+    "type": "which"
+  },
+  {
+    "topic": "flank",
+    "q": "Which moves begin Scandinavian Defense: Mieses-Kotroc Variation?",
+    "a": [
+      "1.e4 d5 2.exd5 Qxd5",
+      "1.c4 e5 2.Nc3 Nf6 3.Nf3",
+      "1.Nf3 d5 2.g3",
+      "1.c4 e6 2.Nf3 d5 3.g3"
+    ],
+    "ex": "B01 · 1.e4 d5 2.exd5 Qxd5"
+  },
+  {
+    "topic": "flank",
+    "q": "1.c4 Nf6 2.Nf3 — which opening is this?",
+    "a": [
+      "English Opening: Anglo-Indian Defense, King's Knight Variation",
+      "Scandinavian Defense: Main Line",
+      "English Opening: Symmetrical Variation, Normal Variation",
+      "Alekhine Defense: Mokele Mbembe"
+    ],
+    "ex": "A15 · 1.c4 Nf6 2.Nf3",
+    "type": "which"
+  },
+  {
+    "topic": "flank",
+    "q": "Which moves begin English Opening: Anglo-Indian Defense, King's Knight Variation?",
+    "a": [
+      "1.c4 Nf6 2.Nf3",
+      "1.e4 Nc6 2.d4 d5",
+      "1.c4 e5 2.Nc3 Nf6",
+      "1.Nf3 d5 2.c4"
+    ],
+    "ex": "A15 · 1.c4 Nf6 2.Nf3"
+  },
+  {
+    "topic": "open",
+    "q": "1.e4 e5 2.f4 d5 3.exd5 — which opening is this?",
+    "a": [
+      "King's Gambit Declined: Falkbeer Countergambit Accepted",
+      "Ruy Lopez: Bird's Defense Deferred",
+      "King's Gambit Accepted: King's Knight's Gambit",
+      "Italian Game: Deutz Gambit"
+    ],
+    "ex": "C31 · 1.e4 e5 2.f4 d5 3.exd5",
+    "type": "which"
+  },
+  {
+    "topic": "open",
+    "q": "Which moves begin King's Gambit Declined: Falkbeer Countergambit Accepted?",
+    "a": [
+      "1.e4 e5 2.f4 d5 3.exd5",
+      "1.e4 e5 2.Nf3 Nc6 3.Bb5",
+      "1.e4 e5 2.d4",
+      "1.e4 e5 2.Nf3 Nc6 3.Nc3"
+    ],
+    "ex": "C31 · 1.e4 e5 2.f4 d5 3.exd5"
+  },
+  {
+    "topic": "closed",
+    "q": "1.d4 Nf6 2.c4 e6 3.Nc3 d5 4.Bg5 — which opening is this?",
+    "a": [
+      "Queen's Gambit Declined: Modern Variation",
+      "Queen's Gambit Declined: Exchange Variation",
+      "Dutch Defense: Fianchetto Variation",
+      "Catalan Opening"
+    ],
+    "ex": "D50 · 1.d4 Nf6 2.c4 e6 3.Nc3 d5 4.Bg5",
+    "type": "which"
+  },
+  {
+    "topic": "closed",
+    "q": "Which moves begin Queen's Gambit Declined: Modern Variation?",
+    "a": [
+      "1.d4 Nf6 2.c4 e6 3.Nc3 d5 4.Bg5",
+      "1.d4 d5 2.c4 c6 3.Nc3 Nf6",
+      "1.d4 Nf6 2.c4 e6 3.Nf3 Bb4+",
+      "1.d4 Nf6 2.c4 g6"
+    ],
+    "ex": "D50 · 1.d4 Nf6 2.c4 e6 3.Nc3 d5 4.Bg5"
+  },
+  {
+    "topic": "closed",
+    "q": "1.d4 Nf6 2.c4 e6 3.Nc3 d5 — which opening is this?",
+    "a": [
+      "Queen's Gambit Declined: Normal Defense",
+      "Nimzo-Indian Defense: Classical Variation",
+      "Queen's Gambit Declined: Tarrasch Defense, Pseudo-Tarrasch",
+      "Queen's Gambit Accepted"
+    ],
+    "ex": "D35 · 1.d4 Nf6 2.c4 e6 3.Nc3 d5",
+    "type": "which"
+  },
+  {
+    "topic": "closed",
+    "q": "Which moves begin Queen's Gambit Declined: Normal Defense?",
+    "a": [
+      "1.d4 Nf6 2.c4 e6 3.Nc3 d5",
+      "1.d4 Nf6 2.c4 c5 3.d5 e6",
+      "1.d4 d5 2.c4 dxc4",
+      "1.d4 d5 2.c4 e6 3.Nc3 c5"
+    ],
+    "ex": "D35 · 1.d4 Nf6 2.c4 e6 3.Nc3 d5"
+  },
+  {
+    "topic": "flank",
+    "q": "1.e4 d5 2.exd5 Qxd5 3.Nc3 — which opening is this?",
+    "a": [
+      "Scandinavian Defense: Main Line",
+      "English Opening: Symmetrical Variation, Normal Variation",
+      "Réti Opening",
+      "English Opening: King's English Variation, Reversed Sicilian"
+    ],
+    "ex": "B01 · 1.e4 d5 2.exd5 Qxd5 3.Nc3",
+    "type": "which"
+  },
+  {
+    "topic": "flank",
+    "q": "Which moves begin Scandinavian Defense: Main Line?",
+    "a": [
+      "1.e4 d5 2.exd5 Qxd5 3.Nc3",
+      "1.e4 Nc6 2.d4",
+      "1.e4 Nf6 2.e5 Nd5 3.d4",
+      "1.c4 e6 2.Nf3"
+    ],
+    "ex": "B01 · 1.e4 d5 2.exd5 Qxd5 3.Nc3"
+  },
+  {
+    "topic": "open",
+    "q": "1.e4 e5 2.Nc3 Nc6 3.f4 — which opening is this?",
+    "a": [
+      "Vienna Gambit, with Max Lange Defense",
+      "Vienna Game: Falkbeer Variation",
+      "Scotch Game: Scotch Gambit",
+      "Italian Game: Classical Variation"
+    ],
+    "ex": "C25 · 1.e4 e5 2.Nc3 Nc6 3.f4",
+    "type": "which"
+  },
+  {
+    "topic": "open",
+    "q": "Which moves begin Vienna Gambit, with Max Lange Defense?",
+    "a": [
+      "1.e4 e5 2.Nc3 Nc6 3.f4",
+      "1.e4 e5 2.f4 exf4 3.Nf3",
+      "1.e4 e5 2.f4 d5",
+      "1.e4 e5 2.d4 exd4"
+    ],
+    "ex": "C25 · 1.e4 e5 2.Nc3 Nc6 3.f4"
+  },
+  {
+    "topic": "closed",
+    "q": "1.d4 Nf6 2.c4 c5 3.d5 b5 4.cxb5 — which opening is this?",
+    "a": [
+      "Benko Gambit Accepted",
+      "Benoni Defense",
+      "Grünfeld Defense: Exchange Variation",
+      "Queen's Indian Defense"
+    ],
+    "ex": "A57 · 1.d4 Nf6 2.c4 c5 3.d5 b5 4.cxb5",
+    "type": "which"
+  },
+  {
+    "topic": "closed",
+    "q": "Which moves begin Benko Gambit Accepted?",
+    "a": [
+      "1.d4 Nf6 2.c4 c5 3.d5 b5 4.cxb5",
+      "1.d4 d5 2.e4",
+      "1.d4 Nf6 2.c4 e6 3.g3",
+      "1.d4 Nf6 2.c4 g6 3.Nc3 d5 4.Nf3"
+    ],
+    "ex": "A57 · 1.d4 Nf6 2.c4 c5 3.d5 b5 4.cxb5"
+  },
+  {
+    "topic": "open",
+    "q": "1.e4 e5 2.Bc4 Bc5 — which opening is this?",
+    "a": [
+      "Bishop's Opening: Boi Variation",
+      "King's Gambit Accepted: Bishop's Gambit",
+      "Center Game",
+      "Latvian Gambit"
+    ],
+    "ex": "C23 · 1.e4 e5 2.Bc4 Bc5",
+    "type": "which"
+  },
+  {
+    "topic": "open",
+    "q": "Which moves begin Bishop's Opening: Boi Variation?",
+    "a": [
+      "1.e4 e5 2.Bc4 Bc5",
+      "1.e4 e5 2.Nc3 Nc6 3.f4 exf4",
+      "1.e4 e5 2.f4",
+      "1.e4 e5 2.Nc3 Nc6"
+    ],
+    "ex": "C23 · 1.e4 e5 2.Bc4 Bc5"
+  },
+  {
+    "topic": "french",
+    "q": "1.e4 c6 2.d4 d5 3.exd5 cxd5 4.c4 — which opening is this?",
+    "a": [
+      "Caro-Kann Defense: Panov Attack",
+      "French Defense: Winawer Variation",
+      "French Defense: Winawer Variation, Advance Variation",
+      "French Defense: Paulsen Variation"
+    ],
+    "ex": "B13 · 1.e4 c6 2.d4 d5 3.exd5 cxd5 4.c4",
+    "type": "which"
+  },
+  {
+    "topic": "french",
+    "q": "Which moves begin Caro-Kann Defense: Panov Attack?",
+    "a": [
+      "1.e4 c6 2.d4 d5 3.exd5 cxd5 4.c4",
+      "1.e4 c6 2.d4 d5 3.Nd2",
+      "1.e4 e6 2.d4 d5 3.Nd2",
+      "1.e4 e6 2.d4 d5 3.Nc3"
+    ],
+    "ex": "B13 · 1.e4 c6 2.d4 d5 3.exd5 cxd5 4.c4"
+  },
+  {
+    "topic": "flank",
+    "q": "1.c4 e6 2.Nf3 d5 3.g3 — which opening is this?",
+    "a": [
+      "English Opening: Neo-Catalan",
+      "English Opening: King's English Variation, Two Knights Variation",
+      "English Opening: King's English Variation, Reversed Sicilian",
+      "Alekhine Defense: Mokele Mbembe"
+    ],
+    "ex": "A13 · 1.c4 e6 2.Nf3 d5 3.g3",
+    "type": "which"
+  },
+  {
+    "topic": "flank",
+    "q": "Which moves begin English Opening: Neo-Catalan?",
+    "a": [
+      "1.c4 e6 2.Nf3 d5 3.g3",
+      "1.e4 d6 2.d4 Nf6 3.Nc3",
+      "1.Nf3 d5 2.c4",
+      "1.c4 e5 2.Nc3 Nf6 3.Nf3"
+    ],
+    "ex": "A13 · 1.c4 e6 2.Nf3 d5 3.g3"
+  },
+  {
+    "topic": "open",
+    "q": "1.e4 e5 2.Nf3 Nc6 3.c3 — which opening is this?",
+    "a": [
+      "Ponziani Opening",
+      "Latvian Gambit",
+      "Vienna Game",
+      "Italian Game: Two Knights Defense"
+    ],
+    "ex": "C44 · 1.e4 e5 2.Nf3 Nc6 3.c3",
+    "type": "which"
+  },
+  {
+    "topic": "open",
+    "q": "Which moves begin Ponziani Opening?",
+    "a": [
+      "1.e4 e5 2.Nf3 Nc6 3.c3",
+      "1.e4 e5 2.Nf3 Nc6 3.Bc4 Nf6",
+      "1.e4 e5 2.Nf3 Nc6 3.Nc3 Nf6 4.Bb5",
+      "1.e4 e5 2.f4 d5"
+    ],
+    "ex": "C44 · 1.e4 e5 2.Nf3 Nc6 3.c3"
+  },
+  {
+    "topic": "sicilian",
+    "q": "1.e4 c5 2.Nc3 Nc6 — which opening is this?",
+    "a": [
+      "Sicilian Defense: Closed, Traditional",
+      "Sicilian Defense: Kan Variation",
+      "Sicilian Defense: Old Sicilian",
+      "Sicilian Defense: Modern Variations, Main Line"
+    ],
+    "ex": "B23 · 1.e4 c5 2.Nc3 Nc6",
+    "type": "which"
+  },
+  {
+    "topic": "sicilian",
+    "q": "Which moves begin Sicilian Defense: Closed, Traditional?",
+    "a": [
+      "1.e4 c5 2.Nc3 Nc6",
+      "1.e4 c5 2.Nf3 e6 3.d4 cxd4 4.Nxd4",
+      "1.e4 c5 2.Nf3 d6 3.d4 cxd4 4.Nxd4",
+      "1.e4 c5 2.Nf3 Nc6"
+    ],
+    "ex": "B23 · 1.e4 c5 2.Nc3 Nc6"
+  },
+  {
+    "topic": "closed",
+    "q": "1.d4 Nf6 2.c4 g6 3.Nc3 d5 4.cxd5 — which opening is this?",
+    "a": [
+      "Grünfeld Defense: Exchange Variation",
+      "Queen's Gambit Declined: Queen's Knight Variation",
+      "Tarrasch Defense",
+      "Indian Defense: Normal Variation"
+    ],
+    "ex": "D85 · 1.d4 Nf6 2.c4 g6 3.Nc3 d5 4.cxd5",
+    "type": "which"
+  },
+  {
+    "topic": "closed",
+    "q": "Which moves begin Grünfeld Defense: Exchange Variation?",
+    "a": [
+      "1.d4 Nf6 2.c4 g6 3.Nc3 d5 4.cxd5",
+      "1.d4 d5 2.c4 dxc4 3.Nf3",
+      "1.d4 Nf6 2.c4 c5 3.d5 b5 4.cxb5",
+      "1.d4 d5 2.c4 e6 3.Nf3"
+    ],
+    "ex": "D85 · 1.d4 Nf6 2.c4 g6 3.Nc3 d5 4.cxd5"
+  },
+  {
+    "topic": "open",
+    "q": "1.e4 e5 2.Nf3 Nc6 3.Bc4 Nf6 4.d4 — which opening is this?",
+    "a": [
+      "Italian Game: Two Knights Defense, Open Variation",
+      "Philidor Defense",
+      "Italian Game: Two Knights Defense, Knight Attack",
+      "King's Gambit Declined: Falkbeer Countergambit"
+    ],
+    "ex": "C56 · 1.e4 e5 2.Nf3 Nc6 3.Bc4 Nf6 4.d4",
+    "type": "which"
+  },
+  {
+    "topic": "open",
+    "q": "Which moves begin Italian Game: Two Knights Defense, Open Variation?",
+    "a": [
+      "1.e4 e5 2.Nf3 Nc6 3.Bc4 Nf6 4.d4",
+      "1.e4 e5 2.Nf3 Nc6 3.Bb5 Nf6",
+      "1.e4 e5 2.Nf3 Nc6 3.c3",
+      "1.e4 e5 2.Nf3 Nc6 3.Bb5"
+    ],
+    "ex": "C56 · 1.e4 e5 2.Nf3 Nc6 3.Bc4 Nf6 4.d4"
+  },
+  {
+    "topic": "closed",
+    "q": "1.d4 Nf6 2.c4 g6 3.g3 — which opening is this?",
+    "a": [
+      "King's Indian Defense: Fianchetto Variation, Immediate Fianchetto",
+      "Indian Defense: Maddigan Gambit",
+      "Grünfeld Defense: Exchange Variation",
+      "Nimzo-Indian Defense: Classical Variation"
+    ],
+    "ex": "E60 · 1.d4 Nf6 2.c4 g6 3.g3",
+    "type": "which"
+  },
+  {
+    "topic": "closed",
+    "q": "Which moves begin King's Indian Defense: Fianchetto Variation, Immediate Fianchetto?",
+    "a": [
+      "1.d4 Nf6 2.c4 g6 3.g3",
+      "1.d4 Nf6 2.c4 e6 3.Nc3 d5",
+      "1.d4 Nf6 2.Nc3",
+      "1.d4 d5 2.Nf3"
+    ],
+    "ex": "E60 · 1.d4 Nf6 2.c4 g6 3.g3"
+  },
+  {
+    "topic": "flank",
+    "q": "1.e4 Nc6 2.d4 d5 — which opening is this?",
+    "a": [
+      "Nimzowitsch Defense: Scandinavian Variation",
+      "English Opening: King's English Variation, Four Knights Variation",
+      "Alekhine Defense",
+      "English Opening: Anglo-Indian Defense, Queen's Knight Variation"
+    ],
+    "ex": "B00 · 1.e4 Nc6 2.d4 d5",
+    "type": "which"
+  },
+  {
+    "topic": "flank",
+    "q": "Which moves begin Nimzowitsch Defense: Scandinavian Variation?",
+    "a": [
+      "1.e4 Nc6 2.d4 d5",
+      "1.e4 Nf6 2.e5",
+      "1.e4 d6 2.d4",
+      "1.Nf3 d5 2.g3"
+    ],
+    "ex": "B00 · 1.e4 Nc6 2.d4 d5"
+  },
+  {
+    "topic": "closed",
+    "q": "1.d4 d5 2.c4 e6 3.Nf3 — which opening is this?",
+    "a": [
+      "Queen's Gambit Declined: Tarrasch Defense, Pseudo-Tarrasch",
+      "Tarrasch Defense",
+      "Queen's Gambit Declined: Exchange Variation",
+      "Catalan Opening"
+    ],
+    "ex": "D30 · 1.d4 d5 2.c4 e6 3.Nf3",
+    "type": "which"
+  },
+  {
+    "topic": "closed",
+    "q": "Which moves begin Queen's Gambit Declined: Tarrasch Defense, Pseudo-Tarrasch?",
+    "a": [
+      "1.d4 d5 2.c4 e6 3.Nf3",
+      "1.d4 Nf6 2.Nf3 g6",
+      "1.d4 Nf6 2.c4 e6 3.Nf3 Bb4+",
+      "1.d4 Nf6 2.Nc3"
+    ],
+    "ex": "D30 · 1.d4 d5 2.c4 e6 3.Nf3"
+  },
+  {
+    "topic": "flank",
+    "q": "1.Nf3 d5 2.c4 — which opening is this?",
+    "a": [
+      "Réti Opening",
+      "Alekhine Defense",
+      "Scandinavian Defense: Modern Variation",
+      "Alekhine Defense: Mokele Mbembe"
+    ],
+    "ex": "A09 · 1.Nf3 d5 2.c4",
+    "type": "which"
+  },
+  {
+    "topic": "flank",
+    "q": "Which moves begin Réti Opening?",
+    "a": [
+      "1.Nf3 d5 2.c4",
+      "1.e4 d5 2.exd5 Qxd5 3.Nc3",
+      "1.c4 e6 2.Nf3 d5 3.g3",
+      "1.c4 e5 2.Nc3 Nf6"
+    ],
+    "ex": "A09 · 1.Nf3 d5 2.c4"
+  },
+  {
+    "topic": "sicilian",
+    "q": "1.e4 c5 2.Nf3 g6 — which opening is this?",
+    "a": [
+      "Sicilian Defense: Hyperaccelerated Dragon",
+      "Sicilian Defense: French Variation, Open",
+      "Sicilian Defense: O'Kelly Variation",
+      "Sicilian Defense: Halasz Gambit"
+    ],
+    "ex": "B27 · 1.e4 c5 2.Nf3 g6",
+    "type": "which"
+  },
+  {
+    "topic": "sicilian",
+    "q": "Which moves begin Sicilian Defense: Hyperaccelerated Dragon?",
+    "a": [
+      "1.e4 c5 2.Nf3 g6",
+      "1.e4 c5 2.Nf3 Nc6 3.d4",
+      "1.e4 c5 2.d4 cxd4 3.c3 dxc3 4.Nxc3",
+      "1.e4 c5 2.Nc3 Nc6"
+    ],
+    "ex": "B27 · 1.e4 c5 2.Nf3 g6"
+  },
+  {
+    "topic": "open",
+    "q": "1.e4 e5 2.Nc3 Nc6 3.f4 exf4 — which opening is this?",
+    "a": [
+      "Vienna Gambit, with Max Lange Defense: Steinitz Gambit",
+      "Italian Game: Two Knights Defense, Open Variation",
+      "Scotch Game: Scotch Gambit",
+      "King's Knight Opening"
+    ],
+    "ex": "C25 · 1.e4 e5 2.Nc3 Nc6 3.f4 exf4",
+    "type": "which"
+  },
+  {
+    "topic": "open",
+    "q": "Which moves begin Vienna Gambit, with Max Lange Defense: Steinitz Gambit?",
+    "a": [
+      "1.e4 e5 2.Nc3 Nc6 3.f4 exf4",
+      "1.e4 e5 2.Nf3 Nc6 3.Bb5 a6 4.Ba4",
+      "1.e4 e5 2.Nf3 Nc6 3.Nc3 Nf6 4.Bb5",
+      "1.e4 e5 2.Nf3"
+    ],
+    "ex": "C25 · 1.e4 e5 2.Nc3 Nc6 3.f4 exf4"
+  },
+  {
+    "topic": "closed",
+    "q": "1.d4 Nf6 2.c4 e6 3.Nf3 c5 — which opening is this?",
+    "a": [
+      "Blumenfeld Countergambit",
+      "Slav Defense",
+      "Queen's Gambit Declined: Chigorin Defense",
+      "Grünfeld Defense: Exchange Variation"
+    ],
+    "ex": "E10 · 1.d4 Nf6 2.c4 e6 3.Nf3 c5",
+    "type": "which"
+  },
+  {
+    "topic": "closed",
+    "q": "Which moves begin Blumenfeld Countergambit?",
+    "a": [
+      "1.d4 Nf6 2.c4 e6 3.Nf3 c5",
+      "1.d4 Nf6 2.c4 g6 3.Nf3 Bg7",
+      "1.d4 d5 2.c4 e5",
+      "1.d4 Nf6 2.c4 e6 3.Nf3 b6"
+    ],
+    "ex": "E10 · 1.d4 Nf6 2.c4 e6 3.Nf3 c5"
+  },
+  {
+    "topic": "flank",
+    "q": "1.c4 c5 2.Nc3 — which opening is this?",
+    "a": [
+      "English Opening: Symmetrical Variation, Normal Variation",
+      "Nimzowitsch Defense",
+      "Alekhine Defense",
+      "Alekhine Defense: Normal Variation"
+    ],
+    "ex": "A34 · 1.c4 c5 2.Nc3",
+    "type": "which"
+  },
+  {
+    "topic": "flank",
+    "q": "Which moves begin English Opening: Symmetrical Variation, Normal Variation?",
+    "a": [
+      "1.c4 c5 2.Nc3",
+      "1.c4 e6 2.Nf3",
+      "1.e4 d5 2.exd5 Qxd5",
+      "1.e4 d5 2.exd5 Qxd5 3.Nc3"
+    ],
+    "ex": "A34 · 1.c4 c5 2.Nc3"
+  },
+  {
+    "topic": "closed",
+    "q": "1.d4 Nf6 2.c4 d6 — which opening is this?",
+    "a": [
+      "Old Indian Defense",
+      "Queen's Gambit Declined: Albin Countergambit",
+      "Queen's Gambit Declined: Tarrasch Defense, Pseudo-Tarrasch",
+      "Slav Defense: Modern Line"
+    ],
+    "ex": "A53 · 1.d4 Nf6 2.c4 d6",
+    "type": "which"
+  },
+  {
+    "topic": "closed",
+    "q": "Which moves begin Old Indian Defense?",
+    "a": [
+      "1.d4 Nf6 2.c4 d6",
+      "1.d4 Nf6 2.c4 g6 3.g3",
+      "1.d4 d5 2.c4 e6",
+      "1.d4 d5 2.Nf3"
+    ],
+    "ex": "A53 · 1.d4 Nf6 2.c4 d6"
+  },
+  {
+    "topic": "closed",
+    "q": "1.d4 Nf6 2.c4 e6 3.Nc3 d5 4.cxd5 — which opening is this?",
+    "a": [
+      "Queen's Gambit Declined: Exchange Variation",
+      "Indian Defense: West Indian Defense",
+      "Nimzo-Indian Defense: Rubinstein System",
+      "Indian Defense"
+    ],
+    "ex": "D35 · 1.d4 Nf6 2.c4 e6 3.Nc3 d5 4.cxd5",
+    "type": "which"
+  },
+  {
+    "topic": "closed",
+    "q": "Which moves begin Queen's Gambit Declined: Exchange Variation?",
+    "a": [
+      "1.d4 Nf6 2.c4 e6 3.Nc3 d5 4.cxd5",
+      "1.d4 g6 2.c4",
+      "1.d4 d5 2.c4 e5",
+      "1.d4 d5 2.c4 e6 3.Nc3 c6"
+    ],
+    "ex": "D35 · 1.d4 Nf6 2.c4 e6 3.Nc3 d5 4.cxd5"
+  },
+  {
+    "topic": "open",
+    "q": "1.e4 e5 2.Bc4 Nf6 — which opening is this?",
+    "a": [
+      "Bishop's Opening: Berlin Defense",
+      "Vienna Game: Max Lange Defense",
+      "Ruy Lopez: Bird's Defense Deferred",
+      "Ponziani Opening"
+    ],
+    "ex": "C24 · 1.e4 e5 2.Bc4 Nf6",
+    "type": "which"
+  },
+  {
+    "topic": "open",
+    "q": "Which moves begin Bishop's Opening: Berlin Defense?",
+    "a": [
+      "1.e4 e5 2.Bc4 Nf6",
+      "1.e4 e5 2.Nc3 Nc6 3.f4",
+      "1.e4 e5 2.Nf3 Nc6 3.Bb5",
+      "1.e4 e5 2.Nf3 Nc6 3.Bc4 Nf6 4.d4"
+    ],
+    "ex": "C24 · 1.e4 e5 2.Bc4 Nf6"
+  },
+  {
+    "topic": "closed",
+    "q": "1.d4 Nf6 2.c4 e6 3.Nf3 Bb4+ — which opening is this?",
+    "a": [
+      "Bogo-Indian Defense",
+      "Queen's Gambit Declined: Traditional Variation",
+      "King's Indian Defense",
+      "Nimzo-Indian Defense: Classical Variation"
+    ],
+    "ex": "E11 · 1.d4 Nf6 2.c4 e6 3.Nf3 Bb4+",
+    "type": "which"
+  },
+  {
+    "topic": "closed",
+    "q": "Which moves begin Bogo-Indian Defense?",
+    "a": [
+      "1.d4 Nf6 2.c4 e6 3.Nf3 Bb4+",
+      "1.d4 Nf6 2.c4 c5 3.d5 e6",
+      "1.d4 d5 2.e4 dxe4 3.Nc3 Nf6 4.f3",
+      "1.d4 g6 2.c4"
+    ],
+    "ex": "E11 · 1.d4 Nf6 2.c4 e6 3.Nf3 Bb4+"
+  },
+  {
+    "topic": "flank",
+    "q": "1.c4 Nf6 2.Nc3 — which opening is this?",
+    "a": [
+      "English Opening: Anglo-Indian Defense, Queen's Knight Variation",
+      "Pirc Defense",
+      "English Opening: King's English Variation, Two Knights Variation",
+      "Alekhine Defense: Mokele Mbembe"
+    ],
+    "ex": "A16 · 1.c4 Nf6 2.Nc3",
+    "type": "which"
+  },
+  {
+    "topic": "flank",
+    "q": "Which moves begin English Opening: Anglo-Indian Defense, Queen's Knight Variation?",
+    "a": [
+      "1.c4 Nf6 2.Nc3",
+      "1.e4 d5 2.exd5",
+      "1.c4 Nf6 2.Nf3",
+      "1.e4 d5 2.exd5 Qxd5"
+    ],
+    "ex": "A16 · 1.c4 Nf6 2.Nc3"
+  },
+  {
+    "topic": "closed",
+    "q": "1.d4 Nf6 2.Nc3 — which opening is this?",
+    "a": [
+      "Indian Defense: Maddigan Gambit",
+      "King's Indian Defense: Fianchetto Variation",
+      "Queen's Gambit Declined: Traditional Variation",
+      "Dutch Defense: Classical Variation"
+    ],
+    "ex": "A45 · 1.d4 Nf6 2.Nc3",
+    "type": "which"
+  },
+  {
+    "topic": "closed",
+    "q": "Which moves begin Indian Defense: Maddigan Gambit?",
+    "a": [
+      "1.d4 Nf6 2.Nc3",
+      "1.d4 d5 2.c4 e6",
+      "1.d4 Nf6 2.c4 e6 3.Nc3 Bb4 4.Qc2",
+      "1.d4 Nf6 2.c4 c5 3.d5 e6"
+    ],
+    "ex": "A45 · 1.d4 Nf6 2.Nc3"
+  },
+  {
+    "topic": "open",
+    "q": "1.e4 e5 2.f4 exf4 3.Bc4 Qh4+ — which opening is this?",
+    "a": [
+      "King's Gambit Accepted: Bishop's Gambit, Boden Variation",
+      "Vienna Gambit, with Max Lange Defense: Steinitz Gambit",
+      "Bishop's Opening: Berlin Defense",
+      "Petrov's Defense"
+    ],
+    "ex": "C33 · 1.e4 e5 2.f4 exf4 3.Bc4 Qh4+",
+    "type": "which"
+  },
+  {
+    "topic": "open",
+    "q": "Which moves begin King's Gambit Accepted: Bishop's Gambit, Boden Variation?",
+    "a": [
+      "1.e4 e5 2.f4 exf4 3.Bc4 Qh4+",
+      "1.e4 e5 2.Bc4 Bc5",
+      "1.e4 e5 2.Nc3",
+      "1.e4 e5 2.Nf3 Nc6 3.Bc4 Nf6 4.Ng5"
+    ],
+    "ex": "C33 · 1.e4 e5 2.f4 exf4 3.Bc4 Qh4+"
+  },
+  {
+    "topic": "closed",
+    "q": "1.d4 g6 2.c4 — which opening is this?",
+    "a": [
+      "Modern Defense",
+      "Bogo-Indian Defense",
+      "Indian Defense",
+      "Indian Defense: Knights Variation"
+    ],
+    "ex": "A41 · 1.d4 g6 2.c4",
+    "type": "which"
+  },
+  {
+    "topic": "closed",
+    "q": "Which moves begin Modern Defense?",
+    "a": [
+      "1.d4 g6 2.c4",
+      "1.d4 f5 2.c4 Nf6",
+      "1.d4 d5 2.Nf3",
+      "1.d4 Nf6 2.c4 g6 3.Nc3 d5 4.cxd5"
+    ],
+    "ex": "A41 · 1.d4 g6 2.c4"
+  },
+  {
+    "topic": "closed",
+    "q": "1.d4 d5 2.c4 e5 — which opening is this?",
+    "a": [
+      "Queen's Gambit Declined: Albin Countergambit",
+      "Indian Defense: Anti-Nimzo-Indian",
+      "Dutch Defense: Normal Variation",
+      "East Indian Defense"
+    ],
+    "ex": "D08 · 1.d4 d5 2.c4 e5",
+    "type": "which"
+  },
+  {
+    "topic": "closed",
+    "q": "Which moves begin Queen's Gambit Declined: Albin Countergambit?",
+    "a": [
+      "1.d4 d5 2.c4 e5",
+      "1.d4 Nf6 2.c4 c5 3.d5 e6 4.Nc3",
+      "1.d4 d5 2.Nf3",
+      "1.d4 Nf6 2.c4 e6 3.Nf3 d5"
+    ],
+    "ex": "D08 · 1.d4 d5 2.c4 e5"
+  },
+  {
+    "topic": "closed",
+    "q": "1.d4 d5 2.c4 Nc6 — which opening is this?",
+    "a": [
+      "Queen's Gambit Declined: Chigorin Defense",
+      "Queen's Gambit Accepted",
+      "King's Indian Defense: Fianchetto Variation, Immediate Fianchetto",
+      "Benoni Defense: Modern Variation, Snake Variation"
+    ],
+    "ex": "D07 · 1.d4 d5 2.c4 Nc6",
+    "type": "which"
+  },
+  {
+    "topic": "closed",
+    "q": "Which moves begin Queen's Gambit Declined: Chigorin Defense?",
+    "a": [
+      "1.d4 d5 2.c4 Nc6",
+      "1.d4 Nf6 2.c4 e6",
+      "1.d4 d5 2.c4 e6 3.Nc3",
+      "1.d4 d5 2.c4 e6 3.Nc3 c5 4.cxd5"
+    ],
+    "ex": "D07 · 1.d4 d5 2.c4 Nc6"
   }
 ],
 };
