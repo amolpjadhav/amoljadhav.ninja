@@ -58,6 +58,20 @@ const TOPICS = {
 const raw = JSON.parse(fs.readFileSync(DATA, 'utf8'));
 const { positions, children } = raw;
 
+// Per-opening strategy notes ("what the line accomplishes"), shown in the
+// explanation after answering. Keyed by exact opening name; family
+// fallbacks cover any future pick missing from the map.
+const IDEAS = JSON.parse(
+  fs.readFileSync(new URL('./opening-ideas.json', import.meta.url), 'utf8'),
+);
+const FAMILY_IDEAS = {
+  open: 'An open game: quick development and central tactics.',
+  sicilian: 'An asymmetric Sicilian: imbalance and counterplay from move one.',
+  french: 'A French/Caro structure: solid center, break with ...c5 later.',
+  closed: 'A closed game: maneuvering behind pawn chains, breaks come late.',
+  flank: 'A flank opening: control the center from the wings, strike later.',
+};
+
 const start = new Chess();
 const startEpd = epdOf(start);
 const seen = new Map(); // epd -> { moves: uci[], popularity }
@@ -143,18 +157,20 @@ for (const c of picked) {
   const linePool = shuffled(familyPool).map((o) => o.line).filter((l, i, arr) => diverges(l) && arr.indexOf(l) === i);
   const lineDistractors = linePool.slice(0, 3);
   if (nameDistractors.length < 3 || lineDistractors.length < 3) continue;
+  const idea = IDEAS[c.name] ?? FAMILY_IDEAS[topic];
+  const ex = `${c.eco} · ${c.line} — ${idea}`;
   questions.push({
     topic,
     q: `${c.line} — which opening is this?`,
     a: [c.name, ...nameDistractors],
-    ex: `${c.eco} · ${c.line}`,
+    ex,
     type: 'which',
   });
   questions.push({
     topic,
     q: `Which moves begin ${c.name}?`,
     a: [c.line, ...lineDistractors],
-    ex: `${c.eco} · ${c.line}`,
+    ex,
   });
 }
 

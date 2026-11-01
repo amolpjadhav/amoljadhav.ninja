@@ -43,7 +43,7 @@ export const chessOpenings: QuizCategory = {
       "Ruy Lopez",
       "Vienna Gambit, with Max Lange Defense: Steinitz Gambit"
     ],
-    "ex": "C40 · 1.e4 e5 2.Nf3",
+    "ex": "C40 · 1.e4 e5 2.Nf3 — The king's knight first: attacks e5 and readies kingside castling.",
     "type": "which"
   },
   {
@@ -55,7 +55,7 @@ export const chessOpenings: QuizCategory = {
       "1.e4 e5 2.Bc4 Bc5",
       "1.e4 e5 2.f4 exf4"
     ],
-    "ex": "C40 · 1.e4 e5 2.Nf3"
+    "ex": "C40 · 1.e4 e5 2.Nf3 — The king's knight first: attacks e5 and readies kingside castling."
   },
   {
     "topic": "closed",
@@ -66,7 +66,7 @@ export const chessOpenings: QuizCategory = {
       "Nimzo-Indian Defense: Classical Variation",
       "Queen's Indian Defense: Fianchetto Variation"
     ],
-    "ex": "A50 · 1.d4 Nf6 2.c4",
+    "ex": "A50 · 1.d4 Nf6 2.c4 — The fork in the road: ...e6, ...g6, ...b6 and ...c5 all live behind this move.",
     "type": "which"
   },
   {
@@ -78,7 +78,7 @@ export const chessOpenings: QuizCategory = {
       "1.d4 d5 2.c4 c6 3.Nc3 Nf6",
       "1.d4 Nf6 2.Nf3"
     ],
-    "ex": "A50 · 1.d4 Nf6 2.c4"
+    "ex": "A50 · 1.d4 Nf6 2.c4 — The fork in the road: ...e6, ...g6, ...b6 and ...c5 all live behind this move."
   },
   {
     "topic": "open",
@@ -89,7 +89,7 @@ export const chessOpenings: QuizCategory = {
       "King's Gambit Declined: Falkbeer Countergambit Accepted",
       "Italian Game: Two Knights Defense, Knight Attack"
     ],
-    "ex": "C44 · 1.e4 e5 2.Nf3 Nc6",
+    "ex": "C44 · 1.e4 e5 2.Nf3 Nc6 — Black defends e5 the natural way; the Spanish, Italian and Scotch branch from here.",
     "type": "which"
   },
   {
@@ -101,7 +101,7 @@ export const chessOpenings: QuizCategory = {
       "1.e4 e5 2.f4 exf4 3.Bc4 Qh4+",
       "1.e4 e5 2.Nc3 Nc6"
     ],
-    "ex": "C44 · 1.e4 e5 2.Nf3 Nc6"
+    "ex": "C44 · 1.e4 e5 2.Nf3 Nc6 — Black defends e5 the natural way; the Spanish, Italian and Scotch branch from here."
   },
   {
     "topic": "closed",
@@ -112,7 +112,7 @@ export const chessOpenings: QuizCategory = {
       "King's Indian Defense",
       "Grünfeld Defense: Exchange Variation"
     ],
-    "ex": "D06 · 1.d4 d5 2.c4",
+    "ex": "D06 · 1.d4 d5 2.c4 — White offers the c-pawn to lure ...dxc4, then builds the center with e3.",
     "type": "which"
   },
   {
@@ -124,7 +124,7 @@ export const chessOpenings: QuizCategory = {
       "1.d4 d5 2.e4",
       "1.d4 Nf6 2.Nf3"
     ],
-    "ex": "D06 · 1.d4 d5 2.c4"
+    "ex": "D06 · 1.d4 d5 2.c4 — White offers the c-pawn to lure ...dxc4, then builds the center with e3."
   },
   {
     "topic": "closed",
@@ -135,7 +135,7 @@ export const chessOpenings: QuizCategory = {
       "Blumenfeld Countergambit",
       "Queen's Gambit Declined: Albin Countergambit"
     ],
-    "ex": "E00 · 1.d4 Nf6 2.c4 e6",
+    "ex": "E00 · 1.d4 Nf6 2.c4 e6 — The ...e6 complex: Nimzo-Indian, Queen's Indian and Bogo-Indian all start here.",
     "type": "which"
   },
   {
@@ -147,7 +147,7 @@ export const chessOpenings: QuizCategory = {
       "1.d4 d5 2.c4 e5",
       "1.d4 d5 2.c4"
     ],
-    "ex": "E00 · 1.d4 Nf6 2.c4 e6"
+    "ex": "E00 · 1.d4 Nf6 2.c4 e6 — The ...e6 complex: Nimzo-Indian, Queen's Indian and Bogo-Indian all start here."
   },
   {
     "topic": "sicilian",
@@ -158,7 +158,7 @@ export const chessOpenings: QuizCategory = {
       "Blackmar-Diemer Gambit Accepted",
       "Slav Defense: Modern Line"
     ],
-    "ex": "B27 · 1.e4 c5 2.Nf3",
+    "ex": "B27 · 1.e4 c5 2.Nf3 — The fighting reply: an asymmetric structure, queenside majority against central space.",
     "type": "which"
   },
   {
@@ -170,7 +170,7 @@ export const chessOpenings: QuizCategory = {
       "1.e4 e5 2.Nf3 Nc6 3.Bc4 Nf6",
       "1.e4 e5 2.Nf3 Nc6 3.d4"
     ],
-    "ex": "B27 · 1.e4 c5 2.Nf3"
+    "ex": "B27 · 1.e4 c5 2.Nf3 — The fighting reply: an asymmetric structure, queenside majority against central space."
   },
   {
     "topic": "open",
@@ -181,7 +181,7 @@ export const chessOpenings: QuizCategory = {
       "Scotch Game: Scotch Gambit",
       "Italian Game"
     ],
-    "ex": "C60 · 1.e4 e5 2.Nf3 Nc6 3.Bb5",
+    "ex": "C60 · 1.e4 e5 2.Nf3 Nc6 3.Bb5 — The Spanish Torture: lasting queenside pressure plus a wall of theory.",
     "type": "which"
   },
   {
@@ -193,7 +193,7 @@ export const chessOpenings: QuizCategory = {
       "1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.b4",
       "1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.O-O"
     ],
-    "ex": "C60 · 1.e4 e5 2.Nf3 Nc6 3.Bb5"
+    "ex": "C60 · 1.e4 e5 2.Nf3 Nc6 3.Bb5 — The Spanish Torture: lasting queenside pressure plus a wall of theory."
   },
   {
     "topic": "closed",
@@ -204,7 +204,7 @@ export const chessOpenings: QuizCategory = {
       "Grünfeld Defense: Three Knights Variation",
       "Indian Defense: Knights Variation"
     ],
-    "ex": "E60 · 1.d4 Nf6 2.c4 g6",
+    "ex": "E60 · 1.d4 Nf6 2.c4 g6 — The ...g6 complex, before Black picks between Grünfeld and King's Indian.",
     "type": "which"
   },
   {
@@ -216,7 +216,7 @@ export const chessOpenings: QuizCategory = {
       "1.d4 d5 2.c4 Nc6",
       "1.d4 d5 2.e4 dxe4 3.Nc3 Nf6 4.f3"
     ],
-    "ex": "E60 · 1.d4 Nf6 2.c4 g6"
+    "ex": "E60 · 1.d4 Nf6 2.c4 g6 — The ...g6 complex, before Black picks between Grünfeld and King's Indian."
   },
   {
     "topic": "french",
@@ -227,7 +227,7 @@ export const chessOpenings: QuizCategory = {
       "Caro-Kann Defense: Exchange Variation",
       "Caro-Kann Defense: Modern Variation"
     ],
-    "ex": "C00 · 1.e4 e6 2.d4",
+    "ex": "C00 · 1.e4 e6 2.d4 — White grabs the center; Black now picks Winawer, Classical or Tarrasch.",
     "type": "which"
   },
   {
@@ -239,7 +239,7 @@ export const chessOpenings: QuizCategory = {
       "1.e4 c6 2.d4 d5 3.exd5",
       "1.e4 c6 2.d4"
     ],
-    "ex": "C00 · 1.e4 e6 2.d4"
+    "ex": "C00 · 1.e4 e6 2.d4 — White grabs the center; Black now picks Winawer, Classical or Tarrasch."
   },
   {
     "topic": "open",
@@ -250,7 +250,7 @@ export const chessOpenings: QuizCategory = {
       "Bishop's Opening: Boi Variation",
       "Ruy Lopez: Bird's Defense Deferred"
     ],
-    "ex": "C30 · 1.e4 e5 2.f4",
+    "ex": "C30 · 1.e4 e5 2.f4 — Romantic chess: a pawn for speed, an open f-file and a run at the black king.",
     "type": "which"
   },
   {
@@ -262,7 +262,7 @@ export const chessOpenings: QuizCategory = {
       "1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.O-O",
       "1.e4 e5 2.Nc3 Nc6 3.f4"
     ],
-    "ex": "C30 · 1.e4 e5 2.f4"
+    "ex": "C30 · 1.e4 e5 2.f4 — Romantic chess: a pawn for speed, an open f-file and a run at the black king."
   },
   {
     "topic": "open",
@@ -273,7 +273,7 @@ export const chessOpenings: QuizCategory = {
       "Bishop's Opening: Boi Variation",
       "Scotch Game"
     ],
-    "ex": "C50 · 1.e4 e5 2.Nf3 Nc6 3.Bc4",
+    "ex": "C50 · 1.e4 e5 2.Nf3 Nc6 3.Bc4 — The bishop eyes f7, weakest square near the king; quiet buildup or Evans fire to come.",
     "type": "which"
   },
   {
@@ -285,7 +285,7 @@ export const chessOpenings: QuizCategory = {
       "1.e4 e5 2.Nf3 f5",
       "1.e4 e5 2.Nc3 Nc6"
     ],
-    "ex": "C50 · 1.e4 e5 2.Nf3 Nc6 3.Bc4"
+    "ex": "C50 · 1.e4 e5 2.Nf3 Nc6 3.Bc4 — The bishop eyes f7, weakest square near the king; quiet buildup or Evans fire to come."
   },
   {
     "topic": "french",
@@ -296,7 +296,7 @@ export const chessOpenings: QuizCategory = {
       "Caro-Kann Defense: Modern Variation",
       "Caro-Kann Defense: Main Line"
     ],
-    "ex": "C00 · 1.e4 e6 2.d4 d5",
+    "ex": "C00 · 1.e4 e6 2.d4 d5 — The counterpunching defense: concede space, then break with ...c5 or ...f6.",
     "type": "which"
   },
   {
@@ -308,7 +308,7 @@ export const chessOpenings: QuizCategory = {
       "1.e4 c6 2.d4 d5 3.Nd2",
       "1.e4 c6 2.d4 d5 3.exd5 cxd5 4.c4"
     ],
-    "ex": "C00 · 1.e4 e6 2.d4 d5"
+    "ex": "C00 · 1.e4 e6 2.d4 d5 — The counterpunching defense: concede space, then break with ...c5 or ...f6."
   },
   {
     "topic": "closed",
@@ -319,7 +319,7 @@ export const chessOpenings: QuizCategory = {
       "Semi-Slav Defense: Main Line",
       "Dutch Defense: Normal Variation"
     ],
-    "ex": "E10 · 1.d4 Nf6 2.c4 e6 3.Nf3",
+    "ex": "E10 · 1.d4 Nf6 2.c4 e6 3.Nf3 — White plays Nf3 early to dodge the ...Bb4 pin and keep the queenside fluid.",
     "type": "which"
   },
   {
@@ -331,7 +331,7 @@ export const chessOpenings: QuizCategory = {
       "1.d4 Nf6 2.c4 e6 3.g3",
       "1.d4 Nf6 2.c4 e6 3.Nc3 d5 4.cxd5"
     ],
-    "ex": "E10 · 1.d4 Nf6 2.c4 e6 3.Nf3"
+    "ex": "E10 · 1.d4 Nf6 2.c4 e6 3.Nf3 — White plays Nf3 early to dodge the ...Bb4 pin and keep the queenside fluid."
   },
   {
     "topic": "open",
@@ -342,7 +342,7 @@ export const chessOpenings: QuizCategory = {
       "King's Gambit Accepted: King's Knight's Gambit",
       "King's Gambit Accepted: Bishop's Gambit"
     ],
-    "ex": "C70 · 1.e4 e5 2.Nf3 Nc6 3.Bb5 a6",
+    "ex": "C70 · 1.e4 e5 2.Nf3 Nc6 3.Bb5 a6 — Puts the question to the bishop at once: retreat or trade on c6.",
     "type": "which"
   },
   {
@@ -354,7 +354,7 @@ export const chessOpenings: QuizCategory = {
       "1.e4 e5 2.Bc4",
       "1.e4 e5 2.Nf3 Nc6 3.Nc3 Nf6 4.Bb5"
     ],
-    "ex": "C70 · 1.e4 e5 2.Nf3 Nc6 3.Bb5 a6"
+    "ex": "C70 · 1.e4 e5 2.Nf3 Nc6 3.Bb5 a6 — Puts the question to the bishop at once: retreat or trade on c6."
   },
   {
     "topic": "closed",
@@ -365,7 +365,7 @@ export const chessOpenings: QuizCategory = {
       "Queen's Gambit",
       "Blackmar-Diemer Gambit Accepted"
     ],
-    "ex": "E61 · 1.d4 Nf6 2.c4 g6 3.Nc3",
+    "ex": "E61 · 1.d4 Nf6 2.c4 g6 3.Nc3 — Black lets White build the big center, then demolishes it with ...e5 or ...c5.",
     "type": "which"
   },
   {
@@ -377,7 +377,7 @@ export const chessOpenings: QuizCategory = {
       "1.d4 d5 2.e4 dxe4 3.Nc3 Nf6 4.f3",
       "1.d4 d5 2.c4"
     ],
-    "ex": "E61 · 1.d4 Nf6 2.c4 g6 3.Nc3"
+    "ex": "E61 · 1.d4 Nf6 2.c4 g6 3.Nc3 — Black lets White build the big center, then demolishes it with ...e5 or ...c5."
   },
   {
     "topic": "open",
@@ -388,7 +388,7 @@ export const chessOpenings: QuizCategory = {
       "King's Gambit Declined: Falkbeer Countergambit Accepted",
       "Center Game Accepted"
     ],
-    "ex": "C70 · 1.e4 e5 2.Nf3 Nc6 3.Bb5 a6 4.Ba4",
+    "ex": "C70 · 1.e4 e5 2.Nf3 Nc6 3.Bb5 a6 4.Ba4 — Develops with a delayed ...Nd4 idea while keeping the Spanish pin alive.",
     "type": "which"
   },
   {
@@ -400,7 +400,7 @@ export const chessOpenings: QuizCategory = {
       "1.e4 e5 2.f4 exf4 3.Bc4 Qh4+",
       "1.e4 e5 2.Nc3 Nc6"
     ],
-    "ex": "C70 · 1.e4 e5 2.Nf3 Nc6 3.Bb5 a6 4.Ba4"
+    "ex": "C70 · 1.e4 e5 2.Nf3 Nc6 3.Bb5 a6 4.Ba4 — Develops with a delayed ...Nd4 idea while keeping the Spanish pin alive."
   },
   {
     "topic": "open",
@@ -411,7 +411,7 @@ export const chessOpenings: QuizCategory = {
       "Bishop's Opening",
       "Vienna Gambit, with Max Lange Defense"
     ],
-    "ex": "C33 · 1.e4 e5 2.f4 exf4",
+    "ex": "C33 · 1.e4 e5 2.f4 exf4 — Black grabs the pawn; holding it costs the time White spends attacking.",
     "type": "which"
   },
   {
@@ -423,7 +423,7 @@ export const chessOpenings: QuizCategory = {
       "1.e4 e5 2.d4 exd4",
       "1.e4 e5 2.Nf3 Nf6"
     ],
-    "ex": "C33 · 1.e4 e5 2.f4 exf4"
+    "ex": "C33 · 1.e4 e5 2.f4 exf4 — Black grabs the pawn; holding it costs the time White spends attacking."
   },
   {
     "topic": "closed",
@@ -434,7 +434,7 @@ export const chessOpenings: QuizCategory = {
       "Grünfeld Defense: Exchange Variation",
       "Blackmar-Diemer Gambit: Fritz Attack"
     ],
-    "ex": "D30 · 1.d4 d5 2.c4 e6",
+    "ex": "D30 · 1.d4 d5 2.c4 e6 — Black holds the center with ...e6 and accepts a quieter, cramped but solid game.",
     "type": "which"
   },
   {
@@ -446,7 +446,7 @@ export const chessOpenings: QuizCategory = {
       "1.d4 Nf6 2.c4 e6",
       "1.d4 Nf6 2.Nf3 g6"
     ],
-    "ex": "D30 · 1.d4 d5 2.c4 e6"
+    "ex": "D30 · 1.d4 d5 2.c4 e6 — Black holds the center with ...e6 and accepts a quieter, cramped but solid game."
   },
   {
     "topic": "sicilian",
@@ -457,7 +457,7 @@ export const chessOpenings: QuizCategory = {
       "Sicilian Defense: Old Sicilian",
       "Sicilian Defense: Open"
     ],
-    "ex": "B50 · 1.e4 c5 2.Nf3 d6",
+    "ex": "B50 · 1.e4 c5 2.Nf3 d6 — The flexible ...d6 waiting room: Scheveningen, Najdorf and Dragon setups ahead.",
     "type": "which"
   },
   {
@@ -469,7 +469,7 @@ export const chessOpenings: QuizCategory = {
       "1.e4 c5 2.d4",
       "1.e4 c5 2.Nc3"
     ],
-    "ex": "B50 · 1.e4 c5 2.Nf3 d6"
+    "ex": "B50 · 1.e4 c5 2.Nf3 d6 — The flexible ...d6 waiting room: Scheveningen, Najdorf and Dragon setups ahead."
   },
   {
     "topic": "closed",
@@ -480,7 +480,7 @@ export const chessOpenings: QuizCategory = {
       "Queen's Gambit Declined: Albin Countergambit",
       "Tarrasch Defense: Schara Gambit"
     ],
-    "ex": "E20 · 1.d4 Nf6 2.c4 e6 3.Nc3",
+    "ex": "E20 · 1.d4 Nf6 2.c4 e6 3.Nc3 — Pins the c3-knight so ...Bxc3 can saddle White with doubled pawns.",
     "type": "which"
   },
   {
@@ -492,7 +492,7 @@ export const chessOpenings: QuizCategory = {
       "1.d4 d5 2.c4 e6 3.Nc3 c5",
       "1.d4 d5 2.c4 e6 3.Nc3 c6"
     ],
-    "ex": "E20 · 1.d4 Nf6 2.c4 e6 3.Nc3"
+    "ex": "E20 · 1.d4 Nf6 2.c4 e6 3.Nc3 — Pins the c3-knight so ...Bxc3 can saddle White with doubled pawns."
   },
   {
     "topic": "open",
@@ -503,7 +503,7 @@ export const chessOpenings: QuizCategory = {
       "King's Gambit",
       "King's Knight Opening"
     ],
-    "ex": "C50 · 1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5",
+    "ex": "C50 · 1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 — The quiet game: both sides finish development before the d4 break decides it.",
     "type": "which"
   },
   {
@@ -515,7 +515,7 @@ export const chessOpenings: QuizCategory = {
       "1.e4 e5 2.Nf3 Nc6 3.Nc3",
       "1.e4 e5 2.Nf3 Nf6"
     ],
-    "ex": "C50 · 1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5"
+    "ex": "C50 · 1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 — The quiet game: both sides finish development before the d4 break decides it."
   },
   {
     "topic": "french",
@@ -526,7 +526,7 @@ export const chessOpenings: QuizCategory = {
       "Caro-Kann Defense: Main Line",
       "French Defense: Winawer Variation, Advance Variation"
     ],
-    "ex": "C10 · 1.e4 e6 2.d4 d5 3.Nc3",
+    "ex": "C10 · 1.e4 e6 2.d4 d5 3.Nc3 — The natural developing move; the great French systems branch from this tabiya.",
     "type": "which"
   },
   {
@@ -538,7 +538,7 @@ export const chessOpenings: QuizCategory = {
       "1.e4 e6 2.d4 d5 3.e5",
       "1.e4 c6 2.d4 d5 3.Nd2 dxe4"
     ],
-    "ex": "C10 · 1.e4 e6 2.d4 d5 3.Nc3"
+    "ex": "C10 · 1.e4 e6 2.d4 d5 3.Nc3 — The natural developing move; the great French systems branch from this tabiya."
   },
   {
     "topic": "closed",
@@ -549,7 +549,7 @@ export const chessOpenings: QuizCategory = {
       "Blackmar-Diemer Gambit",
       "Bogo-Indian Defense"
     ],
-    "ex": "D31 · 1.d4 d5 2.c4 e6 3.Nc3",
+    "ex": "D31 · 1.d4 d5 2.c4 e6 3.Nc3 — Develops toward the center before committing the bishops to a plan.",
     "type": "which"
   },
   {
@@ -561,7 +561,7 @@ export const chessOpenings: QuizCategory = {
       "1.d4 Nf6 2.c4",
       "1.d4 Nf6 2.c4 g6 3.Nf3 Bg7"
     ],
-    "ex": "D31 · 1.d4 d5 2.c4 e6 3.Nc3"
+    "ex": "D31 · 1.d4 d5 2.c4 e6 3.Nc3 — Develops toward the center before committing the bishops to a plan."
   },
   {
     "topic": "closed",
@@ -572,7 +572,7 @@ export const chessOpenings: QuizCategory = {
       "Queen's Gambit Declined: Tarrasch Defense, Pseudo-Tarrasch",
       "Queen's Gambit Declined"
     ],
-    "ex": "D10 · 1.d4 d5 2.c4 c6",
+    "ex": "D10 · 1.d4 d5 2.c4 c6 — Supports d5 with ...c6 without locking the light-squared bishop inside.",
     "type": "which"
   },
   {
@@ -584,7 +584,7 @@ export const chessOpenings: QuizCategory = {
       "1.d4 Nf6 2.c4 e6 3.Nf3 b6 4.g3",
       "1.d4 Nf6 2.c4 g6 3.Nc3"
     ],
-    "ex": "D10 · 1.d4 d5 2.c4 c6"
+    "ex": "D10 · 1.d4 d5 2.c4 c6 — Supports d5 with ...c6 without locking the light-squared bishop inside."
   },
   {
     "topic": "sicilian",
@@ -595,7 +595,7 @@ export const chessOpenings: QuizCategory = {
       "Sicilian Defense: O'Kelly Variation",
       "Sicilian Defense: Kan Variation"
     ],
-    "ex": "B54 · 1.e4 c5 2.Nf3 d6 3.d4 cxd4 4.Nxd4",
+    "ex": "B54 · 1.e4 c5 2.Nf3 d6 3.d4 cxd4 4.Nxd4 — The Open Sicilian: opposite-side castling and a race to mate.",
     "type": "which"
   },
   {
@@ -607,7 +607,7 @@ export const chessOpenings: QuizCategory = {
       "1.e4 c5 2.Nf3 e6 3.d4 cxd4 4.Nxd4",
       "1.e4 c5 2.d4 cxd4 3.c3 dxc3"
     ],
-    "ex": "B54 · 1.e4 c5 2.Nf3 d6 3.d4 cxd4 4.Nxd4"
+    "ex": "B54 · 1.e4 c5 2.Nf3 d6 3.d4 cxd4 4.Nxd4 — The Open Sicilian: opposite-side castling and a race to mate."
   },
   {
     "topic": "closed",
@@ -618,7 +618,7 @@ export const chessOpenings: QuizCategory = {
       "Queen's Gambit Declined",
       "Modern Defense"
     ],
-    "ex": "E70 · 1.d4 Nf6 2.c4 g6 3.Nc3 Bg7",
+    "ex": "E70 · 1.d4 Nf6 2.c4 g6 3.Nc3 Bg7 — The King's Indian tabiya: fianchetto, castle, then punch with ...e5.",
     "type": "which"
   },
   {
@@ -630,7 +630,7 @@ export const chessOpenings: QuizCategory = {
       "1.d4 d5 2.c4 e6 3.Nc3",
       "1.d4 f5 2.c4 Nf6 3.g3 e6"
     ],
-    "ex": "E70 · 1.d4 Nf6 2.c4 g6 3.Nc3 Bg7"
+    "ex": "E70 · 1.d4 Nf6 2.c4 g6 3.Nc3 Bg7 — The King's Indian tabiya: fianchetto, castle, then punch with ...e5."
   },
   {
     "topic": "open",
@@ -641,7 +641,7 @@ export const chessOpenings: QuizCategory = {
       "Petrov's Defense",
       "Vienna Game"
     ],
-    "ex": "C34 · 1.e4 e5 2.f4 exf4 3.Nf3",
+    "ex": "C34 · 1.e4 e5 2.f4 exf4 3.Nf3 — Develops and kills ...Qh4+ in one move; the main line for a reason.",
     "type": "which"
   },
   {
@@ -653,7 +653,7 @@ export const chessOpenings: QuizCategory = {
       "1.e4 e5 2.d4",
       "1.e4 e5 2.Nf3 Nf6"
     ],
-    "ex": "C34 · 1.e4 e5 2.f4 exf4 3.Nf3"
+    "ex": "C34 · 1.e4 e5 2.f4 exf4 3.Nf3 — Develops and kills ...Qh4+ in one move; the main line for a reason."
   },
   {
     "topic": "french",
@@ -664,7 +664,7 @@ export const chessOpenings: QuizCategory = {
       "French Defense: Winawer Variation",
       "French Defense: Advance Variation"
     ],
-    "ex": "B12 · 1.e4 c6 2.d4",
+    "ex": "B12 · 1.e4 c6 2.d4 — The safe Scandinavian: ...d5 comes next with smooth, cramp-free development.",
     "type": "which"
   },
   {
@@ -676,7 +676,7 @@ export const chessOpenings: QuizCategory = {
       "1.e4 e6 2.d4 d5 3.Nc3 Bb4",
       "1.e4 e6 2.d4 d5 3.e5"
     ],
-    "ex": "B12 · 1.e4 c6 2.d4"
+    "ex": "B12 · 1.e4 c6 2.d4 — The safe Scandinavian: ...d5 comes next with smooth, cramp-free development."
   },
   {
     "topic": "closed",
@@ -687,7 +687,7 @@ export const chessOpenings: QuizCategory = {
       "King's Indian Defense: Normal Variation",
       "King's Indian Defense: Fianchetto Variation"
     ],
-    "ex": "D30 · 1.d4 Nf6 2.c4 e6 3.Nf3 d5",
+    "ex": "D30 · 1.d4 Nf6 2.c4 e6 3.Nf3 d5 — Avoids early exchanges; keeps Nf3 flexibility for Orthodox plans.",
     "type": "which"
   },
   {
@@ -699,7 +699,7 @@ export const chessOpenings: QuizCategory = {
       "1.d4 d5 2.c4 Nc6",
       "1.d4 d5 2.c4 e6 3.Nc3 c6"
     ],
-    "ex": "D30 · 1.d4 Nf6 2.c4 e6 3.Nf3 d5"
+    "ex": "D30 · 1.d4 Nf6 2.c4 e6 3.Nf3 d5 — Avoids early exchanges; keeps Nf3 flexibility for Orthodox plans."
   },
   {
     "topic": "closed",
@@ -710,7 +710,7 @@ export const chessOpenings: QuizCategory = {
       "Catalan Opening: Open Defense",
       "King's Indian Defense: Fianchetto Variation, Immediate Fianchetto"
     ],
-    "ex": "D11 · 1.d4 d5 2.c4 c6 3.Nf3",
+    "ex": "D11 · 1.d4 d5 2.c4 c6 3.Nf3 — Delays Nc3 to keep ...Bf5 options alive on the next move.",
     "type": "which"
   },
   {
@@ -722,7 +722,7 @@ export const chessOpenings: QuizCategory = {
       "1.d4 d5 2.e4 dxe4",
       "1.d4 Nf6 2.c4 e6 3.Nf3 b6"
     ],
-    "ex": "D11 · 1.d4 d5 2.c4 c6 3.Nf3"
+    "ex": "D11 · 1.d4 d5 2.c4 c6 3.Nf3 — Delays Nc3 to keep ...Bf5 options alive on the next move."
   },
   {
     "topic": "closed",
@@ -733,7 +733,7 @@ export const chessOpenings: QuizCategory = {
       "Benoni Defense",
       "Nimzo-Indian Defense: Rubinstein System"
     ],
-    "ex": "D37 · 1.d4 Nf6 2.c4 e6 3.Nf3 d5 4.Nc3",
+    "ex": "D37 · 1.d4 Nf6 2.c4 e6 3.Nf3 d5 4.Nc3 — Brings out the last knight before the bishops commit to diagonals.",
     "type": "which"
   },
   {
@@ -745,7 +745,7 @@ export const chessOpenings: QuizCategory = {
       "1.d4 Nf6 2.c4 g6 3.Nc3",
       "1.d4 d5 2.Nf3"
     ],
-    "ex": "D37 · 1.d4 Nf6 2.c4 e6 3.Nf3 d5 4.Nc3"
+    "ex": "D37 · 1.d4 Nf6 2.c4 e6 3.Nf3 d5 4.Nc3 — Brings out the last knight before the bishops commit to diagonals."
   },
   {
     "topic": "sicilian",
@@ -756,7 +756,7 @@ export const chessOpenings: QuizCategory = {
       "Sicilian Defense: Closed",
       "Sicilian Defense: O'Kelly Variation"
     ],
-    "ex": "B30 · 1.e4 c5 2.Nf3 Nc6",
+    "ex": "B30 · 1.e4 c5 2.Nf3 Nc6 — Natural development that keeps ...d6, ...e6 and ...g6 all on the table.",
     "type": "which"
   },
   {
@@ -768,7 +768,7 @@ export const chessOpenings: QuizCategory = {
       "1.e4 c5 2.d4 cxd4",
       "1.e4 c5 2.Nc3"
     ],
-    "ex": "B30 · 1.e4 c5 2.Nf3 Nc6"
+    "ex": "B30 · 1.e4 c5 2.Nf3 Nc6 — Natural development that keeps ...d6, ...e6 and ...g6 all on the table."
   },
   {
     "topic": "sicilian",
@@ -779,7 +779,7 @@ export const chessOpenings: QuizCategory = {
       "Sicilian Defense: Drazic Variation",
       "Sicilian Defense: Modern Variations"
     ],
-    "ex": "B40 · 1.e4 c5 2.Nf3 e6",
+    "ex": "B40 · 1.e4 c5 2.Nf3 e6 — A Scheveningen-type shell built without committing to ...d6.",
     "type": "which"
   },
   {
@@ -791,7 +791,7 @@ export const chessOpenings: QuizCategory = {
       "1.e4 c5 2.Nf3 a6",
       "1.e4 c5 2.d4 cxd4 3.c3 dxc3 4.Nxc3"
     ],
-    "ex": "B40 · 1.e4 c5 2.Nf3 e6"
+    "ex": "B40 · 1.e4 c5 2.Nf3 e6 — A Scheveningen-type shell built without committing to ...d6."
   },
   {
     "topic": "closed",
@@ -802,7 +802,7 @@ export const chessOpenings: QuizCategory = {
       "Queen's Gambit Declined: Three Knights Variation",
       "Queen's Gambit Declined: Modern Variation"
     ],
-    "ex": "D20 · 1.d4 d5 2.c4 dxc4",
+    "ex": "D20 · 1.d4 d5 2.c4 dxc4 — Black pockets the pawn and plans ...c5 or ...e5 to keep it or return it for freedom.",
     "type": "which"
   },
   {
@@ -814,7 +814,7 @@ export const chessOpenings: QuizCategory = {
       "1.d4 d5 2.c4 c6 3.Nc3 Nf6",
       "1.d4 d5 2.e4 dxe4"
     ],
-    "ex": "D20 · 1.d4 d5 2.c4 dxc4"
+    "ex": "D20 · 1.d4 d5 2.c4 dxc4 — Black pockets the pawn and plans ...c5 or ...e5 to keep it or return it for freedom."
   },
   {
     "topic": "closed",
@@ -825,7 +825,7 @@ export const chessOpenings: QuizCategory = {
       "Bogo-Indian Defense",
       "Blackmar-Diemer Gambit: Fritz Attack"
     ],
-    "ex": "A46 · 1.d4 Nf6 2.Nf3",
+    "ex": "A46 · 1.d4 Nf6 2.Nf3 — Quiet kingside development; London and Colle systems lie ahead.",
     "type": "which"
   },
   {
@@ -837,7 +837,7 @@ export const chessOpenings: QuizCategory = {
       "1.d4 Nf6 2.c4 g6 3.Nf3 Bg7",
       "1.d4 d5 2.c4 e6 3.Nc3 c6"
     ],
-    "ex": "A46 · 1.d4 Nf6 2.Nf3"
+    "ex": "A46 · 1.d4 Nf6 2.Nf3 — Quiet kingside development; London and Colle systems lie ahead."
   },
   {
     "topic": "closed",
@@ -848,7 +848,7 @@ export const chessOpenings: QuizCategory = {
       "Queen's Gambit Accepted",
       "Queen's Gambit Declined: Normal Defense"
     ],
-    "ex": "E12 · 1.d4 Nf6 2.c4 e6 3.Nf3 b6",
+    "ex": "E12 · 1.d4 Nf6 2.c4 e6 3.Nf3 b6 — Fianchettoes the queenside without blocking the center; the ...Bb7 battery eyes e4.",
     "type": "which"
   },
   {
@@ -860,7 +860,7 @@ export const chessOpenings: QuizCategory = {
       "1.d4 Nf6 2.Nf3 e6",
       "1.d4 d5 2.c4 e6 3.Nf3"
     ],
-    "ex": "E12 · 1.d4 Nf6 2.c4 e6 3.Nf3 b6"
+    "ex": "E12 · 1.d4 Nf6 2.c4 e6 3.Nf3 b6 — Fianchettoes the queenside without blocking the center; the ...Bb7 battery eyes e4."
   },
   {
     "topic": "open",
@@ -871,7 +871,7 @@ export const chessOpenings: QuizCategory = {
       "Philidor Defense",
       "Vienna Gambit, with Max Lange Defense: Steinitz Gambit"
     ],
-    "ex": "C44 · 1.e4 e5 2.Nf3 Nc6 3.d4",
+    "ex": "C44 · 1.e4 e5 2.Nf3 Nc6 3.d4 — Rips the center open at once, trading deep theory for open piece play.",
     "type": "which"
   },
   {
@@ -883,7 +883,7 @@ export const chessOpenings: QuizCategory = {
       "1.e4 e5 2.Nf3 Nc6 3.Nc3",
       "1.e4 e5 2.Nc3 Nc6 3.f4"
     ],
-    "ex": "C44 · 1.e4 e5 2.Nf3 Nc6 3.d4"
+    "ex": "C44 · 1.e4 e5 2.Nf3 Nc6 3.d4 — Rips the center open at once, trading deep theory for open piece play."
   },
   {
     "topic": "open",
@@ -894,7 +894,7 @@ export const chessOpenings: QuizCategory = {
       "King's Gambit Accepted: Bishop's Gambit",
       "Vienna Gambit, with Max Lange Defense: Steinitz Gambit"
     ],
-    "ex": "C55 · 1.e4 e5 2.Nf3 Nc6 3.Bc4 Nf6",
+    "ex": "C55 · 1.e4 e5 2.Nf3 Nc6 3.Bc4 Nf6 — Counterattacks e4 and f7 instead of mirroring; tactics start on move three.",
     "type": "which"
   },
   {
@@ -906,7 +906,7 @@ export const chessOpenings: QuizCategory = {
       "1.e4 e5 2.f4 exf4",
       "1.e4 e5 2.f4 exf4 3.Bc4 Qh4+"
     ],
-    "ex": "C55 · 1.e4 e5 2.Nf3 Nc6 3.Bc4 Nf6"
+    "ex": "C55 · 1.e4 e5 2.Nf3 Nc6 3.Bc4 Nf6 — Counterattacks e4 and f7 instead of mirroring; tactics start on move three."
   },
   {
     "topic": "open",
@@ -917,7 +917,7 @@ export const chessOpenings: QuizCategory = {
       "King's Gambit Accepted",
       "Scotch Game: Scotch Gambit"
     ],
-    "ex": "C25 · 1.e4 e5 2.Nc3",
+    "ex": "C25 · 1.e4 e5 2.Nc3 — Delays Nf3 to keep the f-pawn mobile: sleepy center or wild gambit, White's call.",
     "type": "which"
   },
   {
@@ -929,7 +929,7 @@ export const chessOpenings: QuizCategory = {
       "1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.b4",
       "1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5"
     ],
-    "ex": "C25 · 1.e4 e5 2.Nc3"
+    "ex": "C25 · 1.e4 e5 2.Nc3 — Delays Nf3 to keep the f-pawn mobile: sleepy center or wild gambit, White's call."
   },
   {
     "topic": "closed",
@@ -940,7 +940,7 @@ export const chessOpenings: QuizCategory = {
       "Queen's Gambit Declined: Three Knights Variation",
       "Nimzo-Indian Defense: Rubinstein System"
     ],
-    "ex": "A56 · 1.d4 Nf6 2.c4 c5",
+    "ex": "A56 · 1.d4 Nf6 2.c4 c5 — Black sidesteps the center clash and aims for ...e6 pressure against d5.",
     "type": "which"
   },
   {
@@ -952,7 +952,7 @@ export const chessOpenings: QuizCategory = {
       "1.d4 d5 2.e4 dxe4 3.Nc3 Nf6 4.f3",
       "1.d4 d5 2.c4 dxc4"
     ],
-    "ex": "A56 · 1.d4 Nf6 2.c4 c5"
+    "ex": "A56 · 1.d4 Nf6 2.c4 c5 — Black sidesteps the center clash and aims for ...e6 pressure against d5."
   },
   {
     "topic": "open",
@@ -963,7 +963,7 @@ export const chessOpenings: QuizCategory = {
       "Four Knights Game",
       "King's Gambit Accepted"
     ],
-    "ex": "C42 · 1.e4 e5 2.Nf3 Nf6",
+    "ex": "C42 · 1.e4 e5 2.Nf3 Nf6 — The symmetrical counterpunch on e4: drawish reputation, rock-solid reality.",
     "type": "which"
   },
   {
@@ -975,7 +975,7 @@ export const chessOpenings: QuizCategory = {
       "1.e4 e5 2.Nf3 Nc6 3.Nc3",
       "1.e4 e5 2.Nc3 Nc6"
     ],
-    "ex": "C42 · 1.e4 e5 2.Nf3 Nf6"
+    "ex": "C42 · 1.e4 e5 2.Nf3 Nf6 — The symmetrical counterpunch on e4: drawish reputation, rock-solid reality."
   },
   {
     "topic": "french",
@@ -986,7 +986,7 @@ export const chessOpenings: QuizCategory = {
       "French Defense: Normal Variation",
       "Caro-Kann Defense: Main Line"
     ],
-    "ex": "C15 · 1.e4 e6 2.d4 d5 3.Nc3 Bb4",
+    "ex": "C15 · 1.e4 e6 2.d4 d5 3.Nc3 Bb4 — Pins the knight and seeks to wreck White's structure with ...Bxc3.",
     "type": "which"
   },
   {
@@ -998,7 +998,7 @@ export const chessOpenings: QuizCategory = {
       "1.e4 e6 2.d4 d5 3.Nc3 Nf6 4.Bg5",
       "1.e4 c6 2.d4 d5 3.Nd2 dxe4"
     ],
-    "ex": "C15 · 1.e4 e6 2.d4 d5 3.Nc3 Bb4"
+    "ex": "C15 · 1.e4 e6 2.d4 d5 3.Nc3 Bb4 — Pins the knight and seeks to wreck White's structure with ...Bxc3."
   },
   {
     "topic": "sicilian",
@@ -1009,7 +1009,7 @@ export const chessOpenings: QuizCategory = {
       "Sicilian Defense: Modern Variations",
       "Sicilian Defense: French Variation, Open"
     ],
-    "ex": "B40 · 1.e4 c5 2.Nf3 e6 3.d4",
+    "ex": "B40 · 1.e4 c5 2.Nf3 e6 3.d4 — Heads for ...Nf6 against d4, inviting White to overextend with e5.",
     "type": "which"
   },
   {
@@ -1021,7 +1021,7 @@ export const chessOpenings: QuizCategory = {
       "1.e4 c5 2.Nf3 d6 3.d4 cxd4 4.Nxd4",
       "1.e4 c5 2.Nc3 Nc6"
     ],
-    "ex": "B40 · 1.e4 c5 2.Nf3 e6 3.d4"
+    "ex": "B40 · 1.e4 c5 2.Nf3 e6 3.d4 — Heads for ...Nf6 against d4, inviting White to overextend with e5."
   },
   {
     "topic": "closed",
@@ -1032,7 +1032,7 @@ export const chessOpenings: QuizCategory = {
       "Nimzo-Indian Defense",
       "Benko Gambit"
     ],
-    "ex": "D80 · 1.d4 Nf6 2.c4 g6 3.Nc3 d5",
+    "ex": "D80 · 1.d4 Nf6 2.c4 g6 3.Nc3 d5 — Strikes d4 with ...d5 at once instead of fianchettoing first.",
     "type": "which"
   },
   {
@@ -1044,7 +1044,7 @@ export const chessOpenings: QuizCategory = {
       "1.d4 d5 2.c4 dxc4 3.Nf3",
       "1.d4 d5 2.c4 c6 3.Nf3"
     ],
-    "ex": "D80 · 1.d4 Nf6 2.c4 g6 3.Nc3 d5"
+    "ex": "D80 · 1.d4 Nf6 2.c4 g6 3.Nc3 d5 — Strikes d4 with ...d5 at once instead of fianchettoing first."
   },
   {
     "topic": "sicilian",
@@ -1055,7 +1055,7 @@ export const chessOpenings: QuizCategory = {
       "Sicilian Defense: Halasz Gambit",
       "Sicilian Defense: Old Sicilian"
     ],
-    "ex": "B32 · 1.e4 c5 2.Nf3 Nc6 3.d4",
+    "ex": "B32 · 1.e4 c5 2.Nf3 Nc6 3.d4 — White opens the center immediately; Black picks Dragon, Najdorf or Classical next.",
     "type": "which"
   },
   {
@@ -1067,7 +1067,7 @@ export const chessOpenings: QuizCategory = {
       "1.e4 c5 2.Nc3 Nc6",
       "1.e4 c5 2.d4 cxd4"
     ],
-    "ex": "B32 · 1.e4 c5 2.Nf3 Nc6 3.d4"
+    "ex": "B32 · 1.e4 c5 2.Nf3 Nc6 3.d4 — White opens the center immediately; Black picks Dragon, Najdorf or Classical next."
   },
   {
     "topic": "closed",
@@ -1078,7 +1078,7 @@ export const chessOpenings: QuizCategory = {
       "Benko Gambit Accepted",
       "Nimzo-Indian Defense: Rubinstein System"
     ],
-    "ex": "D02 · 1.d4 d5 2.Nf3",
+    "ex": "D02 · 1.d4 d5 2.Nf3 — Sidesteps Exchange French move orders into flexible setups.",
     "type": "which"
   },
   {
@@ -1090,7 +1090,7 @@ export const chessOpenings: QuizCategory = {
       "1.d4 Nf6 2.c4 g6 3.Nf3 Bg7",
       "1.d4 Nf6 2.c4 e6 3.Nc3 Bb4 4.e3"
     ],
-    "ex": "D02 · 1.d4 d5 2.Nf3"
+    "ex": "D02 · 1.d4 d5 2.Nf3 — Sidesteps Exchange French move orders into flexible setups."
   },
   {
     "topic": "sicilian",
@@ -1101,7 +1101,7 @@ export const chessOpenings: QuizCategory = {
       "Sicilian Defense: Halasz Gambit",
       "Sicilian Defense: Closed, Traditional"
     ],
-    "ex": "B40 · 1.e4 c5 2.Nf3 e6 3.d4 cxd4",
+    "ex": "B40 · 1.e4 c5 2.Nf3 e6 3.d4 cxd4 — Trades into open maneuvering on a sound ...e6 pawn base.",
     "type": "which"
   },
   {
@@ -1113,7 +1113,7 @@ export const chessOpenings: QuizCategory = {
       "1.e4 c5 2.Nc3 Nc6",
       "1.e4 c5 2.Nf3 d6 3.d4 cxd4 4.Nxd4"
     ],
-    "ex": "B40 · 1.e4 c5 2.Nf3 e6 3.d4 cxd4"
+    "ex": "B40 · 1.e4 c5 2.Nf3 e6 3.d4 cxd4 — Trades into open maneuvering on a sound ...e6 pawn base."
   },
   {
     "topic": "closed",
@@ -1124,7 +1124,7 @@ export const chessOpenings: QuizCategory = {
       "King's Indian Defense: Normal Variation, King's Knight Variation",
       "Semi-Slav Defense: Accelerated Move Order"
     ],
-    "ex": "A57 · 1.d4 Nf6 2.c4 c5 3.d5",
+    "ex": "A57 · 1.d4 Nf6 2.c4 c5 3.d5 — White pushes past; the ...b5 pawn sacrifice is Black's famous answer.",
     "type": "which"
   },
   {
@@ -1136,7 +1136,7 @@ export const chessOpenings: QuizCategory = {
       "1.d4 Nf6 2.c4 e6 3.Nf3 d5 4.Nc3",
       "1.d4 Nf6 2.c4 e6 3.Nc3 d5 4.cxd5"
     ],
-    "ex": "A57 · 1.d4 Nf6 2.c4 c5 3.d5"
+    "ex": "A57 · 1.d4 Nf6 2.c4 c5 3.d5 — White pushes past; the ...b5 pawn sacrifice is Black's famous answer."
   },
   {
     "topic": "open",
@@ -1147,7 +1147,7 @@ export const chessOpenings: QuizCategory = {
       "Ruy Lopez: Morphy Defense",
       "Italian Game: Giuoco Piano"
     ],
-    "ex": "C51 · 1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.b4",
+    "ex": "C51 · 1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.b4 — A 19th-century pawn sacrifice for a rolling center and open lines.",
     "type": "which"
   },
   {
@@ -1159,7 +1159,7 @@ export const chessOpenings: QuizCategory = {
       "1.e4 e5 2.Nf3 Nc6 3.Bc4 Nf6 4.Ng5",
       "1.e4 e5 2.f4 exf4"
     ],
-    "ex": "C51 · 1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.b4"
+    "ex": "C51 · 1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.b4 — A 19th-century pawn sacrifice for a rolling center and open lines."
   },
   {
     "topic": "closed",
@@ -1170,7 +1170,7 @@ export const chessOpenings: QuizCategory = {
       "Grünfeld Defense",
       "Slav Defense: Modern Line"
     ],
-    "ex": "E40 · 1.d4 Nf6 2.c4 e6 3.Nc3 Bb4 4.e3",
+    "ex": "E40 · 1.d4 Nf6 2.c4 e6 3.Nc3 Bb4 4.e3 — The solid main line: develops and calmly prepares to recapture on c3.",
     "type": "which"
   },
   {
@@ -1182,7 +1182,7 @@ export const chessOpenings: QuizCategory = {
       "1.d4 Nf6 2.c4 c5 3.d5",
       "1.d4 Nf6 2.c4 e6 3.g3 d5 4.Bg2"
     ],
-    "ex": "E40 · 1.d4 Nf6 2.c4 e6 3.Nc3 Bb4 4.e3"
+    "ex": "E40 · 1.d4 Nf6 2.c4 e6 3.Nc3 Bb4 4.e3 — The solid main line: develops and calmly prepares to recapture on c3."
   },
   {
     "topic": "french",
@@ -1193,7 +1193,7 @@ export const chessOpenings: QuizCategory = {
       "Caro-Kann Defense: Modern Variation",
       "French Defense: Normal Variation"
     ],
-    "ex": "C11 · 1.e4 e6 2.d4 d5 3.Nc3 Nf6",
+    "ex": "C11 · 1.e4 e6 2.d4 d5 3.Nc3 Nf6 — Develops with pressure on e4; the Burn and Rubinstein wait behind it.",
     "type": "which"
   },
   {
@@ -1205,7 +1205,7 @@ export const chessOpenings: QuizCategory = {
       "1.e4 c6 2.d4 d5 3.exd5 cxd5 4.c4",
       "1.e4 c6 2.d4 d5 3.Nd2 dxe4"
     ],
-    "ex": "C11 · 1.e4 e6 2.d4 d5 3.Nc3 Nf6"
+    "ex": "C11 · 1.e4 e6 2.d4 d5 3.Nc3 Nf6 — Develops with pressure on e4; the Burn and Rubinstein wait behind it."
   },
   {
     "topic": "sicilian",
@@ -1216,7 +1216,7 @@ export const chessOpenings: QuizCategory = {
       "Sicilian Defense: French Variation, Open",
       "Sicilian Defense: Hyperaccelerated Dragon"
     ],
-    "ex": "B41 · 1.e4 c5 2.Nf3 e6 3.d4 cxd4 4.Nxd4",
+    "ex": "B41 · 1.e4 c5 2.Nf3 e6 3.d4 cxd4 4.Nxd4 — Heads for ...a6: the flexible waiting game with ...b5 and ...d5 ideas.",
     "type": "which"
   },
   {
@@ -1228,7 +1228,7 @@ export const chessOpenings: QuizCategory = {
       "1.e4 c5 2.d4 cxd4 3.c3 dxc3 4.Nxc3",
       "1.e4 c5 2.d4"
     ],
-    "ex": "B41 · 1.e4 c5 2.Nf3 e6 3.d4 cxd4 4.Nxd4"
+    "ex": "B41 · 1.e4 c5 2.Nf3 e6 3.d4 cxd4 4.Nxd4 — Heads for ...a6: the flexible waiting game with ...b5 and ...d5 ideas."
   },
   {
     "topic": "closed",
@@ -1239,7 +1239,7 @@ export const chessOpenings: QuizCategory = {
       "Grünfeld Defense: Three Knights Variation",
       "King's Indian Defense: Fianchetto Variation, Immediate Fianchetto"
     ],
-    "ex": "D00 · 1.d4 d5 2.e4",
+    "ex": "D00 · 1.d4 d5 2.e4 — White torches a pawn for open lines and a flying start in development.",
     "type": "which"
   },
   {
@@ -1251,7 +1251,7 @@ export const chessOpenings: QuizCategory = {
       "1.d4 Nf6 2.Nc3",
       "1.d4 d5 2.c4 c6"
     ],
-    "ex": "D00 · 1.d4 d5 2.e4"
+    "ex": "D00 · 1.d4 d5 2.e4 — White torches a pawn for open lines and a flying start in development."
   },
   {
     "topic": "flank",
@@ -1262,7 +1262,7 @@ export const chessOpenings: QuizCategory = {
       "English Opening: King's English Variation, Reversed Sicilian",
       "English Opening: Symmetrical Variation, Normal Variation"
     ],
-    "ex": "B02 · 1.e4 Nf6 2.e5",
+    "ex": "B02 · 1.e4 Nf6 2.e5 — The Alekhine provocation, with the ...Ne4 knight sortie as its cheeky point.",
     "type": "which"
   },
   {
@@ -1274,7 +1274,7 @@ export const chessOpenings: QuizCategory = {
       "1.c4 e5 2.Nc3 Nf6 3.Nf3",
       "1.c4 c5 2.Nc3"
     ],
-    "ex": "B02 · 1.e4 Nf6 2.e5"
+    "ex": "B02 · 1.e4 Nf6 2.e5 — The Alekhine provocation, with the ...Ne4 knight sortie as its cheeky point."
   },
   {
     "topic": "closed",
@@ -1285,7 +1285,7 @@ export const chessOpenings: QuizCategory = {
       "Nimzo-Indian Defense",
       "Semi-Slav Defense: Accelerated Move Order"
     ],
-    "ex": "D00 · 1.d4 d5 2.e4 dxe4",
+    "ex": "D00 · 1.d4 d5 2.e4 dxe4 — Black accepts the pawn; White's f3 break is the engine of the gambit.",
     "type": "which"
   },
   {
@@ -1297,7 +1297,7 @@ export const chessOpenings: QuizCategory = {
       "1.d4 Nf6 2.c4 e6 3.Nc3 d5 4.cxd5",
       "1.d4 Nf6 2.c4 e6 3.Nc3 Bb4 4.Qc2"
     ],
-    "ex": "D00 · 1.d4 d5 2.e4 dxe4"
+    "ex": "D00 · 1.d4 d5 2.e4 dxe4 — Black accepts the pawn; White's f3 break is the engine of the gambit."
   },
   {
     "topic": "flank",
@@ -1308,7 +1308,7 @@ export const chessOpenings: QuizCategory = {
       "English Opening: Neo-Catalan",
       "Lion Defense"
     ],
-    "ex": "A21 · 1.c4 e5 2.Nc3",
+    "ex": "A21 · 1.c4 e5 2.Nc3 — White plays a Sicilian a tempo up; the extra move is the whole argument.",
     "type": "which"
   },
   {
@@ -1320,7 +1320,7 @@ export const chessOpenings: QuizCategory = {
       "1.e4 Nf6 2.e5 Nd5 3.d4",
       "1.e4 Nc6 2.d4 d5"
     ],
-    "ex": "A21 · 1.c4 e5 2.Nc3"
+    "ex": "A21 · 1.c4 e5 2.Nc3 — White plays a Sicilian a tempo up; the extra move is the whole argument."
   },
   {
     "topic": "open",
@@ -1331,7 +1331,7 @@ export const chessOpenings: QuizCategory = {
       "Scotch Game",
       "King's Knight Opening: Normal Variation"
     ],
-    "ex": "C46 · 1.e4 e5 2.Nf3 Nc6 3.Nc3",
+    "ex": "C46 · 1.e4 e5 2.Nf3 Nc6 3.Nc3 — Sound development that can slide into Four Knights or Ponziani shapes.",
     "type": "which"
   },
   {
@@ -1343,7 +1343,7 @@ export const chessOpenings: QuizCategory = {
       "1.e4 e5 2.Nc3",
       "1.e4 e5 2.f4"
     ],
-    "ex": "C46 · 1.e4 e5 2.Nf3 Nc6 3.Nc3"
+    "ex": "C46 · 1.e4 e5 2.Nf3 Nc6 3.Nc3 — Sound development that can slide into Four Knights or Ponziani shapes."
   },
   {
     "topic": "flank",
@@ -1354,7 +1354,7 @@ export const chessOpenings: QuizCategory = {
       "English Opening: King's English Variation, Reversed Sicilian",
       "Nimzowitsch Defense"
     ],
-    "ex": "B02 · 1.e4 Nf6 2.e5 Nd5",
+    "ex": "B02 · 1.e4 Nf6 2.e5 Nd5 — The knight steps back but stays central, eyeing ...d6 and ...c5 breaks.",
     "type": "which"
   },
   {
@@ -1366,7 +1366,7 @@ export const chessOpenings: QuizCategory = {
       "1.c4 e5 2.Nc3 Nf6",
       "1.Nf3 d5 2.c4"
     ],
-    "ex": "B02 · 1.e4 Nf6 2.e5 Nd5"
+    "ex": "B02 · 1.e4 Nf6 2.e5 Nd5 — The knight steps back but stays central, eyeing ...d6 and ...c5 breaks."
   },
   {
     "topic": "closed",
@@ -1377,7 +1377,7 @@ export const chessOpenings: QuizCategory = {
       "Indian Defense: Knights Variation",
       "Tarrasch Defense: Schara Gambit"
     ],
-    "ex": "D21 · 1.d4 d5 2.c4 dxc4 3.Nf3",
+    "ex": "D21 · 1.d4 d5 2.c4 dxc4 3.Nf3 — White develops and prepares e3, asking Black how the extra pawn survives.",
     "type": "which"
   },
   {
@@ -1389,7 +1389,7 @@ export const chessOpenings: QuizCategory = {
       "1.d4 Nf6 2.c4 c5 3.d5",
       "1.d4 Nf6 2.c4 g6 3.Nc3 d5 4.Nf3"
     ],
-    "ex": "D21 · 1.d4 d5 2.c4 dxc4 3.Nf3"
+    "ex": "D21 · 1.d4 d5 2.c4 dxc4 3.Nf3 — White develops and prepares e3, asking Black how the extra pawn survives."
   },
   {
     "topic": "open",
@@ -1400,7 +1400,7 @@ export const chessOpenings: QuizCategory = {
       "Petrov's Defense",
       "Italian Game"
     ],
-    "ex": "C47 · 1.e4 e5 2.Nf3 Nc6 3.Nc3 Nf6",
+    "ex": "C47 · 1.e4 e5 2.Nf3 Nc6 3.Nc3 Nf6 — Classical development from both sides; the Spanish try (4.Bb5) bids for more.",
     "type": "which"
   },
   {
@@ -1412,7 +1412,7 @@ export const chessOpenings: QuizCategory = {
       "1.e4 e5 2.Nf3 Nc6 3.c3",
       "1.e4 e5 2.Nf3 Nc6 3.Bb5 a6 4.Ba4"
     ],
-    "ex": "C47 · 1.e4 e5 2.Nf3 Nc6 3.Nc3 Nf6"
+    "ex": "C47 · 1.e4 e5 2.Nf3 Nc6 3.Nc3 Nf6 — Classical development from both sides; the Spanish try (4.Bb5) bids for more."
   },
   {
     "topic": "open",
@@ -1423,7 +1423,7 @@ export const chessOpenings: QuizCategory = {
       "Bishop's Opening: Berlin Defense",
       "Italian Game"
     ],
-    "ex": "C41 · 1.e4 e5 2.Nf3 d6",
+    "ex": "C41 · 1.e4 e5 2.Nf3 d6 — Solid but old-fashioned: concedes space and begs the ...Nf6 and ...exd4 liberations.",
     "type": "which"
   },
   {
@@ -1435,7 +1435,7 @@ export const chessOpenings: QuizCategory = {
       "1.e4 e5 2.Nf3 Nc6 3.Bc4",
       "1.e4 e5 2.Nf3 Nc6 3.Nc3 Nf6 4.Bb5"
     ],
-    "ex": "C41 · 1.e4 e5 2.Nf3 d6"
+    "ex": "C41 · 1.e4 e5 2.Nf3 d6 — Solid but old-fashioned: concedes space and begs the ...Nf6 and ...exd4 liberations."
   },
   {
     "topic": "flank",
@@ -1446,7 +1446,7 @@ export const chessOpenings: QuizCategory = {
       "Alekhine Defense",
       "English Opening: Neo-Catalan"
     ],
-    "ex": "B01 · 1.e4 d5 2.exd5",
+    "ex": "B01 · 1.e4 d5 2.exd5 — Delays ...Qxd5 with the ...Nf6 jab, keeping the queen safely home.",
     "type": "which"
   },
   {
@@ -1458,7 +1458,7 @@ export const chessOpenings: QuizCategory = {
       "1.e4 Nc6 2.d4",
       "1.e4 d6 2.d4 Nf6 3.Nc3"
     ],
-    "ex": "B01 · 1.e4 d5 2.exd5"
+    "ex": "B01 · 1.e4 d5 2.exd5 — Delays ...Qxd5 with the ...Nf6 jab, keeping the queen safely home."
   },
   {
     "topic": "french",
@@ -1469,7 +1469,7 @@ export const chessOpenings: QuizCategory = {
       "Caro-Kann Defense",
       "French Defense: Advance Variation"
     ],
-    "ex": "C16 · 1.e4 e6 2.d4 d5 3.Nc3 Bb4 4.e5",
+    "ex": "C16 · 1.e4 e6 2.d4 d5 3.Nc3 Bb4 4.e5 — Clamps the knight and grabs space; Black undermines with ...c5.",
     "type": "which"
   },
   {
@@ -1481,7 +1481,7 @@ export const chessOpenings: QuizCategory = {
       "1.e4 e6 2.d4 d5 3.e5",
       "1.e4 c6 2.d4 d5 3.exd5 cxd5 4.c4"
     ],
-    "ex": "C16 · 1.e4 e6 2.d4 d5 3.Nc3 Bb4 4.e5"
+    "ex": "C16 · 1.e4 e6 2.d4 d5 3.Nc3 Bb4 4.e5 — Clamps the knight and grabs space; Black undermines with ...c5."
   },
   {
     "topic": "flank",
@@ -1492,7 +1492,7 @@ export const chessOpenings: QuizCategory = {
       "King's Indian Attack",
       "Scandinavian Defense: Mieses-Kotroc Variation"
     ],
-    "ex": "B00 · 1.e4 d6 2.d4",
+    "ex": "B00 · 1.e4 d6 2.d4 — A modest center with hypermodern intent: ...Nf6 and ...g6 to follow.",
     "type": "which"
   },
   {
@@ -1504,7 +1504,7 @@ export const chessOpenings: QuizCategory = {
       "1.Nf3 d5 2.g3",
       "1.Nf3 d5 2.c4"
     ],
-    "ex": "B00 · 1.e4 d6 2.d4"
+    "ex": "B00 · 1.e4 d6 2.d4 — A modest center with hypermodern intent: ...Nf6 and ...g6 to follow."
   },
   {
     "topic": "open",
@@ -1515,7 +1515,7 @@ export const chessOpenings: QuizCategory = {
       "Ruy Lopez",
       "Three Knights Opening"
     ],
-    "ex": "C23 · 1.e4 e5 2.Bc4",
+    "ex": "C23 · 1.e4 e5 2.Bc4 — Develops with castling plans while sidestepping Petrov and Philidor theory.",
     "type": "which"
   },
   {
@@ -1527,7 +1527,7 @@ export const chessOpenings: QuizCategory = {
       "1.e4 e5 2.f4",
       "1.e4 e5 2.Nf3 Nc6 3.Bb5 a6 4.Ba4"
     ],
-    "ex": "C23 · 1.e4 e5 2.Bc4"
+    "ex": "C23 · 1.e4 e5 2.Bc4 — Develops with castling plans while sidestepping Petrov and Philidor theory."
   },
   {
     "topic": "french",
@@ -1538,7 +1538,7 @@ export const chessOpenings: QuizCategory = {
       "French Defense: Winawer Variation, Advance Variation",
       "Caro-Kann Defense: Modern Variation"
     ],
-    "ex": "C12 · 1.e4 e6 2.d4 d5 3.Nc3 Nf6 4.Bg5",
+    "ex": "C12 · 1.e4 e6 2.d4 d5 3.Nc3 Nf6 4.Bg5 — The standard pin in the Classical, pressuring the knight at once.",
     "type": "which"
   },
   {
@@ -1550,7 +1550,7 @@ export const chessOpenings: QuizCategory = {
       "1.e4 e6 2.d4 d5 3.Nc3 Bb4",
       "1.e4 c6 2.d4 d5 3.exd5 cxd5 4.c4"
     ],
-    "ex": "C12 · 1.e4 e6 2.d4 d5 3.Nc3 Nf6 4.Bg5"
+    "ex": "C12 · 1.e4 e6 2.d4 d5 3.Nc3 Nf6 4.Bg5 — The standard pin in the Classical, pressuring the knight at once."
   },
   {
     "topic": "open",
@@ -1561,7 +1561,7 @@ export const chessOpenings: QuizCategory = {
       "Vienna Game: Max Lange Defense",
       "Vienna Gambit, with Max Lange Defense: Steinitz Gambit"
     ],
-    "ex": "C53 · 1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.c3",
+    "ex": "C53 · 1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.c3 — Prepares the d4 pawn center: the slow squeeze behind the Italian.",
     "type": "which"
   },
   {
@@ -1573,7 +1573,7 @@ export const chessOpenings: QuizCategory = {
       "1.e4 e5 2.Bc4",
       "1.e4 e5 2.Nf3 Nc6 3.d4 exd4 4.Bc4"
     ],
-    "ex": "C53 · 1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.c3"
+    "ex": "C53 · 1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.c3 — Prepares the d4 pawn center: the slow squeeze behind the Italian."
   },
   {
     "topic": "open",
@@ -1584,7 +1584,7 @@ export const chessOpenings: QuizCategory = {
       "King's Knight Opening: Normal Variation",
       "King's Gambit Accepted: Bishop's Gambit"
     ],
-    "ex": "C65 · 1.e4 e5 2.Nf3 Nc6 3.Bb5 Nf6",
+    "ex": "C65 · 1.e4 e5 2.Nf3 Nc6 3.Bb5 Nf6 — The Wall: endgame-friendly, ultra-solid, famously hard to crack.",
     "type": "which"
   },
   {
@@ -1596,7 +1596,7 @@ export const chessOpenings: QuizCategory = {
       "1.e4 e5 2.f4 exf4",
       "1.e4 e5 2.Bc4"
     ],
-    "ex": "C65 · 1.e4 e5 2.Nf3 Nc6 3.Bb5 Nf6"
+    "ex": "C65 · 1.e4 e5 2.Nf3 Nc6 3.Bb5 Nf6 — The Wall: endgame-friendly, ultra-solid, famously hard to crack."
   },
   {
     "topic": "closed",
@@ -1607,7 +1607,7 @@ export const chessOpenings: QuizCategory = {
       "Benoni Defense: Modern Variation, Snake Variation",
       "Indian Defense: Normal Variation"
     ],
-    "ex": "E00 · 1.d4 Nf6 2.c4 e6 3.g3",
+    "ex": "E00 · 1.d4 Nf6 2.c4 e6 3.g3 — Fianchetto plus c4 pressure: the long positional squeeze on the queenside.",
     "type": "which"
   },
   {
@@ -1619,7 +1619,7 @@ export const chessOpenings: QuizCategory = {
       "1.d4 Nf6 2.c4 c5 3.d5 e6 4.Nc3",
       "1.d4 d5 2.c4 e6 3.Nc3 c5"
     ],
-    "ex": "E00 · 1.d4 Nf6 2.c4 e6 3.g3"
+    "ex": "E00 · 1.d4 Nf6 2.c4 e6 3.g3 — Fianchetto plus c4 pressure: the long positional squeeze on the queenside."
   },
   {
     "topic": "closed",
@@ -1630,7 +1630,7 @@ export const chessOpenings: QuizCategory = {
       "Queen's Gambit Declined: Exchange Variation",
       "Indian Defense: Knights Variation"
     ],
-    "ex": "A84 · 1.d4 f5 2.c4",
+    "ex": "A84 · 1.d4 f5 2.c4 — Grabs kingside space and ...e5 ideas at the price of a drafty king diagonal.",
     "type": "which"
   },
   {
@@ -1642,7 +1642,7 @@ export const chessOpenings: QuizCategory = {
       "1.d4 d5 2.c4 e6",
       "1.d4 Nf6 2.c4 c5 3.d5 e6 4.Nc3"
     ],
-    "ex": "A84 · 1.d4 f5 2.c4"
+    "ex": "A84 · 1.d4 f5 2.c4 — Grabs kingside space and ...e5 ideas at the price of a drafty king diagonal."
   },
   {
     "topic": "sicilian",
@@ -1653,7 +1653,7 @@ export const chessOpenings: QuizCategory = {
       "Sicilian Defense: Halasz Gambit",
       "Sicilian Defense: French Variation, Open"
     ],
-    "ex": "B21 · 1.e4 c5 2.d4",
+    "ex": "B21 · 1.e4 c5 2.d4 — A pawn for open lines and a lead in development; Black must return material or suffer.",
     "type": "which"
   },
   {
@@ -1665,7 +1665,7 @@ export const chessOpenings: QuizCategory = {
       "1.e4 c5 2.Nf3 e6 3.d4 cxd4 4.Nxd4",
       "1.e4 c5 2.Nf3 Nc6 3.d4"
     ],
-    "ex": "B21 · 1.e4 c5 2.d4"
+    "ex": "B21 · 1.e4 c5 2.d4 — A pawn for open lines and a lead in development; Black must return material or suffer."
   },
   {
     "topic": "flank",
@@ -1676,7 +1676,7 @@ export const chessOpenings: QuizCategory = {
       "English Opening: Symmetrical Variation, Normal Variation",
       "Alekhine Defense"
     ],
-    "ex": "A22 · 1.c4 e5 2.Nc3 Nf6",
+    "ex": "A22 · 1.c4 e5 2.Nc3 Nf6 — Both sides bring out the kingside pieces; White's extra tempo does the talking.",
     "type": "which"
   },
   {
@@ -1688,7 +1688,7 @@ export const chessOpenings: QuizCategory = {
       "1.c4 e6 2.Nf3 d5 3.g3",
       "1.e4 d5 2.exd5 Qxd5"
     ],
-    "ex": "A22 · 1.c4 e5 2.Nc3 Nf6"
+    "ex": "A22 · 1.c4 e5 2.Nc3 Nf6 — Both sides bring out the kingside pieces; White's extra tempo does the talking."
   },
   {
     "topic": "flank",
@@ -1699,7 +1699,7 @@ export const chessOpenings: QuizCategory = {
       "Pirc Defense",
       "Alekhine Defense"
     ],
-    "ex": "B07 · 1.e4 d6 2.d4 Nf6 3.Nc3",
+    "ex": "B07 · 1.e4 d6 2.d4 Nf6 3.Nc3 — The Lion crouches behind ...d6 and ...Nf6, ready for ...e5 or a fianchetto.",
     "type": "which"
   },
   {
@@ -1711,7 +1711,7 @@ export const chessOpenings: QuizCategory = {
       "1.e4 Nf6 2.e5 Nd5 3.d4",
       "1.c4 e6 2.Nf3"
     ],
-    "ex": "B07 · 1.e4 d6 2.d4 Nf6 3.Nc3"
+    "ex": "B07 · 1.e4 d6 2.d4 Nf6 3.Nc3 — The Lion crouches behind ...d6 and ...Nf6, ready for ...e5 or a fianchetto."
   },
   {
     "topic": "closed",
@@ -1722,7 +1722,7 @@ export const chessOpenings: QuizCategory = {
       "Indian Defense: Knights Variation",
       "Bogo-Indian Defense"
     ],
-    "ex": "E15 · 1.d4 Nf6 2.c4 e6 3.Nf3 b6 4.g3",
+    "ex": "E15 · 1.d4 Nf6 2.c4 e6 3.Nf3 b6 4.g3 — White answers the fianchetto in kind; a calm double-battery buildup.",
     "type": "which"
   },
   {
@@ -1734,7 +1734,7 @@ export const chessOpenings: QuizCategory = {
       "1.d4 d5 2.c4 dxc4",
       "1.d4 d5 2.c4 e6 3.Nc3 c6"
     ],
-    "ex": "E15 · 1.d4 Nf6 2.c4 e6 3.Nf3 b6 4.g3"
+    "ex": "E15 · 1.d4 Nf6 2.c4 e6 3.Nf3 b6 4.g3 — White answers the fianchetto in kind; a calm double-battery buildup."
   },
   {
     "topic": "sicilian",
@@ -1745,7 +1745,7 @@ export const chessOpenings: QuizCategory = {
       "Sicilian Defense: Smith-Morra Gambit",
       "Sicilian Defense: Open"
     ],
-    "ex": "B21 · 1.e4 c5 2.d4 cxd4",
+    "ex": "B21 · 1.e4 c5 2.d4 cxd4 — Black accepts the gambit pawn; keeping it without falling behind is the battle.",
     "type": "which"
   },
   {
@@ -1757,7 +1757,7 @@ export const chessOpenings: QuizCategory = {
       "1.e4 c5 2.Nc3",
       "1.e4 c5 2.Nf3 e6 3.d4"
     ],
-    "ex": "B21 · 1.e4 c5 2.d4 cxd4"
+    "ex": "B21 · 1.e4 c5 2.d4 cxd4 — Black accepts the gambit pawn; keeping it without falling behind is the battle."
   },
   {
     "topic": "closed",
@@ -1768,7 +1768,7 @@ export const chessOpenings: QuizCategory = {
       "Catalan Opening: Open Defense",
       "Old Indian Defense"
     ],
-    "ex": "D00 · 1.d4 d5 2.e4 dxe4 3.Nc3 Nf6 4.f3",
+    "ex": "D00 · 1.d4 d5 2.e4 dxe4 3.Nc3 Nf6 4.f3 — The main line: f3 undermines e4 for lightning development.",
     "type": "which"
   },
   {
@@ -1780,7 +1780,7 @@ export const chessOpenings: QuizCategory = {
       "1.d4 Nf6 2.c4 g6 3.g3",
       "1.d4 d5 2.c4 c6 3.Nf3"
     ],
-    "ex": "D00 · 1.d4 d5 2.e4 dxe4 3.Nc3 Nf6 4.f3"
+    "ex": "D00 · 1.d4 d5 2.e4 dxe4 3.Nc3 Nf6 4.f3 — The main line: f3 undermines e4 for lightning development."
   },
   {
     "topic": "open",
@@ -1791,7 +1791,7 @@ export const chessOpenings: QuizCategory = {
       "Petrov's Defense",
       "Three Knights Opening"
     ],
-    "ex": "C57 · 1.e4 e5 2.Nf3 Nc6 3.Bc4 Nf6 4.Ng5",
+    "ex": "C57 · 1.e4 e5 2.Nf3 Nc6 3.Bc4 Nf6 4.Ng5 — The Fried Liver hunt begins: immediate maximum pressure on f7.",
     "type": "which"
   },
   {
@@ -1803,7 +1803,7 @@ export const chessOpenings: QuizCategory = {
       "1.e4 e5 2.f4 d5 3.exd5",
       "1.e4 e5 2.Nf3 Nc6 3.Bb5 a6"
     ],
-    "ex": "C57 · 1.e4 e5 2.Nf3 Nc6 3.Bc4 Nf6 4.Ng5"
+    "ex": "C57 · 1.e4 e5 2.Nf3 Nc6 3.Bc4 Nf6 4.Ng5 — The Fried Liver hunt begins: immediate maximum pressure on f7."
   },
   {
     "topic": "closed",
@@ -1814,7 +1814,7 @@ export const chessOpenings: QuizCategory = {
       "Queen's Gambit Declined: Normal Defense",
       "Dutch Defense"
     ],
-    "ex": "D45 · 1.d4 d5 2.c4 c6 3.Nc3 Nf6",
+    "ex": "D45 · 1.d4 d5 2.c4 c6 3.Nc3 Nf6 — Blends ...c6 solidity with ...Nf6 activity; the wild Meran lives here.",
     "type": "which"
   },
   {
@@ -1826,7 +1826,7 @@ export const chessOpenings: QuizCategory = {
       "1.d4 f5 2.c4 Nf6 3.g3 e6",
       "1.d4 d5 2.c4 Nc6"
     ],
-    "ex": "D45 · 1.d4 d5 2.c4 c6 3.Nc3 Nf6"
+    "ex": "D45 · 1.d4 d5 2.c4 c6 3.Nc3 Nf6 — Blends ...c6 solidity with ...Nf6 activity; the wild Meran lives here."
   },
   {
     "topic": "flank",
@@ -1837,7 +1837,7 @@ export const chessOpenings: QuizCategory = {
       "English Opening: King's English Variation, Reversed Sicilian",
       "Scandinavian Defense: Modern Variation"
     ],
-    "ex": "B03 · 1.e4 Nf6 2.e5 Nd5 3.d4",
+    "ex": "B03 · 1.e4 Nf6 2.e5 Nd5 3.d4 — Lures White's pawns forward, then circles back to attack the overextension.",
     "type": "which"
   },
   {
@@ -1849,7 +1849,7 @@ export const chessOpenings: QuizCategory = {
       "1.c4 Nf6 2.Nf3",
       "1.e4 d6 2.d4 Nf6 3.Nc3"
     ],
-    "ex": "B03 · 1.e4 Nf6 2.e5 Nd5 3.d4"
+    "ex": "B03 · 1.e4 Nf6 2.e5 Nd5 3.d4 — Lures White's pawns forward, then circles back to attack the overextension."
   },
   {
     "topic": "open",
@@ -1860,7 +1860,7 @@ export const chessOpenings: QuizCategory = {
       "Italian Game: Deutz Gambit",
       "Vienna Game: Max Lange Defense"
     ],
-    "ex": "C20 · 1.e4 e5 2.d4",
+    "ex": "C20 · 1.e4 e5 2.d4 — Blasts the center open at once, at the cost of an early queen outing after ...exd4.",
     "type": "which"
   },
   {
@@ -1872,7 +1872,7 @@ export const chessOpenings: QuizCategory = {
       "1.e4 e5 2.Nf3 Nc6 3.Nc3 Nf6",
       "1.e4 e5 2.Bc4 Nf6"
     ],
-    "ex": "C20 · 1.e4 e5 2.d4"
+    "ex": "C20 · 1.e4 e5 2.d4 — Blasts the center open at once, at the cost of an early queen outing after ...exd4."
   },
   {
     "topic": "open",
@@ -1883,7 +1883,7 @@ export const chessOpenings: QuizCategory = {
       "Italian Game: Two Knights Defense, Knight Attack",
       "King's Gambit Declined: Falkbeer Countergambit Accepted"
     ],
-    "ex": "C33 · 1.e4 e5 2.f4 exf4 3.Bc4",
+    "ex": "C33 · 1.e4 e5 2.f4 exf4 3.Bc4 — Develops instead of 3.Nf3, daring the ...Qh4+ check in exchange for faster attack.",
     "type": "which"
   },
   {
@@ -1895,7 +1895,7 @@ export const chessOpenings: QuizCategory = {
       "1.e4 e5 2.d4 exd4",
       "1.e4 e5 2.Nf3 d6"
     ],
-    "ex": "C33 · 1.e4 e5 2.f4 exf4 3.Bc4"
+    "ex": "C33 · 1.e4 e5 2.f4 exf4 3.Bc4 — Develops instead of 3.Nf3, daring the ...Qh4+ check in exchange for faster attack."
   },
   {
     "topic": "flank",
@@ -1906,7 +1906,7 @@ export const chessOpenings: QuizCategory = {
       "English Opening: Anglo-Indian Defense, Queen's Knight Variation",
       "Scandinavian Defense: Modern Variation"
     ],
-    "ex": "B00 · 1.e4 Nc6 2.d4",
+    "ex": "B00 · 1.e4 Nc6 2.d4 — The offbeat knight first, eyeing ...e5 and ...d5 breaks from an unusual route.",
     "type": "which"
   },
   {
@@ -1918,7 +1918,7 @@ export const chessOpenings: QuizCategory = {
       "1.e4 Nf6 2.e5",
       "1.c4 e6 2.Nf3"
     ],
-    "ex": "B00 · 1.e4 Nc6 2.d4"
+    "ex": "B00 · 1.e4 Nc6 2.d4 — The offbeat knight first, eyeing ...e5 and ...d5 breaks from an unusual route."
   },
   {
     "topic": "closed",
@@ -1929,7 +1929,7 @@ export const chessOpenings: QuizCategory = {
       "Queen's Gambit Declined: Modern Variation",
       "Slav Defense: Modern Line"
     ],
-    "ex": "A84 · 1.d4 f5 2.c4 Nf6",
+    "ex": "A84 · 1.d4 f5 2.c4 Nf6 — Develops the kingside while keeping Leningrad (...g6) and Classical (...e6) setups open.",
     "type": "which"
   },
   {
@@ -1941,7 +1941,7 @@ export const chessOpenings: QuizCategory = {
       "1.d4 d5 2.c4 e6 3.Nc3",
       "1.d4 Nf6 2.c4 e6 3.Nf3 d5"
     ],
-    "ex": "A84 · 1.d4 f5 2.c4 Nf6"
+    "ex": "A84 · 1.d4 f5 2.c4 Nf6 — Develops the kingside while keeping Leningrad (...g6) and Classical (...e6) setups open."
   },
   {
     "topic": "flank",
@@ -1952,7 +1952,7 @@ export const chessOpenings: QuizCategory = {
       "Nimzowitsch Defense: Scandinavian Variation",
       "Nimzowitsch Defense"
     ],
-    "ex": "A13 · 1.c4 e6 2.Nf3",
+    "ex": "A13 · 1.c4 e6 2.Nf3 — Meets the English with a firm ...d5 central challenge.",
     "type": "which"
   },
   {
@@ -1964,7 +1964,7 @@ export const chessOpenings: QuizCategory = {
       "1.e4 d5 2.exd5 Qxd5",
       "1.e4 d6 2.d4 Nf6 3.Nc3"
     ],
-    "ex": "A13 · 1.c4 e6 2.Nf3"
+    "ex": "A13 · 1.c4 e6 2.Nf3 — Meets the English with a firm ...d5 central challenge."
   },
   {
     "topic": "open",
@@ -1975,7 +1975,7 @@ export const chessOpenings: QuizCategory = {
       "Petrov's Defense",
       "King's Knight Opening: Normal Variation"
     ],
-    "ex": "C48 · 1.e4 e5 2.Nf3 Nc6 3.Nc3 Nf6 4.Bb5",
+    "ex": "C48 · 1.e4 e5 2.Nf3 Nc6 3.Nc3 Nf6 4.Bb5 — Spanish pressure in Four Knights clothing: pin plus classical calm.",
     "type": "which"
   },
   {
@@ -1987,7 +1987,7 @@ export const chessOpenings: QuizCategory = {
       "1.e4 e5 2.d4 exd4",
       "1.e4 e5 2.Bc4 Bc5"
     ],
-    "ex": "C48 · 1.e4 e5 2.Nf3 Nc6 3.Nc3 Nf6 4.Bb5"
+    "ex": "C48 · 1.e4 e5 2.Nf3 Nc6 3.Nc3 Nf6 4.Bb5 — Spanish pressure in Four Knights clothing: pin plus classical calm."
   },
   {
     "topic": "closed",
@@ -1998,7 +1998,7 @@ export const chessOpenings: QuizCategory = {
       "Dutch Defense: Fianchetto Variation",
       "Queen's Gambit Declined"
     ],
-    "ex": "D32 · 1.d4 d5 2.c4 e6 3.Nc3 c5",
+    "ex": "D32 · 1.d4 d5 2.c4 e6 3.Nc3 c5 — Fights for the center immediately with ...c5, accepting an isolated queen's pawn.",
     "type": "which"
   },
   {
@@ -2010,7 +2010,7 @@ export const chessOpenings: QuizCategory = {
       "1.d4 Nf6 2.c4 d6",
       "1.d4 d5 2.c4 e5"
     ],
-    "ex": "D32 · 1.d4 d5 2.c4 e6 3.Nc3 c5"
+    "ex": "D32 · 1.d4 d5 2.c4 e6 3.Nc3 c5 — Fights for the center immediately with ...c5, accepting an isolated queen's pawn."
   },
   {
     "topic": "closed",
@@ -2021,7 +2021,7 @@ export const chessOpenings: QuizCategory = {
       "Queen's Gambit Declined: Three Knights Variation",
       "Modern Defense"
     ],
-    "ex": "E60 · 1.d4 Nf6 2.c4 g6 3.Nf3 Bg7",
+    "ex": "E60 · 1.d4 Nf6 2.c4 g6 3.Nf3 Bg7 — White meets the fianchetto with kingside development; grinding maneuvering ahead.",
     "type": "which"
   },
   {
@@ -2033,7 +2033,7 @@ export const chessOpenings: QuizCategory = {
       "1.d4 d5 2.c4 Nc6",
       "1.d4 Nf6 2.c4 g6 3.Nc3 Bg7"
     ],
-    "ex": "E60 · 1.d4 Nf6 2.c4 g6 3.Nf3 Bg7"
+    "ex": "E60 · 1.d4 Nf6 2.c4 g6 3.Nf3 Bg7 — White meets the fianchetto with kingside development; grinding maneuvering ahead."
   },
   {
     "topic": "closed",
@@ -2044,7 +2044,7 @@ export const chessOpenings: QuizCategory = {
       "Grünfeld Defense: Three Knights Variation",
       "Queen's Indian Defense: Fianchetto Variation"
     ],
-    "ex": "E60 · 1.d4 Nf6 2.c4 g6 3.Nf3",
+    "ex": "E60 · 1.d4 Nf6 2.c4 g6 3.Nf3 — Keeps the e-pawn flexible before committing the center.",
     "type": "which"
   },
   {
@@ -2056,7 +2056,7 @@ export const chessOpenings: QuizCategory = {
       "1.d4 Nf6 2.c4 g6 3.Nc3 d5 4.cxd5",
       "1.d4 Nf6 2.c4 e6 3.g3"
     ],
-    "ex": "E60 · 1.d4 Nf6 2.c4 g6 3.Nf3"
+    "ex": "E60 · 1.d4 Nf6 2.c4 g6 3.Nf3 — Keeps the e-pawn flexible before committing the center."
   },
   {
     "topic": "open",
@@ -2067,7 +2067,7 @@ export const chessOpenings: QuizCategory = {
       "Ponziani Opening",
       "Bishop's Opening: Boi Variation"
     ],
-    "ex": "C25 · 1.e4 e5 2.Nc3 Nc6",
+    "ex": "C25 · 1.e4 e5 2.Nc3 Nc6 — Natural development; the gambit lines with an early f4 are the sharp branch.",
     "type": "which"
   },
   {
@@ -2079,7 +2079,7 @@ export const chessOpenings: QuizCategory = {
       "1.e4 e5 2.Nf3 d6",
       "1.e4 e5 2.Nf3 f5"
     ],
-    "ex": "C25 · 1.e4 e5 2.Nc3 Nc6"
+    "ex": "C25 · 1.e4 e5 2.Nc3 Nc6 — Natural development; the gambit lines with an early f4 are the sharp branch."
   },
   {
     "topic": "open",
@@ -2090,7 +2090,7 @@ export const chessOpenings: QuizCategory = {
       "Italian Game: Classical Variation",
       "King's Gambit Accepted: Bishop's Gambit, Boden Variation"
     ],
-    "ex": "C21 · 1.e4 e5 2.d4 exd4",
+    "ex": "C21 · 1.e4 e5 2.d4 exd4 — Black accepts the open game; White takes back with queen or knight.",
     "type": "which"
   },
   {
@@ -2102,7 +2102,7 @@ export const chessOpenings: QuizCategory = {
       "1.e4 e5 2.f4 d5",
       "1.e4 e5 2.Nf3 d6"
     ],
-    "ex": "C21 · 1.e4 e5 2.d4 exd4"
+    "ex": "C21 · 1.e4 e5 2.d4 exd4 — Black accepts the open game; White takes back with queen or knight."
   },
   {
     "topic": "closed",
@@ -2113,7 +2113,7 @@ export const chessOpenings: QuizCategory = {
       "Dutch Defense: Fianchetto Variation",
       "Queen's Gambit Declined: Tarrasch Defense, Pseudo-Tarrasch"
     ],
-    "ex": "D32 · 1.d4 d5 2.c4 e6 3.Nc3 c5 4.cxd5",
+    "ex": "D32 · 1.d4 d5 2.c4 e6 3.Nc3 c5 4.cxd5 — The gambit runs 4...cxd4: a pawn for a flying lead in development.",
     "type": "which"
   },
   {
@@ -2125,7 +2125,7 @@ export const chessOpenings: QuizCategory = {
       "1.d4 Nf6 2.c4 e6 3.Nf3 b6 4.g3",
       "1.d4 d5 2.e4"
     ],
-    "ex": "D32 · 1.d4 d5 2.c4 e6 3.Nc3 c5 4.cxd5"
+    "ex": "D32 · 1.d4 d5 2.c4 e6 3.Nc3 c5 4.cxd5 — The gambit runs 4...cxd4: a pawn for a flying lead in development."
   },
   {
     "topic": "closed",
@@ -2136,7 +2136,7 @@ export const chessOpenings: QuizCategory = {
       "Modern Defense",
       "King's Indian Defense: Normal Variation, King's Knight Variation"
     ],
-    "ex": "A86 · 1.d4 f5 2.c4 Nf6 3.g3",
+    "ex": "A86 · 1.d4 f5 2.c4 Nf6 3.g3 — White answers the Dutch with a kingside fianchetto, blunting ...f5 dreams.",
     "type": "which"
   },
   {
@@ -2148,7 +2148,7 @@ export const chessOpenings: QuizCategory = {
       "1.d4 d5 2.c4 e6 3.Nc3 c5 4.cxd5",
       "1.d4 Nf6 2.c4 e6 3.Nf3 c5"
     ],
-    "ex": "A86 · 1.d4 f5 2.c4 Nf6 3.g3"
+    "ex": "A86 · 1.d4 f5 2.c4 Nf6 3.g3 — White answers the Dutch with a kingside fianchetto, blunting ...f5 dreams."
   },
   {
     "topic": "closed",
@@ -2159,7 +2159,7 @@ export const chessOpenings: QuizCategory = {
       "Blackmar-Diemer Gambit: Fritz Attack",
       "Queen's Gambit Declined: Chigorin Defense"
     ],
-    "ex": "A48 · 1.d4 Nf6 2.Nf3 g6",
+    "ex": "A48 · 1.d4 Nf6 2.Nf3 g6 — A flexible King's Indian that delays ...Bg7 to keep ...d6 and ...d5 options open.",
     "type": "which"
   },
   {
@@ -2171,7 +2171,7 @@ export const chessOpenings: QuizCategory = {
       "1.d4 Nf6 2.c4 g6",
       "1.d4 Nf6 2.c4 c5 3.d5 e6 4.Nc3"
     ],
-    "ex": "A48 · 1.d4 Nf6 2.Nf3 g6"
+    "ex": "A48 · 1.d4 Nf6 2.Nf3 g6 — A flexible King's Indian that delays ...Bg7 to keep ...d6 and ...d5 options open."
   },
   {
     "topic": "french",
@@ -2182,7 +2182,7 @@ export const chessOpenings: QuizCategory = {
       "Caro-Kann Defense: Panov Attack",
       "French Defense: Paulsen Variation"
     ],
-    "ex": "C03 · 1.e4 e6 2.d4 d5 3.Nd2",
+    "ex": "C03 · 1.e4 e6 2.d4 d5 3.Nd2 — Sidesteps the Winawer pin and keeps the c-pawn mobile for later breaks.",
     "type": "which"
   },
   {
@@ -2194,7 +2194,7 @@ export const chessOpenings: QuizCategory = {
       "1.e4 c6 2.d4 d5 3.exd5",
       "1.e4 e6 2.d4 d5 3.Nc3 Nf6 4.Bg5"
     ],
-    "ex": "C03 · 1.e4 e6 2.d4 d5 3.Nd2"
+    "ex": "C03 · 1.e4 e6 2.d4 d5 3.Nd2 — Sidesteps the Winawer pin and keeps the c-pawn mobile for later breaks."
   },
   {
     "topic": "open",
@@ -2205,7 +2205,7 @@ export const chessOpenings: QuizCategory = {
       "King's Gambit Declined: Falkbeer Countergambit Accepted",
       "Ruy Lopez: Bird's Defense Deferred"
     ],
-    "ex": "C40 · 1.e4 e5 2.Nf3 f5",
+    "ex": "C40 · 1.e4 e5 2.Nf3 f5 — A dubious but chaotic counter-gambit; the refutation attempts are half the fun.",
     "type": "which"
   },
   {
@@ -2217,7 +2217,7 @@ export const chessOpenings: QuizCategory = {
       "1.e4 e5 2.Nf3 Nc6 3.c3",
       "1.e4 e5 2.Nf3 Nc6 3.Bb5 a6"
     ],
-    "ex": "C40 · 1.e4 e5 2.Nf3 f5"
+    "ex": "C40 · 1.e4 e5 2.Nf3 f5 — A dubious but chaotic counter-gambit; the refutation attempts are half the fun."
   },
   {
     "topic": "sicilian",
@@ -2228,7 +2228,7 @@ export const chessOpenings: QuizCategory = {
       "Sicilian Defense: French Variation, Open",
       "Sicilian Defense: Halasz Gambit"
     ],
-    "ex": "B23 · 1.e4 c5 2.Nc3",
+    "ex": "B23 · 1.e4 c5 2.Nc3 — Dodges Open Sicilian theory for a slow kingside buildup behind the pawn wall.",
     "type": "which"
   },
   {
@@ -2240,7 +2240,7 @@ export const chessOpenings: QuizCategory = {
       "1.e4 c5 2.Nf3 Nc6",
       "1.e4 c5 2.Nf3 Nc6 3.d4"
     ],
-    "ex": "B23 · 1.e4 c5 2.Nc3"
+    "ex": "B23 · 1.e4 c5 2.Nc3 — Dodges Open Sicilian theory for a slow kingside buildup behind the pawn wall."
   },
   {
     "topic": "open",
@@ -2251,7 +2251,7 @@ export const chessOpenings: QuizCategory = {
       "King's Gambit Declined: Falkbeer Countergambit",
       "Bishop's Opening: Boi Variation"
     ],
-    "ex": "C26 · 1.e4 e5 2.Nc3 Nf6",
+    "ex": "C26 · 1.e4 e5 2.Nc3 Nf6 — Counterattacks e4 at once with ...Nf6 instead of defending it.",
     "type": "which"
   },
   {
@@ -2263,7 +2263,7 @@ export const chessOpenings: QuizCategory = {
       "1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.O-O",
       "1.e4 e5 2.Nf3 Nc6 3.Nc3 Nf6 4.Bb5"
     ],
-    "ex": "C26 · 1.e4 e5 2.Nc3 Nf6"
+    "ex": "C26 · 1.e4 e5 2.Nc3 Nf6 — Counterattacks e4 at once with ...Nf6 instead of defending it."
   },
   {
     "topic": "closed",
@@ -2274,7 +2274,7 @@ export const chessOpenings: QuizCategory = {
       "Nimzo-Indian Defense: Classical Variation",
       "Indian Defense"
     ],
-    "ex": "A60 · 1.d4 Nf6 2.c4 c5 3.d5 e6",
+    "ex": "A60 · 1.d4 Nf6 2.c4 c5 3.d5 e6 — Challenges d5 with ...e6 immediately: fast, sharp and slightly fragile.",
     "type": "which"
   },
   {
@@ -2286,7 +2286,7 @@ export const chessOpenings: QuizCategory = {
       "1.d4 f5 2.c4 Nf6",
       "1.d4 Nf6 2.c4 e6 3.Nf3 b6 4.g3"
     ],
-    "ex": "A60 · 1.d4 Nf6 2.c4 c5 3.d5 e6"
+    "ex": "A60 · 1.d4 Nf6 2.c4 c5 3.d5 e6 — Challenges d5 with ...e6 immediately: fast, sharp and slightly fragile."
   },
   {
     "topic": "closed",
@@ -2297,7 +2297,7 @@ export const chessOpenings: QuizCategory = {
       "Queen's Pawn Game: Zukertort Variation",
       "Semi-Slav Defense: Main Line"
     ],
-    "ex": "D90 · 1.d4 Nf6 2.c4 g6 3.Nc3 d5 4.Nf3",
+    "ex": "D90 · 1.d4 Nf6 2.c4 g6 3.Nc3 d5 4.Nf3 — Finishes development before the central tension between d5 and c4 breaks.",
     "type": "which"
   },
   {
@@ -2309,7 +2309,7 @@ export const chessOpenings: QuizCategory = {
       "1.d4 Nf6 2.c4 g6 3.g3",
       "1.d4 Nf6 2.c4 g6 3.Nf3"
     ],
-    "ex": "D90 · 1.d4 Nf6 2.c4 g6 3.Nc3 d5 4.Nf3"
+    "ex": "D90 · 1.d4 Nf6 2.c4 g6 3.Nc3 d5 4.Nf3 — Finishes development before the central tension between d5 and c4 breaks."
   },
   {
     "topic": "closed",
@@ -2320,7 +2320,7 @@ export const chessOpenings: QuizCategory = {
       "Blumenfeld Countergambit",
       "Tarrasch Defense"
     ],
-    "ex": "E32 · 1.d4 Nf6 2.c4 e6 3.Nc3 Bb4 4.Qc2",
+    "ex": "E32 · 1.d4 Nf6 2.c4 e6 3.Nc3 Bb4 4.Qc2 — The Capablanca move: guards c3, eyes h7 and keeps e4 ambitions alive.",
     "type": "which"
   },
   {
@@ -2332,7 +2332,7 @@ export const chessOpenings: QuizCategory = {
       "1.d4 Nf6 2.c4 g6 3.Nf3",
       "1.d4 Nf6 2.c4 c5 3.d5 e6"
     ],
-    "ex": "E32 · 1.d4 Nf6 2.c4 e6 3.Nc3 Bb4 4.Qc2"
+    "ex": "E32 · 1.d4 Nf6 2.c4 e6 3.Nc3 Bb4 4.Qc2 — The Capablanca move: guards c3, eyes h7 and keeps e4 ambitions alive."
   },
   {
     "topic": "closed",
@@ -2343,7 +2343,7 @@ export const chessOpenings: QuizCategory = {
       "Indian Defense",
       "Semi-Slav Defense: Main Line"
     ],
-    "ex": "A60 · 1.d4 Nf6 2.c4 c5 3.d5 e6 4.Nc3",
+    "ex": "A60 · 1.d4 Nf6 2.c4 c5 3.d5 e6 4.Nc3 — The Snake slithers the bishop to d6 by an unusual diagonal.",
     "type": "which"
   },
   {
@@ -2355,7 +2355,7 @@ export const chessOpenings: QuizCategory = {
       "1.d4 Nf6 2.Nc3",
       "1.d4 Nf6 2.c4 g6 3.Nc3 d5 4.cxd5"
     ],
-    "ex": "A60 · 1.d4 Nf6 2.c4 c5 3.d5 e6 4.Nc3"
+    "ex": "A60 · 1.d4 Nf6 2.c4 c5 3.d5 e6 4.Nc3 — The Snake slithers the bishop to d6 by an unusual diagonal."
   },
   {
     "topic": "french",
@@ -2366,7 +2366,7 @@ export const chessOpenings: QuizCategory = {
       "French Defense: Advance Variation",
       "French Defense: Tarrasch Variation"
     ],
-    "ex": "B13 · 1.e4 c6 2.d4 d5 3.exd5",
+    "ex": "B13 · 1.e4 c6 2.d4 d5 3.exd5 — Trades the tension away into a calm, symmetrical maneuvering game.",
     "type": "which"
   },
   {
@@ -2378,7 +2378,7 @@ export const chessOpenings: QuizCategory = {
       "1.e4 e6 2.d4 d5 3.Nc3 Bb4 4.e5",
       "1.e4 e6 2.d4 d5"
     ],
-    "ex": "B13 · 1.e4 c6 2.d4 d5 3.exd5"
+    "ex": "B13 · 1.e4 c6 2.d4 d5 3.exd5 — Trades the tension away into a calm, symmetrical maneuvering game."
   },
   {
     "topic": "french",
@@ -2389,7 +2389,7 @@ export const chessOpenings: QuizCategory = {
       "French Defense: Normal Variation",
       "French Defense: Classical Variation"
     ],
-    "ex": "C02 · 1.e4 e6 2.d4 d5 3.e5",
+    "ex": "C02 · 1.e4 e6 2.d4 d5 3.e5 — Grabs space and clamps down; Black plays around the chain with ...c5 and ...Qb6.",
     "type": "which"
   },
   {
@@ -2401,7 +2401,7 @@ export const chessOpenings: QuizCategory = {
       "1.e4 e6 2.d4 d5 3.Nd2",
       "1.e4 e6 2.d4 d5 3.Nc3 Nf6"
     ],
-    "ex": "C02 · 1.e4 e6 2.d4 d5 3.e5"
+    "ex": "C02 · 1.e4 e6 2.d4 d5 3.e5 — Grabs space and clamps down; Black plays around the chain with ...c5 and ...Qb6."
   },
   {
     "topic": "open",
@@ -2412,7 +2412,7 @@ export const chessOpenings: QuizCategory = {
       "Vienna Game",
       "King's Gambit Accepted: King's Knight's Gambit"
     ],
-    "ex": "C31 · 1.e4 e5 2.f4 d5",
+    "ex": "C31 · 1.e4 e5 2.f4 d5 — Declines the pawn and punches back in the center with ...d5.",
     "type": "which"
   },
   {
@@ -2424,7 +2424,7 @@ export const chessOpenings: QuizCategory = {
       "1.e4 e5 2.Nf3 Nc6 3.d4",
       "1.e4 e5 2.f4 exf4 3.Nf3"
     ],
-    "ex": "C31 · 1.e4 e5 2.f4 d5"
+    "ex": "C31 · 1.e4 e5 2.f4 d5 — Declines the pawn and punches back in the center with ...d5."
   },
   {
     "topic": "closed",
@@ -2435,7 +2435,7 @@ export const chessOpenings: QuizCategory = {
       "Indian Defense: Knights Variation",
       "Benoni Defense: Modern Variation, Snake Variation"
     ],
-    "ex": "A90 · 1.d4 f5 2.c4 Nf6 3.g3 e6",
+    "ex": "A90 · 1.d4 f5 2.c4 Nf6 3.g3 e6 — The solid Classical shell: ...Be7, ...O-O and a slow kingside rollout.",
     "type": "which"
   },
   {
@@ -2447,7 +2447,7 @@ export const chessOpenings: QuizCategory = {
       "1.d4 Nf6 2.c4 e6",
       "1.d4 Nf6 2.c4 e6 3.Nc3"
     ],
-    "ex": "A90 · 1.d4 f5 2.c4 Nf6 3.g3 e6"
+    "ex": "A90 · 1.d4 f5 2.c4 Nf6 3.g3 e6 — The solid Classical shell: ...Be7, ...O-O and a slow kingside rollout."
   },
   {
     "topic": "flank",
@@ -2458,7 +2458,7 @@ export const chessOpenings: QuizCategory = {
       "King's Indian Attack",
       "English Opening: King's English Variation, Reversed Sicilian"
     ],
-    "ex": "A28 · 1.c4 e5 2.Nc3 Nf6 3.Nf3",
+    "ex": "A28 · 1.c4 e5 2.Nc3 Nf6 3.Nf3 — Fully developed double-knight duel, one tempo in White's favor.",
     "type": "which"
   },
   {
@@ -2470,7 +2470,7 @@ export const chessOpenings: QuizCategory = {
       "1.c4 e6 2.Nf3 d5 3.g3",
       "1.c4 Nf6 2.Nc3"
     ],
-    "ex": "A28 · 1.c4 e5 2.Nc3 Nf6 3.Nf3"
+    "ex": "A28 · 1.c4 e5 2.Nc3 Nf6 3.Nf3 — Fully developed double-knight duel, one tempo in White's favor."
   },
   {
     "topic": "flank",
@@ -2481,7 +2481,7 @@ export const chessOpenings: QuizCategory = {
       "Alekhine Defense: Mokele Mbembe",
       "Pirc Defense"
     ],
-    "ex": "A07 · 1.Nf3 d5 2.g3",
+    "ex": "A07 · 1.Nf3 d5 2.g3 — The system opening: the same kingside setup no matter what Black does.",
     "type": "which"
   },
   {
@@ -2493,7 +2493,7 @@ export const chessOpenings: QuizCategory = {
       "1.Nf3 d5 2.c4",
       "1.c4 e6 2.Nf3"
     ],
-    "ex": "A07 · 1.Nf3 d5 2.g3"
+    "ex": "A07 · 1.Nf3 d5 2.g3 — The system opening: the same kingside setup no matter what Black does."
   },
   {
     "topic": "closed",
@@ -2504,7 +2504,7 @@ export const chessOpenings: QuizCategory = {
       "Tarrasch Defense",
       "Queen's Gambit Declined: Three Knights Variation"
     ],
-    "ex": "D31 · 1.d4 d5 2.c4 e6 3.Nc3 c6",
+    "ex": "D31 · 1.d4 d5 2.c4 e6 3.Nc3 c6 — Reaches the Semi-Slav while cutting out some Exchange sidelines.",
     "type": "which"
   },
   {
@@ -2516,7 +2516,7 @@ export const chessOpenings: QuizCategory = {
       "1.d4 Nf6 2.c4 e6 3.g3",
       "1.d4 d5 2.c4 e6 3.Nc3 c5"
     ],
-    "ex": "D31 · 1.d4 d5 2.c4 e6 3.Nc3 c6"
+    "ex": "D31 · 1.d4 d5 2.c4 e6 3.Nc3 c6 — Reaches the Semi-Slav while cutting out some Exchange sidelines."
   },
   {
     "topic": "sicilian",
@@ -2527,7 +2527,7 @@ export const chessOpenings: QuizCategory = {
       "Sicilian Defense: Hyperaccelerated Dragon",
       "Sicilian Defense: Drazic Variation"
     ],
-    "ex": "B21 · 1.e4 c5 2.d4 cxd4 3.c3 dxc3",
+    "ex": "B21 · 1.e4 c5 2.d4 cxd4 3.c3 dxc3 — Black pockets the pawn; White's initiative must now justify the material.",
     "type": "which"
   },
   {
@@ -2539,7 +2539,7 @@ export const chessOpenings: QuizCategory = {
       "1.e4 c5 2.Nf3 e6 3.d4 cxd4",
       "1.e4 c5 2.Nf3 d6 3.d4 cxd4 4.Nxd4"
     ],
-    "ex": "B21 · 1.e4 c5 2.d4 cxd4 3.c3 dxc3"
+    "ex": "B21 · 1.e4 c5 2.d4 cxd4 3.c3 dxc3 — Black pockets the pawn; White's initiative must now justify the material."
   },
   {
     "topic": "french",
@@ -2550,7 +2550,7 @@ export const chessOpenings: QuizCategory = {
       "French Defense: Winawer Variation",
       "French Defense, Classical, 4. Bg5"
     ],
-    "ex": "B12 · 1.e4 c6 2.d4 d5 3.Nd2",
+    "ex": "B12 · 1.e4 c6 2.d4 d5 3.Nd2 — The flexible knight first, keeping every recapture and ...g6 ideas alive.",
     "type": "which"
   },
   {
@@ -2562,7 +2562,7 @@ export const chessOpenings: QuizCategory = {
       "1.e4 e6 2.d4 d5",
       "1.e4 c6 2.d4 d5 3.exd5"
     ],
-    "ex": "B12 · 1.e4 c6 2.d4 d5 3.Nd2"
+    "ex": "B12 · 1.e4 c6 2.d4 d5 3.Nd2 — The flexible knight first, keeping every recapture and ...g6 ideas alive."
   },
   {
     "topic": "sicilian",
@@ -2573,7 +2573,7 @@ export const chessOpenings: QuizCategory = {
       "Sicilian Defense: Modern Variations, Main Line",
       "Sicilian Defense: Closed"
     ],
-    "ex": "B28 · 1.e4 c5 2.Nf3 a6",
+    "ex": "B28 · 1.e4 c5 2.Nf3 a6 — Provokes d4 early while lining up ...b5 expansion behind ...a6.",
     "type": "which"
   },
   {
@@ -2585,7 +2585,7 @@ export const chessOpenings: QuizCategory = {
       "1.e4 c5 2.Nf3 g6",
       "1.e4 c5 2.Nf3 d6 3.d4 cxd4 4.Nxd4"
     ],
-    "ex": "B28 · 1.e4 c5 2.Nf3 a6"
+    "ex": "B28 · 1.e4 c5 2.Nf3 a6 — Provokes d4 early while lining up ...b5 expansion behind ...a6."
   },
   {
     "topic": "open",
@@ -2596,7 +2596,7 @@ export const chessOpenings: QuizCategory = {
       "Ponziani Opening",
       "Ruy Lopez: Berlin Defense"
     ],
-    "ex": "C50 · 1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.O-O",
+    "ex": "C50 · 1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.O-O — Castles first and asks questions later; the d4 break rips the center open.",
     "type": "which"
   },
   {
@@ -2608,7 +2608,7 @@ export const chessOpenings: QuizCategory = {
       "1.e4 e5 2.Bc4",
       "1.e4 e5 2.Nf3 f5"
     ],
-    "ex": "C50 · 1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.O-O"
+    "ex": "C50 · 1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.O-O — Castles first and asks questions later; the d4 break rips the center open."
   },
   {
     "topic": "open",
@@ -2619,7 +2619,7 @@ export const chessOpenings: QuizCategory = {
       "Italian Game: Evans Gambit",
       "Four Knights Game"
     ],
-    "ex": "C44 · 1.e4 e5 2.Nf3 Nc6 3.d4 exd4 4.Bc4",
+    "ex": "C44 · 1.e4 e5 2.Nf3 Nc6 3.d4 exd4 4.Bc4 — Develops the bishop with gain of time instead of recapturing: attack first.",
     "type": "which"
   },
   {
@@ -2631,7 +2631,7 @@ export const chessOpenings: QuizCategory = {
       "1.e4 e5 2.Nf3 Nc6 3.Bc4",
       "1.e4 e5 2.Nf3 Nc6 3.Bc4 Nf6"
     ],
-    "ex": "C44 · 1.e4 e5 2.Nf3 Nc6 3.d4 exd4 4.Bc4"
+    "ex": "C44 · 1.e4 e5 2.Nf3 Nc6 3.d4 exd4 4.Bc4 — Develops the bishop with gain of time instead of recapturing: attack first."
   },
   {
     "topic": "sicilian",
@@ -2642,7 +2642,7 @@ export const chessOpenings: QuizCategory = {
       "Sicilian Defense: Open",
       "Sicilian Defense: Drazic Variation"
     ],
-    "ex": "B21 · 1.e4 c5 2.d4 cxd4 3.c3 dxc3 4.Nxc3",
+    "ex": "B21 · 1.e4 c5 2.d4 cxd4 3.c3 dxc3 4.Nxc3 — Returns the pawn for a fianchetto and solid, unhurried development.",
     "type": "which"
   },
   {
@@ -2654,7 +2654,7 @@ export const chessOpenings: QuizCategory = {
       "1.e4 c5 2.Nf3 e6 3.d4",
       "1.e4 c5 2.Nf3 a6"
     ],
-    "ex": "B21 · 1.e4 c5 2.d4 cxd4 3.c3 dxc3 4.Nxc3"
+    "ex": "B21 · 1.e4 c5 2.d4 cxd4 3.c3 dxc3 4.Nxc3 — Returns the pawn for a fianchetto and solid, unhurried development."
   },
   {
     "topic": "closed",
@@ -2665,7 +2665,7 @@ export const chessOpenings: QuizCategory = {
       "Queen's Gambit Declined: Traditional Variation",
       "Blackmar-Diemer Gambit: Fritz Attack"
     ],
-    "ex": "A46 · 1.d4 Nf6 2.Nf3 e6",
+    "ex": "A46 · 1.d4 Nf6 2.Nf3 e6 — A flexible move order keeping Nimzo, Ragozin and Queen's Indian options alive.",
     "type": "which"
   },
   {
@@ -2677,7 +2677,7 @@ export const chessOpenings: QuizCategory = {
       "1.d4 d5 2.c4 dxc4 3.Nf3",
       "1.d4 Nf6 2.c4 e6 3.g3"
     ],
-    "ex": "A46 · 1.d4 Nf6 2.Nf3 e6"
+    "ex": "A46 · 1.d4 Nf6 2.Nf3 e6 — A flexible move order keeping Nimzo, Ragozin and Queen's Indian options alive."
   },
   {
     "topic": "french",
@@ -2688,7 +2688,7 @@ export const chessOpenings: QuizCategory = {
       "French Defense, Classical, 4. Bg5",
       "French Defense: Normal Variation"
     ],
-    "ex": "B15 · 1.e4 c6 2.d4 d5 3.Nd2 dxe4",
+    "ex": "B15 · 1.e4 c6 2.d4 d5 3.Nd2 dxe4 — The modern main road: flexible recaptures and a mobile queenside majority.",
     "type": "which"
   },
   {
@@ -2700,7 +2700,7 @@ export const chessOpenings: QuizCategory = {
       "1.e4 e6 2.d4 d5 3.Nd2",
       "1.e4 e6 2.d4"
     ],
-    "ex": "B15 · 1.e4 c6 2.d4 d5 3.Nd2 dxe4"
+    "ex": "B15 · 1.e4 c6 2.d4 d5 3.Nd2 dxe4 — The modern main road: flexible recaptures and a mobile queenside majority."
   },
   {
     "topic": "closed",
@@ -2711,7 +2711,7 @@ export const chessOpenings: QuizCategory = {
       "Blackmar-Diemer Gambit",
       "Queen's Gambit Declined: Exchange Variation"
     ],
-    "ex": "E01 · 1.d4 Nf6 2.c4 e6 3.g3 d5 4.Bg2",
+    "ex": "E01 · 1.d4 Nf6 2.c4 e6 3.g3 d5 4.Bg2 — Black accepts the gambit pawn; White's bishops get open diagonals as interest.",
     "type": "which"
   },
   {
@@ -2723,7 +2723,7 @@ export const chessOpenings: QuizCategory = {
       "1.d4 Nf6 2.c4 e6 3.Nc3 d5",
       "1.d4 d5 2.c4 e6 3.Nf3"
     ],
-    "ex": "E01 · 1.d4 Nf6 2.c4 e6 3.g3 d5 4.Bg2"
+    "ex": "E01 · 1.d4 Nf6 2.c4 e6 3.g3 d5 4.Bg2 — Black accepts the gambit pawn; White's bishops get open diagonals as interest."
   },
   {
     "topic": "flank",
@@ -2734,7 +2734,7 @@ export const chessOpenings: QuizCategory = {
       "English Opening: Anglo-Indian Defense, Queen's Knight Variation",
       "Scandinavian Defense: Main Line"
     ],
-    "ex": "B01 · 1.e4 d5 2.exd5 Qxd5",
+    "ex": "B01 · 1.e4 d5 2.exd5 Qxd5 — The queen stays out and active, accepting exposure for central presence.",
     "type": "which"
   },
   {
@@ -2746,7 +2746,7 @@ export const chessOpenings: QuizCategory = {
       "1.Nf3 d5 2.g3",
       "1.c4 e6 2.Nf3 d5 3.g3"
     ],
-    "ex": "B01 · 1.e4 d5 2.exd5 Qxd5"
+    "ex": "B01 · 1.e4 d5 2.exd5 Qxd5 — The queen stays out and active, accepting exposure for central presence."
   },
   {
     "topic": "flank",
@@ -2757,7 +2757,7 @@ export const chessOpenings: QuizCategory = {
       "English Opening: Symmetrical Variation, Normal Variation",
       "Alekhine Defense: Mokele Mbembe"
     ],
-    "ex": "A15 · 1.c4 Nf6 2.Nf3",
+    "ex": "A15 · 1.c4 Nf6 2.Nf3 — Answers the flank with kingside development, aiming for Indian-type setups.",
     "type": "which"
   },
   {
@@ -2769,7 +2769,7 @@ export const chessOpenings: QuizCategory = {
       "1.c4 e5 2.Nc3 Nf6",
       "1.Nf3 d5 2.c4"
     ],
-    "ex": "A15 · 1.c4 Nf6 2.Nf3"
+    "ex": "A15 · 1.c4 Nf6 2.Nf3 — Answers the flank with kingside development, aiming for Indian-type setups."
   },
   {
     "topic": "open",
@@ -2780,7 +2780,7 @@ export const chessOpenings: QuizCategory = {
       "King's Gambit Accepted: King's Knight's Gambit",
       "Italian Game: Deutz Gambit"
     ],
-    "ex": "C31 · 1.e4 e5 2.f4 d5 3.exd5",
+    "ex": "C31 · 1.e4 e5 2.f4 d5 3.exd5 — White takes the counter-pawn; open lines and quick development are the price.",
     "type": "which"
   },
   {
@@ -2792,7 +2792,7 @@ export const chessOpenings: QuizCategory = {
       "1.e4 e5 2.d4",
       "1.e4 e5 2.Nf3 Nc6 3.Nc3"
     ],
-    "ex": "C31 · 1.e4 e5 2.f4 d5 3.exd5"
+    "ex": "C31 · 1.e4 e5 2.f4 d5 3.exd5 — White takes the counter-pawn; open lines and quick development are the price."
   },
   {
     "topic": "closed",
@@ -2803,7 +2803,7 @@ export const chessOpenings: QuizCategory = {
       "Dutch Defense: Fianchetto Variation",
       "Catalan Opening"
     ],
-    "ex": "D50 · 1.d4 Nf6 2.c4 e6 3.Nc3 d5 4.Bg5",
+    "ex": "D50 · 1.d4 Nf6 2.c4 e6 3.Nc3 d5 4.Bg5 — The Orthodox center with an early Bg5 pin questioning the f6-knight.",
     "type": "which"
   },
   {
@@ -2815,7 +2815,7 @@ export const chessOpenings: QuizCategory = {
       "1.d4 Nf6 2.c4 e6 3.Nf3 Bb4+",
       "1.d4 Nf6 2.c4 g6"
     ],
-    "ex": "D50 · 1.d4 Nf6 2.c4 e6 3.Nc3 d5 4.Bg5"
+    "ex": "D50 · 1.d4 Nf6 2.c4 e6 3.Nc3 d5 4.Bg5 — The Orthodox center with an early Bg5 pin questioning the f6-knight."
   },
   {
     "topic": "closed",
@@ -2826,7 +2826,7 @@ export const chessOpenings: QuizCategory = {
       "Queen's Gambit Declined: Tarrasch Defense, Pseudo-Tarrasch",
       "Queen's Gambit Accepted"
     ],
-    "ex": "D35 · 1.d4 Nf6 2.c4 e6 3.Nc3 d5",
+    "ex": "D35 · 1.d4 Nf6 2.c4 e6 3.Nc3 d5 — The standard Orthodox: sound center now, the light-squared bishop problem later.",
     "type": "which"
   },
   {
@@ -2838,7 +2838,7 @@ export const chessOpenings: QuizCategory = {
       "1.d4 d5 2.c4 dxc4",
       "1.d4 d5 2.c4 e6 3.Nc3 c5"
     ],
-    "ex": "D35 · 1.d4 Nf6 2.c4 e6 3.Nc3 d5"
+    "ex": "D35 · 1.d4 Nf6 2.c4 e6 3.Nc3 d5 — The standard Orthodox: sound center now, the light-squared bishop problem later."
   },
   {
     "topic": "flank",
@@ -2849,7 +2849,7 @@ export const chessOpenings: QuizCategory = {
       "Réti Opening",
       "English Opening: King's English Variation, Reversed Sicilian"
     ],
-    "ex": "B01 · 1.e4 d5 2.exd5 Qxd5 3.Nc3",
+    "ex": "B01 · 1.e4 d5 2.exd5 Qxd5 3.Nc3 — Develops with gain of time on the queen; ...Qa5 keeps the pin game alive.",
     "type": "which"
   },
   {
@@ -2861,7 +2861,7 @@ export const chessOpenings: QuizCategory = {
       "1.e4 Nf6 2.e5 Nd5 3.d4",
       "1.c4 e6 2.Nf3"
     ],
-    "ex": "B01 · 1.e4 d5 2.exd5 Qxd5 3.Nc3"
+    "ex": "B01 · 1.e4 d5 2.exd5 Qxd5 3.Nc3 — Develops with gain of time on the queen; ...Qa5 keeps the pin game alive."
   },
   {
     "topic": "open",
@@ -2872,7 +2872,7 @@ export const chessOpenings: QuizCategory = {
       "Scotch Game: Scotch Gambit",
       "Italian Game: Classical Variation"
     ],
-    "ex": "C25 · 1.e4 e5 2.Nc3 Nc6 3.f4",
+    "ex": "C25 · 1.e4 e5 2.Nc3 Nc6 3.f4 — Gambits the f-pawn for rapid development and kingside pressure.",
     "type": "which"
   },
   {
@@ -2884,7 +2884,7 @@ export const chessOpenings: QuizCategory = {
       "1.e4 e5 2.f4 d5",
       "1.e4 e5 2.d4 exd4"
     ],
-    "ex": "C25 · 1.e4 e5 2.Nc3 Nc6 3.f4"
+    "ex": "C25 · 1.e4 e5 2.Nc3 Nc6 3.f4 — Gambits the f-pawn for rapid development and kingside pressure."
   },
   {
     "topic": "closed",
@@ -2895,7 +2895,7 @@ export const chessOpenings: QuizCategory = {
       "Grünfeld Defense: Exchange Variation",
       "Queen's Indian Defense"
     ],
-    "ex": "A57 · 1.d4 Nf6 2.c4 c5 3.d5 b5 4.cxb5",
+    "ex": "A57 · 1.d4 Nf6 2.c4 c5 3.d5 b5 4.cxb5 — Sacrifices the b-pawn for the a- and b-files plus lasting queenside pressure.",
     "type": "which"
   },
   {
@@ -2907,7 +2907,7 @@ export const chessOpenings: QuizCategory = {
       "1.d4 Nf6 2.c4 e6 3.g3",
       "1.d4 Nf6 2.c4 g6 3.Nc3 d5 4.Nf3"
     ],
-    "ex": "A57 · 1.d4 Nf6 2.c4 c5 3.d5 b5 4.cxb5"
+    "ex": "A57 · 1.d4 Nf6 2.c4 c5 3.d5 b5 4.cxb5 — Sacrifices the b-pawn for the a- and b-files plus lasting queenside pressure."
   },
   {
     "topic": "open",
@@ -2918,7 +2918,7 @@ export const chessOpenings: QuizCategory = {
       "Center Game",
       "Latvian Gambit"
     ],
-    "ex": "C23 · 1.e4 e5 2.Bc4 Bc5",
+    "ex": "C23 · 1.e4 e5 2.Bc4 Bc5 — Both bishops duel over f2 and f7 while Black prepares a ...d5 break.",
     "type": "which"
   },
   {
@@ -2930,7 +2930,7 @@ export const chessOpenings: QuizCategory = {
       "1.e4 e5 2.f4",
       "1.e4 e5 2.Nc3 Nc6"
     ],
-    "ex": "C23 · 1.e4 e5 2.Bc4 Bc5"
+    "ex": "C23 · 1.e4 e5 2.Bc4 Bc5 — Both bishops duel over f2 and f7 while Black prepares a ...d5 break."
   },
   {
     "topic": "french",
@@ -2941,7 +2941,7 @@ export const chessOpenings: QuizCategory = {
       "French Defense: Winawer Variation, Advance Variation",
       "French Defense: Paulsen Variation"
     ],
-    "ex": "B13 · 1.e4 c6 2.d4 d5 3.exd5 cxd5 4.c4",
+    "ex": "B13 · 1.e4 c6 2.d4 d5 3.exd5 cxd5 4.c4 — Strikes at d5 to reach hanging-pawns and isolated-queen-pawn middlegames.",
     "type": "which"
   },
   {
@@ -2953,7 +2953,7 @@ export const chessOpenings: QuizCategory = {
       "1.e4 e6 2.d4 d5 3.Nd2",
       "1.e4 e6 2.d4 d5 3.Nc3"
     ],
-    "ex": "B13 · 1.e4 c6 2.d4 d5 3.exd5 cxd5 4.c4"
+    "ex": "B13 · 1.e4 c6 2.d4 d5 3.exd5 cxd5 4.c4 — Strikes at d5 to reach hanging-pawns and isolated-queen-pawn middlegames."
   },
   {
     "topic": "flank",
@@ -2964,7 +2964,7 @@ export const chessOpenings: QuizCategory = {
       "English Opening: King's English Variation, Reversed Sicilian",
       "Alekhine Defense: Mokele Mbembe"
     ],
-    "ex": "A13 · 1.c4 e6 2.Nf3 d5 3.g3",
+    "ex": "A13 · 1.c4 e6 2.Nf3 d5 3.g3 — An English dressed as a Catalan: fianchetto squeeze without the d-pawn commitment.",
     "type": "which"
   },
   {
@@ -2976,7 +2976,7 @@ export const chessOpenings: QuizCategory = {
       "1.Nf3 d5 2.c4",
       "1.c4 e5 2.Nc3 Nf6 3.Nf3"
     ],
-    "ex": "A13 · 1.c4 e6 2.Nf3 d5 3.g3"
+    "ex": "A13 · 1.c4 e6 2.Nf3 d5 3.g3 — An English dressed as a Catalan: fianchetto squeeze without the d-pawn commitment."
   },
   {
     "topic": "open",
@@ -2987,7 +2987,7 @@ export const chessOpenings: QuizCategory = {
       "Vienna Game",
       "Italian Game: Two Knights Defense"
     ],
-    "ex": "C44 · 1.e4 e5 2.Nf3 Nc6 3.c3",
+    "ex": "C44 · 1.e4 e5 2.Nf3 Nc6 3.c3 — Prepares the d4 steamroller, at the price of a slow queenside.",
     "type": "which"
   },
   {
@@ -2999,7 +2999,7 @@ export const chessOpenings: QuizCategory = {
       "1.e4 e5 2.Nf3 Nc6 3.Nc3 Nf6 4.Bb5",
       "1.e4 e5 2.f4 d5"
     ],
-    "ex": "C44 · 1.e4 e5 2.Nf3 Nc6 3.c3"
+    "ex": "C44 · 1.e4 e5 2.Nf3 Nc6 3.c3 — Prepares the d4 steamroller, at the price of a slow queenside."
   },
   {
     "topic": "sicilian",
@@ -3010,7 +3010,7 @@ export const chessOpenings: QuizCategory = {
       "Sicilian Defense: Old Sicilian",
       "Sicilian Defense: Modern Variations, Main Line"
     ],
-    "ex": "B23 · 1.e4 c5 2.Nc3 Nc6",
+    "ex": "B23 · 1.e4 c5 2.Nc3 Nc6 — Mirrors development calmly; Botvinnik-style setups arise from this quiet start.",
     "type": "which"
   },
   {
@@ -3022,7 +3022,7 @@ export const chessOpenings: QuizCategory = {
       "1.e4 c5 2.Nf3 d6 3.d4 cxd4 4.Nxd4",
       "1.e4 c5 2.Nf3 Nc6"
     ],
-    "ex": "B23 · 1.e4 c5 2.Nc3 Nc6"
+    "ex": "B23 · 1.e4 c5 2.Nc3 Nc6 — Mirrors development calmly; Botvinnik-style setups arise from this quiet start."
   },
   {
     "topic": "closed",
@@ -3033,7 +3033,7 @@ export const chessOpenings: QuizCategory = {
       "Tarrasch Defense",
       "Indian Defense: Normal Variation"
     ],
-    "ex": "D85 · 1.d4 Nf6 2.c4 g6 3.Nc3 d5 4.cxd5",
+    "ex": "D85 · 1.d4 Nf6 2.c4 g6 3.Nc3 d5 4.cxd5 — Releases the tension into a race: White's queenside majority against Black's center.",
     "type": "which"
   },
   {
@@ -3045,7 +3045,7 @@ export const chessOpenings: QuizCategory = {
       "1.d4 Nf6 2.c4 c5 3.d5 b5 4.cxb5",
       "1.d4 d5 2.c4 e6 3.Nf3"
     ],
-    "ex": "D85 · 1.d4 Nf6 2.c4 g6 3.Nc3 d5 4.cxd5"
+    "ex": "D85 · 1.d4 Nf6 2.c4 g6 3.Nc3 d5 4.cxd5 — Releases the tension into a race: White's queenside majority against Black's center."
   },
   {
     "topic": "open",
@@ -3056,7 +3056,7 @@ export const chessOpenings: QuizCategory = {
       "Italian Game: Two Knights Defense, Knight Attack",
       "King's Gambit Declined: Falkbeer Countergambit"
     ],
-    "ex": "C56 · 1.e4 e5 2.Nf3 Nc6 3.Bc4 Nf6 4.d4",
+    "ex": "C56 · 1.e4 e5 2.Nf3 Nc6 3.Bc4 Nf6 4.d4 — Breaks in the center at once; Max Lange complications are the famous sequel.",
     "type": "which"
   },
   {
@@ -3068,7 +3068,7 @@ export const chessOpenings: QuizCategory = {
       "1.e4 e5 2.Nf3 Nc6 3.c3",
       "1.e4 e5 2.Nf3 Nc6 3.Bb5"
     ],
-    "ex": "C56 · 1.e4 e5 2.Nf3 Nc6 3.Bc4 Nf6 4.d4"
+    "ex": "C56 · 1.e4 e5 2.Nf3 Nc6 3.Bc4 Nf6 4.d4 — Breaks in the center at once; Max Lange complications are the famous sequel."
   },
   {
     "topic": "closed",
@@ -3079,7 +3079,7 @@ export const chessOpenings: QuizCategory = {
       "Grünfeld Defense: Exchange Variation",
       "Nimzo-Indian Defense: Classical Variation"
     ],
-    "ex": "E60 · 1.d4 Nf6 2.c4 g6 3.g3",
+    "ex": "E60 · 1.d4 Nf6 2.c4 g6 3.g3 — Fianchettoes at once, keeping the central structure completely fluid.",
     "type": "which"
   },
   {
@@ -3091,7 +3091,7 @@ export const chessOpenings: QuizCategory = {
       "1.d4 Nf6 2.Nc3",
       "1.d4 d5 2.Nf3"
     ],
-    "ex": "E60 · 1.d4 Nf6 2.c4 g6 3.g3"
+    "ex": "E60 · 1.d4 Nf6 2.c4 g6 3.g3 — Fianchettoes at once, keeping the central structure completely fluid."
   },
   {
     "topic": "flank",
@@ -3102,7 +3102,7 @@ export const chessOpenings: QuizCategory = {
       "Alekhine Defense",
       "English Opening: Anglo-Indian Defense, Queen's Knight Variation"
     ],
-    "ex": "B00 · 1.e4 Nc6 2.d4 d5",
+    "ex": "B00 · 1.e4 Nc6 2.d4 d5 — Strikes at e4 immediately, Scandinavian-style, in Nimzowitsch clothing.",
     "type": "which"
   },
   {
@@ -3114,7 +3114,7 @@ export const chessOpenings: QuizCategory = {
       "1.e4 d6 2.d4",
       "1.Nf3 d5 2.g3"
     ],
-    "ex": "B00 · 1.e4 Nc6 2.d4 d5"
+    "ex": "B00 · 1.e4 Nc6 2.d4 d5 — Strikes at e4 immediately, Scandinavian-style, in Nimzowitsch clothing."
   },
   {
     "topic": "closed",
@@ -3125,7 +3125,7 @@ export const chessOpenings: QuizCategory = {
       "Queen's Gambit Declined: Exchange Variation",
       "Catalan Opening"
     ],
-    "ex": "D30 · 1.d4 d5 2.c4 e6 3.Nf3",
+    "ex": "D30 · 1.d4 d5 2.c4 e6 3.Nf3 — Keeps both the ...c5 break and the Orthodox setup available.",
     "type": "which"
   },
   {
@@ -3137,7 +3137,7 @@ export const chessOpenings: QuizCategory = {
       "1.d4 Nf6 2.c4 e6 3.Nf3 Bb4+",
       "1.d4 Nf6 2.Nc3"
     ],
-    "ex": "D30 · 1.d4 d5 2.c4 e6 3.Nf3"
+    "ex": "D30 · 1.d4 d5 2.c4 e6 3.Nf3 — Keeps both the ...c5 break and the Orthodox setup available."
   },
   {
     "topic": "flank",
@@ -3148,7 +3148,7 @@ export const chessOpenings: QuizCategory = {
       "Scandinavian Defense: Modern Variation",
       "Alekhine Defense: Mokele Mbembe"
     ],
-    "ex": "A09 · 1.Nf3 d5 2.c4",
+    "ex": "A09 · 1.Nf3 d5 2.c4 — Hypermodern flank pressure: invite ...d5, then undermine the center.",
     "type": "which"
   },
   {
@@ -3160,7 +3160,7 @@ export const chessOpenings: QuizCategory = {
       "1.c4 e6 2.Nf3 d5 3.g3",
       "1.c4 e5 2.Nc3 Nf6"
     ],
-    "ex": "A09 · 1.Nf3 d5 2.c4"
+    "ex": "A09 · 1.Nf3 d5 2.c4 — Hypermodern flank pressure: invite ...d5, then undermine the center."
   },
   {
     "topic": "sicilian",
@@ -3171,7 +3171,7 @@ export const chessOpenings: QuizCategory = {
       "Sicilian Defense: O'Kelly Variation",
       "Sicilian Defense: Halasz Gambit"
     ],
-    "ex": "B27 · 1.e4 c5 2.Nf3 g6",
+    "ex": "B27 · 1.e4 c5 2.Nf3 g6 — The Dragon without ...d6: faster fianchetto and ...d5 in a single bound.",
     "type": "which"
   },
   {
@@ -3183,7 +3183,7 @@ export const chessOpenings: QuizCategory = {
       "1.e4 c5 2.d4 cxd4 3.c3 dxc3 4.Nxc3",
       "1.e4 c5 2.Nc3 Nc6"
     ],
-    "ex": "B27 · 1.e4 c5 2.Nf3 g6"
+    "ex": "B27 · 1.e4 c5 2.Nf3 g6 — The Dragon without ...d6: faster fianchetto and ...d5 in a single bound."
   },
   {
     "topic": "open",
@@ -3194,7 +3194,7 @@ export const chessOpenings: QuizCategory = {
       "Scotch Game: Scotch Gambit",
       "King's Knight Opening"
     ],
-    "ex": "C25 · 1.e4 e5 2.Nc3 Nc6 3.f4 exf4",
+    "ex": "C25 · 1.e4 e5 2.Nc3 Nc6 3.f4 exf4 — Gambits and rolls the center with d4, king safety be damned.",
     "type": "which"
   },
   {
@@ -3206,7 +3206,7 @@ export const chessOpenings: QuizCategory = {
       "1.e4 e5 2.Nf3 Nc6 3.Nc3 Nf6 4.Bb5",
       "1.e4 e5 2.Nf3"
     ],
-    "ex": "C25 · 1.e4 e5 2.Nc3 Nc6 3.f4 exf4"
+    "ex": "C25 · 1.e4 e5 2.Nc3 Nc6 3.f4 exf4 — Gambits and rolls the center with d4, king safety be damned."
   },
   {
     "topic": "closed",
@@ -3217,7 +3217,7 @@ export const chessOpenings: QuizCategory = {
       "Queen's Gambit Declined: Chigorin Defense",
       "Grünfeld Defense: Exchange Variation"
     ],
-    "ex": "E10 · 1.d4 Nf6 2.c4 e6 3.Nf3 c5",
+    "ex": "E10 · 1.d4 Nf6 2.c4 e6 3.Nf3 c5 — Preludes the ...b5 pawn sacrifice for queenside pressure and open files.",
     "type": "which"
   },
   {
@@ -3229,7 +3229,7 @@ export const chessOpenings: QuizCategory = {
       "1.d4 d5 2.c4 e5",
       "1.d4 Nf6 2.c4 e6 3.Nf3 b6"
     ],
-    "ex": "E10 · 1.d4 Nf6 2.c4 e6 3.Nf3 c5"
+    "ex": "E10 · 1.d4 Nf6 2.c4 e6 3.Nf3 c5 — Preludes the ...b5 pawn sacrifice for queenside pressure and open files."
   },
   {
     "topic": "flank",
@@ -3240,7 +3240,7 @@ export const chessOpenings: QuizCategory = {
       "Alekhine Defense",
       "Alekhine Defense: Normal Variation"
     ],
-    "ex": "A34 · 1.c4 c5 2.Nc3",
+    "ex": "A34 · 1.c4 c5 2.Nc3 — A mirror-image maneuvering duel where a single tempo decides everything.",
     "type": "which"
   },
   {
@@ -3252,7 +3252,7 @@ export const chessOpenings: QuizCategory = {
       "1.e4 d5 2.exd5 Qxd5",
       "1.e4 d5 2.exd5 Qxd5 3.Nc3"
     ],
-    "ex": "A34 · 1.c4 c5 2.Nc3"
+    "ex": "A34 · 1.c4 c5 2.Nc3 — A mirror-image maneuvering duel where a single tempo decides everything."
   },
   {
     "topic": "closed",
@@ -3263,7 +3263,7 @@ export const chessOpenings: QuizCategory = {
       "Queen's Gambit Declined: Tarrasch Defense, Pseudo-Tarrasch",
       "Slav Defense: Modern Line"
     ],
-    "ex": "A53 · 1.d4 Nf6 2.c4 d6",
+    "ex": "A53 · 1.d4 Nf6 2.c4 d6 — Solid but humble: builds the ...e5 break slowly behind a low profile.",
     "type": "which"
   },
   {
@@ -3275,7 +3275,7 @@ export const chessOpenings: QuizCategory = {
       "1.d4 d5 2.c4 e6",
       "1.d4 d5 2.Nf3"
     ],
-    "ex": "A53 · 1.d4 Nf6 2.c4 d6"
+    "ex": "A53 · 1.d4 Nf6 2.c4 d6 — Solid but humble: builds the ...e5 break slowly behind a low profile."
   },
   {
     "topic": "closed",
@@ -3286,7 +3286,7 @@ export const chessOpenings: QuizCategory = {
       "Nimzo-Indian Defense: Rubinstein System",
       "Indian Defense"
     ],
-    "ex": "D35 · 1.d4 Nf6 2.c4 e6 3.Nc3 d5 4.cxd5",
+    "ex": "D35 · 1.d4 Nf6 2.c4 e6 3.Nc3 d5 4.cxd5 — Straightens the structure into symmetry; White's minority attack is the classic plan.",
     "type": "which"
   },
   {
@@ -3298,7 +3298,7 @@ export const chessOpenings: QuizCategory = {
       "1.d4 d5 2.c4 e5",
       "1.d4 d5 2.c4 e6 3.Nc3 c6"
     ],
-    "ex": "D35 · 1.d4 Nf6 2.c4 e6 3.Nc3 d5 4.cxd5"
+    "ex": "D35 · 1.d4 Nf6 2.c4 e6 3.Nc3 d5 4.cxd5 — Straightens the structure into symmetry; White's minority attack is the classic plan."
   },
   {
     "topic": "open",
@@ -3309,7 +3309,7 @@ export const chessOpenings: QuizCategory = {
       "Ruy Lopez: Bird's Defense Deferred",
       "Ponziani Opening"
     ],
-    "ex": "C24 · 1.e4 e5 2.Bc4 Nf6",
+    "ex": "C24 · 1.e4 e5 2.Bc4 Nf6 — Counterattacks e4 on the spot, Berlin-style: solidity with teeth.",
     "type": "which"
   },
   {
@@ -3321,7 +3321,7 @@ export const chessOpenings: QuizCategory = {
       "1.e4 e5 2.Nf3 Nc6 3.Bb5",
       "1.e4 e5 2.Nf3 Nc6 3.Bc4 Nf6 4.d4"
     ],
-    "ex": "C24 · 1.e4 e5 2.Bc4 Nf6"
+    "ex": "C24 · 1.e4 e5 2.Bc4 Nf6 — Counterattacks e4 on the spot, Berlin-style: solidity with teeth."
   },
   {
     "topic": "closed",
@@ -3332,7 +3332,7 @@ export const chessOpenings: QuizCategory = {
       "King's Indian Defense",
       "Nimzo-Indian Defense: Classical Variation"
     ],
-    "ex": "E11 · 1.d4 Nf6 2.c4 e6 3.Nf3 Bb4+",
+    "ex": "E11 · 1.d4 Nf6 2.c4 e6 3.Nf3 Bb4+ — The surprise check develops with tempo and often swaps bishop for knight.",
     "type": "which"
   },
   {
@@ -3344,7 +3344,7 @@ export const chessOpenings: QuizCategory = {
       "1.d4 d5 2.e4 dxe4 3.Nc3 Nf6 4.f3",
       "1.d4 g6 2.c4"
     ],
-    "ex": "E11 · 1.d4 Nf6 2.c4 e6 3.Nf3 Bb4+"
+    "ex": "E11 · 1.d4 Nf6 2.c4 e6 3.Nf3 Bb4+ — The surprise check develops with tempo and often swaps bishop for knight."
   },
   {
     "topic": "flank",
@@ -3355,7 +3355,7 @@ export const chessOpenings: QuizCategory = {
       "English Opening: King's English Variation, Two Knights Variation",
       "Alekhine Defense: Mokele Mbembe"
     ],
-    "ex": "A16 · 1.c4 Nf6 2.Nc3",
+    "ex": "A16 · 1.c4 Nf6 2.Nc3 — Flexible queenside development, ready for ...e5 or ...c5 breaks.",
     "type": "which"
   },
   {
@@ -3367,7 +3367,7 @@ export const chessOpenings: QuizCategory = {
       "1.c4 Nf6 2.Nf3",
       "1.e4 d5 2.exd5 Qxd5"
     ],
-    "ex": "A16 · 1.c4 Nf6 2.Nc3"
+    "ex": "A16 · 1.c4 Nf6 2.Nc3 — Flexible queenside development, ready for ...e5 or ...c5 breaks."
   },
   {
     "topic": "closed",
@@ -3378,7 +3378,7 @@ export const chessOpenings: QuizCategory = {
       "Queen's Gambit Declined: Traditional Variation",
       "Dutch Defense: Classical Variation"
     ],
-    "ex": "A45 · 1.d4 Nf6 2.Nc3",
+    "ex": "A45 · 1.d4 Nf6 2.Nc3 — An offbeat White setup that invites an early central counter-gambit from Black.",
     "type": "which"
   },
   {
@@ -3390,7 +3390,7 @@ export const chessOpenings: QuizCategory = {
       "1.d4 Nf6 2.c4 e6 3.Nc3 Bb4 4.Qc2",
       "1.d4 Nf6 2.c4 c5 3.d5 e6"
     ],
-    "ex": "A45 · 1.d4 Nf6 2.Nc3"
+    "ex": "A45 · 1.d4 Nf6 2.Nc3 — An offbeat White setup that invites an early central counter-gambit from Black."
   },
   {
     "topic": "open",
@@ -3401,7 +3401,7 @@ export const chessOpenings: QuizCategory = {
       "Bishop's Opening: Berlin Defense",
       "Petrov's Defense"
     ],
-    "ex": "C33 · 1.e4 e5 2.f4 exf4 3.Bc4 Qh4+",
+    "ex": "C33 · 1.e4 e5 2.f4 exf4 3.Bc4 Qh4+ — Black snatches the check at once; White's wandering king is the price of the attack.",
     "type": "which"
   },
   {
@@ -3413,7 +3413,7 @@ export const chessOpenings: QuizCategory = {
       "1.e4 e5 2.Nc3",
       "1.e4 e5 2.Nf3 Nc6 3.Bc4 Nf6 4.Ng5"
     ],
-    "ex": "C33 · 1.e4 e5 2.f4 exf4 3.Bc4 Qh4+"
+    "ex": "C33 · 1.e4 e5 2.f4 exf4 3.Bc4 Qh4+ — Black snatches the check at once; White's wandering king is the price of the attack."
   },
   {
     "topic": "closed",
@@ -3424,7 +3424,7 @@ export const chessOpenings: QuizCategory = {
       "Indian Defense",
       "Indian Defense: Knights Variation"
     ],
-    "ex": "A41 · 1.d4 g6 2.c4",
+    "ex": "A41 · 1.d4 g6 2.c4 — The hypermodern shrug: concede the center, then attack it from the flank.",
     "type": "which"
   },
   {
@@ -3436,7 +3436,7 @@ export const chessOpenings: QuizCategory = {
       "1.d4 d5 2.Nf3",
       "1.d4 Nf6 2.c4 g6 3.Nc3 d5 4.cxd5"
     ],
-    "ex": "A41 · 1.d4 g6 2.c4"
+    "ex": "A41 · 1.d4 g6 2.c4 — The hypermodern shrug: concede the center, then attack it from the flank."
   },
   {
     "topic": "closed",
@@ -3447,7 +3447,7 @@ export const chessOpenings: QuizCategory = {
       "Dutch Defense: Normal Variation",
       "East Indian Defense"
     ],
-    "ex": "D08 · 1.d4 d5 2.c4 e5",
+    "ex": "D08 · 1.d4 d5 2.c4 e5 — Counter-gambits the center for initiative; the Lasker Trap punishes greedy captures.",
     "type": "which"
   },
   {
@@ -3459,7 +3459,7 @@ export const chessOpenings: QuizCategory = {
       "1.d4 d5 2.Nf3",
       "1.d4 Nf6 2.c4 e6 3.Nf3 d5"
     ],
-    "ex": "D08 · 1.d4 d5 2.c4 e5"
+    "ex": "D08 · 1.d4 d5 2.c4 e5 — Counter-gambits the center for initiative; the Lasker Trap punishes greedy captures."
   },
   {
     "topic": "closed",
@@ -3470,7 +3470,7 @@ export const chessOpenings: QuizCategory = {
       "King's Indian Defense: Fianchetto Variation, Immediate Fianchetto",
       "Benoni Defense: Modern Variation, Snake Variation"
     ],
-    "ex": "D07 · 1.d4 d5 2.c4 Nc6",
+    "ex": "D07 · 1.d4 d5 2.c4 Nc6 — Posts the knight on the active but loose c6 square, keeping ...e5 and ...c5 fluid.",
     "type": "which"
   },
   {
@@ -3482,7 +3482,7 @@ export const chessOpenings: QuizCategory = {
       "1.d4 d5 2.c4 e6 3.Nc3",
       "1.d4 d5 2.c4 e6 3.Nc3 c5 4.cxd5"
     ],
-    "ex": "D07 · 1.d4 d5 2.c4 Nc6"
+    "ex": "D07 · 1.d4 d5 2.c4 Nc6 — Posts the knight on the active but loose c6 square, keeping ...e5 and ...c5 fluid."
   }
 ],
 };
